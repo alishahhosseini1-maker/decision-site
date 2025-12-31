@@ -33,11 +33,14 @@ export default function HomePage() {
           <Link href="/walkthrough" style={{ textDecoration: 'none' }}>
             Walkthrough
           </Link>
+          <Link href="/tool" style={{ textDecoration: 'none' }}>
+            Tool
+          </Link>
         </nav>
       </header>
 
       {/* Hero */}
-      <h1 style={{ fontSize: 48, margin: '0 0 16px 0', letterSpacing: -0.5 }}>
+      <h1 style={{ fontSize: 52, margin: '0 0 16px 0', letterSpacing: -0.8 }}>
         Decision Thinking for <br /> Capital Allocation
       </h1>
 
@@ -74,27 +77,29 @@ export default function HomePage() {
             display: 'block',
             padding: '14px 16px',
             border: '1px solid rgba(0,0,0,0.12)',
-            borderRadius: 10,
+            borderRadius: 12,
             textDecoration: 'none',
+            background: 'rgba(255,255,255,0.55)',
           }}
         >
-          <div style={{ fontWeight: 600 }}>→ Decision Review</div>
+          <div style={{ fontWeight: 650 }}>→ Decision Review</div>
           <div style={{ fontSize: 14, opacity: 0.75 }}>
             Pressure-test a decision before committing capital.
           </div>
         </Link>
 
         <Link
-          href="/decision-review/walkthrough"
+          href="/walkthrough"
           style={{
             display: 'block',
             padding: '14px 16px',
             border: '1px solid rgba(0,0,0,0.12)',
-            borderRadius: 10,
+            borderRadius: 12,
             textDecoration: 'none',
+            background: 'rgba(255,255,255,0.55)',
           }}
         >
-          <div style={{ fontWeight: 600 }}>→ Decision Review Walkthrough</div>
+          <div style={{ fontWeight: 650 }}>→ Decision Review Walkthrough</div>
           <div style={{ fontSize: 14, opacity: 0.75 }}>
             A 3-minute guide to using the Decision Review correctly.
           </div>
@@ -106,13 +111,31 @@ export default function HomePage() {
             display: 'block',
             padding: '14px 16px',
             border: '1px solid rgba(0,0,0,0.12)',
-            borderRadius: 10,
+            borderRadius: 12,
             textDecoration: 'none',
+            background: 'rgba(255,255,255,0.55)',
           }}
         >
-          <div style={{ fontWeight: 600 }}>→ Decision Models</div>
+          <div style={{ fontWeight: 650 }}>→ Decision Models</div>
           <div style={{ fontSize: 14, opacity: 0.75 }}>
             Core mental models for reasoning under uncertainty.
+          </div>
+        </Link>
+
+        <Link
+          href="/tool"
+          style={{
+            display: 'block',
+            padding: '14px 16px',
+            border: '1px solid rgba(0,0,0,0.12)',
+            borderRadius: 12,
+            textDecoration: 'none',
+            background: 'rgba(255,255,255,0.55)',
+          }}
+        >
+          <div style={{ fontWeight: 650 }}>→ Decision Tool</div>
+          <div style={{ fontSize: 14, opacity: 0.75 }}>
+            Use the live Decision Layer app inside this site.
           </div>
         </Link>
       </section>
