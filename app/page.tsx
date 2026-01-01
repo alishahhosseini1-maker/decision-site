@@ -1,137 +1,110 @@
 'use client';
 
-import Link from 'next/link';
 import { useMemo, useState } from 'react';
-
-const FIXED_TONE =
-  'Calm, precise, direct — like a senior engineer doing a design review.';
+import Link from 'next/link';
 
 export default function HomePage() {
   const [decision, setDecision] = useState('');
   const [context, setContext] = useState('');
-  const [horizon, setHorizon] = useState('24–48 months');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showPrompt, setShowPrompt] = useState(false);
 
-  const prompt = useMemo(() => {
-    const trimmedDecision = decision.trim();
-    const trimmedContext = context.trim();
-    const safeHorizon = horizon.trim() || '24–48 months';
+  const horizon = '24–48 months';
+  const tone =
+    'Calm, precise, direct. Like a senior engineer doing a design review.';
 
-    const decisionBlock = trimmedDecision
-      ? `DECISION:\n${trimmedDecision}`
+  const prompt = useMemo(() => {
+    const decisionBlock = decision.trim()
+      ? `DECISION:\n${decision.trim()}`
       : `DECISION:\n[Paste the decision here]`;
 
-    const contextBlock = trimmedContext
-      ? `\n\nCONTEXT (optional):\n${trimmedContext}`
+    const contextBlock = context.trim()
+      ? `\n\nCONTEXT (optional):\n${context.trim()}`
       : '';
 
-    return `You are a disciplined investing decision partner for senior engineers and tech executives.
+    return `You are a disciplined investing decision partner for senior engineers and executives.
 
 Your job is NOT to provide stock picks, predictions, or market commentary.
 Your job is to pressure-test a decision before capital is committed.
 
-Time horizon: ${safeHorizon}
+Time horizon: ${horizon}
 
 Style requirements:
-- ${FIXED_TONE}
+- ${tone}
 - Ignore information that does not materially change conviction, sizing, timing, or risk
 - Challenge vague thinking
 - Surface assumptions
-- Force specificity (numbers, constraints, triggers)
-- Highlight risks, failure modes, and base rates
-- Separate "knowns" vs "unknowns"
-- Output should be skimmable and actionable
+- Force specificity
+- Highlight risks and failure modes
+- Separate knowns vs unknowns
 
 ${decisionBlock}${contextBlock}
 
 Now run a Decision Review with this structure:
 
-1) Clarify the decision (rewrite it in 1 sentence)
-2) What has to be true? (top 5 assumptions)
-3) What would change your mind? (disconfirming evidence)
-4) Key risks / failure modes (ranked)
-5) Opportunity cost (what you're giving up)
-6) Sizing framework (a simple rule-of-thumb based on uncertainty + downside)
-7) Entry/exit plan (specific triggers, not vibes)
-8) Checklist (10 yes/no items)
-9) Recommendation (Proceed / Proceed smaller / Wait / Don't do it) + 2-line rationale`;
-  }, [decision, context, horizon]);
+1) Clarify the decision
+2) What has to be true?
+3) What would change your mind?
+4) Key risks / failure modes
+5) Opportunity cost
+6) Sizing framework
+7) Entry / exit rules
+8) Checklist
+9) Recommendation`;
+  }, [decision, context]);
 
   const copyPrompt = async () => {
-    try {
-      await navigator.clipboard.writeText(prompt);
-      alert('Copied Decision Review prompt to clipboard.');
-    } catch {
-      alert('Could not copy. Please copy manually from the prompt box.');
-    }
+    await navigator.clipboard.writeText(prompt);
+    alert('Decision Review prompt copied.');
   };
 
   return (
     <main
       style={{
-        maxWidth: 860,
-        margin: '56px auto',
-        padding: '0 20px 72px',
-        lineHeight: 1.55,
+        maxWidth: 760,
+        margin: '72px auto',
+        padding: '0 20px',
+        lineHeight: 1.6,
       }}
     >
-      {/* Top bar */}
-      <header
+      {/* Top nav (lighter, lower emphasis) */}
+      <nav
         style={{
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
+          justifyContent: 'flex-end',
           gap: 16,
-          marginBottom: 44,
+          fontSize: 13,
+          opacity: 0.65,
+          marginBottom: 48,
         }}
       >
-        <div style={{ fontSize: 14, opacity: 0.75 }}>
-          <strong>Decision Layer</strong> · working reference
-        </div>
+        <Link href="/decision-review">Decision Review</Link>
+        <Link href="/decision-models">Decision Models</Link>
+        <Link href="/walkthrough">Walkthrough</Link>
+      </nav>
 
-        <nav style={{ display: 'flex', gap: 14, fontSize: 14, flexWrap: 'wrap' }}>
-          <Link href="/decision-review" style={{ textDecoration: 'none' }}>
-            Decision Review
-          </Link>
-          <Link href="/decision-models" style={{ textDecoration: 'none' }}>
-            Decision Models
-          </Link>
-          <Link href="/walkthrough" style={{ textDecoration: 'none' }}>
-            Walkthrough
-          </Link>
-        </nav>
-      </header>
+      {/* Hero */}
+      <h1 style={{ fontSize: 48, marginBottom: 12 }}>Decision Layer</h1>
 
-      {/* Centered hero */}
-      <section style={{ textAlign: 'center', marginBottom: 26 }}>
-        <h1 style={{ fontSize: 52, margin: '0 0 10px 0', letterSpacing: -0.8 }}>
-          Decision Layer
-        </h1>
+      <p style={{ fontSize: 18, marginBottom: 6 }}>
+        A structured decision review for investment decisions before committing
+        capital.
+      </p>
 
-        <p style={{ fontSize: 18, margin: '0 0 6px 0', opacity: 0.9 }}>
-          A structured decision review for investment decisions before committing capital.
-        </p>
+      <p style={{ fontSize: 14, opacity: 0.7, marginBottom: 36 }}>
+        No stock picks. No predictions. No market commentary.
+      </p>
 
-        <p style={{ fontSize: 14, margin: 0, opacity: 0.7 }}>
-          No stock picks. No predictions. No market commentary.
-        </p>
-      </section>
-
-      {/* Tool card */}
-      <section
+      {/* Core card */}
+      <div
         style={{
-          maxWidth: 680,
-          margin: '0 auto',
-          padding: 18,
+          background: 'white',
           border: '1px solid rgba(0,0,0,0.12)',
           borderRadius: 14,
-          background: 'rgba(255,255,255,0.55)',
+          padding: 20,
         }}
       >
-        <div style={{ fontSize: 13, fontWeight: 650, marginBottom: 8 }}>
-          Decision
-        </div>
+        <label style={{ fontWeight: 600 }}>Decision</label>
 
         <textarea
           value={decision}
@@ -140,176 +113,119 @@ Now run a Decision Review with this structure:
           rows={5}
           style={{
             width: '100%',
-            resize: 'vertical',
-            borderRadius: 12,
-            border: '1px solid rgba(0,0,0,0.12)',
+            marginTop: 10,
             padding: 14,
+            borderRadius: 10,
+            border: '1px solid rgba(0,0,0,0.15)',
             fontSize: 14,
-            lineHeight: 1.5,
-            background: 'rgba(255,255,255,0.9)',
-            outline: 'none',
           }}
         />
 
-        {/* Optional: context + settings */}
-        <button
-          type="button"
-          onClick={() => setShowAdvanced((v) => !v)}
+        {/* Optional section */}
+        <div
+          onClick={() => setShowAdvanced(!showAdvanced)}
           style={{
-            width: '100%',
-            marginTop: 12,
-            padding: '12px 14px',
-            borderRadius: 12,
-            border: '1px solid rgba(0,0,0,0.12)',
-            background: 'rgba(255,255,255,0.75)',
-            textAlign: 'left',
+            marginTop: 14,
             cursor: 'pointer',
-            fontSize: 14,
             fontWeight: 600,
+            fontSize: 14,
           }}
         >
-          {showAdvanced ? '▼' : '▶'} Optional: context + settings
-        </button>
+          ▶ Optional: context + settings
+        </div>
 
         {showAdvanced && (
-          <div style={{ marginTop: 12, display: 'grid', gap: 12 }}>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 650, marginBottom: 6 }}>
-                Context (optional)
-              </div>
-              <textarea
-                value={context}
-                onChange={(e) => setContext(e.target.value)}
-                placeholder="Role, compensation structure, existing exposures, constraints, liquidity needs…"
-                rows={4}
-                style={{
-                  width: '100%',
-                  resize: 'vertical',
-                  borderRadius: 12,
-                  border: '1px solid rgba(0,0,0,0.12)',
-                  padding: 14,
-                  fontSize: 14,
-                  lineHeight: 1.5,
-                  background: 'rgba(255,255,255,0.9)',
-                  outline: 'none',
-                }}
-              />
-            </div>
-
-            <div style={{ display: 'grid', gap: 12, gridTemplateColumns: '1fr' }}>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 650, marginBottom: 6 }}>
-                  Time horizon
-                </div>
-                <input
-                  value={horizon}
-                  onChange={(e) => setHorizon(e.target.value)}
-                  style={{
-                    width: '100%',
-                    borderRadius: 12,
-                    border: '1px solid rgba(0,0,0,0.12)',
-                    padding: '12px 14px',
-                    fontSize: 14,
-                    background: 'rgba(255,255,255,0.9)',
-                    outline: 'none',
-                  }}
-                />
-              </div>
-
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 650, marginBottom: 6 }}>
-                  Tone (fixed)
-                </div>
-                <div
-                  style={{
-                    borderRadius: 12,
-                    border: '1px solid rgba(0,0,0,0.12)',
-                    padding: '12px 14px',
-                    fontSize: 14,
-                    background: 'rgba(245,245,245,0.9)',
-                    opacity: 0.9,
-                  }}
-                >
-                  {FIXED_TONE}
-                </div>
-              </div>
-            </div>
-          </div>
+          <textarea
+            value={context}
+            onChange={(e) => setContext(e.target.value)}
+            placeholder="Role, compensation structure, constraints, liquidity needs…"
+            rows={4}
+            style={{
+              width: '100%',
+              marginTop: 12,
+              padding: 14,
+              borderRadius: 10,
+              border: '1px solid rgba(0,0,0,0.15)',
+              fontSize: 14,
+            }}
+          />
         )}
 
         {/* Copy button */}
         <button
-          type="button"
           onClick={copyPrompt}
           style={{
+            marginTop: 18,
             width: '100%',
-            marginTop: 12,
-            padding: '14px 16px',
+            padding: '14px 0',
+            background: 'black',
+            color: 'white',
             borderRadius: 12,
-            border: '1px solid rgba(0,0,0,0.12)',
-            background: '#111',
-            color: '#fff',
-            fontSize: 14,
-            fontWeight: 650,
-            cursor: 'pointer',
+            fontSize: 15,
+            fontWeight: 600,
           }}
         >
           Copy Decision Review Prompt
         </button>
 
-        <div style={{ marginTop: 8, fontSize: 12, opacity: 0.7 }}>
+        <div style={{ marginTop: 10, fontSize: 13, opacity: 0.7 }}>
           Paste into ChatGPT / Claude / Gemini.
         </div>
 
-        {/* Prompt preview toggle */}
-        <button
-          type="button"
-          onClick={() => setShowPrompt((v) => !v)}
+        {/* View generated prompt toggle */}
+        <div
+          onClick={() => setShowPrompt(!showPrompt)}
           style={{
-            width: '100%',
-            marginTop: 10,
+            marginTop: 16,
             padding: '10px 14px',
-            borderRadius: 12,
-            border: '1px solid rgba(0,0,0,0.12)',
-            background: 'rgba(255,255,255,0.75)',
-            textAlign: 'left',
+            background: 'white',
+            color: 'black',
+            borderRadius: 10,
             cursor: 'pointer',
-            fontSize: 13,
+            fontSize: 14,
             fontWeight: 600,
           }}
         >
-          {showPrompt ? '▼' : '▶'} View generated prompt
-        </button>
+          ▶ View generated prompt
+        </div>
 
+        {/* Prompt preview */}
         {showPrompt && (
           <pre
             style={{
-              marginTop: 10,
-              whiteSpace: 'pre-wrap',
-              borderRadius: 12,
-              border: '1px solid rgba(0,0,0,0.12)',
-              background: 'rgba(255,255,255,0.9)',
+              marginTop: 12,
               padding: 14,
+              background: 'black',
+              color: 'white',
+              borderRadius: 10,
+              border: '1px solid rgba(0,0,0,0.15)',
               fontSize: 12,
-              lineHeight: 1.45,
-              overflow: 'auto',
+              whiteSpace: 'pre-wrap',
             }}
           >
             {prompt}
           </pre>
         )}
-      </section>
+      </div>
 
-      <footer
+      {/* Bottom positioning statement */}
+      <div
         style={{
-          marginTop: 28,
-          textAlign: 'center',
-          fontStyle: 'italic',
-          opacity: 0.7,
+          marginTop: 42,
+          display: 'flex',
+          gap: 10,
+          flexWrap: 'nowrap',
+          justifyContent: 'center',
+          fontSize: 13,
+          opacity: 0.75,
         }}
       >
-        If this feels slow, that’s intentional.
-      </footer>
+        <span>Pressure-tested decisions</span>
+        <span>•</span>
+        <span>Capital-aware reasoning</span>
+        <span>•</span>
+        <span>Executive-grade clarity</span>
+      </div>
     </main>
   );
 }
