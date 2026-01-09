@@ -1,155 +1,175 @@
+'use client';
+
 import Link from 'next/link';
 
 export default function DecisionReviewPage() {
-  return (
-    <main
-      style={{
-        maxWidth: 860,
-        margin: '72px auto',
-        padding: '0 20px',
-        lineHeight: 1.55,
-      }}
-    >
-      <header
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: 30,
-        }}
-      >
-        <Link href="/" style={{ textDecoration: 'none', fontSize: 14 }}>
-          ← Home
-        </Link>
+  const navLinkStyle: React.CSSProperties = {
+    textDecoration: 'none',
+    color: 'inherit',
+  };
 
-        <nav style={{ display: 'flex', gap: 14, fontSize: 14 }}>
-          <Link href="/decision-review" style={{ textDecoration: 'none' }}>
+  const border = '1px solid rgba(0,0,0,0.10)';
+  const shellBg = 'rgba(255,255,255,0.65)';
+  const softShadow = '0 10px 30px rgba(0,0,0,0.05)';
+
+  const cardStyle: React.CSSProperties = {
+    border,
+    borderRadius: 20,
+    background: shellBg,
+    padding: 22,
+    boxShadow: softShadow,
+  };
+
+  const sectionTitle: React.CSSProperties = {
+    fontSize: 13,
+    fontWeight: 800,
+    opacity: 0.9,
+    letterSpacing: 0.2,
+    marginBottom: 10,
+  };
+
+  const bodyText: React.CSSProperties = {
+    fontSize: 14.5,
+    opacity: 0.78,
+    lineHeight: 1.8,
+  };
+
+  const bulletList: React.CSSProperties = {
+    margin: '10px 0 0',
+    paddingLeft: 18,
+    lineHeight: 1.85,
+    opacity: 0.82,
+    fontSize: 14.5,
+  };
+
+  const divider: React.CSSProperties = {
+    height: 1,
+    background: 'rgba(0,0,0,0.06)',
+    margin: '18px 0',
+  };
+
+  const pill: React.CSSProperties = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 8,
+    padding: '8px 12px',
+    borderRadius: 999,
+    border: '1px solid rgba(0,0,0,0.10)',
+    background: 'rgba(255,255,255,0.7)',
+    fontSize: 12.5,
+    fontWeight: 700,
+    opacity: 0.88,
+    whiteSpace: 'nowrap',
+  };
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#f4f5f6', color: '#111' }}>
+      <main style={{ maxWidth: 980, margin: '28px auto 70px', padding: '0 20px' }}>
+        {/* Top nav */}
+        <header style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 6 }}>
+          <nav style={{ display: 'flex', gap: 18, fontSize: 13, opacity: 0.62, fontWeight: 400 }}>
+            <Link href="/decision-review" style={navLinkStyle}>
+              Decision Review
+            </Link>
+            <Link href="/decision-notes" style={navLinkStyle}>
+              Decision Notes
+            </Link>
+            <Link href="/walkthrough" style={navLinkStyle}>
+              Walkthrough
+            </Link>
+            <Link href="/decision-library" style={navLinkStyle}>
+              Decision Library
+            </Link>
+          </nav>
+        </header>
+
+        {/* Hero */}
+        <section style={{ marginTop: 66, maxWidth: 860 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
+            <span style={pill}>Concept</span>
+            <span style={pill}>Core workflow</span>
+            <span style={pill}>No prediction</span>
+          </div>
+
+          <h1 style={{ fontSize: 52, margin: '14px 0 0', letterSpacing: -1.0 }}>
             Decision Review
-          </Link>
-          <Link href="/decision-models" style={{ textDecoration: 'none' }}>
-            Decision Models
-          </Link>
-        </nav>
-      </header>
+          </h1>
 
-      <h1 style={{ fontSize: 40, margin: '0 0 10px 0', letterSpacing: -0.3 }}>
-        Decision Review
-      </h1>
+          <p style={{ margin: '14px 0 0', ...bodyText, fontSize: 15 }}>
+            A structured pause before committing capital, time, or reputation.
+            The purpose is decision quality under uncertainty — not outcomes, not forecasts, not narratives.
+          </p>
 
-      <p style={{ maxWidth: 760, margin: '0 0 22px 0', opacity: 0.85 }}>
-        A private working document to pressure-test decisions before committing
-        capital. This is about reducing blind spots — not increasing confidence.
-      </p>
+          <p style={{ margin: '10px 0 0', fontSize: 13.5, opacity: 0.62, lineHeight: 1.7 }}>
+            Use the tool on the homepage to generate a Decision Review. Use Decision Notes to preserve judgment at commitment time.
+          </p>
+        </section>
 
-      <section
-        style={{
-          border: '1px solid rgba(0,0,0,0.12)',
-          borderRadius: 12,
-          padding: 18,
-          maxWidth: 760,
-        }}
-      >
-        <Block
-          n="1"
-          title="The Decision (one sentence)"
-          q="What decision am I actually making?"
-        />
-        <Block
-          n="2"
-          title="What Has to Be True"
-          q="What must be true for this decision to work — not what could go right?"
-        />
-        <Block
-          n="3"
-          title="Disconfirming Evidence"
-          q="What evidence would clearly show this decision is wrong?"
-        />
-        <Block
-          n="4"
-          title="Failure Modes (ranked)"
-          q="How does this fail even if the thesis is “right”?"
-        />
-        <Block
-          n="5"
-          title="Opportunity Cost"
-          q="What am I giving up by saying yes to this?"
-        />
-        <Block
-          n="6"
-          title="Constraints"
-          q="What real-world constraints must be respected?"
-        />
-        <Block
-          n="7"
-          title="Size & Timing Rules"
-          q="If I proceed, what rules prevent overconfidence?"
-        />
-        <Block
-          n="8"
-          title="Final Check"
-          q="If this underperforms, will I regret the outcome — or the process?"
-          last
-        />
-      </section>
+        {/* Flow cards */}
+        <section style={{ marginTop: 18, maxWidth: 860, display: 'grid', gap: 14 }}>
+          {/* Card 1 */}
+          <div style={cardStyle}>
+            <div style={sectionTitle}>When to run one</div>
+            <ul style={bulletList}>
+              <li>The decision is meaningfully irreversible.</li>
+              <li>Being wrong would matter (financially, professionally, or emotionally).</li>
+              <li>You’re relying on assumptions you can’t yet verify.</li>
+              <li>You feel urgency, pressure, or narrative pull.</li>
+            </ul>
 
-      <footer style={{ marginTop: 22, maxWidth: 760, opacity: 0.75 }}>
-        Clarity is the objective. Confidence often trails bias. Process over
-        outcome.
-      </footer>
-    </main>
-  );
-}
+            <div style={divider} />
 
-function Block({
-  n,
-  title,
-  q,
-  last,
-}: {
-  n: string;
-  title: string;
-  q: string;
-  last?: boolean;
-}) {
-  return (
-    <div
-      style={{
-        padding: '12px 0',
-        borderBottom: last ? 'none' : '1px solid rgba(0,0,0,0.08)',
-      }}
-    >
-      <div style={{ display: 'flex', gap: 10, alignItems: 'baseline' }}>
-        <div
-          style={{
-            width: 28,
-            height: 28,
-            borderRadius: 8,
-            border: '1px solid rgba(0,0,0,0.15)',
-            display: 'grid',
-            placeItems: 'center',
-            fontSize: 13,
-            opacity: 0.8,
-            flexShrink: 0,
-          }}
-        >
-          {n}
-        </div>
-        <h2 style={{ fontSize: 18, margin: 0 }}>{title}</h2>
-      </div>
+            <div style={sectionTitle}>Rule</div>
+            <div style={{ ...bodyText, fontWeight: 700 }}>
+              Run a Decision Review only when being wrong would matter.
+            </div>
+          </div>
 
-      <p style={{ margin: '8px 0 0 38px', opacity: 0.85 }}>{q}</p>
-      <p style={{ margin: '8px 0 0 38px', fontSize: 14, opacity: 0.6 }}>
-        (Write your answer in plain language. Be specific.)
-      </p>
+          {/* Card 2 */}
+          <div style={cardStyle}>
+            <div style={sectionTitle}>What it forces</div>
+            <ul style={bulletList}>
+              <li>Clarity on the actual decision (not the story).</li>
+              <li>The few assumptions that must be true.</li>
+              <li>Disconfirming evidence (what would change your mind).</li>
+              <li>Risks and failure modes (ranked, not listed).</li>
+              <li>Sizing and triggers (specific, not vibes).</li>
+            </ul>
+
+            <div style={divider} />
+
+            <div style={sectionTitle}>Default behavior</div>
+            <div style={bodyText}>
+              Drafts are intentionally ephemeral. If you want to preserve the decision at commitment time, write a Decision Note.
+            </div>
+          </div>
+
+          {/* Card 3 */}
+          <div style={cardStyle}>
+            <div style={sectionTitle}>What it is not</div>
+            <ul style={bulletList}>
+              <li>Stock picks, predictions, or market commentary.</li>
+              <li>A long memo.</li>
+              <li>Outcome-driven hindsight.</li>
+              <li>A productivity ritual.</li>
+            </ul>
+
+            <div style={divider} />
+
+            <div style={sectionTitle}>Engineer translation</div>
+            <div style={bodyText}>
+              It’s a <span style={{ fontWeight: 800 }}>commit message for a decision</span> — intent preserved so it can be audited later.
+            </div>
+          </div>
+        </section>
+
+        {/* Footer */}
+        <footer style={{ marginTop: 18, maxWidth: 860 }}>
+          <div style={{ fontSize: 13, opacity: 0.55, lineHeight: 1.7 }}>
+            Clarity before commitment. Nothing more.
+          </div>
+        </footer>
+      </main>
     </div>
   );
 }
-<p style={{ marginTop: '24px' }}>
-  <a href="/decision-review/walkthrough">→ Walk through an example</a>
-</p>;
-<p style={{ marginTop: '12px' }}>
-  <a href="/decision-review/walkthrough">→ Decision Review Walkthrough</a>
-</p>;
-<p style={{ marginTop: 16 }}>
-  <a href="/walkthrough">→ Walkthrough (3 minutes)</a>
-</p>;

@@ -5,13 +5,10 @@ import { useMemo, useState } from 'react';
 
 export default function HomePage() {
   const [decision, setDecision] = useState('');
-  const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const [context, setContext] = useState('');
   const [horizon, setHorizon] = useState('24–48 months');
-  const [showPrompt, setShowPrompt] = useState(false);
 
-  const tone =
-    'Calm, precise, direct. Like a senior engineer doing a design review.';
+  const tone = 'Calm, precise, direct. Like a senior engineer doing a design review.';
 
   const prompt = useMemo(() => {
     const trimmedDecision = decision.trim();
@@ -21,9 +18,7 @@ export default function HomePage() {
       ? `DECISION:\n${trimmedDecision}`
       : `DECISION:\n[Paste the decision here]`;
 
-    const contextBlock = trimmedContext
-      ? `\n\nCONTEXT (optional):\n${trimmedContext}`
-      : '';
+    const contextBlock = trimmedContext ? `\n\nCONTEXT (optional):\n${trimmedContext}` : '';
 
     return `You are a disciplined investing decision partner for senior engineers and tech executives.
 
@@ -59,76 +54,81 @@ Now run a Decision Review with this structure:
 
   const copyPrompt = async () => {
     await navigator.clipboard.writeText(prompt);
-    alert('Copied Decision Review prompt to clipboard.');
+    alert('Copied to clipboard.');
+  };
+
+  const shellBg = 'rgba(255,255,255,0.65)';
+  const border = '1px solid rgba(0,0,0,0.10)';
+
+  const detailStyle: React.CSSProperties = {
+    border,
+    borderRadius: 12,
+    background: 'rgba(255,255,255,0.55)',
+    padding: '10px 12px',
+  };
+
+  const summaryStyle: React.CSSProperties = {
+    cursor: 'pointer',
+    listStyle: 'none',
+    outline: 'none',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    fontSize: 14,
+    fontWeight: 500,
+    opacity: 0.9,
+  };
+
+  const navLinkStyle: React.CSSProperties = {
+    textDecoration: 'none',
+    color: 'inherit',
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(180deg, #E6EAEA 0%, #F5F6F6 60%, #FFFFFF 100%)',
-        color: '#0A0A0A',
-      }}
-    >
-      {/* Top nav */}
-      <header
-        style={{
-          maxWidth: 920,
-          margin: '0 auto',
-          padding: '28px 20px 0',
-          display: 'flex',
-          justifyContent: 'flex-end',
-        }}
-      >
-        <nav
+    <div style={{ minHeight: '100vh', background: '#f4f5f6', color: '#111' }}>
+      <main style={{ maxWidth: 980, margin: '28px auto 60px', padding: '0 20px' }}>
+        {/* Top nav (opinionated, minimal: 4 items) */}
+        <header
           style={{
             display: 'flex',
-            gap: 18,
-            fontSize: 13,
-            opacity: 0.68,
-            letterSpacing: 0.1,
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+            paddingTop: 6,
           }}
         >
-          <Link href="/decision-review" style={{ textDecoration: 'none', color: 'inherit' }}>
-            Decision Review
-          </Link>
-          <Link href="/decision-models" style={{ textDecoration: 'none', color: 'inherit' }}>
-            Decision Models
-          </Link>
-          <Link href="/walkthrough" style={{ textDecoration: 'none', color: 'inherit' }}>
-            Walkthrough
-          </Link>
-        </nav>
-      </header>
-
-      {/* Main */}
-      <main style={{ maxWidth: 920, margin: '0 auto', padding: '44px 20px 56px' }}>
-        {/* Hero */}
-        <section style={{ maxWidth: 760 }}>
-          <h1
+          <nav
             style={{
-              fontSize: 64,
-              lineHeight: 1.02,
-              margin: '0 0 18px 0',
-              letterSpacing: -1.2,
-              fontWeight: 500,
+              display: 'flex',
+              gap: 18,
+              fontSize: 13,
+              opacity: 0.62,
+              fontWeight: 400,
             }}
           >
-            Decision Layer
-          </h1>
+            <Link href="/decision-review" style={navLinkStyle}>
+              Decision Review
+            </Link>
+            <Link href="/decision-notes" style={navLinkStyle}>
+              Decision Notes
+            </Link>
+            <Link href="/walkthrough" style={navLinkStyle}>
+              Walkthrough
+            </Link>
+            <Link href="/decision-library" style={navLinkStyle}>
+              Decision Library
+            </Link>
+          </nav>
+        </header>
 
-          <p
-            style={{
-              fontSize: 18,
-              lineHeight: 1.6,
-              margin: '0 0 8px 0',
-              opacity: 0.92,
-            }}
-          >
-            Clear thinking before committing capital.
+        {/* Centered hero */}
+        <section style={{ textAlign: 'center', marginTop: 54 }}>
+          <h1 style={{ fontSize: 64, margin: 0, letterSpacing: -1.1 }}>Decision Layer</h1>
+
+          <p style={{ margin: '10px 0 0', fontSize: 18, opacity: 0.9 }}>
+            Clear thinking before committing capital — time, or reputation.
           </p>
 
-          <p style={{ fontSize: 14, margin: 0, opacity: 0.65 }}>
+          <p style={{ margin: '8px 0 0', fontSize: 14, opacity: 0.65 }}>
             No stock picks. No predictions. No market commentary.
           </p>
         </section>
@@ -136,239 +136,196 @@ Now run a Decision Review with this structure:
         {/* Card */}
         <section
           style={{
-            marginTop: 26,
-            maxWidth: 760,
-            background: 'rgba(255,255,255,0.72)',
-            border: '1px solid rgba(0,0,0,0.08)',
+            maxWidth: 720,
+            margin: '28px auto 0',
+            border,
             borderRadius: 18,
+            background: shellBg,
             padding: 18,
-            boxShadow: '0 10px 30px rgba(0,0,0,0.06)',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
+            textAlign: 'left',
           }}
         >
-          {/* Decision */}
-          <div
-            style={{
-              background: 'rgba(255,255,255,0.9)',
-              border: '1px solid rgba(0,0,0,0.08)',
-              borderRadius: 14,
-              padding: 16,
-            }}
-          >
-            <div style={{ fontSize: 13, fontWeight: 650, marginBottom: 10 }}>
-              Decision
-            </div>
+          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Decision</div>
 
-            <textarea
-              value={decision}
-              onChange={(e) => setDecision(e.target.value)}
-              placeholder="Example: I’m considering increasing my NVIDIA exposure, but I’m unsure how to size it given RSUs, valuation risk, and a 30% drawdown tolerance."
-              rows={5}
-              style={{
-                width: '100%',
-                resize: 'vertical',
-                borderRadius: 12,
-                border: '1px solid rgba(0,0,0,0.14)',
-                padding: 14,
-                fontSize: 14,
-                lineHeight: 1.55,
-                outline: 'none',
-                background: '#FFFFFF',
-              }}
-            />
-          </div>
-
-          {/* Optional settings */}
-          <button
-            type="button"
-            onClick={() => setIsAdvancedOpen((v) => !v)}
+          <textarea
+            value={decision}
+            onChange={(e) => setDecision(e.target.value)}
+            placeholder="Example: I’m considering increasing my NVIDIA exposure, but I’m unsure how to size it given RSUs, valuation risk, and a 30% drawdown tolerance."
+            rows={5}
             style={{
               width: '100%',
-              marginTop: 14,
-              padding: '12px 14px',
-              borderRadius: 12,
-              border: '1px solid rgba(0,0,0,0.10)',
-              background: 'rgba(255,255,255,0.55)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              cursor: 'pointer',
+              borderRadius: 14,
+              border: '1px solid rgba(0,0,0,0.15)',
+              padding: 14,
+              fontSize: 14,
+              lineHeight: 1.45,
+              resize: 'vertical',
+              background: '#fff',
+              outline: 'none',
             }}
-          >
-            <span style={{ fontSize: 13, fontWeight: 600 }}>
-              {isAdvancedOpen ? '▼' : '▶'} Optional: context + settings
-            </span>
-            <span style={{ fontSize: 12, opacity: 0.6 }}>
-              {isAdvancedOpen ? 'Hide' : 'Show'}
-            </span>
-          </button>
+          />
 
-          {isAdvancedOpen && (
-            <div
-              style={{
-                marginTop: 12,
-                display: 'grid',
-                gap: 12,
-              }}
-            >
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 650, marginBottom: 8 }}>
-                  Context (optional)
+          <div style={{ marginTop: 8, fontSize: 12.5, opacity: 0.6 }}>
+            This is for decisions where being wrong would matter.
+          </div>
+
+          {/* Optional: context (subtle) */}
+          <div style={{ marginTop: 12 }}>
+            <details style={detailStyle}>
+              <summary style={summaryStyle}>
+                <span>▶ Optional: context</span>
+                <span style={{ opacity: 0.55, fontSize: 12 }}>expand</span>
+              </summary>
+
+              <div style={{ marginTop: 12 }}>
+                <div style={{ display: 'grid', gap: 12 }}>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6, opacity: 0.9 }}>
+                      Context (optional)
+                    </div>
+                    <textarea
+                      value={context}
+                      onChange={(e) => setContext(e.target.value)}
+                      placeholder="Role, comp structure, existing exposures, constraints, liquidity needs…"
+                      rows={4}
+                      style={{
+                        width: '100%',
+                        borderRadius: 14,
+                        border: '1px solid rgba(0,0,0,0.15)',
+                        padding: 14,
+                        fontSize: 14,
+                        lineHeight: 1.45,
+                        resize: 'vertical',
+                        background: '#fff',
+                        outline: 'none',
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'grid', gap: 12 }}>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6, opacity: 0.9 }}>
+                        Time horizon
+                      </div>
+                      <input
+                        value={horizon}
+                        onChange={(e) => setHorizon(e.target.value)}
+                        style={{
+                          width: '100%',
+                          borderRadius: 12,
+                          border: '1px solid rgba(0,0,0,0.15)',
+                          padding: '10px 12px',
+                          fontSize: 14,
+                          background: '#fff',
+                          outline: 'none',
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6, opacity: 0.9 }}>
+                        Tone (fixed)
+                      </div>
+                      <div
+                        style={{
+                          width: '100%',
+                          borderRadius: 12,
+                          border: '1px solid rgba(0,0,0,0.10)',
+                          padding: '10px 12px',
+                          fontSize: 13,
+                          background: 'rgba(255,255,255,0.7)',
+                          opacity: 0.85,
+                        }}
+                      >
+                        {tone}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <textarea
-                  value={context}
-                  onChange={(e) => setContext(e.target.value)}
-                  placeholder="Role, compensation structure, existing exposures, constraints, liquidity needs…"
-                  rows={4}
-                  style={{
-                    width: '100%',
-                    resize: 'vertical',
-                    borderRadius: 12,
-                    border: '1px solid rgba(0,0,0,0.14)',
-                    padding: 14,
-                    fontSize: 14,
-                    lineHeight: 1.55,
-                    outline: 'none',
-                    background: '#FFFFFF',
-                  }}
-                />
               </div>
+            </details>
+          </div>
 
-              <div style={{ display: 'grid', gap: 12, gridTemplateColumns: '1fr' }}>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 650, marginBottom: 8 }}>
-                    Time horizon
-                  </div>
-                  <input
-                    value={horizon}
-                    onChange={(e) => setHorizon(e.target.value)}
-                    style={{
-                      width: '100%',
-                      borderRadius: 12,
-                      border: '1px solid rgba(0,0,0,0.14)',
-                      padding: '12px 14px',
-                      fontSize: 14,
-                      outline: 'none',
-                      background: '#FFFFFF',
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 650, marginBottom: 8 }}>
-                    Tone
-                  </div>
-                  <div
-                    style={{
-                      width: '100%',
-                      borderRadius: 12,
-                      border: '1px solid rgba(0,0,0,0.10)',
-                      padding: '12px 14px',
-                      fontSize: 13,
-                      background: 'rgba(0,0,0,0.04)',
-                      color: 'rgba(0,0,0,0.75)',
-                    }}
-                  >
-                    {tone}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Copy button */}
+          {/* Primary action */}
           <button
             onClick={copyPrompt}
             style={{
-              width: '100%',
               marginTop: 14,
-              padding: '14px 16px',
-              borderRadius: 12,
+              width: '100%',
+              borderRadius: 14,
               border: 'none',
-              cursor: 'pointer',
-              background: 'linear-gradient(180deg, #111111 0%, #000000 100%)',
-              color: '#FFFFFF',
+              padding: '14px 16px',
+              background: '#0b0b0b',
+              color: '#fff',
               fontSize: 14,
               fontWeight: 700,
-              letterSpacing: 0.2,
+              cursor: 'pointer',
+              boxShadow: '0 10px 20px rgba(0,0,0,0.12)',
             }}
           >
-            Copy Decision Review Prompt
+            Generate decision review
           </button>
 
-          <div style={{ marginTop: 10, fontSize: 12.5, opacity: 0.65 }}>
-            Paste into ChatGPT / Claude / Gemini.
+          <div style={{ marginTop: 10, fontSize: 13, opacity: 0.62 }}>
+            Use in ChatGPT / Claude / Gemini.
           </div>
 
-          {/* View generated prompt */}
-          <button
-            type="button"
-            onClick={() => setShowPrompt((v) => !v)}
-            style={{
-              width: '100%',
-              marginTop: 12,
-              padding: '12px 14px',
-              borderRadius: 12,
-              border: '1px solid rgba(0,0,0,0.12)',
-              background: '#FFFFFF',
-              color: '#0A0A0A',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              cursor: 'pointer',
-            }}
-          >
-            <span style={{ fontSize: 13, fontWeight: 650 }}>
-              View generated prompt
-            </span>
+          {/* Generated prompt (subtle, matches Optional) */}
+          <div style={{ marginTop: 12 }}>
+            <details style={detailStyle}>
+              <summary style={summaryStyle}>
+                <span>▶ View generated prompt</span>
+                <span style={{ opacity: 0.55, fontSize: 12 }}>expand</span>
+              </summary>
 
-            {/* black pill with white chevron */}
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '6px 10px',
-                borderRadius: 999,
-                background: '#000',
-                color: '#FFF',
-                fontSize: 12,
-                fontWeight: 700,
-              }}
-            >
-              {showPrompt ? '▲' : '▼'}
-            </span>
-          </button>
-
-          {showPrompt && (
-            <pre
-              style={{
-                marginTop: 12,
-                whiteSpace: 'pre-wrap',
-                borderRadius: 12,
-                border: '1px solid rgba(0,0,0,0.10)',
-                background: '#FFFFFF',
-                padding: 14,
-                fontSize: 12,
-                lineHeight: 1.5,
-                color: 'rgba(0,0,0,0.82)',
-              }}
-            >
-              {prompt}
-            </pre>
-          )}
+              <pre
+                style={{
+                  marginTop: 12,
+                  borderRadius: 14,
+                  border: '1px solid rgba(0,0,0,0.12)',
+                  background: '#fff',
+                  padding: 14,
+                  fontSize: 12.5,
+                  lineHeight: 1.45,
+                  whiteSpace: 'pre-wrap',
+                  overflowWrap: 'anywhere',
+                }}
+              >
+                {prompt}
+              </pre>
+            </details>
+          </div>
         </section>
 
-        {/* Bottom line */}
+        {/* Bottom benefits - single line */}
         <footer
           style={{
-            maxWidth: 760,
-            marginTop: 18,
-            textAlign: 'center',
-            fontSize: 12.5,
-            opacity: 0.65,
+            maxWidth: 720,
+            margin: '18px auto 0',
+            display: 'flex',
+            justifyContent: 'center',
           }}
         >
-          Pressure-tested decisions&nbsp;&nbsp;•&nbsp;&nbsp;Capital-aware reasoning&nbsp;&nbsp;•&nbsp;&nbsp;Executive-grade clarity
+          <div
+            style={{
+              fontSize: 13,
+              opacity: 0.62,
+              display: 'flex',
+              gap: 12,
+              alignItems: 'center',
+              flexWrap: 'nowrap',
+              whiteSpace: 'nowrap',
+              overflowX: 'auto',
+              paddingBottom: 6,
+            }}
+          >
+            <span>Pressure-tested decisions</span>
+            <span style={{ opacity: 0.5 }}>•</span>
+            <span>Capital-aware reasoning</span>
+            <span style={{ opacity: 0.5 }}>•</span>
+            <span>Executive-grade clarity</span>
+          </div>
         </footer>
       </main>
     </div>
