@@ -166,10 +166,6 @@ Now run a Decision Review with this structure:
             }}
           />
 
-          <div style={{ marginTop: 8, fontSize: 12.5, opacity: 0.6 }}>
-            This is for decisions where being wrong would matter.
-          </div>
-
           {/* Optional: context (subtle) */}
           <div style={{ marginTop: 12 }}>
             <details style={detailStyle}>

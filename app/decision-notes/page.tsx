@@ -278,22 +278,54 @@ export default function DecisionNotesPage() {
     <div style={{ minHeight: '100vh', background: '#f4f5f6', color: '#111' }}>
       <main style={{ maxWidth: 980, margin: '28px auto 60px', padding: '0 20px' }}>
         {/* Nav (matches your minimal 4) */}
-        <header style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 6 }}>
-          <nav style={{ display: 'flex', gap: 18, fontSize: 13, opacity: 0.62, fontWeight: 400 }}>
-            <Link href="/decision-review" style={navLinkStyle}>
-              Decision Review
-            </Link>
-            <Link href="/decision-notes" style={navLinkStyle}>
-              Decision Notes
-            </Link>
-            <Link href="/walkthrough" style={navLinkStyle}>
-              Walkthrough
-            </Link>
-            <Link href="/decision-library" style={navLinkStyle}>
-              Decision Library
-            </Link>
-          </nav>
-        </header>
+        <header
+  style={{
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 6,
+  }}
+>
+  {/* LEFT: Home anchor */}
+  <Link
+    href="/"
+    style={{
+      textDecoration: 'none',
+      color: 'inherit',
+      fontWeight: 800,
+      fontSize: 14,
+      letterSpacing: 0.2,
+      opacity: 0.9,
+    }}
+  >
+    Decision Layer
+  </Link>
+
+  {/* RIGHT: Section nav */}
+  <nav
+    style={{
+      display: 'flex',
+      gap: 18,
+      fontSize: 13,
+      opacity: 0.62,
+      fontWeight: 400,
+    }}
+  >
+    <Link href="/decision-review" style={{ textDecoration: 'none', color: 'inherit' }}>
+      Decision Review
+    </Link>
+    <Link href="/decision-notes" style={{ textDecoration: 'none', color: 'inherit' }}>
+      Decision Notes
+    </Link>
+    <Link href="/walkthrough" style={{ textDecoration: 'none', color: 'inherit' }}>
+      Walkthrough
+    </Link>
+    <Link href="/decision-library" style={{ textDecoration: 'none', color: 'inherit' }}>
+      Decision Library
+    </Link>
+  </nav>
+</header>
+
 
         {/* Header */}
         <section style={{ marginTop: 44 }}>
