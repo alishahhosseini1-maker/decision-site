@@ -111,9 +111,6 @@ Now run a Decision Review with this structure:
             <Link href="/decision-notes" style={navLinkStyle}>
               Decision Notes
             </Link>
-            <Link href="/walkthrough" style={navLinkStyle}>
-              Walkthrough
-            </Link>
             <Link href="/decision-library" style={navLinkStyle}>
               Decision Library
             </Link>

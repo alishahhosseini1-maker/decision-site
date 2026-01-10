@@ -90,6 +90,206 @@ export default function DecisionLibraryPage() {
         'Set a “sleep well” payment threshold; if above it, wait or reduce scope.',
       tags: ['Personal finance', 'Liquidity', 'Lifestyle'],
     },
+
+    // Added (11 more) — shows up in search so the library feels “lived-in” without turning into a feed.
+    {
+      id: 'dl-005',
+      title: 'Sell vs. hold after a big run-up',
+      decision:
+        'Decide whether to trim a position after a large gain without anchoring to price or regret.',
+      context: [
+        'Position is now outsized vs original sizing intent',
+        'Tax impact and concentration both matter',
+        'Opportunity cost: what would you buy instead?',
+      ],
+      keyAssumption:
+        'Your edge is still present; the thesis remains true at the new price and size.',
+      primaryRisk:
+        'You confuse “up a lot” with “overvalued” or “safe.”',
+      sizingApproach:
+        'Trim to a pre-committed max exposure band; keep a core only if thesis triggers still intact.',
+      tags: ['Concentration', 'Taxes', 'Regret'],
+    },
+    {
+      id: 'dl-006',
+      title: 'Start a position vs. wait for a better entry',
+      decision:
+        'Start a position now versus waiting for a better price while avoiding paralysis.',
+      context: [
+        'Conviction exists but uncertainty is non-trivial',
+        'Fear of missing out is present',
+        'Averaging plan is possible',
+      ],
+      keyAssumption:
+        'Time-in-position matters more than perfect entry if sizing is disciplined.',
+      primaryRisk:
+        'You delay indefinitely and then chase at a worse level.',
+      sizingApproach:
+        'Starter position + scale plan: add only on defined conditions, not emotions.',
+      tags: ['Timing', 'Scaling', 'Discipline'],
+    },
+    {
+      id: 'dl-007',
+      title: 'Options vs. equity for expressing a view',
+      decision:
+        'Choose between options (defined risk) and equity (open-ended horizon) for the same thesis.',
+      context: [
+        'Need to define max loss and time horizon',
+        'Volatility/IV can dominate outcomes',
+        'Liquidity and exit mechanics differ',
+      ],
+      keyAssumption:
+        'Your thesis has a timeframe; the payoff profile matches what you actually believe.',
+      primaryRisk:
+        'You buy time decay and call it conviction.',
+      sizingApproach:
+        'Size options by max loss; keep loss tolerable without changing life behavior.',
+      tags: ['Options', 'Convexity', 'Time'],
+    },
+    {
+      id: 'dl-008',
+      title: 'Concentrated bet vs. diversified approach',
+      decision:
+        'Decide whether to concentrate into a top idea or spread risk across multiple exposures.',
+      context: [
+        'Portfolio already has correlated exposures',
+        'Career + portfolio risk may overlap',
+        'Downside tolerance is finite',
+      ],
+      keyAssumption:
+        'You can survive being wrong without forced selling or identity damage.',
+      primaryRisk:
+        'Correlation spikes when you need diversification most.',
+      sizingApproach:
+        'Cap any single theme + single name; require explicit downside scenario plan.',
+      tags: ['Diversification', 'Correlation', 'Risk'],
+    },
+    {
+      id: 'dl-009',
+      title: 'Emergency fund sizing (cash vs. invested)',
+      decision:
+        'Choose how much cash to hold versus investing more while maintaining resilience.',
+      context: [
+        'Income stability is uncertain',
+        'Large planned expenses possible',
+        'Psychological “sleep well” threshold matters',
+      ],
+      keyAssumption:
+        'The marginal return of investing cash exceeds the resilience cost.',
+      primaryRisk:
+        'You create fragility and are forced to sell during stress.',
+      sizingApproach:
+        'Set a minimum runway; invest only above the runway and only if drawdown plan exists.',
+      tags: ['Liquidity', 'Resilience', 'Cash'],
+    },
+    {
+      id: 'dl-010',
+      title: 'Join a startup vs. stay at big tech',
+      decision:
+        'Choose a high-variance career move with unclear payoff and reputation risk.',
+      context: [
+        'Comp structure changes (equity vs cash)',
+        'Execution risk is real',
+        'Time cost is irreversible',
+      ],
+      keyAssumption:
+        'The team + market + your role can reach a credible milestone in a defined time.',
+      primaryRisk:
+        'You trade stability for a story without a path to proof.',
+      sizingApproach:
+        'Define a proof milestone + timeline; commit only if the downside is survivable.',
+      tags: ['Career', 'Variance', 'Equity'],
+    },
+    {
+      id: 'dl-011',
+      title: 'Relocate for quality of life vs. career leverage',
+      decision:
+        'Move locations to optimize lifestyle without accidentally sacrificing long-term leverage.',
+      context: [
+        'Family and lifestyle utility is meaningful',
+        'Career growth might slow or change trajectory',
+        'Cost-of-living and taxes matter',
+      ],
+      keyAssumption:
+        'The move improves life meaningfully and doesn’t destroy your best future options.',
+      primaryRisk:
+        'You underestimate second-order career and network effects.',
+      sizingApproach:
+        'Run “reversibility” test: ensure you can undo the move without major loss if wrong.',
+      tags: ['Lifestyle', 'Reversibility', 'Career'],
+    },
+    {
+      id: 'dl-012',
+      title: 'Take profits to pay taxes vs. keep exposure',
+      decision:
+        'Sell assets to cover upcoming taxes while trying not to damage the core thesis.',
+      context: [
+        'Tax bill is known or highly likely',
+        'Liquidity sources vary in cost',
+        'Selling may change future upside',
+      ],
+      keyAssumption:
+        'Reducing exposure now is cheaper than risking a forced sale later.',
+      primaryRisk:
+        'You keep exposure and end up selling at the worst time due to obligation.',
+      sizingApproach:
+        'Ring-fence the tax bill early; treat it as non-negotiable liability.',
+      tags: ['Taxes', 'Liquidity', 'Planning'],
+    },
+    {
+      id: 'dl-013',
+      title: 'Over-concentration in a single sector/theme',
+      decision:
+        'Reduce thematic exposure without turning risk management into performance chasing.',
+      context: [
+        'Holdings share common drivers',
+        'Drawdowns tend to cluster',
+        'You want to keep the best idea, not the whole basket',
+      ],
+      keyAssumption:
+        'Your future returns do not require being maximally exposed to the same driver.',
+      primaryRisk:
+        'A single macro shock hits everything you own at once.',
+      sizingApproach:
+        'Set driver-level caps (not just ticker caps); rotate only with explicit thesis changes.',
+      tags: ['Theme', 'Correlation', 'Risk'],
+    },
+    {
+      id: 'dl-014',
+      title: 'Spend vs. invest decision (lifestyle upgrade)',
+      decision:
+        'Make a lifestyle upgrade without undermining future optionality and freedom.',
+      context: [
+        'Upgrade is recurring (burn rate) vs one-time',
+        'Income stability uncertain',
+        'Utility is real but hard to quantify',
+      ],
+      keyAssumption:
+        'The utility gain is durable and worth the opportunity cost.',
+      primaryRisk:
+        'You lock in a burn rate that narrows future choices.',
+      sizingApproach:
+        'Define a “never cross” savings rate; only upgrade if you remain above it.',
+      tags: ['Lifestyle', 'Burn rate', 'Opportunity cost'],
+    },
+    {
+      id: 'dl-015',
+      title: 'Private deal: invest now vs. wait for better terms',
+      decision:
+        'Decide whether to commit to a private deal now or wait for clearer information/terms.',
+      context: [
+        'Deal access may not repeat',
+        'Information is incomplete',
+        'Lockup and governance matter',
+      ],
+      keyAssumption:
+        'Your expected edge is structural (terms, access, or insight), not FOMO.',
+      primaryRisk:
+        'You accept bad terms because access feels scarce.',
+      sizingApproach:
+        'Pre-commit term thresholds; walk away if not met (even if the deal is “hot”).',
+      tags: ['Alternatives', 'Terms', 'Discipline'],
+    },
   ];
 
   const [query, setQuery] = useState('');
@@ -97,7 +297,7 @@ export default function DecisionLibraryPage() {
 
   const active = useMemo(
     () => entries.find((e) => e.id === activeId) ?? entries[0],
-    [entries, activeId]
+    [activeId] // entries is static in this file
   );
 
   const filtered = useMemo(() => {
@@ -121,6 +321,17 @@ export default function DecisionLibraryPage() {
     });
   }, [entries, query]);
 
+  // Show only 4 on the page by default. If user searches, show all matches.
+  const visibleList = useMemo(() => {
+    const q = query.trim();
+    if (!q) return entries.slice(0, 4);
+    return filtered;
+  }, [entries, filtered, query]);
+
+  // If active item is not in the visible list (when not searching), keep the right pane stable.
+  // (You can still click in search mode to navigate deeper.)
+  // No extra logic needed: active remains whatever was last set.
+
   const border = '1px solid rgba(0,0,0,0.10)';
   const shellBg = 'rgba(255,255,255,0.65)';
 
@@ -139,67 +350,74 @@ export default function DecisionLibraryPage() {
     whiteSpace: 'nowrap',
   };
 
+  // Copy the active structure so user can paste into the homepage tool.
+  const copyActiveToClipboard = async () => {
+    if (!active) return;
+    const payload =
+      `DECISION:\n${active.decision}\n\nCONTEXT (optional):\n` +
+      active.context.map((c) => `- ${c}`).join('\n');
+    await navigator.clipboard.writeText(payload);
+    alert('Copied. Paste into the homepage tool.');
+  };
+
   return (
     <div style={{ minHeight: '100vh', background: '#f4f5f6', color: '#111' }}>
       <main style={{ maxWidth: 980, margin: '28px auto 60px', padding: '0 20px' }}>
         {/* Top nav (matches Home) */}
         <header
-  style={{
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 6,
-  }}
->
-  {/* LEFT: Home anchor */}
-  <Link
-    href="/"
-    style={{
-      textDecoration: 'none',
-      color: 'inherit',
-      fontWeight: 800,
-      fontSize: 14,
-      letterSpacing: 0.2,
-      opacity: 0.9,
-    }}
-  >
-    Decision Layer
-  </Link>
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingTop: 6,
+          }}
+        >
+          {/* LEFT: Home anchor -> go to homepage tool */}
+          <Link
+            href="/#tool"
+            style={{
+              textDecoration: 'none',
+              color: 'inherit',
+              fontWeight: 800,
+              fontSize: 14,
+              letterSpacing: 0.2,
+              opacity: 0.9,
+            }}
+          >
+            Decision Layer
+          </Link>
 
-  {/* RIGHT: Section nav */}
-  <nav
-    style={{
-      display: 'flex',
-      gap: 18,
-      fontSize: 13,
-      opacity: 0.62,
-      fontWeight: 400,
-    }}
-  >
-    <Link href="/decision-review" style={{ textDecoration: 'none', color: 'inherit' }}>
-      Decision Review
-    </Link>
-    <Link href="/decision-notes" style={{ textDecoration: 'none', color: 'inherit' }}>
-      Decision Notes
-    </Link>
-    <Link href="/walkthrough" style={{ textDecoration: 'none', color: 'inherit' }}>
-      Walkthrough
-    </Link>
-    <Link href="/decision-library" style={{ textDecoration: 'none', color: 'inherit' }}>
-      Decision Library
-    </Link>
-  </nav>
-</header>
-
+          {/* RIGHT: Section nav */}
+          <nav
+            style={{
+              display: 'flex',
+              gap: 18,
+              fontSize: 13,
+              opacity: 0.62,
+              fontWeight: 400,
+            }}
+          >
+            <Link href="/decision-review" style={{ textDecoration: 'none', color: 'inherit' }}>
+              Decision Review
+            </Link>
+            <Link href="/decision-notes" style={{ textDecoration: 'none', color: 'inherit' }}>
+              Decision Notes
+            </Link>
+            <Link href="/walkthrough" style={{ textDecoration: 'none', color: 'inherit' }}>
+              Walkthrough
+            </Link>
+            <Link href="/decision-library" style={{ textDecoration: 'none', color: 'inherit' }}>
+              Decision Library
+            </Link>
+          </nav>
+        </header>
 
         {/* Header */}
         <section style={{ marginTop: 44 }}>
-          <h1 style={{ fontSize: 36, margin: 0, letterSpacing: -0.6 }}>
-            Decision Library
-          </h1>
+          <h1 style={{ fontSize: 36, margin: 0, letterSpacing: -0.6 }}>Decision Library</h1>
           <p style={{ margin: '10px 0 0', fontSize: 14, opacity: 0.72, maxWidth: 760 }}>
             A small collection of anonymized decision frames. No outcomes. No stories. No social
-            mechanics. Just the structure that makes real decisions clearer.
+            mechanics. Just the structure behind real decisions.
           </p>
         </section>
 
@@ -229,8 +447,11 @@ export default function DecisionLibraryPage() {
             }}
           />
           <div style={{ marginTop: 10, fontSize: 12.5, opacity: 0.62 }}>
-            Keep it small. If this grows into a feed, it loses the point.
-          </div>
+  Search to reveal more decision frames.
+  <br />
+  The list stays small on purpose.
+</div>
+
         </section>
 
         {/* Two-column layout */}
@@ -254,11 +475,11 @@ export default function DecisionLibraryPage() {
             }}
           >
             <div style={{ fontSize: 13, fontWeight: 650, marginBottom: 10, opacity: 0.85 }}>
-              Curated examples
+              Anonymized decision frames
             </div>
 
             <div style={{ display: 'grid', gap: 8 }}>
-              {filtered.map((e) => {
+              {visibleList.map((e) => {
                 const isActive = e.id === activeId;
                 return (
                   <button
@@ -275,21 +496,12 @@ export default function DecisionLibraryPage() {
                       cursor: 'pointer',
                     }}
                   >
-                    <div style={{ fontSize: 13.5, fontWeight: 650, opacity: 0.92 }}>
-                      {e.title}
-                    </div>
+                    <div style={{ fontSize: 13.5, fontWeight: 650, opacity: 0.92 }}>{e.title}</div>
                     <div style={{ marginTop: 6, fontSize: 12.5, opacity: 0.64, lineHeight: 1.35 }}>
                       {e.decision}
                     </div>
 
-                    <div
-                      style={{
-                        marginTop: 8,
-                        display: 'flex',
-                        gap: 8,
-                        flexWrap: 'wrap',
-                      }}
-                    >
+                    <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                       {e.tags.slice(0, 3).map((t) => (
                         <span key={t} style={pillStyle}>
                           {t}
@@ -300,7 +512,13 @@ export default function DecisionLibraryPage() {
                 );
               })}
 
-              {filtered.length === 0 && (
+              {!query.trim() && (
+                <div style={{ fontSize: 12.5, opacity: 0.58, padding: '6px 2px' }}>
+                  Search to reveal more frames.
+                </div>
+              )}
+
+              {query.trim() && filtered.length === 0 && (
                 <div style={{ fontSize: 13, opacity: 0.65, padding: '10px 4px' }}>
                   No matches. Keep the library small and focused.
                 </div>
@@ -325,21 +543,45 @@ export default function DecisionLibraryPage() {
                   {active?.title}
                 </h2>
               </div>
-              <Link
-                href="/decision-review"
-                style={{
-                  ...navLinkStyle,
-                  alignSelf: 'flex-start',
-                  fontSize: 13,
-                  opacity: 0.75,
-                  border: '1px solid rgba(0,0,0,0.10)',
-                  borderRadius: 999,
-                  padding: '8px 12px',
-                  background: 'rgba(255,255,255,0.6)',
-                }}
-              >
-                Use this structure →
-              </Link>
+
+              {/* FIX: Use this structure should take user to the homepage tool, not /decision-review */}
+              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                <button
+                  onClick={copyActiveToClipboard}
+                  style={{
+                    alignSelf: 'flex-start',
+                    fontSize: 13,
+                    opacity: 0.85,
+                    border: 'none',
+                    borderRadius: 999,
+                    padding: '8px 12px',
+                    background: '#0b0b0b',
+                    color: '#fff',
+                    cursor: 'pointer',
+                    fontWeight: 650,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  Copy into tool →
+                </button>
+
+                <Link
+                  href="/#tool"
+                  style={{
+                    ...navLinkStyle,
+                    alignSelf: 'flex-start',
+                    fontSize: 13,
+                    opacity: 0.75,
+                    border: '1px solid rgba(0,0,0,0.10)',
+                    borderRadius: 999,
+                    padding: '8px 12px',
+                    background: 'rgba(255,255,255,0.6)',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  Use this structure →
+                </Link>
+              </div>
             </div>
 
             <div style={{ marginTop: 14 }}>
@@ -360,14 +602,7 @@ export default function DecisionLibraryPage() {
               </ul>
             </div>
 
-            <div
-              style={{
-                marginTop: 14,
-                display: 'grid',
-                gridTemplateColumns: '1fr',
-                gap: 10,
-              }}
-            >
+            <div style={{ marginTop: 14, display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
               <div
                 style={{
                   border: '1px solid rgba(0,0,0,0.10)',

@@ -1,13 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import { useMemo } from 'react';
 
 export default function DecisionReviewPage() {
-  const navLinkStyle: React.CSSProperties = {
-    textDecoration: 'none',
-    color: 'inherit',
-  };
-
   const border = '1px solid rgba(0,0,0,0.10)';
   const shellBg = 'rgba(255,255,255,0.65)';
   const softShadow = '0 10px 30px rgba(0,0,0,0.05)';
@@ -31,13 +27,13 @@ export default function DecisionReviewPage() {
   const bodyText: React.CSSProperties = {
     fontSize: 14.5,
     opacity: 0.78,
-    lineHeight: 1.8,
+    lineHeight: 1.85,
   };
 
   const bulletList: React.CSSProperties = {
     margin: '10px 0 0',
     paddingLeft: 18,
-    lineHeight: 1.85,
+    lineHeight: 1.9,
     opacity: 0.82,
     fontSize: 14.5,
   };
@@ -51,7 +47,6 @@ export default function DecisionReviewPage() {
   const pill: React.CSSProperties = {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: 8,
     padding: '8px 12px',
     borderRadius: 999,
     border: '1px solid rgba(0,0,0,0.10)',
@@ -62,94 +57,160 @@ export default function DecisionReviewPage() {
     whiteSpace: 'nowrap',
   };
 
+  const buttonPrimary: React.CSSProperties = {
+    borderRadius: 14,
+    border: 'none',
+    padding: '12px 14px',
+    background: '#0b0b0b',
+    color: '#fff',
+    fontSize: 13.5,
+    fontWeight: 800,
+    cursor: 'pointer',
+    boxShadow: '0 10px 20px rgba(0,0,0,0.12)',
+    textDecoration: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 8,
+    whiteSpace: 'nowrap',
+  };
+
+  const buttonSecondary: React.CSSProperties = {
+    borderRadius: 14,
+    border: '1px solid rgba(0,0,0,0.10)',
+    padding: '12px 14px',
+    background: 'rgba(255,255,255,0.6)',
+    color: '#111',
+    fontSize: 13.5,
+    fontWeight: 800,
+    cursor: 'pointer',
+    textDecoration: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 8,
+    opacity: 0.9,
+    whiteSpace: 'nowrap',
+  };
+
+  const noteStyle: React.CSSProperties = {
+    marginTop: 10,
+    fontSize: 12.5,
+    opacity: 0.62,
+    lineHeight: 1.7,
+  };
+
+  // Embedded “walkthrough” example (now that Walkthrough tab is removed)
+  const exampleDecision =
+    "I’m considering increasing my NVIDIA exposure by ~5% of liquid net worth, but I’m already concentrated via RSUs and I don’t want a single-name drawdown to force a bad sale.";
+
+  const exampleContext =
+    `Role: Senior engineer. Comp includes meaningful RSUs.
+Existing exposure: ~18% of liquid net worth is already tied to NVDA (including RSUs).
+Constraint: I can tolerate a 30% drawdown in the position without panic-selling.
+Horizon: 24–48 months.
+Goal: Increase exposure only if sizing + triggers are clearly defined.`;
+
+  const pasteBlock = useMemo(() => {
+    return `DECISION:\n${exampleDecision}\n\nCONTEXT (optional):\n${exampleContext}`;
+  }, []);
+
+  const copyExample = async () => {
+    await navigator.clipboard.writeText(pasteBlock);
+    alert('Copied. Now paste into the homepage tool.');
+  };
+
+  const copyAndOpenTool = async () => {
+    await copyExample();
+    window.location.href = '/#tool';
+  };
+
   return (
     <div style={{ minHeight: '100vh', background: '#f4f5f6', color: '#111' }}>
       <main style={{ maxWidth: 980, margin: '28px auto 70px', padding: '0 20px' }}>
-        {/* Top nav */}
+        {/* Top nav (Walkthrough removed) */}
         <header
-  style={{
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 6,
-  }}
->
-  {/* LEFT: Home anchor */}
-  <Link
-    href="/"
-    style={{
-      textDecoration: 'none',
-      color: 'inherit',
-      fontWeight: 800,
-      fontSize: 14,
-      letterSpacing: 0.2,
-      opacity: 0.9,
-    }}
-  >
-    Decision Layer
-  </Link>
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingTop: 6,
+          }}
+        >
+          {/* Always return to the tool section */}
+          <Link
+            href="/#tool"
+            style={{
+              textDecoration: 'none',
+              color: 'inherit',
+              fontWeight: 800,
+              fontSize: 14,
+              letterSpacing: 0.2,
+              opacity: 0.9,
+            }}
+          >
+            Decision Layer
+          </Link>
 
-  {/* RIGHT: Section nav */}
-  <nav
-    style={{
-      display: 'flex',
-      gap: 18,
-      fontSize: 13,
-      opacity: 0.62,
-      fontWeight: 400,
-    }}
-  >
-    <Link href="/decision-review" style={{ textDecoration: 'none', color: 'inherit' }}>
-      Decision Review
-    </Link>
-    <Link href="/decision-notes" style={{ textDecoration: 'none', color: 'inherit' }}>
-      Decision Notes
-    </Link>
-    <Link href="/walkthrough" style={{ textDecoration: 'none', color: 'inherit' }}>
-      Walkthrough
-    </Link>
-    <Link href="/decision-library" style={{ textDecoration: 'none', color: 'inherit' }}>
-      Decision Library
-    </Link>
-  </nav>
-</header>
-
-
-
-
-
-
+          <nav
+            style={{
+              display: 'flex',
+              gap: 18,
+              fontSize: 13,
+              opacity: 0.62,
+              fontWeight: 400,
+            }}
+          >
+            <Link href="/decision-review" style={{ textDecoration: 'none', color: 'inherit' }}>
+              Decision Review
+            </Link>
+            <Link href="/decision-notes" style={{ textDecoration: 'none', color: 'inherit' }}>
+              Decision Notes
+            </Link>
+            <Link href="/decision-library" style={{ textDecoration: 'none', color: 'inherit' }}>
+              Decision Library
+            </Link>
+          </nav>
+        </header>
 
         {/* Hero */}
         <section style={{ marginTop: 66, maxWidth: 860 }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
-            <span style={pill}>Concept</span>
             <span style={pill}>Core workflow</span>
             <span style={pill}>No prediction</span>
+            <span style={pill}>Commit-aware</span>
           </div>
 
           <h1 style={{ fontSize: 52, margin: '14px 0 0', letterSpacing: -1.0 }}>
             Decision Review
           </h1>
 
-          <p style={{ margin: '14px 0 0', ...bodyText, fontSize: 15 }}>
+          <p style={{ margin: '12px 0 0', ...bodyText, fontSize: 15 }}>
             A structured pause before committing capital, time, or reputation.
-            The purpose is decision quality under uncertainty — not outcomes, not forecasts, not narratives.
+            It forces assumptions, disconfirming evidence, risk, and sizing — in a format you can audit later.
           </p>
 
-          <p style={{ margin: '10px 0 0', fontSize: 13.5, opacity: 0.62, lineHeight: 1.7 }}>
-            Use the tool on the homepage to generate a Decision Review. Use Decision Notes to preserve judgment at commitment time.
-          </p>
+          <div style={{ marginTop: 14, display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+            <button onClick={copyAndOpenTool} style={buttonPrimary}>
+              Copy example → open tool
+            </button>
+
+            <button onClick={copyExample} style={buttonSecondary}>
+              Copy only
+            </button>
+
+            <div style={{ fontSize: 12.5, opacity: 0.62 }}>
+              Drafts are ephemeral. Notes are the record.
+            </div>
+          </div>
         </section>
 
-        {/* Flow cards */}
+        {/* Cards */}
         <section style={{ marginTop: 18, maxWidth: 860, display: 'grid', gap: 14 }}>
-          {/* Card 1 */}
+          {/* Card: When */}
           <div style={cardStyle}>
             <div style={sectionTitle}>When to run one</div>
             <ul style={bulletList}>
-              <li>The decision is meaningfully irreversible.</li>
-              <li>Being wrong would matter (financially, professionally, or emotionally).</li>
+              <li>The decision is meaningfully irreversible (or costly to reverse).</li>
+              <li>Being wrong would matter (financially, professionally, emotionally).</li>
               <li>You’re relying on assumptions you can’t yet verify.</li>
               <li>You feel urgency, pressure, or narrative pull.</li>
             </ul>
@@ -157,38 +218,20 @@ export default function DecisionReviewPage() {
             <div style={divider} />
 
             <div style={sectionTitle}>Rule</div>
-            <div style={{ ...bodyText, fontWeight: 700 }}>
+            <div style={{ ...bodyText, fontWeight: 750, opacity: 0.86 }}>
               Run a Decision Review only when being wrong would matter.
             </div>
           </div>
 
-          {/* Card 2 */}
+          {/* Card: What it forces */}
           <div style={cardStyle}>
             <div style={sectionTitle}>What it forces</div>
             <ul style={bulletList}>
-              <li>Clarity on the actual decision (not the story).</li>
-              <li>The few assumptions that must be true.</li>
-              <li>Disconfirming evidence (what would change your mind).</li>
-              <li>Risks and failure modes (ranked, not listed).</li>
-              <li>Sizing and triggers (specific, not vibes).</li>
-            </ul>
-
-            <div style={divider} />
-
-            <div style={sectionTitle}>Default behavior</div>
-            <div style={bodyText}>
-              Drafts are intentionally ephemeral. If you want to preserve the decision at commitment time, write a Decision Note.
-            </div>
-          </div>
-
-          {/* Card 3 */}
-          <div style={cardStyle}>
-            <div style={sectionTitle}>What it is not</div>
-            <ul style={bulletList}>
-              <li>Stock picks, predictions, or market commentary.</li>
-              <li>A long memo.</li>
-              <li>Outcome-driven hindsight.</li>
-              <li>A productivity ritual.</li>
+              <li>Clarify the decision (rewrite it in one sentence).</li>
+              <li>Identify what has to be true (top assumptions).</li>
+              <li>Define disconfirming evidence (what changes your mind).</li>
+              <li>Rank failure modes (not a laundry list).</li>
+              <li>Set sizing + triggers (specific, not vibes).</li>
             </ul>
 
             <div style={divider} />
@@ -196,6 +239,64 @@ export default function DecisionReviewPage() {
             <div style={sectionTitle}>Engineer translation</div>
             <div style={bodyText}>
               It’s a <span style={{ fontWeight: 800 }}>commit message for a decision</span> — intent preserved so it can be audited later.
+            </div>
+          </div>
+
+          {/* Card: Embedded example (replaces Walkthrough page) */}
+          <div style={cardStyle}>
+            <div style={sectionTitle}>One realistic example</div>
+            <div style={{ ...bodyText, fontWeight: 750, opacity: 0.86 }}>{exampleDecision}</div>
+
+            <div style={divider} />
+
+            <div style={sectionTitle}>Context (only what changes sizing, timing, or risk)</div>
+            <pre
+              style={{
+                margin: 0,
+                borderRadius: 16,
+                border: '1px solid rgba(0,0,0,0.10)',
+                background: 'rgba(255,255,255,0.75)',
+                padding: 14,
+                fontSize: 13.2,
+                lineHeight: 1.65,
+                whiteSpace: 'pre-wrap',
+                overflowWrap: 'anywhere',
+                opacity: 0.9,
+              }}
+            >
+              {exampleContext}
+            </pre>
+
+            <div style={noteStyle}>
+              Copy → paste into the homepage tool → run the review. Keep it boring and specific.
+            </div>
+          </div>
+
+          {/* Card: What it is not */}
+          <div style={cardStyle}>
+            <div style={sectionTitle}>What it is not</div>
+            <ul style={bulletList}>
+              <li>Stock picks, predictions, or market commentary.</li>
+              <li>A long memo.</li>
+              <li>Outcome-driven hindsight.</li>
+              <li>A daily ritual you do for everything.</li>
+            </ul>
+
+            <div style={divider} />
+
+            <div style={sectionTitle}>After you commit</div>
+            <div style={bodyText}>
+              If the decision matters, preserve judgment at the moment of commitment with a Decision Note.
+            </div>
+
+            <div style={{ marginTop: 12 }}>
+              <Link href="/decision-notes" style={buttonSecondary}>
+                Go to Decision Notes →
+              </Link>
+            </div>
+
+            <div style={noteStyle}>
+              Decision Notes intentionally exclude outcomes. They’re about decision quality at commitment time.
             </div>
           </div>
         </section>
