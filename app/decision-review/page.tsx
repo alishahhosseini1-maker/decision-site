@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 export default function DecisionReviewPage() {
   // Visual system (match homepage)
@@ -10,11 +10,6 @@ export default function DecisionReviewPage() {
   const softShadow = '0 10px 30px rgba(0,0,0,0.05)';
 
   const [isMobile, setIsMobile] = useState(false);
-  const [copied, setCopied] = useState(false);
-
-  const STORAGE = {
-    noteDraft: 'dl:note_draft_v1',
-  };
 
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth < 700);
@@ -25,14 +20,14 @@ export default function DecisionReviewPage() {
 
   const navLinkStyle: React.CSSProperties = { textDecoration: 'none', color: 'inherit' };
 
-  // Back-to-homepage pill (consistent across pages)
+  // Back-to-homepage pill
   const backBtnStyle: React.CSSProperties = {
     textDecoration: 'none',
     color: 'inherit',
     fontWeight: 800,
     fontSize: 13,
     opacity: 0.78,
-    border: '1px solid rgba(0,0,0,0.10)',
+    border,
     borderRadius: 999,
     padding: '8px 12px',
     background: 'rgba(255,255,255,0.6)',
@@ -54,52 +49,37 @@ export default function DecisionReviewPage() {
     lineHeight: 1.85,
   };
 
+  const noteStyle: React.CSSProperties = {
+    marginTop: 10,
+    fontSize: 12.5,
+    opacity: 0.62,
+    lineHeight: 1.7,
+  };
+
   const divider: React.CSSProperties = {
     height: 1,
     background: 'rgba(0,0,0,0.06)',
     margin: '16px 0',
   };
 
-  // Single primary CTA (remove second option to reduce friction)
-  const buttonPrimary: React.CSSProperties = {
-    borderRadius: 14,
-    border: 'none',
-    padding: '12px 14px',
-    background: '#0b0b0b',
-    color: '#fff',
-    fontSize: 13.5,
-    fontWeight: 900,
-    cursor: 'pointer',
-    boxShadow: '0 10px 20px rgba(0,0,0,0.12)',
-    textDecoration: 'none',
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 8,
-    whiteSpace: 'nowrap',
-  };
-
-  const buttonSecondary: React.CSSProperties = {
-    borderRadius: 14,
-    border: '1px solid rgba(0,0,0,0.10)',
-    padding: '12px 14px',
-    background: 'rgba(255,255,255,0.6)',
-    color: '#111',
-    fontSize: 13.5,
-    fontWeight: 850,
-    cursor: 'pointer',
-    textDecoration: 'none',
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 8,
-    opacity: 0.9,
-    whiteSpace: 'nowrap',
-  };
-
-  const noteStyle: React.CSSProperties = {
-    marginTop: 10,
+  const sectionLabel: React.CSSProperties = {
     fontSize: 12.5,
-    opacity: 0.62,
-    lineHeight: 1.7,
+    fontWeight: 700,
+    opacity: 0.85,
+    letterSpacing: 0.2,
+    marginBottom: 10,
+  };
+
+  const linkSoft: React.CSSProperties = {
+    background: 'transparent',
+    border: 'none',
+    padding: 0,
+    cursor: 'pointer',
+    fontSize: 13,
+    fontWeight: 650,
+    opacity: 0.78,
+    textDecoration: 'underline',
+    textUnderlineOffset: 3,
   };
 
   // Example (boring + specific)
@@ -112,49 +92,10 @@ Constraint: I can tolerate a 30% drawdown in the position without panic-selling.
 Horizon: 24–48 months.
 Goal: Increase exposure only if sizing + triggers are clearly defined.`;
 
-  const pasteBlock = useMemo(() => {
-    return `DECISION:\n${exampleDecision}\n\nCONTEXT (only what changes sizing, timing, or risk):\n${exampleContext}`;
-  }, []);
-
-  const copyExample = async () => {
-    try {
-      await navigator.clipboard.writeText(pasteBlock);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1200);
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
-  // One-click flow: copy -> open homepage tool
-  const copyAndOpenHome = async () => {
-    await copyExample();
-    window.location.href = '/';
-  };
-
-  // Bridge into Notes with localStorage draft
-  const saveExampleAsNoteAndOpenNotes = async () => {
-    try {
-      localStorage.setItem(
-        STORAGE.noteDraft,
-        JSON.stringify({
-          decision: exampleDecision,
-          context: exampleContext,
-          horizon: '24–48 months',
-          createdAt: new Date().toISOString(),
-        })
-      );
-    } catch {
-      // ignore
-    }
-    window.location.href = '/decision-notes';
-  };
-
   return (
     <div style={{ minHeight: '100vh', background: '#f4f5f6', color: '#111' }}>
       <main style={{ maxWidth: 980, margin: '28px auto 70px', padding: '0 20px' }}>
-        {/* Top nav: single clean line */}
+        {/* Top nav */}
         <header
           style={{
             display: 'flex',
@@ -191,7 +132,6 @@ Goal: Increase exposure only if sizing + triggers are clearly defined.`;
               Decision Library
             </Link>
 
-            {/* Optional micro-helper (desktop only, does NOT wrap) */}
             {!isMobile && (
               <>
                 <span style={{ opacity: 0.5, marginLeft: 6 }}>•</span>
@@ -216,39 +156,19 @@ Goal: Increase exposure only if sizing + triggers are clearly defined.`;
 
         {/* Main content */}
         <section style={{ marginTop: 18, maxWidth: 760, marginLeft: 'auto', marginRight: 'auto' }}>
-          {/* Card: the point + single CTA */}
-          <div style={cardStyle}>
-            <div style={{ ...bodyText }}>
-              Run this <strong>right before</strong> you act — when being wrong would matter.
-              It’s a commit message for judgment: intent, assumptions, and triggers preserved.
-            </div>
-
-            <div style={divider} />
-
-            <div
-              style={{
-                display: 'flex',
-                gap: 10,
-                flexWrap: 'wrap',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <button onClick={copyAndOpenHome} style={buttonPrimary}>
-                {copied ? 'Copied ✓ Opening tool…' : 'Copy example → open tool'}
-              </button>
-
-              <div style={{ fontSize: 12.5, opacity: 0.62 }}>Most users: copy → paste → generate.</div>
-            </div>
-
-            <div style={noteStyle}>Keep it boring. Specific beats clever. No outcomes. No story.</div>
-          </div>
-
-          <div style={{ height: 14 }} />
+          {/* ✅ Removed the “Use a Decision Review before acting…” info box */}
 
           {/* Collapsible sections (closed by default) */}
           <DetailsSection title="When to run one (rule-of-thumb)">
-            <ul style={{ margin: '8px 0 0', paddingLeft: 18, lineHeight: 1.9, opacity: 0.82, fontSize: 14.5 }}>
+            <ul
+              style={{
+                margin: '8px 0 0',
+                paddingLeft: 18,
+                lineHeight: 1.9,
+                opacity: 0.8,
+                fontSize: 14.25,
+              }}
+            >
               <li>The decision is meaningfully irreversible (or costly to reverse).</li>
               <li>Being wrong would matter (money, reputation, stress).</li>
               <li>You’re relying on assumptions you can’t yet verify.</li>
@@ -257,7 +177,7 @@ Goal: Increase exposure only if sizing + triggers are clearly defined.`;
 
             <div style={divider} />
 
-            <div style={{ fontSize: 14.5, fontWeight: 850, opacity: 0.86 }}>
+            <div style={{ fontSize: 14.25, fontWeight: 750, opacity: 0.84 }}>
               Rule: run a Decision Review only when being wrong would matter.
             </div>
           </DetailsSection>
@@ -265,7 +185,15 @@ Goal: Increase exposure only if sizing + triggers are clearly defined.`;
           <div style={{ height: 10 }} />
 
           <DetailsSection title="What it forces (the checklist)">
-            <ol style={{ margin: '8px 0 0', paddingLeft: 18, lineHeight: 1.9, opacity: 0.82, fontSize: 14.5 }}>
+            <ol
+              style={{
+                margin: '8px 0 0',
+                paddingLeft: 18,
+                lineHeight: 1.9,
+                opacity: 0.8,
+                fontSize: 14.25,
+              }}
+            >
               <li>Clarify the decision (rewrite it in one sentence).</li>
               <li>What has to be true? (top assumptions)</li>
               <li>What would change your mind? (disconfirming evidence)</li>
@@ -275,27 +203,25 @@ Goal: Increase exposure only if sizing + triggers are clearly defined.`;
 
             <div style={divider} />
 
-            <div style={{ ...bodyText }}>
+            <div style={bodyText}>
               Engineer translation: it’s a <strong>commit message for a decision</strong>.
             </div>
           </DetailsSection>
 
           <div style={{ height: 10 }} />
 
-          <DetailsSection title="A realistic example (copy this)">
-            <div style={{ ...bodyText, fontWeight: 850, opacity: 0.86 }}>{exampleDecision}</div>
+          <DetailsSection title="A realistic example">
+            <div style={{ ...bodyText, fontWeight: 750, opacity: 0.86 }}>{exampleDecision}</div>
 
             <div style={divider} />
 
-            <div style={{ fontSize: 13, fontWeight: 750, opacity: 0.9, letterSpacing: 0.2, marginBottom: 10 }}>
-              Context (only what changes sizing, timing, or risk)
-            </div>
+            <div style={sectionLabel}>Context (only what changes sizing, timing, or risk)</div>
 
             <pre
               style={{
                 margin: 0,
                 borderRadius: 14,
-                border: '1px solid rgba(0,0,0,0.10)',
+                border,
                 background: '#fff',
                 padding: 14,
                 fontSize: 13.2,
@@ -308,13 +234,21 @@ Goal: Increase exposure only if sizing + triggers are clearly defined.`;
               {exampleContext}
             </pre>
 
-            <div style={noteStyle}>Copy → paste into the homepage tool → generate the review.</div>
+            <div style={noteStyle}>Keep it boring. Specific beats clever.</div>
           </DetailsSection>
 
           <div style={{ height: 10 }} />
 
           <DetailsSection title="What it is not">
-            <ul style={{ margin: '8px 0 0', paddingLeft: 18, lineHeight: 1.9, opacity: 0.82, fontSize: 14.5 }}>
+            <ul
+              style={{
+                margin: '8px 0 0',
+                paddingLeft: 18,
+                lineHeight: 1.9,
+                opacity: 0.8,
+                fontSize: 14.25,
+              }}
+            >
               <li>Stock picks, predictions, or market commentary.</li>
               <li>A long memo.</li>
               <li>Outcome-driven hindsight.</li>
@@ -324,24 +258,18 @@ Goal: Increase exposure only if sizing + triggers are clearly defined.`;
 
           <div style={{ height: 14 }} />
 
-          {/* Bridge to notes */}
+          {/* After commit */}
           <div style={cardStyle}>
-            <div style={{ fontSize: 13, fontWeight: 750, opacity: 0.9, letterSpacing: 0.2, marginBottom: 10 }}>
-              After you commit
-            </div>
+            <div style={sectionLabel}>After you commit</div>
 
             <div style={bodyText}>
-              If the decision matters, preserve judgment at commitment time with a Decision Note (outcomes excluded).
+              Once you act, use a Decision Note to preserve judgment at the moment of commitment — outcomes excluded.
             </div>
 
-            <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              <Link href="/decision-notes" style={buttonSecondary}>
+            <div style={{ marginTop: 12 }}>
+              <Link href="/decision-notes" style={linkSoft as any}>
                 Go to Decision Notes →
               </Link>
-
-              <button onClick={saveExampleAsNoteAndOpenNotes} style={buttonPrimary}>
-                Save this example as a Note →
-              </button>
             </div>
 
             <div style={noteStyle}>Notes are the record. Drafts are ephemeral.</div>
@@ -362,6 +290,7 @@ function DetailsSection({ title, children }: { title: string; children: React.Re
   const shellBg = 'rgba(255,255,255,0.65)';
   const softShadow = '0 10px 30px rgba(0,0,0,0.05)';
 
+  // ✅ Smaller + less emphasized (per your screenshot feedback)
   const summaryStyle: React.CSSProperties = {
     cursor: 'pointer',
     listStyle: 'none',
@@ -369,15 +298,14 @@ function DetailsSection({ title, children }: { title: string; children: React.Re
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    fontSize: 14,
-    fontWeight: 850,
-    opacity: 0.9,
+    fontSize: 13.5,
+    fontWeight: 650,
+    opacity: 0.88,
     padding: '2px 0',
   };
 
   return (
     <details
-      // ✅ Closed by default (no "open" prop)
       style={{
         border,
         borderRadius: 18,
@@ -388,8 +316,7 @@ function DetailsSection({ title, children }: { title: string; children: React.Re
     >
       <summary style={summaryStyle}>
         <span>{title}</span>
-        {/* ✅ Rename toggle label */}
-        <span style={{ opacity: 0.5, fontSize: 12 }}>expand</span>
+        <span style={{ opacity: 0.45, fontSize: 12, fontWeight: 600 }}>expand</span>
       </summary>
 
       <div style={{ marginTop: 12 }}>{children}</div>
