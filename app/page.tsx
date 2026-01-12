@@ -12,7 +12,7 @@ export default function HomePage() {
   const [copied, setCopied] = useState(false);
   const [lastUsedAt, setLastUsedAt] = useState<string | null>(null);
 
-  // NEW: progressive disclosure + mobile nav cleanup
+  // progressive disclosure + mobile nav cleanup
   const [hasGenerated, setHasGenerated] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -34,7 +34,7 @@ export default function HomePage() {
       // ignore
     }
 
-    // mobile detection (for nav density)
+    // mobile detection
     const onResize = () => setIsMobile(window.innerWidth < 640);
     onResize();
     window.addEventListener('resize', onResize);
@@ -99,7 +99,7 @@ Now run a Decision Review with this structure:
 9) Recommendation (Proceed / Proceed smaller / Wait / Don't do it) + 2-line rationale`;
   }, [decision, context, horizon]);
 
-  // Generate = mark used + copy + reveal + open prompt + scroll
+  // Generate = mark used + copy prompt + reveal prompt section
   const generateDecisionReview = async () => {
     if (!decision.trim()) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -114,6 +114,7 @@ Now run a Decision Review with this structure:
       localStorage.setItem(STORAGE.lastUsed, iso);
     } catch {}
 
+    // Try copy prompt (best UX)
     try {
       await navigator.clipboard.writeText(prompt);
       setCopied(true);
@@ -124,10 +125,21 @@ Now run a Decision Review with this structure:
 
     setTimeout(() => {
       if (promptDetailsRef.current) {
-        promptDetailsRef.current.open = true; // keep collapsed by default, open only after generate
+        promptDetailsRef.current.open = true;
         promptDetailsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }, 50);
+  };
+
+  // Copy prompt explicitly (green button)
+  const copyPrompt = async () => {
+    try {
+      await navigator.clipboard.writeText(prompt);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1200);
+    } catch {
+      // ignore
+    }
   };
 
   // Only shown after Generate
@@ -230,7 +242,6 @@ Confidence:
               Decision Library
             </Link>
 
-            {/* Keep habit nudge on desktop, hide on mobile */}
             {!isMobile && (
               <>
                 <span style={{ opacity: 0.5, marginLeft: 6 }}>•</span>
@@ -249,12 +260,10 @@ Confidence:
         <section style={{ textAlign: 'center', marginTop: 54 }}>
           <h1 style={{ fontSize: 64, margin: 0, letterSpacing: -1.1 }}>Decision Layer</h1>
 
-          {/* Keep hero simple (one line) */}
           <p style={{ margin: '10px 0 0', fontSize: 18, opacity: 0.9 }}>
             Clear thinking before committing capital — time, or reputation.
           </p>
 
-          {/* Only show this line after generate (reduces initial clutter on mobile) */}
           {hasGenerated && (
             <p style={{ margin: '8px 0 0', fontSize: 14, opacity: 0.65 }}>
               No stock picks. No predictions. No market commentary.
@@ -295,7 +304,7 @@ Confidence:
             }}
           />
 
-          {/* Optional: context (subtle) */}
+          {/* ✅ RESTORED: Optional toggle exactly like before */}
           <div style={{ marginTop: 12 }}>
             <details style={detailStyle}>
               <summary style={summaryStyle}>
@@ -389,13 +398,12 @@ Confidence:
               boxShadow: '0 10px 20px rgba(0,0,0,0.12)',
             }}
           >
-            {copied ? 'Copied ✓' : 'Generate decision review'}
+            Generate decision review
           </button>
 
-          {/* Everything below only appears AFTER Generate */}
+          {/* After Generate */}
           {hasGenerated && (
             <>
-              {/* Move this line under the prompt section only (less clutter) */}
               <div style={{ marginTop: 12 }}>
                 <details ref={promptDetailsRef} style={detailStyle}>
                   <summary style={summaryStyle}>
@@ -403,8 +411,38 @@ Confidence:
                     <span style={{ opacity: 0.55, fontSize: 12 }}>expand</span>
                   </summary>
 
-                  <div style={{ marginTop: 10, fontSize: 13, opacity: 0.62 }}>
-                    Use in ChatGPT / Claude / Gemini.
+                  <div
+                    style={{
+                      marginTop: 10,
+                      display: 'flex',
+                      gap: 10,
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <div style={{ fontSize: 13, opacity: 0.62 }}>
+                      Paste in ChatGPT / Claude / Gemini.
+                    </div>
+
+                    {/* ✅ Green copy prompt button */}
+                    <button
+                      onClick={copyPrompt}
+                      style={{
+                        borderRadius: 12,
+                        border: 'none',
+                        padding: '10px 12px',
+                        background: '#16a34a',
+                        color: '#fff',
+                        fontSize: 13,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        boxShadow: '0 10px 20px rgba(0,0,0,0.08)',
+                        marginLeft: 'auto',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {copied ? 'Copied ✓' : 'Copy prompt'}
+                    </button>
                   </div>
 
                   <pre
@@ -425,7 +463,6 @@ Confidence:
                 </details>
               </div>
 
-              {/* Hide “Save as Decision Note” + reminder until after Generate */}
               <div
                 style={{
                   marginTop: 10,
@@ -459,7 +496,7 @@ Confidence:
           )}
         </section>
 
-        {/* Bottom benefits - single line */}
+        {/* Bottom benefits */}
         <footer
           style={{
             maxWidth: 720,
