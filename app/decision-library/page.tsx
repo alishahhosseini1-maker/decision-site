@@ -29,8 +29,7 @@ export default function DecisionLibraryPage() {
       ],
       keyAssumption:
         'Volatility is acceptable and does not imply a permanent impairment to fundamentals over the horizon.',
-      primaryRisk:
-        'Correlated drawdown (portfolio + career) forces a bad sell at the wrong time.',
+      primaryRisk: 'Correlated drawdown (portfolio + career) forces a bad sell at the wrong time.',
       sizingApproach:
         'Incremental adds only; pre-commit a max exposure cap and a drawdown-based pause rule.',
       tags: ['RSUs', 'Concentration', 'Correlation'],
@@ -38,19 +37,11 @@ export default function DecisionLibraryPage() {
     {
       id: 'dl-002',
       title: 'Private investment with long lockup',
-      decision:
-        'Commit capital to an alternative/private investment with multi-year illiquidity.',
-      context: [
-        'Liquidity needs uncertain (taxes, life events)',
-        'No visibility into interim marks',
-        'Decision is hard to reverse',
-      ],
-      keyAssumption:
-        'Illiquidity is compensated with a true structural edge (not just a story).',
-      primaryRisk:
-        'Liquidity mismatch forces you to fund obligations elsewhere at the worst time.',
-      sizingApproach:
-        'Size as if the capital is gone; commit only after a “liquidity stress” pass.',
+      decision: 'Commit capital to an alternative/private investment with multi-year illiquidity.',
+      context: ['Liquidity needs uncertain (taxes, life events)', 'No visibility into interim marks', 'Decision is hard to reverse'],
+      keyAssumption: 'Illiquidity is compensated with a true structural edge (not just a story).',
+      primaryRisk: 'Liquidity mismatch forces you to fund obligations elsewhere at the worst time.',
+      sizingApproach: 'Size as if the capital is gone; commit only after a “liquidity stress” pass.',
       tags: ['Alternatives', 'Illiquidity', 'Lockup'],
     },
     {
@@ -63,10 +54,8 @@ export default function DecisionLibraryPage() {
         'Path dependency: the decision compounds quickly',
         'Downside includes months of “rebuild” time',
       ],
-      keyAssumption:
-        'You can sustain the execution cadence long enough to reach a proof point.',
-      primaryRisk:
-        'Execution gap: momentum dies before the first credible milestone.',
+      keyAssumption: 'You can sustain the execution cadence long enough to reach a proof point.',
+      primaryRisk: 'Execution gap: momentum dies before the first credible milestone.',
       sizingApproach:
         'Stage the leap: secure a proof milestone before burning the bridge where possible.',
       tags: ['Career', 'Risk', 'Reputation'],
@@ -75,17 +64,10 @@ export default function DecisionLibraryPage() {
       id: 'dl-004',
       title: 'Buying a home vs. staying liquid',
       decision: 'Buy a home now versus staying liquid and waiting for better terms.',
-      context: [
-        'High impact on flexibility and monthly burn',
-        'Market uncertainty; rate sensitivity',
-        'Non-financial utility matters',
-      ],
-      keyAssumption:
-        'The home’s utility and stability are worth the flexibility you give up.',
-      primaryRisk:
-        'You lock in a burn rate that narrows future options and raises stress.',
-      sizingApproach:
-        'Set a “sleep well” payment threshold; if above it, wait or reduce scope.',
+      context: ['High impact on flexibility and monthly burn', 'Market uncertainty; rate sensitivity', 'Non-financial utility matters'],
+      keyAssumption: 'The home’s utility and stability are worth the flexibility you give up.',
+      primaryRisk: 'You lock in a burn rate that narrows future options and raises stress.',
+      sizingApproach: 'Set a “sleep well” payment threshold; if above it, wait or reduce scope.',
       tags: ['Personal finance', 'Liquidity', 'Lifestyle'],
     },
 
@@ -100,10 +82,8 @@ export default function DecisionLibraryPage() {
         'Tax impact and concentration both matter',
         'Opportunity cost: what would you buy instead?',
       ],
-      keyAssumption:
-        'Your edge is still present; the thesis remains true at the new price and size.',
-      primaryRisk:
-        'You confuse “up a lot” with “overvalued” or “safe.”',
+      keyAssumption: 'Your edge is still present; the thesis remains true at the new price and size.',
+      primaryRisk: 'You confuse “up a lot” with “overvalued” or “safe.”',
       sizingApproach:
         'Trim to a pre-committed max exposure band; keep a core only if thesis triggers still intact.',
       tags: ['Concentration', 'Taxes', 'Regret'],
@@ -113,17 +93,10 @@ export default function DecisionLibraryPage() {
       title: 'Start a position vs. wait for a better entry',
       decision:
         'Start a position now versus waiting for a better price while avoiding paralysis.',
-      context: [
-        'Conviction exists but uncertainty is non-trivial',
-        'Fear of missing out is present',
-        'Averaging plan is possible',
-      ],
-      keyAssumption:
-        'Time-in-position matters more than perfect entry if sizing is disciplined.',
-      primaryRisk:
-        'You delay indefinitely and then chase at a worse level.',
-      sizingApproach:
-        'Starter position + scale plan: add only on defined conditions, not emotions.',
+      context: ['Conviction exists but uncertainty is non-trivial', 'Fear of missing out is present', 'Averaging plan is possible'],
+      keyAssumption: 'Time-in-position matters more than perfect entry if sizing is disciplined.',
+      primaryRisk: 'You delay indefinitely and then chase at a worse level.',
+      sizingApproach: 'Starter position + scale plan: add only on defined conditions, not emotions.',
       tags: ['Timing', 'Scaling', 'Discipline'],
     },
     {
@@ -131,17 +104,10 @@ export default function DecisionLibraryPage() {
       title: 'Options vs. equity for expressing a view',
       decision:
         'Choose between options (defined risk) and equity (open-ended horizon) for the same thesis.',
-      context: [
-        'Need to define max loss and time horizon',
-        'Volatility/IV can dominate outcomes',
-        'Liquidity and exit mechanics differ',
-      ],
-      keyAssumption:
-        'Your thesis has a timeframe; the payoff profile matches what you actually believe.',
-      primaryRisk:
-        'You buy time decay and call it conviction.',
-      sizingApproach:
-        'Size options by max loss; keep loss tolerable without changing life behavior.',
+      context: ['Need to define max loss and time horizon', 'Volatility/IV can dominate outcomes', 'Liquidity and exit mechanics differ'],
+      keyAssumption: 'Your thesis has a timeframe; the payoff profile matches what you actually believe.',
+      primaryRisk: 'You buy time decay and call it conviction.',
+      sizingApproach: 'Size options by max loss; keep loss tolerable without changing life behavior.',
       tags: ['Options', 'Convexity', 'Time'],
     },
     {
@@ -149,17 +115,10 @@ export default function DecisionLibraryPage() {
       title: 'Concentrated bet vs. diversified approach',
       decision:
         'Decide whether to concentrate into a top idea or spread risk across multiple exposures.',
-      context: [
-        'Portfolio already has correlated exposures',
-        'Career + portfolio risk may overlap',
-        'Downside tolerance is finite',
-      ],
-      keyAssumption:
-        'You can survive being wrong without forced selling or identity damage.',
-      primaryRisk:
-        'Correlation spikes when you need diversification most.',
-      sizingApproach:
-        'Cap any single theme + single name; require explicit downside scenario plan.',
+      context: ['Portfolio already has correlated exposures', 'Career + portfolio risk may overlap', 'Downside tolerance is finite'],
+      keyAssumption: 'You can survive being wrong without forced selling or identity damage.',
+      primaryRisk: 'Correlation spikes when you need diversification most.',
+      sizingApproach: 'Cap any single theme + single name; require explicit downside scenario plan.',
       tags: ['Diversification', 'Correlation', 'Risk'],
     },
     {
@@ -167,17 +126,10 @@ export default function DecisionLibraryPage() {
       title: 'Emergency fund sizing (cash vs. invested)',
       decision:
         'Choose how much cash to hold versus investing more while maintaining resilience.',
-      context: [
-        'Income stability is uncertain',
-        'Large planned expenses possible',
-        'Psychological “sleep well” threshold matters',
-      ],
-      keyAssumption:
-        'The marginal return of investing cash exceeds the resilience cost.',
-      primaryRisk:
-        'You create fragility and are forced to sell during stress.',
-      sizingApproach:
-        'Set a minimum runway; invest only above the runway and only if drawdown plan exists.',
+      context: ['Income stability is uncertain', 'Large planned expenses possible', 'Psychological “sleep well” threshold matters'],
+      keyAssumption: 'The marginal return of investing cash exceeds the resilience cost.',
+      primaryRisk: 'You create fragility and are forced to sell during stress.',
+      sizingApproach: 'Set a minimum runway; invest only above the runway and only if drawdown plan exists.',
       tags: ['Liquidity', 'Resilience', 'Cash'],
     },
     {
@@ -185,17 +137,10 @@ export default function DecisionLibraryPage() {
       title: 'Join a startup vs. stay at big tech',
       decision:
         'Choose a high-variance career move with unclear payoff and reputation risk.',
-      context: [
-        'Comp structure changes (equity vs cash)',
-        'Execution risk is real',
-        'Time cost is irreversible',
-      ],
-      keyAssumption:
-        'The team + market + your role can reach a credible milestone in a defined time.',
-      primaryRisk:
-        'You trade stability for a story without a path to proof.',
-      sizingApproach:
-        'Define a proof milestone + timeline; commit only if the downside is survivable.',
+      context: ['Comp structure changes (equity vs cash)', 'Execution risk is real', 'Time cost is irreversible'],
+      keyAssumption: 'The team + market + your role can reach a credible milestone in a defined time.',
+      primaryRisk: 'You trade stability for a story without a path to proof.',
+      sizingApproach: 'Define a proof milestone + timeline; commit only if the downside is survivable.',
       tags: ['Career', 'Variance', 'Equity'],
     },
     {
@@ -203,17 +148,10 @@ export default function DecisionLibraryPage() {
       title: 'Relocate for quality of life vs. career leverage',
       decision:
         'Move locations to optimize lifestyle without accidentally sacrificing long-term leverage.',
-      context: [
-        'Family and lifestyle utility is meaningful',
-        'Career growth might slow or change trajectory',
-        'Cost-of-living and taxes matter',
-      ],
-      keyAssumption:
-        'The move improves life meaningfully and doesn’t destroy your best future options.',
-      primaryRisk:
-        'You underestimate second-order career and network effects.',
-      sizingApproach:
-        'Run “reversibility” test: ensure you can undo the move without major loss if wrong.',
+      context: ['Family and lifestyle utility is meaningful', 'Career growth might slow or change trajectory', 'Cost-of-living and taxes matter'],
+      keyAssumption: 'The move improves life meaningfully and doesn’t destroy your best future options.',
+      primaryRisk: 'You underestimate second-order career and network effects.',
+      sizingApproach: 'Run “reversibility” test: ensure you can undo the move without major loss if wrong.',
       tags: ['Lifestyle', 'Reversibility', 'Career'],
     },
     {
@@ -221,17 +159,10 @@ export default function DecisionLibraryPage() {
       title: 'Take profits to pay taxes vs. keep exposure',
       decision:
         'Sell assets to cover upcoming taxes while trying not to damage the core thesis.',
-      context: [
-        'Tax bill is known or highly likely',
-        'Liquidity sources vary in cost',
-        'Selling may change future upside',
-      ],
-      keyAssumption:
-        'Reducing exposure now is cheaper than risking a forced sale later.',
-      primaryRisk:
-        'You keep exposure and end up selling at the worst time due to obligation.',
-      sizingApproach:
-        'Ring-fence the tax bill early; treat it as non-negotiable liability.',
+      context: ['Tax bill is known or highly likely', 'Liquidity sources vary in cost', 'Selling may change future upside'],
+      keyAssumption: 'Reducing exposure now is cheaper than risking a forced sale later.',
+      primaryRisk: 'You keep exposure and end up selling at the worst time due to obligation.',
+      sizingApproach: 'Ring-fence the tax bill early; treat it as non-negotiable liability.',
       tags: ['Taxes', 'Liquidity', 'Planning'],
     },
     {
@@ -239,17 +170,10 @@ export default function DecisionLibraryPage() {
       title: 'Over-concentration in a single sector/theme',
       decision:
         'Reduce thematic exposure without turning risk management into performance chasing.',
-      context: [
-        'Holdings share common drivers',
-        'Drawdowns tend to cluster',
-        'You want to keep the best idea, not the whole basket',
-      ],
-      keyAssumption:
-        'Your future returns do not require being maximally exposed to the same driver.',
-      primaryRisk:
-        'A single macro shock hits everything you own at once.',
-      sizingApproach:
-        'Set driver-level caps (not just ticker caps); rotate only with explicit thesis changes.',
+      context: ['Holdings share common drivers', 'Drawdowns tend to cluster', 'You want to keep the best idea, not the whole basket'],
+      keyAssumption: 'Your future returns do not require being maximally exposed to the same driver.',
+      primaryRisk: 'A single macro shock hits everything you own at once.',
+      sizingApproach: 'Set driver-level caps (not just ticker caps); rotate only with explicit thesis changes.',
       tags: ['Theme', 'Correlation', 'Risk'],
     },
     {
@@ -257,17 +181,10 @@ export default function DecisionLibraryPage() {
       title: 'Spend vs. invest decision (lifestyle upgrade)',
       decision:
         'Make a lifestyle upgrade without undermining future optionality and freedom.',
-      context: [
-        'Upgrade is recurring (burn rate) vs one-time',
-        'Income stability uncertain',
-        'Utility is real but hard to quantify',
-      ],
-      keyAssumption:
-        'The utility gain is durable and worth the opportunity cost.',
-      primaryRisk:
-        'You lock in a burn rate that narrows future choices.',
-      sizingApproach:
-        'Define a “never cross” savings rate; only upgrade if you remain above it.',
+      context: ['Upgrade is recurring (burn rate) vs one-time', 'Income stability uncertain', 'Utility is real but hard to quantify'],
+      keyAssumption: 'The utility gain is durable and worth the opportunity cost.',
+      primaryRisk: 'You lock in a burn rate that narrows future choices.',
+      sizingApproach: 'Define a “never cross” savings rate; only upgrade if you remain above it.',
       tags: ['Lifestyle', 'Burn rate', 'Opportunity cost'],
     },
     {
@@ -275,17 +192,10 @@ export default function DecisionLibraryPage() {
       title: 'Private deal: invest now vs. wait for better terms',
       decision:
         'Decide whether to commit to a private deal now or wait for clearer information/terms.',
-      context: [
-        'Deal access may not repeat',
-        'Information is incomplete',
-        'Lockup and governance matter',
-      ],
-      keyAssumption:
-        'Your expected edge is structural (terms, access, or insight), not FOMO.',
-      primaryRisk:
-        'You accept bad terms because access feels scarce.',
-      sizingApproach:
-        'Pre-commit term thresholds; walk away if not met (even if the deal is “hot”).',
+      context: ['Deal access may not repeat', 'Information is incomplete', 'Lockup and governance matter'],
+      keyAssumption: 'Your expected edge is structural (terms, access, or insight), not FOMO.',
+      primaryRisk: 'You accept bad terms because access feels scarce.',
+      sizingApproach: 'Pre-commit term thresholds; walk away if not met (even if the deal is “hot”).',
       tags: ['Alternatives', 'Terms', 'Discipline'],
     },
   ];
@@ -293,7 +203,11 @@ export default function DecisionLibraryPage() {
   const [query, setQuery] = useState('');
   const [activeId, setActiveId] = useState<string | null>(entries[0]?.id ?? null);
   const [isMobile, setIsMobile] = useState(false);
-  const [copied, setCopied] = useState(false);
+
+  // Progressive reveal controls (default: collapsed)
+  const [openKeyAssumption, setOpenKeyAssumption] = useState(false);
+  const [openPrimaryRisk, setOpenPrimaryRisk] = useState(false);
+  const [openSizingApproach, setOpenSizingApproach] = useState(false);
 
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth < 900);
@@ -302,10 +216,14 @@ export default function DecisionLibraryPage() {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  const active = useMemo(
-    () => entries.find((e) => e.id === activeId) ?? entries[0],
-    [activeId]
-  );
+  const active = useMemo(() => entries.find((e) => e.id === activeId) ?? entries[0], [activeId, entries]);
+
+  // When switching frames, keep things calm: collapse the deeper sections again
+  useEffect(() => {
+    setOpenKeyAssumption(false);
+    setOpenPrimaryRisk(false);
+    setOpenSizingApproach(false);
+  }, [activeId]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -323,7 +241,6 @@ export default function DecisionLibraryPage() {
       ]
         .join(' ')
         .toLowerCase();
-
       return haystack.includes(q);
     });
   }, [entries, query]);
@@ -338,10 +255,7 @@ export default function DecisionLibraryPage() {
   const shellBg = 'rgba(255,255,255,0.65)';
   const softShadow = '0 10px 30px rgba(0,0,0,0.05)';
 
-  const navLinkStyle: React.CSSProperties = {
-    textDecoration: 'none',
-    color: 'inherit',
-  };
+  const navLinkStyle: React.CSSProperties = { textDecoration: 'none', color: 'inherit' };
 
   const pillStyle: React.CSSProperties = {
     fontSize: 12,
@@ -351,21 +265,6 @@ export default function DecisionLibraryPage() {
     background: 'rgba(255,255,255,0.7)',
     opacity: 0.85,
     whiteSpace: 'nowrap',
-  };
-
-  const copyActiveToClipboard = async () => {
-    if (!active) return;
-    const payload =
-      `DECISION:\n${active.decision}\n\nCONTEXT (optional):\n` +
-      active.context.map((c) => `- ${c}`).join('\n');
-
-    try {
-      await navigator.clipboard.writeText(payload);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1200);
-    } catch {
-      // ignore
-    }
   };
 
   const twoCol = !isMobile;
@@ -382,7 +281,6 @@ export default function DecisionLibraryPage() {
             paddingTop: 6,
           }}
         >
-          {/* Back to homepage (requested) */}
           <Link
             href="/"
             style={{
@@ -401,7 +299,6 @@ export default function DecisionLibraryPage() {
             ← Back to homepage
           </Link>
 
-          {/* Section nav */}
           <nav
             style={{
               display: 'flex',
@@ -477,7 +374,7 @@ export default function DecisionLibraryPage() {
           />
 
           <div style={{ marginTop: 10, fontSize: 12.5, opacity: 0.62, lineHeight: 1.6 }}>
-            Search reveals more. The list stays small on purpose.
+            Search reveals more. The list is intentionally small.
           </div>
         </section>
 
@@ -544,13 +441,13 @@ export default function DecisionLibraryPage() {
 
               {!query.trim() && (
                 <div style={{ fontSize: 12.5, opacity: 0.58, padding: '6px 2px' }}>
-                  Search to reveal more frames.
+                  Search to reveal more.
                 </div>
               )}
 
               {query.trim() && filtered.length === 0 && (
                 <div style={{ fontSize: 13, opacity: 0.65, padding: '10px 4px' }}>
-                  No matches. Keep the library small and focused.
+                  No matches.
                 </div>
               )}
             </div>
@@ -577,11 +474,12 @@ export default function DecisionLibraryPage() {
                 </h2>
               </div>
 
-              {/* Actions */}
+              {/* ✅ Single primary action (removed the extra CTA) */}
               <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                <button
-                  onClick={copyActiveToClipboard}
+                <Link
+                  href="/#tool"
                   style={{
+                    ...navLinkStyle,
                     alignSelf: 'flex-start',
                     fontSize: 13,
                     border: 'none',
@@ -590,26 +488,9 @@ export default function DecisionLibraryPage() {
                     background: '#0b0b0b',
                     color: '#fff',
                     cursor: 'pointer',
-                    fontWeight: 700,
+                    fontWeight: 750,
                     whiteSpace: 'nowrap',
                     boxShadow: '0 10px 20px rgba(0,0,0,0.12)',
-                  }}
-                >
-                  {copied ? 'Copied ✓' : 'Copy into tool →'}
-                </button>
-
-                <Link
-                  href="/#tool"
-                  style={{
-                    ...navLinkStyle,
-                    alignSelf: 'flex-start',
-                    fontSize: 13,
-                    opacity: 0.75,
-                    border: '1px solid rgba(0,0,0,0.10)',
-                    borderRadius: 999,
-                    padding: '8px 12px',
-                    background: 'rgba(255,255,255,0.6)',
-                    whiteSpace: 'nowrap',
                   }}
                 >
                   Use this structure →
@@ -617,6 +498,7 @@ export default function DecisionLibraryPage() {
               </div>
             </div>
 
+            {/* Keep the “at-a-glance” sections visible */}
             <div style={{ marginTop: 14 }}>
               <div style={{ fontSize: 13, fontWeight: 700, opacity: 0.88 }}>Decision</div>
               <div style={{ marginTop: 6, fontSize: 14, lineHeight: 1.5, opacity: 0.9 }}>
@@ -635,10 +517,26 @@ export default function DecisionLibraryPage() {
               </ul>
             </div>
 
+            {/* ✅ Progressive reveal (reduces density) */}
             <div style={{ marginTop: 14, display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
-              <InfoCard title="Key assumption" body={active?.keyAssumption ?? ''} />
-              <InfoCard title="Primary risk" body={active?.primaryRisk ?? ''} />
-              <InfoCard title="Sizing approach" body={active?.sizingApproach ?? ''} />
+              <DisclosureCard
+                title="Key assumption"
+                body={active?.keyAssumption ?? ''}
+                isOpen={openKeyAssumption}
+                onToggle={() => setOpenKeyAssumption((v) => !v)}
+              />
+              <DisclosureCard
+                title="Primary risk"
+                body={active?.primaryRisk ?? ''}
+                isOpen={openPrimaryRisk}
+                onToggle={() => setOpenPrimaryRisk((v) => !v)}
+              />
+              <DisclosureCard
+                title="Sizing approach"
+                body={active?.sizingApproach ?? ''}
+                isOpen={openSizingApproach}
+                onToggle={() => setOpenSizingApproach((v) => !v)}
+              />
             </div>
 
             <div style={{ marginTop: 14, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -666,7 +564,17 @@ export default function DecisionLibraryPage() {
   );
 }
 
-function InfoCard({ title, body }: { title: string; body: string }) {
+function DisclosureCard({
+  title,
+  body,
+  isOpen,
+  onToggle,
+}: {
+  title: string;
+  body: string;
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
   return (
     <div
       style={{
@@ -676,10 +584,31 @@ function InfoCard({ title, body }: { title: string; body: string }) {
         padding: 12,
       }}
     >
-      <div style={{ fontSize: 12.5, opacity: 0.62 }}>{title}</div>
-      <div style={{ marginTop: 6, fontSize: 13.5, lineHeight: 1.5, opacity: 0.9 }}>
-        {body}
-      </div>
+      <button
+        onClick={onToggle}
+        style={{
+          width: '100%',
+          border: 'none',
+          background: 'transparent',
+          padding: 0,
+          margin: 0,
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          textAlign: 'left',
+        }}
+        aria-expanded={isOpen}
+      >
+        <div style={{ fontSize: 12.5, opacity: 0.72, fontWeight: 650 }}>{title}</div>
+        <div style={{ fontSize: 12, opacity: 0.55 }}>{isOpen ? 'collapse' : 'expand'}</div>
+      </button>
+
+      {isOpen ? (
+        <div style={{ marginTop: 8, fontSize: 13.5, lineHeight: 1.5, opacity: 0.9 }}>
+          {body}
+        </div>
+      ) : null}
     </div>
   );
 }
