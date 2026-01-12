@@ -238,9 +238,7 @@ Goal: Increase exposure only if sizing + triggers are clearly defined.`;
                 {copied ? 'Copied ✓ Opening tool…' : 'Copy example → open tool'}
               </button>
 
-              <div style={{ fontSize: 12.5, opacity: 0.62 }}>
-                Most users: copy → paste → generate.
-              </div>
+              <div style={{ fontSize: 12.5, opacity: 0.62 }}>Most users: copy → paste → generate.</div>
             </div>
 
             <div style={noteStyle}>Keep it boring. Specific beats clever. No outcomes. No story.</div>
@@ -248,8 +246,8 @@ Goal: Increase exposure only if sizing + triggers are clearly defined.`;
 
           <div style={{ height: 14 }} />
 
-          {/* Collapsible sections (scan-first) */}
-          <DetailsSection title="When to run one (rule-of-thumb)" defaultOpen>
+          {/* Collapsible sections (closed by default) */}
+          <DetailsSection title="When to run one (rule-of-thumb)">
             <ul style={{ margin: '8px 0 0', paddingLeft: 18, lineHeight: 1.9, opacity: 0.82, fontSize: 14.5 }}>
               <li>The decision is meaningfully irreversible (or costly to reverse).</li>
               <li>Being wrong would matter (money, reputation, stress).</li>
@@ -284,7 +282,7 @@ Goal: Increase exposure only if sizing + triggers are clearly defined.`;
 
           <div style={{ height: 10 }} />
 
-          <DetailsSection title="A realistic example (copy this)" defaultOpen>
+          <DetailsSection title="A realistic example (copy this)">
             <div style={{ ...bodyText, fontWeight: 850, opacity: 0.86 }}>{exampleDecision}</div>
 
             <div style={divider} />
@@ -359,15 +357,7 @@ Goal: Increase exposure only if sizing + triggers are clearly defined.`;
   );
 }
 
-function DetailsSection({
-  title,
-  children,
-  defaultOpen,
-}: {
-  title: string;
-  children: React.ReactNode;
-  defaultOpen?: boolean;
-}) {
+function DetailsSection({ title, children }: { title: string; children: React.ReactNode }) {
   const border = '1px solid rgba(0,0,0,0.10)';
   const shellBg = 'rgba(255,255,255,0.65)';
   const softShadow = '0 10px 30px rgba(0,0,0,0.05)';
@@ -387,7 +377,7 @@ function DetailsSection({
 
   return (
     <details
-      open={defaultOpen}
+      // ✅ Closed by default (no "open" prop)
       style={{
         border,
         borderRadius: 18,
@@ -398,7 +388,8 @@ function DetailsSection({
     >
       <summary style={summaryStyle}>
         <span>{title}</span>
-        <span style={{ opacity: 0.5, fontSize: 12 }}>toggle</span>
+        {/* ✅ Rename toggle label */}
+        <span style={{ opacity: 0.5, fontSize: 12 }}>expand</span>
       </summary>
 
       <div style={{ marginTop: 12 }}>{children}</div>
