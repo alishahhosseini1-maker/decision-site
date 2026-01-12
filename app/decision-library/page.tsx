@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 type DecisionEntry = {
   id: string;
@@ -15,7 +15,6 @@ type DecisionEntry = {
 };
 
 export default function DecisionLibraryPage() {
-  // Keep this tight and curated. No feeds. No “latest”. No social mechanics.
   const entries: DecisionEntry[] = [
     {
       id: 'dl-001',
@@ -75,8 +74,7 @@ export default function DecisionLibraryPage() {
     {
       id: 'dl-004',
       title: 'Buying a home vs. staying liquid',
-      decision:
-        'Buy a home now versus staying liquid and waiting for better terms.',
+      decision: 'Buy a home now versus staying liquid and waiting for better terms.',
       context: [
         'High impact on flexibility and monthly burn',
         'Market uncertainty; rate sensitivity',
@@ -91,7 +89,7 @@ export default function DecisionLibraryPage() {
       tags: ['Personal finance', 'Liquidity', 'Lifestyle'],
     },
 
-    // Added (11 more) — shows up in search so the library feels “lived-in” without turning into a feed.
+    // More frames (search-revealed)
     {
       id: 'dl-005',
       title: 'Sell vs. hold after a big run-up',
@@ -294,10 +292,19 @@ export default function DecisionLibraryPage() {
 
   const [query, setQuery] = useState('');
   const [activeId, setActiveId] = useState<string | null>(entries[0]?.id ?? null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 900);
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const active = useMemo(
     () => entries.find((e) => e.id === activeId) ?? entries[0],
-    [activeId] // entries is static in this file
+    [activeId]
   );
 
   const filtered = useMemo(() => {
@@ -321,19 +328,15 @@ export default function DecisionLibraryPage() {
     });
   }, [entries, query]);
 
-  // Show only 4 on the page by default. If user searches, show all matches.
   const visibleList = useMemo(() => {
     const q = query.trim();
     if (!q) return entries.slice(0, 4);
     return filtered;
   }, [entries, filtered, query]);
 
-  // If active item is not in the visible list (when not searching), keep the right pane stable.
-  // (You can still click in search mode to navigate deeper.)
-  // No extra logic needed: active remains whatever was last set.
-
   const border = '1px solid rgba(0,0,0,0.10)';
   const shellBg = 'rgba(255,255,255,0.65)';
+  const softShadow = '0 10px 30px rgba(0,0,0,0.05)';
 
   const navLinkStyle: React.CSSProperties = {
     textDecoration: 'none',
@@ -350,20 +353,27 @@ export default function DecisionLibraryPage() {
     whiteSpace: 'nowrap',
   };
 
-  // Copy the active structure so user can paste into the homepage tool.
   const copyActiveToClipboard = async () => {
     if (!active) return;
     const payload =
       `DECISION:\n${active.decision}\n\nCONTEXT (optional):\n` +
       active.context.map((c) => `- ${c}`).join('\n');
-    await navigator.clipboard.writeText(payload);
-    alert('Copied. Paste into the homepage tool.');
+
+    try {
+      await navigator.clipboard.writeText(payload);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1200);
+    } catch {
+      // ignore
+    }
   };
+
+  const twoCol = !isMobile;
 
   return (
     <div style={{ minHeight: '100vh', background: '#f4f5f6', color: '#111' }}>
       <main style={{ maxWidth: 980, margin: '28px auto 60px', padding: '0 20px' }}>
-        {/* Top nav (matches Home) */}
+        {/* Top nav (cohesive) */}
         <header
           style={{
             display: 'flex',
@@ -372,22 +382,26 @@ export default function DecisionLibraryPage() {
             paddingTop: 6,
           }}
         >
-          {/* LEFT: Home anchor -> go to homepage tool */}
+          {/* Back to homepage (requested) */}
           <Link
-            href="/#tool"
+            href="/"
             style={{
               textDecoration: 'none',
               color: 'inherit',
               fontWeight: 800,
-              fontSize: 14,
-              letterSpacing: 0.2,
-              opacity: 0.9,
+              fontSize: 13,
+              opacity: 0.75,
+              border: '1px solid rgba(0,0,0,0.10)',
+              borderRadius: 999,
+              padding: '8px 12px',
+              background: 'rgba(255,255,255,0.6)',
+              whiteSpace: 'nowrap',
             }}
           >
-            Decision Layer
+            ← Back to homepage
           </Link>
 
-          {/* RIGHT: Section nav */}
+          {/* Section nav */}
           <nav
             style={{
               display: 'flex',
@@ -395,47 +409,62 @@ export default function DecisionLibraryPage() {
               fontSize: 13,
               opacity: 0.62,
               fontWeight: 400,
+              alignItems: 'center',
             }}
           >
-            <Link href="/decision-review" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <Link href="/decision-review" style={navLinkStyle}>
               Decision Review
             </Link>
-            <Link href="/decision-notes" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <Link href="/decision-notes" style={navLinkStyle}>
               Decision Notes
             </Link>
-            <Link href="/walkthrough" style={{ textDecoration: 'none', color: 'inherit' }}>
-              Walkthrough
-            </Link>
-            <Link href="/decision-library" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <Link href="/decision-library" style={navLinkStyle}>
               Decision Library
             </Link>
           </nav>
         </header>
 
-        {/* Header */}
-        <section style={{ marginTop: 44 }}>
-          <h1 style={{ fontSize: 36, margin: 0, letterSpacing: -0.6 }}>Decision Library</h1>
-          <p style={{ margin: '10px 0 0', fontSize: 14, opacity: 0.72, maxWidth: 760 }}>
-            A small collection of anonymized decision frames. No outcomes. No stories. No social
-            mechanics. Just the structure behind real decisions.
+        {/* Centered hero */}
+        <section style={{ textAlign: 'center', marginTop: 54 }}>
+          <h1 style={{ fontSize: 52, margin: 0, letterSpacing: -1.0 }}>Decision Library</h1>
+
+          <p style={{ margin: '10px 0 0', fontSize: 18, opacity: 0.9 }}>
+            A small set of anonymized decision frames.
+          </p>
+
+          <p
+            style={{
+              margin: '8px 0 0',
+              fontSize: 14,
+              opacity: 0.65,
+              maxWidth: 820,
+              marginLeft: 'auto',
+              marginRight: 'auto',
+            }}
+          >
+            No outcomes. No stories. No social mechanics. Just structure you can reuse when the decision
+            feels heavy.
           </p>
         </section>
 
         {/* Search */}
         <section
           style={{
-            marginTop: 16,
+            marginTop: 18,
+            maxWidth: 720,
+            marginLeft: 'auto',
+            marginRight: 'auto',
             border,
-            borderRadius: 14,
+            borderRadius: 18,
             background: shellBg,
             padding: 14,
-            boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
+            boxShadow: softShadow,
           }}
         >
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search decisions (e.g., RSUs, lockup, sizing, career)…"
+            placeholder="Search frames (RSUs, lockup, sizing, career)…"
             style={{
               width: '100%',
               borderRadius: 12,
@@ -446,20 +475,18 @@ export default function DecisionLibraryPage() {
               outline: 'none',
             }}
           />
-          <div style={{ marginTop: 10, fontSize: 12.5, opacity: 0.62 }}>
-  Search to reveal more decision frames.
-  <br />
-  The list stays small on purpose.
-</div>
 
+          <div style={{ marginTop: 10, fontSize: 12.5, opacity: 0.62, lineHeight: 1.6 }}>
+            Search reveals more. The list stays small on purpose.
+          </div>
         </section>
 
-        {/* Two-column layout */}
+        {/* Layout */}
         <section
           style={{
             marginTop: 14,
             display: 'grid',
-            gridTemplateColumns: '1fr 1.6fr',
+            gridTemplateColumns: twoCol ? '1fr 1.6fr' : '1fr',
             gap: 14,
             alignItems: 'start',
           }}
@@ -471,11 +498,14 @@ export default function DecisionLibraryPage() {
               borderRadius: 18,
               background: shellBg,
               padding: 12,
-              boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
+              boxShadow: softShadow,
+              maxWidth: twoCol ? undefined : 720,
+              marginLeft: twoCol ? undefined : 'auto',
+              marginRight: twoCol ? undefined : 'auto',
             }}
           >
-            <div style={{ fontSize: 13, fontWeight: 650, marginBottom: 10, opacity: 0.85 }}>
-              Anonymized decision frames
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, opacity: 0.85 }}>
+              Decision frames
             </div>
 
             <div style={{ display: 'grid', gap: 8 }}>
@@ -496,7 +526,7 @@ export default function DecisionLibraryPage() {
                       cursor: 'pointer',
                     }}
                   >
-                    <div style={{ fontSize: 13.5, fontWeight: 650, opacity: 0.92 }}>{e.title}</div>
+                    <div style={{ fontSize: 13.5, fontWeight: 700, opacity: 0.92 }}>{e.title}</div>
                     <div style={{ marginTop: 6, fontSize: 12.5, opacity: 0.64, lineHeight: 1.35 }}>
                       {e.decision}
                     </div>
@@ -533,36 +563,39 @@ export default function DecisionLibraryPage() {
               borderRadius: 18,
               background: shellBg,
               padding: 16,
-              boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
+              boxShadow: softShadow,
+              maxWidth: twoCol ? undefined : 720,
+              marginLeft: twoCol ? undefined : 'auto',
+              marginRight: twoCol ? undefined : 'auto',
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-              <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+              <div style={{ minWidth: 260 }}>
                 <div style={{ fontSize: 12.5, opacity: 0.6 }}>Decision frame</div>
                 <h2 style={{ fontSize: 22, margin: '6px 0 0', letterSpacing: -0.4 }}>
                   {active?.title}
                 </h2>
               </div>
 
-              {/* FIX: Use this structure should take user to the homepage tool, not /decision-review */}
+              {/* Actions */}
               <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
                 <button
                   onClick={copyActiveToClipboard}
                   style={{
                     alignSelf: 'flex-start',
                     fontSize: 13,
-                    opacity: 0.85,
                     border: 'none',
                     borderRadius: 999,
                     padding: '8px 12px',
                     background: '#0b0b0b',
                     color: '#fff',
                     cursor: 'pointer',
-                    fontWeight: 650,
+                    fontWeight: 700,
                     whiteSpace: 'nowrap',
+                    boxShadow: '0 10px 20px rgba(0,0,0,0.12)',
                   }}
                 >
-                  Copy into tool →
+                  {copied ? 'Copied ✓' : 'Copy into tool →'}
                 </button>
 
                 <Link
@@ -585,14 +618,14 @@ export default function DecisionLibraryPage() {
             </div>
 
             <div style={{ marginTop: 14 }}>
-              <div style={{ fontSize: 13, fontWeight: 650, opacity: 0.88 }}>Decision</div>
+              <div style={{ fontSize: 13, fontWeight: 700, opacity: 0.88 }}>Decision</div>
               <div style={{ marginTop: 6, fontSize: 14, lineHeight: 1.5, opacity: 0.9 }}>
                 {active?.decision}
               </div>
             </div>
 
             <div style={{ marginTop: 14 }}>
-              <div style={{ fontSize: 13, fontWeight: 650, opacity: 0.88 }}>Context</div>
+              <div style={{ fontSize: 13, fontWeight: 700, opacity: 0.88 }}>Context</div>
               <ul style={{ margin: '8px 0 0', paddingLeft: 18, opacity: 0.88, lineHeight: 1.55 }}>
                 {(active?.context ?? []).map((c, idx) => (
                   <li key={idx} style={{ marginBottom: 4, fontSize: 13.5 }}>
@@ -603,47 +636,9 @@ export default function DecisionLibraryPage() {
             </div>
 
             <div style={{ marginTop: 14, display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
-              <div
-                style={{
-                  border: '1px solid rgba(0,0,0,0.10)',
-                  borderRadius: 14,
-                  background: 'rgba(255,255,255,0.55)',
-                  padding: 12,
-                }}
-              >
-                <div style={{ fontSize: 12.5, opacity: 0.62 }}>Key assumption</div>
-                <div style={{ marginTop: 6, fontSize: 13.5, lineHeight: 1.5, opacity: 0.9 }}>
-                  {active?.keyAssumption}
-                </div>
-              </div>
-
-              <div
-                style={{
-                  border: '1px solid rgba(0,0,0,0.10)',
-                  borderRadius: 14,
-                  background: 'rgba(255,255,255,0.55)',
-                  padding: 12,
-                }}
-              >
-                <div style={{ fontSize: 12.5, opacity: 0.62 }}>Primary risk</div>
-                <div style={{ marginTop: 6, fontSize: 13.5, lineHeight: 1.5, opacity: 0.9 }}>
-                  {active?.primaryRisk}
-                </div>
-              </div>
-
-              <div
-                style={{
-                  border: '1px solid rgba(0,0,0,0.10)',
-                  borderRadius: 14,
-                  background: 'rgba(255,255,255,0.55)',
-                  padding: 12,
-                }}
-              >
-                <div style={{ fontSize: 12.5, opacity: 0.62 }}>Sizing approach</div>
-                <div style={{ marginTop: 6, fontSize: 13.5, lineHeight: 1.5, opacity: 0.9 }}>
-                  {active?.sizingApproach}
-                </div>
-              </div>
+              <InfoCard title="Key assumption" body={active?.keyAssumption ?? ''} />
+              <InfoCard title="Primary risk" body={active?.primaryRisk ?? ''} />
+              <InfoCard title="Sizing approach" body={active?.sizingApproach ?? ''} />
             </div>
 
             <div style={{ marginTop: 14, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -655,19 +650,36 @@ export default function DecisionLibraryPage() {
             </div>
 
             <div style={{ marginTop: 14, fontSize: 12.5, opacity: 0.62 }}>
-              Note: outcomes are intentionally excluded. This library is about decision quality, not
-              hindsight.
+              Outcomes intentionally excluded. This is about decision quality, not hindsight.
             </div>
           </article>
         </section>
 
-        {/* Footer (quiet) */}
+        {/* Footer */}
         <footer style={{ maxWidth: 980, margin: '18px auto 0', textAlign: 'center' }}>
           <div style={{ fontSize: 13, opacity: 0.55 }}>
             Built for clarity under pressure. No feeds. No noise.
           </div>
         </footer>
       </main>
+    </div>
+  );
+}
+
+function InfoCard({ title, body }: { title: string; body: string }) {
+  return (
+    <div
+      style={{
+        border: '1px solid rgba(0,0,0,0.10)',
+        borderRadius: 14,
+        background: 'rgba(255,255,255,0.55)',
+        padding: 12,
+      }}
+    >
+      <div style={{ fontSize: 12.5, opacity: 0.62 }}>{title}</div>
+      <div style={{ marginTop: 6, fontSize: 13.5, lineHeight: 1.5, opacity: 0.9 }}>
+        {body}
+      </div>
     </div>
   );
 }

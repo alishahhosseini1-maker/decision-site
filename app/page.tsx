@@ -1,14 +1,59 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 export default function HomePage() {
   const [decision, setDecision] = useState('');
   const [context, setContext] = useState('');
   const [horizon, setHorizon] = useState('24–48 months');
 
+  // UX state
+  const [copied, setCopied] = useState(false);
+  const [lastUsedAt, setLastUsedAt] = useState<string | null>(null);
+
+  // NEW: progressive disclosure + mobile nav cleanup
+  const [hasGenerated, setHasGenerated] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  const promptDetailsRef = useRef<HTMLDetailsElement | null>(null);
+
+  const STORAGE = {
+    lastUsed: 'dl:last_used_at',
+    noteDraft: 'dl:note_draft_v1',
+  };
+
   const tone = 'Calm, precise, direct. Like a senior engineer doing a design review.';
+
+  useEffect(() => {
+    // load last used
+    try {
+      const lu = localStorage.getItem(STORAGE.lastUsed);
+      setLastUsedAt(lu);
+    } catch {
+      // ignore
+    }
+
+    // mobile detection (for nav density)
+    const onResize = () => setIsMobile(window.innerWidth < 640);
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const formatShort = (iso?: string | null) => {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '—';
+    return d.toLocaleString(undefined, {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  };
 
   const prompt = useMemo(() => {
     const trimmedDecision = decision.trim();
@@ -18,12 +63,14 @@ export default function HomePage() {
       ? `DECISION:\n${trimmedDecision}`
       : `DECISION:\n[Paste the decision here]`;
 
-    const contextBlock = trimmedContext ? `\n\nCONTEXT (optional):\n${trimmedContext}` : '';
+    const contextBlock = trimmedContext
+      ? `\n\nCONTEXT (only what changes sizing, timing, or risk):\n${trimmedContext}`
+      : `\n\nCONTEXT (optional):\n[If relevant: constraints, exposure, timeline, stakes]`;
 
-    return `You are a disciplined investing decision partner for senior engineers and tech executives.
+    return `You are a disciplined decision partner.
 
 Your job is NOT to provide stock picks, predictions, or market commentary.
-Your job is to pressure-test a decision before capital is committed.
+Your job is to pressure-test a decision before committing capital, time, or reputation.
 
 Time horizon: ${horizon}
 
@@ -52,9 +99,74 @@ Now run a Decision Review with this structure:
 9) Recommendation (Proceed / Proceed smaller / Wait / Don't do it) + 2-line rationale`;
   }, [decision, context, horizon]);
 
-  const copyPrompt = async () => {
-    await navigator.clipboard.writeText(prompt);
-    alert('Copied to clipboard.');
+  // Generate = mark used + copy + reveal + open prompt + scroll
+  const generateDecisionReview = async () => {
+    if (!decision.trim()) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    setHasGenerated(true);
+
+    const iso = new Date().toISOString();
+    setLastUsedAt(iso);
+    try {
+      localStorage.setItem(STORAGE.lastUsed, iso);
+    } catch {}
+
+    try {
+      await navigator.clipboard.writeText(prompt);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1200);
+    } catch {
+      // clipboard may be blocked; still reveal prompt for manual copy
+    }
+
+    setTimeout(() => {
+      if (promptDetailsRef.current) {
+        promptDetailsRef.current.open = true; // keep collapsed by default, open only after generate
+        promptDetailsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 50);
+  };
+
+  // Only shown after Generate
+  const saveAsDecisionNote = async () => {
+    const noteText = `Decision:
+${decision.trim() || '[fill]'}
+
+Context (only what changes sizing, timing, or risk):
+${context.trim() || '[none]'}
+
+Time horizon:
+${horizon}
+
+What would change my mind:
+[fill]
+
+Primary risks / failure modes:
+[fill]
+
+Confidence:
+[Low | Medium | High]`;
+
+    try {
+      localStorage.setItem(
+        STORAGE.noteDraft,
+        JSON.stringify({
+          decision: decision.trim(),
+          context: context.trim(),
+          horizon,
+          createdAt: new Date().toISOString(),
+        })
+      );
+    } catch {}
+
+    try {
+      await navigator.clipboard.writeText(noteText);
+    } catch {}
+
+    window.location.href = '/decision-notes';
   };
 
   const shellBg = 'rgba(255,255,255,0.65)';
@@ -84,10 +196,12 @@ Now run a Decision Review with this structure:
     color: 'inherit',
   };
 
+  const lastUsedLabel = formatShort(lastUsedAt);
+
   return (
     <div style={{ minHeight: '100vh', background: '#f4f5f6', color: '#111' }}>
       <main style={{ maxWidth: 980, margin: '28px auto 60px', padding: '0 20px' }}>
-        {/* Top nav (opinionated, minimal: 4 items) */}
+        {/* Top nav */}
         <header
           style={{
             display: 'flex',
@@ -103,6 +217,7 @@ Now run a Decision Review with this structure:
               fontSize: 13,
               opacity: 0.62,
               fontWeight: 400,
+              alignItems: 'center',
             }}
           >
             <Link href="/decision-review" style={navLinkStyle}>
@@ -114,6 +229,19 @@ Now run a Decision Review with this structure:
             <Link href="/decision-library" style={navLinkStyle}>
               Decision Library
             </Link>
+
+            {/* Keep habit nudge on desktop, hide on mobile */}
+            {!isMobile && (
+              <>
+                <span style={{ opacity: 0.5, marginLeft: 6 }}>•</span>
+                <span style={{ fontSize: 12, opacity: 0.55 }}>
+                  Last used: <span style={{ opacity: 0.75 }}>{lastUsedLabel}</span>
+                </span>
+                <span style={{ fontSize: 12, opacity: 0.45 }}>
+                  (bookmark + return before you commit)
+                </span>
+              </>
+            )}
           </nav>
         </header>
 
@@ -121,13 +249,17 @@ Now run a Decision Review with this structure:
         <section style={{ textAlign: 'center', marginTop: 54 }}>
           <h1 style={{ fontSize: 64, margin: 0, letterSpacing: -1.1 }}>Decision Layer</h1>
 
+          {/* Keep hero simple (one line) */}
           <p style={{ margin: '10px 0 0', fontSize: 18, opacity: 0.9 }}>
             Clear thinking before committing capital — time, or reputation.
           </p>
 
-          <p style={{ margin: '8px 0 0', fontSize: 14, opacity: 0.65 }}>
-            No stock picks. No predictions. No market commentary.
-          </p>
+          {/* Only show this line after generate (reduces initial clutter on mobile) */}
+          {hasGenerated && (
+            <p style={{ margin: '8px 0 0', fontSize: 14, opacity: 0.65 }}>
+              No stock picks. No predictions. No market commentary.
+            </p>
+          )}
         </section>
 
         {/* Card */}
@@ -242,7 +374,7 @@ Now run a Decision Review with this structure:
 
           {/* Primary action */}
           <button
-            onClick={copyPrompt}
+            onClick={generateDecisionReview}
             style={{
               marginTop: 14,
               width: '100%',
@@ -257,38 +389,74 @@ Now run a Decision Review with this structure:
               boxShadow: '0 10px 20px rgba(0,0,0,0.12)',
             }}
           >
-            Generate decision review
+            {copied ? 'Copied ✓' : 'Generate decision review'}
           </button>
 
-          <div style={{ marginTop: 10, fontSize: 13, opacity: 0.62 }}>
-            Use in ChatGPT / Claude / Gemini.
-          </div>
+          {/* Everything below only appears AFTER Generate */}
+          {hasGenerated && (
+            <>
+              {/* Move this line under the prompt section only (less clutter) */}
+              <div style={{ marginTop: 12 }}>
+                <details ref={promptDetailsRef} style={detailStyle}>
+                  <summary style={summaryStyle}>
+                    <span>▶ View generated prompt</span>
+                    <span style={{ opacity: 0.55, fontSize: 12 }}>expand</span>
+                  </summary>
 
-          {/* Generated prompt (subtle, matches Optional) */}
-          <div style={{ marginTop: 12 }}>
-            <details style={detailStyle}>
-              <summary style={summaryStyle}>
-                <span>▶ View generated prompt</span>
-                <span style={{ opacity: 0.55, fontSize: 12 }}>expand</span>
-              </summary>
+                  <div style={{ marginTop: 10, fontSize: 13, opacity: 0.62 }}>
+                    Use in ChatGPT / Claude / Gemini.
+                  </div>
 
-              <pre
+                  <pre
+                    style={{
+                      marginTop: 12,
+                      borderRadius: 14,
+                      border: '1px solid rgba(0,0,0,0.12)',
+                      background: '#fff',
+                      padding: 14,
+                      fontSize: 12.5,
+                      lineHeight: 1.45,
+                      whiteSpace: 'pre-wrap',
+                      overflowWrap: 'anywhere',
+                    }}
+                  >
+                    {prompt}
+                  </pre>
+                </details>
+              </div>
+
+              {/* Hide “Save as Decision Note” + reminder until after Generate */}
+              <div
                 style={{
-                  marginTop: 12,
-                  borderRadius: 14,
-                  border: '1px solid rgba(0,0,0,0.12)',
-                  background: '#fff',
-                  padding: 14,
-                  fontSize: 12.5,
-                  lineHeight: 1.45,
-                  whiteSpace: 'pre-wrap',
-                  overflowWrap: 'anywhere',
+                  marginTop: 10,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  gap: 12,
                 }}
               >
-                {prompt}
-              </pre>
-            </details>
-          </div>
+                <button
+                  onClick={saveAsDecisionNote}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    padding: 0,
+                    cursor: 'pointer',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    opacity: 0.75,
+                    textDecoration: 'underline',
+                  }}
+                  title="Copies a note scaffold and takes you to Decision Notes"
+                >
+                  Save as Decision Note
+                </button>
+
+                <div style={{ fontSize: 13, opacity: 0.55 }}>
+                  Reminder: return here <strong>before</strong> you act.
+                </div>
+              </div>
+            </>
+          )}
         </section>
 
         {/* Bottom benefits - single line */}

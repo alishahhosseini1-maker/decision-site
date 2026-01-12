@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 type Confidence = 'Low' | 'Medium' | 'High';
 
@@ -10,6 +10,8 @@ type DecisionNote = {
   createdAt: number; // epoch ms
   updatedAt: number; // epoch ms
   decision: string; // 1 sentence
+  context?: string; // optional but useful (from homepage)
+  horizon?: string; // optional (from homepage)
   assumptions: string[]; // bullets
   changeMind: string[]; // bullets
   confidence: Confidence;
@@ -17,9 +19,9 @@ type DecisionNote = {
 };
 
 const STORAGE_KEY = 'decision-layer:decision-notes:v1';
+const DRAFT_KEY = 'dl:note_draft_v1';
 
 function uid() {
-  // good enough for local-only notes
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
@@ -35,7 +37,6 @@ function formatDate(ts: number) {
 }
 
 function cleanLines(text: string): string[] {
-  // Split on newlines, trim, drop empties, strip leading bullets.
   return text
     .split('\n')
     .map((l) => l.trim().replace(/^[-•\u2022]\s+/, '').trim())
@@ -69,8 +70,14 @@ function readNotes(): DecisionNote[] {
         assumptions: Array.isArray(n.assumptions) ? n.assumptions : [],
         changeMind: Array.isArray(n.changeMind) ? n.changeMind : [],
         tags: Array.isArray(n.tags) ? n.tags : [],
-        confidence: (n.confidence as Confidence) ?? 'Medium',
-      }));
+        confidence: (['Low', 'Medium', 'High'].includes(String(n.confidence))
+          ? n.confidence
+          : 'Medium') as Confidence,
+        decision: String(n.decision ?? '').trim(),
+        context: typeof (n as any).context === 'string' ? (n as any).context : '',
+        horizon: typeof (n as any).horizon === 'string' ? (n as any).horizon : '',
+      }))
+      .filter((n) => n.decision);
   } catch {
     return [];
   }
@@ -81,28 +88,80 @@ function writeNotes(notes: DecisionNote[]) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
 }
 
+function readDraft():
+  | { decision?: string; context?: string; horizon?: string; createdAt?: string }
+  | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return null;
+    return {
+      decision: typeof parsed.decision === 'string' ? parsed.decision : '',
+      context: typeof parsed.context === 'string' ? parsed.context : '',
+      horizon: typeof parsed.horizon === 'string' ? parsed.horizon : '',
+      createdAt: typeof parsed.createdAt === 'string' ? parsed.createdAt : '',
+    };
+  } catch {
+    return null;
+  }
+}
+
+function clearDraft() {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.removeItem(DRAFT_KEY);
+  } catch {
+    // ignore
+  }
+}
+
 export default function DecisionNotesPage() {
-  // State: data
+  // Data
   const [notes, setNotes] = useState<DecisionNote[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  // State: UI
+  // UI
   const [mode, setMode] = useState<'list' | 'view' | 'edit'>('list');
   const [query, setQuery] = useState('');
   const [showNew, setShowNew] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
-  // State: editor fields
+  // Editor fields
   const [decision, setDecision] = useState('');
+  const [context, setContext] = useState('');
+  const [horizon, setHorizon] = useState('24–48 months');
   const [assumptionsText, setAssumptionsText] = useState('');
   const [changeMindText, setChangeMindText] = useState('');
   const [confidence, setConfidence] = useState<Confidence>('Medium');
   const [tagsText, setTagsText] = useState('');
 
-  // Load on mount
+  // Load on mount + hydrate from homepage draft if present
   useEffect(() => {
     const loaded = readNotes().sort((a, b) => b.updatedAt - a.updatedAt);
     setNotes(loaded);
     if (loaded.length > 0) setSelectedId(loaded[0].id);
+
+    const onResize = () => setIsMobile(window.innerWidth < 900);
+    onResize();
+    window.addEventListener('resize', onResize);
+
+    // Draft hydration: if a draft exists, open "New note" prefilled
+    const draft = readDraft();
+    if (draft && (draft.decision || draft.context || draft.horizon)) {
+      resetEditor();
+      setDecision(draft.decision ?? '');
+      setContext(draft.context ?? '');
+      setHorizon(draft.horizon ?? '24–48 months');
+      setShowNew(true);
+      setMode('edit');
+      setSelectedId(null);
+      // Do NOT clear draft yet; only clear after successful save
+    }
+
+    return () => window.removeEventListener('resize', onResize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const selected = useMemo(
@@ -118,6 +177,8 @@ export default function DecisionNotesPage() {
     return notes.filter((n) => {
       const haystack = [
         n.decision,
+        n.context ?? '',
+        n.horizon ?? '',
         n.assumptions.join(' '),
         n.changeMind.join(' '),
         n.confidence,
@@ -129,10 +190,26 @@ export default function DecisionNotesPage() {
     });
   }, [notes, query]);
 
-  // Styling primitives (match your site)
+  // Styling (match homepage + review page)
   const border = '1px solid rgba(0,0,0,0.10)';
   const shellBg = 'rgba(255,255,255,0.65)';
+  const softShadow = '0 10px 30px rgba(0,0,0,0.05)';
   const navLinkStyle: React.CSSProperties = { textDecoration: 'none', color: 'inherit' };
+
+  // ✅ ADDED: Back button styling (matches other pages)
+  const backBtnStyle: React.CSSProperties = {
+    textDecoration: 'none',
+    color: 'inherit',
+    fontWeight: 800,
+    fontSize: 13,
+    opacity: 0.75,
+    border: '1px solid rgba(0,0,0,0.10)',
+    borderRadius: 999,
+    padding: '8px 12px',
+    background: 'rgba(255,255,255,0.6)',
+    whiteSpace: 'nowrap',
+  };
+
   const pillStyle: React.CSSProperties = {
     fontSize: 12,
     padding: '6px 10px',
@@ -145,6 +222,8 @@ export default function DecisionNotesPage() {
 
   function resetEditor() {
     setDecision('');
+    setContext('');
+    setHorizon('24–48 months');
     setAssumptionsText('');
     setChangeMindText('');
     setConfidence('Medium');
@@ -160,6 +239,8 @@ export default function DecisionNotesPage() {
 
   function beginEdit(note: DecisionNote) {
     setDecision(note.decision);
+    setContext(note.context ?? '');
+    setHorizon(note.horizon ?? '24–48 months');
     setAssumptionsText(serializeLines(note.assumptions));
     setChangeMindText(serializeLines(note.changeMind));
     setConfidence(note.confidence);
@@ -186,6 +267,8 @@ export default function DecisionNotesPage() {
       createdAt: selected?.createdAt ?? now,
       updatedAt: now,
       decision: trimmedDecision,
+      context: context.trim(),
+      horizon: horizon.trim(),
       assumptions: cleanLines(assumptionsText).slice(0, 10),
       changeMind: cleanLines(changeMindText).slice(0, 10),
       confidence,
@@ -207,6 +290,9 @@ export default function DecisionNotesPage() {
 
     setSelectedId(newNote.id);
     setMode('view');
+
+    // If we came here from homepage "Save as Decision Note", clear the draft after save
+    clearDraft();
   }
 
   function deleteNote(id: string) {
@@ -246,6 +332,8 @@ export default function DecisionNotesPage() {
           createdAt: Number(n.createdAt),
           updatedAt: typeof n.updatedAt === 'number' ? Number(n.updatedAt) : Number(n.createdAt),
           decision: String(n.decision ?? '').trim(),
+          context: typeof n.context === 'string' ? n.context : '',
+          horizon: typeof n.horizon === 'string' ? n.horizon : '',
           assumptions: Array.isArray(n.assumptions) ? n.assumptions.map(String).filter(Boolean) : [],
           changeMind: Array.isArray(n.changeMind) ? n.changeMind.map(String).filter(Boolean) : [],
           confidence: (['Low', 'Medium', 'High'].includes(n.confidence) ? n.confidence : 'Medium') as Confidence,
@@ -255,7 +343,6 @@ export default function DecisionNotesPage() {
 
       const merged = [...cleaned, ...notes]
         .reduce((acc: DecisionNote[], cur) => {
-          // de-dupe by id (prefer newer updatedAt)
           const idx = acc.findIndex((x) => x.id === cur.id);
           if (idx === -1) return [...acc, cur as DecisionNote];
           return acc[idx].updatedAt < (cur as DecisionNote).updatedAt
@@ -274,87 +361,101 @@ export default function DecisionNotesPage() {
     }
   }
 
+  const twoCol = !isMobile;
+
   return (
     <div style={{ minHeight: '100vh', background: '#f4f5f6', color: '#111' }}>
       <main style={{ maxWidth: 980, margin: '28px auto 60px', padding: '0 20px' }}>
-        {/* Nav (matches your minimal 4) */}
+        {/* ✅ UPDATED: Top nav now includes back-to-homepage button */}
         <header
-  style={{
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 6,
-  }}
->
-  {/* LEFT: Home anchor */}
-  <Link
-    href="/"
-    style={{
-      textDecoration: 'none',
-      color: 'inherit',
-      fontWeight: 800,
-      fontSize: 14,
-      letterSpacing: 0.2,
-      opacity: 0.9,
-    }}
-  >
-    Decision Layer
-  </Link>
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingTop: 6,
+          }}
+        >
+          <Link href="/" style={backBtnStyle}>
+            ← Back to homepage
+          </Link>
 
-  {/* RIGHT: Section nav */}
-  <nav
-    style={{
-      display: 'flex',
-      gap: 18,
-      fontSize: 13,
-      opacity: 0.62,
-      fontWeight: 400,
-    }}
-  >
-    <Link href="/decision-review" style={{ textDecoration: 'none', color: 'inherit' }}>
-      Decision Review
-    </Link>
-    <Link href="/decision-notes" style={{ textDecoration: 'none', color: 'inherit' }}>
-      Decision Notes
-    </Link>
-    <Link href="/walkthrough" style={{ textDecoration: 'none', color: 'inherit' }}>
-      Walkthrough
-    </Link>
-    <Link href="/decision-library" style={{ textDecoration: 'none', color: 'inherit' }}>
-      Decision Library
-    </Link>
-  </nav>
-</header>
+          <nav
+            style={{
+              display: 'flex',
+              gap: 18,
+              fontSize: 13,
+              opacity: 0.62,
+              fontWeight: 400,
+              alignItems: 'center',
+            }}
+          >
+            <Link href="/decision-review" style={navLinkStyle}>
+              Decision Review
+            </Link>
+            <Link href="/decision-notes" style={navLinkStyle}>
+              Decision Notes
+            </Link>
+            <Link href="/decision-library" style={navLinkStyle}>
+              Decision Library
+            </Link>
 
+            {/* Quiet return link (desktop only) */}
+            {twoCol && (
+              <>
+                <span style={{ opacity: 0.5, marginLeft: 6 }}>•</span>
+                <Link href="/" style={{ ...navLinkStyle, fontSize: 12, opacity: 0.55 }}>
+                  Back to tool
+                </Link>
+              </>
+            )}
+          </nav>
+        </header>
 
-        {/* Header */}
-        <section style={{ marginTop: 44 }}>
-          <h1 style={{ fontSize: 36, margin: 0, letterSpacing: -0.6 }}>Decision Notes</h1>
-          <p style={{ margin: '10px 0 0', fontSize: 14, opacity: 0.72, maxWidth: 820 }}>
-            Short records for your future self. Capture what mattered at the moment of commitment —
-            not what happened after.
+        {/* Centered hero (cohesive) */}
+        <section style={{ textAlign: 'center', marginTop: 54 }}>
+          <h1 style={{ fontSize: 52, margin: 0, letterSpacing: -1.0 }}>Decision Notes</h1>
+
+          <p style={{ margin: '10px 0 0', fontSize: 18, opacity: 0.9 }}>
+            Preserve judgment at the moment of commitment.
+          </p>
+
+          <p
+            style={{
+              margin: '8px 0 0',
+              fontSize: 14,
+              opacity: 0.65,
+              maxWidth: 780,
+              marginLeft: 'auto',
+              marginRight: 'auto',
+            }}
+          >
+            Short records for your future self. Capture what mattered — not what happened after.
           </p>
         </section>
 
-        {/* Actions bar */}
+        {/* Actions bar (tight + cohesive) */}
         <section
           style={{
-            marginTop: 16,
+            marginTop: 18,
+            maxWidth: 720,
+            marginLeft: 'auto',
+            marginRight: 'auto',
             border,
-            borderRadius: 14,
+            borderRadius: 18,
             background: shellBg,
             padding: 14,
-            boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
+            boxShadow: softShadow,
             display: 'flex',
             gap: 10,
             alignItems: 'center',
             flexWrap: 'wrap',
+            textAlign: 'left',
           }}
         >
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search notes (e.g., RSUs, lockup, sizing)…"
+            placeholder="Search notes (RSUs, concentration, sizing)…"
             style={{
               flex: '1 1 320px',
               borderRadius: 12,
@@ -417,12 +518,15 @@ export default function DecisionNotesPage() {
           </button>
         </section>
 
-        {/* Two-column layout */}
+        {/* Layout: two-column on desktop, single stack on mobile */}
         <section
           style={{
             marginTop: 14,
+            maxWidth: 980,
+            marginLeft: 'auto',
+            marginRight: 'auto',
             display: 'grid',
-            gridTemplateColumns: '1fr 1.7fr',
+            gridTemplateColumns: twoCol ? '1fr 1.7fr' : '1fr',
             gap: 14,
             alignItems: 'start',
           }}
@@ -434,7 +538,10 @@ export default function DecisionNotesPage() {
               borderRadius: 18,
               background: shellBg,
               padding: 12,
-              boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
+              boxShadow: softShadow,
+              maxWidth: twoCol ? undefined : 720,
+              marginLeft: twoCol ? undefined : 'auto',
+              marginRight: twoCol ? undefined : 'auto',
             }}
           >
             <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, opacity: 0.85 }}>
@@ -465,6 +572,9 @@ export default function DecisionNotesPage() {
 
                     <div style={{ marginTop: 6, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                       <span style={pillStyle}>{n.confidence}</span>
+                      {(n.horizon ?? '').trim() ? (
+                        <span style={pillStyle}>{(n.horizon ?? '').trim()}</span>
+                      ) : null}
                       {n.tags.slice(0, 2).map((t) => (
                         <span key={t} style={pillStyle}>
                           {t}
@@ -494,7 +604,10 @@ export default function DecisionNotesPage() {
               borderRadius: 18,
               background: shellBg,
               padding: 16,
-              boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
+              boxShadow: softShadow,
+              maxWidth: twoCol ? undefined : 720,
+              marginLeft: twoCol ? undefined : 'auto',
+              marginRight: twoCol ? undefined : 'auto',
             }}
           >
             {/* Empty state */}
@@ -504,7 +617,7 @@ export default function DecisionNotesPage() {
                 <div style={{ marginTop: 10, fontSize: 13.5, opacity: 0.7, lineHeight: 1.6 }}>
                   Create a note when a decision feels heavy.
                   <br />
-                  Keep it simple: decision, assumptions, disconfirming evidence, confidence.
+                  Keep it simple: decision, context, assumptions, disconfirming evidence, confidence.
                 </div>
               </div>
             )}
@@ -512,14 +625,18 @@ export default function DecisionNotesPage() {
             {/* View mode */}
             {selected && mode !== 'edit' && (
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
-                  <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+                  <div style={{ minWidth: 260 }}>
                     <div style={{ fontSize: 12.5, opacity: 0.6 }}>Decision note</div>
                     <h2 style={{ fontSize: 20, margin: '6px 0 0', letterSpacing: -0.3 }}>
                       {selected.decision}
                     </h2>
+
                     <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                       <span style={pillStyle}>{selected.confidence}</span>
+                      {(selected.horizon ?? '').trim() ? (
+                        <span style={pillStyle}>{(selected.horizon ?? '').trim()}</span>
+                      ) : null}
                       {selected.tags.map((t) => (
                         <span key={t} style={pillStyle}>
                           {t}
@@ -565,9 +682,25 @@ export default function DecisionNotesPage() {
                   </div>
                 </div>
 
-                <div style={{ marginTop: 16, display: 'grid', gap: 10 }}>
-                  <Section title="Key assumptions" bullets={selected.assumptions} />
-                  <Section title="What would change my mind" bullets={selected.changeMind} />
+                {/* Context block (new, cohesive with the rest) */}
+                {(selected.context ?? '').trim() || (selected.horizon ?? '').trim() ? (
+                  <div style={{ marginTop: 14, display: 'grid', gap: 10 }}>
+                    {(selected.horizon ?? '').trim() ? (
+                      <Section title="Time horizon" body={(selected.horizon ?? '').trim()} />
+                    ) : null}
+
+                    {(selected.context ?? '').trim() ? (
+                      <Section
+                        title="Context (only what changes sizing, timing, or risk)"
+                        body={(selected.context ?? '').trim()}
+                      />
+                    ) : null}
+                  </div>
+                ) : null}
+
+                <div style={{ marginTop: 14, display: 'grid', gap: 10 }}>
+                  <Bullets title="Key assumptions" bullets={selected.assumptions} />
+                  <Bullets title="What would change my mind" bullets={selected.changeMind} />
                 </div>
 
                 <div style={{ marginTop: 14, fontSize: 12.5, opacity: 0.62 }}>
@@ -576,10 +709,10 @@ export default function DecisionNotesPage() {
               </div>
             )}
 
-            {/* Edit mode (new or edit) */}
+            {/* Edit mode */}
             {mode === 'edit' && (
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
                   <div>
                     <div style={{ fontSize: 12.5, opacity: 0.6 }}>
                       {showNew ? 'New note' : 'Edit note'}
@@ -607,7 +740,6 @@ export default function DecisionNotesPage() {
                     </button>
                     <button
                       onClick={() => {
-                        // cancel: return to view if editing existing; otherwise go back to list
                         if (selected) {
                           setMode('view');
                         } else {
@@ -631,7 +763,6 @@ export default function DecisionNotesPage() {
                   </div>
                 </div>
 
-                {/* Editor form */}
                 <div style={{ marginTop: 16, display: 'grid', gap: 12 }}>
                   <FieldLabel label="Decision (one sentence)" />
                   <input
@@ -649,12 +780,12 @@ export default function DecisionNotesPage() {
                     }}
                   />
 
-                  <FieldLabel label="Key assumptions (1–5 lines)" hint="One per line." />
+                  <FieldLabel label="Context (optional)" hint="Only what changes sizing, timing, or risk." />
                   <textarea
-                    value={assumptionsText}
-                    onChange={(e) => setAssumptionsText(e.target.value)}
-                    placeholder="Example:\n- Demand stays durable over the horizon\n- Volatility ≠ impairment\n- I can hold through a 30% drawdown"
-                    rows={5}
+                    value={context}
+                    onChange={(e) => setContext(e.target.value)}
+                    placeholder="Constraints, exposure, stakes, and what you can’t tolerate."
+                    rows={4}
                     style={{
                       width: '100%',
                       borderRadius: 14,
@@ -668,26 +799,30 @@ export default function DecisionNotesPage() {
                     }}
                   />
 
-                  <FieldLabel label="What would change your mind (1–5 lines)" hint="Disconfirming evidence. One per line." />
-                  <textarea
-                    value={changeMindText}
-                    onChange={(e) => setChangeMindText(e.target.value)}
-                    placeholder="Example:\n- Revenue deceleration with margin pressure\n- Clear signal of product cycle break\n- My exposure exceeds pre-committed cap"
-                    rows={5}
+                  <div
                     style={{
-                      width: '100%',
-                      borderRadius: 14,
-                      border: '1px solid rgba(0,0,0,0.15)',
-                      padding: 14,
-                      fontSize: 14,
-                      lineHeight: 1.45,
-                      resize: 'vertical',
-                      background: '#fff',
-                      outline: 'none',
+                      display: 'grid',
+                      gridTemplateColumns: twoCol ? '1fr 1fr' : '1fr',
+                      gap: 12,
                     }}
-                  />
+                  >
+                    <div>
+                      <FieldLabel label="Time horizon" />
+                      <input
+                        value={horizon}
+                        onChange={(e) => setHorizon(e.target.value)}
+                        style={{
+                          width: '100%',
+                          borderRadius: 12,
+                          border: '1px solid rgba(0,0,0,0.15)',
+                          padding: '10px 12px',
+                          fontSize: 14,
+                          background: '#fff',
+                          outline: 'none',
+                        }}
+                      />
+                    </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                     <div>
                       <FieldLabel label="Confidence" />
                       <select
@@ -708,25 +843,70 @@ export default function DecisionNotesPage() {
                         <option value="High">High</option>
                       </select>
                     </div>
-
-                    <div>
-                      <FieldLabel label="Tags (optional)" hint="Comma-separated. Max 8." />
-                      <input
-                        value={tagsText}
-                        onChange={(e) => setTagsText(e.target.value)}
-                        placeholder="RSUs, concentration, sizing"
-                        style={{
-                          width: '100%',
-                          borderRadius: 12,
-                          border: '1px solid rgba(0,0,0,0.15)',
-                          padding: '10px 12px',
-                          fontSize: 14,
-                          background: '#fff',
-                          outline: 'none',
-                        }}
-                      />
-                    </div>
                   </div>
+
+                  <FieldLabel label="Key assumptions (1–5 lines)" hint="One per line." />
+                  <textarea
+                    value={assumptionsText}
+                    onChange={(e) => setAssumptionsText(e.target.value)}
+                    placeholder={`Example:
+- Demand stays durable over the horizon
+- Volatility ≠ impairment
+- I can hold through a 30% drawdown`}
+                    rows={5}
+                    style={{
+                      width: '100%',
+                      borderRadius: 14,
+                      border: '1px solid rgba(0,0,0,0.15)',
+                      padding: 14,
+                      fontSize: 14,
+                      lineHeight: 1.45,
+                      resize: 'vertical',
+                      background: '#fff',
+                      outline: 'none',
+                    }}
+                  />
+
+                  <FieldLabel
+                    label="What would change your mind (1–5 lines)"
+                    hint="Disconfirming evidence. One per line."
+                  />
+                  <textarea
+                    value={changeMindText}
+                    onChange={(e) => setChangeMindText(e.target.value)}
+                    placeholder={`Example:
+- Revenue deceleration with margin pressure
+- Clear signal of product cycle break
+- My exposure exceeds pre-committed cap`}
+                    rows={5}
+                    style={{
+                      width: '100%',
+                      borderRadius: 14,
+                      border: '1px solid rgba(0,0,0,0.15)',
+                      padding: 14,
+                      fontSize: 14,
+                      lineHeight: 1.45,
+                      resize: 'vertical',
+                      background: '#fff',
+                      outline: 'none',
+                    }}
+                  />
+
+                  <FieldLabel label="Tags (optional)" hint="Comma-separated. Max 8." />
+                  <input
+                    value={tagsText}
+                    onChange={(e) => setTagsText(e.target.value)}
+                    placeholder="RSUs, concentration, sizing"
+                    style={{
+                      width: '100%',
+                      borderRadius: 12,
+                      border: '1px solid rgba(0,0,0,0.15)',
+                      padding: '10px 12px',
+                      fontSize: 14,
+                      background: '#fff',
+                      outline: 'none',
+                    }}
+                  />
 
                   <div style={{ fontSize: 12.5, opacity: 0.62, lineHeight: 1.6 }}>
                     Keep this free of outcomes and storytelling. You’re recording decision quality at the time of commitment.
@@ -737,7 +917,7 @@ export default function DecisionNotesPage() {
           </article>
         </section>
 
-        {/* Footer (quiet) */}
+        {/* Footer (quiet, cohesive) */}
         <footer style={{ maxWidth: 980, margin: '18px auto 0', textAlign: 'center' }}>
           <div style={{ fontSize: 13, opacity: 0.55 }}>
             Local-only notes. Stored in your browser. Export if you want portability.
@@ -750,14 +930,14 @@ export default function DecisionNotesPage() {
 
 function FieldLabel({ label, hint }: { label: string; hint?: string }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
       <div style={{ fontSize: 13, fontWeight: 700, opacity: 0.9 }}>{label}</div>
       {hint ? <div style={{ fontSize: 12.5, opacity: 0.6 }}>{hint}</div> : null}
     </div>
   );
 }
 
-function Section({ title, bullets }: { title: string; bullets: string[] }) {
+function Bullets({ title, bullets }: { title: string; bullets: string[] }) {
   return (
     <div
       style={{
@@ -777,10 +957,34 @@ function Section({ title, bullets }: { title: string; bullets: string[] }) {
           ))}
         </ul>
       ) : (
-        <div style={{ marginTop: 8, fontSize: 13.5, opacity: 0.75 }}>
-          —
-        </div>
+        <div style={{ marginTop: 8, fontSize: 13.5, opacity: 0.75 }}>—</div>
       )}
+    </div>
+  );
+}
+
+function Section({ title, body }: { title: string; body: string }) {
+  return (
+    <div
+      style={{
+        border: '1px solid rgba(0,0,0,0.10)',
+        borderRadius: 14,
+        background: 'rgba(255,255,255,0.55)',
+        padding: 12,
+      }}
+    >
+      <div style={{ fontSize: 12.5, opacity: 0.62 }}>{title}</div>
+      <div
+        style={{
+          marginTop: 8,
+          fontSize: 13.5,
+          opacity: 0.9,
+          lineHeight: 1.55,
+          whiteSpace: 'pre-wrap',
+        }}
+      >
+        {body}
+      </div>
     </div>
   );
 }
