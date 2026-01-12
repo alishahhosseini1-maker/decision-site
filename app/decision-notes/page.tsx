@@ -7,15 +7,15 @@ type Confidence = 'Low' | 'Medium' | 'High';
 
 type DecisionNote = {
   id: string;
-  createdAt: number; // epoch ms
-  updatedAt: number; // epoch ms
-  decision: string; // 1 sentence
-  context?: string; // optional but useful
-  horizon?: string; // optional
-  assumptions: string[]; // bullets
-  changeMind: string[]; // bullets
+  createdAt: number;
+  updatedAt: number;
+  decision: string;
+  context?: string;
+  horizon?: string;
+  assumptions: string[];
+  changeMind: string[];
   confidence: Confidence;
-  tags: string[]; // optional
+  tags: string[];
 };
 
 const STORAGE_KEY = 'decision-layer:decision-notes:v1';
@@ -118,17 +118,14 @@ function clearDraft() {
 }
 
 export default function DecisionNotesPage() {
-  // Data
   const [notes, setNotes] = useState<DecisionNote[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  // UI
   const [mode, setMode] = useState<'list' | 'view' | 'edit'>('list');
   const [query, setQuery] = useState('');
   const [showNew, setShowNew] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Editor fields
   const [decision, setDecision] = useState('');
   const [context, setContext] = useState('');
   const [horizon, setHorizon] = useState('24–48 months');
@@ -137,7 +134,6 @@ export default function DecisionNotesPage() {
   const [confidence, setConfidence] = useState<Confidence>('Medium');
   const [tagsText, setTagsText] = useState('');
 
-  // Load on mount + hydrate from homepage draft if present
   useEffect(() => {
     const loaded = readNotes().sort((a, b) => b.updatedAt - a.updatedAt);
     setNotes(loaded);
@@ -147,7 +143,6 @@ export default function DecisionNotesPage() {
     onResize();
     window.addEventListener('resize', onResize);
 
-    // Draft hydration
     const draft = readDraft();
     if (draft && (draft.decision || draft.context || draft.horizon)) {
       resetEditor();
@@ -168,7 +163,6 @@ export default function DecisionNotesPage() {
     [notes, selectedId]
   );
 
-  // Filtered list
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return notes;
@@ -189,7 +183,7 @@ export default function DecisionNotesPage() {
     });
   }, [notes, query]);
 
-  // Styling (consistent)
+  // Visual system
   const border = '1px solid rgba(0,0,0,0.10)';
   const shellBg = 'rgba(255,255,255,0.65)';
   const softShadow = '0 10px 30px rgba(0,0,0,0.05)';
@@ -385,24 +379,7 @@ export default function DecisionNotesPage() {
 
   const twoCol = !isMobile;
 
-  // ✳️ Tiny, realistic starter examples (to make “why” obvious)
-  const quickStarts = [
-    {
-      title: 'Concentration decision',
-      decision:
-        'Increase NVIDIA exposure by 5% despite RSU concentration, capped at 20% total exposure.',
-      context:
-        'Already exposed via RSUs. Can tolerate a 30% drawdown without forced selling. Horizon 24–48 months.',
-      confidence: 'Medium' as Confidence,
-    },
-    {
-      title: 'Career decision',
-      decision: 'Accept the new role even if it delays promotion by 6–12 months.',
-      context:
-        'Higher learning curve + better long-term optionality. Downside: short-term comp + uncertainty.',
-      confidence: 'Medium' as Confidence,
-    },
-  ];
+  
 
   return (
     <div style={{ minHeight: '100vh', background: '#f4f5f6', color: '#111' }}>
@@ -456,16 +433,15 @@ export default function DecisionNotesPage() {
               margin: '8px auto 0',
               fontSize: 14,
               opacity: 0.65,
-              maxWidth: 780,
+              maxWidth: 760,
               lineHeight: 1.65,
             }}
           >
-            A note is a short receipt for your thinking at commitment time—so later you can learn
-            from the decision, not the luck.
+            A short receipt for your thinking at commitment time—so later you can learn from the decision, not the luck.
           </p>
         </section>
 
-        {/* Why / When / Quick starts (real + scan-friendly) */}
+        {/* Collapsible explainer cards (collapsed by default) */}
         <section
           style={{
             marginTop: 18,
@@ -477,18 +453,11 @@ export default function DecisionNotesPage() {
             gap: 12,
           }}
         >
-          <div
-            style={{
-              border,
-              borderRadius: 18,
-              background: shellBg,
-              padding: 16,
-              boxShadow: softShadow,
-              textAlign: 'left',
-            }}
+          <DetailsCard
+            title="Why notes matter"
+            summary="They prevent hindsight from rewriting your decision."
           >
-            <div style={{ fontSize: 13, fontWeight: 800, opacity: 0.9 }}>Why notes matter</div>
-            <div style={{ marginTop: 10, fontSize: 14, opacity: 0.78, lineHeight: 1.75 }}>
+            <div style={{ marginTop: 8, fontSize: 14, opacity: 0.8, lineHeight: 1.75 }}>
               Without a note, your brain rewrites history.
               <br />
               <strong>Good decision + bad outcome</strong> looks like a mistake.
@@ -497,23 +466,15 @@ export default function DecisionNotesPage() {
               <br />
               Notes stop that. They keep your “why” intact.
             </div>
-
             <div style={{ marginTop: 12, fontSize: 12.5, opacity: 0.62 }}>
               Rule: write a note only when being wrong would matter.
             </div>
-          </div>
+          </DetailsCard>
 
-          <div
-            style={{
-              border,
-              borderRadius: 18,
-              background: shellBg,
-              padding: 16,
-              boxShadow: softShadow,
-              textAlign: 'left',
-            }}
+          <DetailsCard
+            title="When to write one"
+            summary="When the decision feels heavy, costly, or irreversible."
           >
-            <div style={{ fontSize: 13, fontWeight: 800, opacity: 0.9 }}>When to write one</div>
             <ul style={{ margin: '10px 0 0', paddingLeft: 18, lineHeight: 1.8, opacity: 0.8, fontSize: 14 }}>
               <li>You’re increasing concentration or sizing up.</li>
               <li>You’re making a career or life tradeoff.</li>
@@ -521,28 +482,8 @@ export default function DecisionNotesPage() {
               <li>You’re relying on assumptions you can’t prove yet.</li>
             </ul>
 
-            <div style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {quickStarts.map((q) => (
-                <button
-                  key={q.title}
-                  onClick={() => beginNew({ decision: q.decision, context: q.context, confidence: q.confidence })}
-                  style={{
-                    borderRadius: 999,
-                    border: '1px solid rgba(0,0,0,0.10)',
-                    background: 'rgba(255,255,255,0.7)',
-                    padding: '8px 10px',
-                    cursor: 'pointer',
-                    fontSize: 12.5,
-                    fontWeight: 650,
-                    opacity: 0.9,
-                  }}
-                  title="Start a new note from an example"
-                >
-                  + {q.title}
-                </button>
-              ))}
-            </div>
-          </div>
+            
+          </DetailsCard>
         </section>
 
         {/* Actions bar */}
@@ -592,7 +533,7 @@ export default function DecisionNotesPage() {
           </button>
         </section>
 
-        {/* Main layout */}
+        {/* Layout */}
         <section
           style={{
             marginTop: 14,
@@ -690,14 +631,11 @@ export default function DecisionNotesPage() {
               marginRight: twoCol ? undefined : 'auto',
             }}
           >
-            {/* Empty state */}
             {!selected && mode !== 'edit' && (
               <div style={{ padding: 8 }}>
                 <div style={{ fontSize: 14, fontWeight: 750, opacity: 0.9 }}>No note selected</div>
                 <div style={{ marginTop: 10, fontSize: 13.5, opacity: 0.72, lineHeight: 1.7 }}>
-                  Notes are not journals.
-                  <br />
-                  They’re short records of: <strong>what you believed</strong>, <strong>what had to be true</strong>, and{' '}
+                  Notes are short records of: <strong>what you believed</strong>, <strong>what had to be true</strong>, and{' '}
                   <strong>what would change your mind</strong>.
                 </div>
 
@@ -709,7 +647,6 @@ export default function DecisionNotesPage() {
               </div>
             )}
 
-            {/* View mode */}
             {selected && mode !== 'edit' && (
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
@@ -744,7 +681,10 @@ export default function DecisionNotesPage() {
 
                 {(selected.context ?? '').trim() || (selected.horizon ?? '').trim() ? (
                   <div style={{ marginTop: 14, display: 'grid', gap: 10 }}>
-                    {(selected.horizon ?? '').trim() ? <Section title="Time horizon" body={(selected.horizon ?? '').trim()} /> : null}
+                    {(selected.horizon ?? '').trim() ? (
+                      <Section title="Time horizon" body={(selected.horizon ?? '').trim()} />
+                    ) : null}
+
                     {(selected.context ?? '').trim() ? (
                       <Section
                         title="Context (only what changes sizing, timing, or risk)"
@@ -765,12 +705,13 @@ export default function DecisionNotesPage() {
               </div>
             )}
 
-            {/* Edit mode */}
             {mode === 'edit' && (
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
                   <div>
-                    <div style={{ fontSize: 12.5, opacity: 0.6 }}>{showNew ? 'New note' : 'Edit note'}</div>
+                    <div style={{ fontSize: 12.5, opacity: 0.6 }}>
+                      {showNew ? 'New note' : 'Edit note'}
+                    </div>
                     <h2 style={{ fontSize: 20, margin: '6px 0 0', letterSpacing: -0.3 }}>
                       Write the receipt for your thinking.
                     </h2>
@@ -800,7 +741,7 @@ export default function DecisionNotesPage() {
                   <input
                     value={decision}
                     onChange={(e) => setDecision(e.target.value)}
-                    placeholder="Example: Increase NVIDIA exposure despite RSU concentration, capped at 20% total exposure."
+                    placeholder="Example: Increase exposure, capped at 20% total."
                     style={{
                       width: '100%',
                       borderRadius: 12,
@@ -882,9 +823,9 @@ export default function DecisionNotesPage() {
                     value={assumptionsText}
                     onChange={(e) => setAssumptionsText(e.target.value)}
                     placeholder={`Example:
-- Demand stays durable over the horizon
-- Volatility ≠ impairment
-- I can hold through a 30% drawdown`}
+- Demand stays durable
+- I can hold through drawdown
+- Exposure stays within cap`}
                     rows={5}
                     style={{
                       width: '100%',
@@ -899,17 +840,14 @@ export default function DecisionNotesPage() {
                     }}
                   />
 
-                  <FieldLabel
-                    label="What would change your mind (2–4 lines)"
-                    hint="Disconfirming evidence. One per line."
-                  />
+                  <FieldLabel label="What would change your mind (2–4 lines)" hint="Disconfirming evidence. One per line." />
                   <textarea
                     value={changeMindText}
                     onChange={(e) => setChangeMindText(e.target.value)}
                     placeholder={`Example:
-- Revenue deceleration with margin pressure
-- Clear signal of product cycle break
-- Exposure exceeds my pre-committed cap`}
+- Clear demand break
+- Exposure exceeds cap
+- New information changes thesis`}
                     rows={5}
                     style={{
                       width: '100%',
@@ -941,7 +879,7 @@ export default function DecisionNotesPage() {
                   />
 
                   <div style={{ fontSize: 12.5, opacity: 0.62, lineHeight: 1.6 }}>
-                    Don’t write the outcome. Write what would have made you *not* take the trade.
+                    Don’t write the outcome. Write what would have made you *not* do it.
                   </div>
                 </div>
               </div>
@@ -949,7 +887,6 @@ export default function DecisionNotesPage() {
           </article>
         </section>
 
-        {/* Footer */}
         <footer style={{ maxWidth: 980, margin: '18px auto 0', textAlign: 'center' }}>
           <div style={{ fontSize: 13, opacity: 0.55 }}>
             Local-only notes. Stored in your browser. Export if you want portability.
@@ -957,6 +894,56 @@ export default function DecisionNotesPage() {
         </footer>
       </main>
     </div>
+  );
+}
+
+function DetailsCard({
+  title,
+  summary,
+  children,
+}: {
+  title: string;
+  summary: string;
+  children: React.ReactNode;
+}) {
+  const border = '1px solid rgba(0,0,0,0.10)';
+  const shellBg = 'rgba(255,255,255,0.65)';
+  const softShadow = '0 10px 30px rgba(0,0,0,0.05)';
+
+  const summaryRow: React.CSSProperties = {
+    cursor: 'pointer',
+    listStyle: 'none',
+    outline: 'none',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  };
+
+  return (
+    <details
+      // collapsed by default
+      style={{
+        border,
+        borderRadius: 18,
+        background: shellBg,
+        padding: 16,
+        boxShadow: softShadow,
+        textAlign: 'left',
+      }}
+    >
+      <summary style={summaryRow}>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 800, opacity: 0.9 }}>{title}</div>
+          <div style={{ marginTop: 6, fontSize: 13.5, opacity: 0.72, lineHeight: 1.55 }}>
+            {summary}
+          </div>
+        </div>
+        <span style={{ fontSize: 12, opacity: 0.55, whiteSpace: 'nowrap' }}>expand</span>
+      </summary>
+
+      <div style={{ marginTop: 10 }}>{children}</div>
+    </details>
   );
 }
 
