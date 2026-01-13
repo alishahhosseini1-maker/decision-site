@@ -374,7 +374,7 @@ export default function DecisionLibraryPage() {
           />
 
           <div style={{ marginTop: 10, fontSize: 12.5, opacity: 0.62, lineHeight: 1.6 }}>
-            Search reveals more. The list is intentionally small.
+            Search reveals more. 
           </div>
         </section>
 
