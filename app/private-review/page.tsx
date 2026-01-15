@@ -4,7 +4,7 @@ import Link from 'next/link';
 import React, { useMemo, useState } from 'react';
 
 export default function PrivateReviewPage() {
-  // Visual system
+  // Visual system (match the site)
   const border = '1px solid rgba(0,0,0,0.10)';
   const shellBg = 'rgba(255,255,255,0.65)';
   const softShadow = '0 10px 30px rgba(0,0,0,0.05)';
@@ -43,35 +43,85 @@ export default function PrivateReviewPage() {
   const [decision, setDecision] = useState('');
   const [context, setContext] = useState('');
 
-  // Replace with real intake email
-  const INTAKE_EMAIL = 'you@domain.com';
+  // UX status
+  const [status, setStatus] = useState<'idle' | 'copied' | 'error' | 'missingEmail'>('idle');
+
+  /**
+   * Set in Vercel -> Project Settings -> Environment Variables:
+   * NEXT_PUBLIC_INTAKE_EMAIL = your real inbox address
+   *
+   * NOTE: NEXT_PUBLIC_* values are baked at BUILD time. You must redeploy after changing them.
+   */
+  const INTAKE_EMAIL = (process.env.NEXT_PUBLIC_INTAKE_EMAIL || '')
+    .replace(/\s+/g, '') // removes whitespace/newlines
+    .replace(/[^\x20-\x7E]/g, '') // removes hidden non-ascii chars
+    .trim();
 
   const canSend = !!decision.trim();
 
   const intakeText = useMemo(() => {
     return `Decision Layer — Private Review
 
-Decision:
-${decision.trim() || '[required]'}
-
-Context:
-${context.trim() || '[optional]'}
-
-Name:
+Name (optional):
 ${name.trim() || '[optional]'}
 
-Email:
+Email (optional):
 ${email.trim() || '[optional]'}
+
+Decision (required):
+${decision.trim() || '[required]'}
+
+Context (optional):
+${context.trim() || '[optional]'}
 
 —
 Decision-quality review. Not investment advice.`;
   }, [name, email, decision, context]);
 
   const mailtoHref = useMemo(() => {
+    if (!INTAKE_EMAIL) return '';
     const subject = encodeURIComponent('Decision Layer — Private Review');
     const body = encodeURIComponent(intakeText);
     return `mailto:${INTAKE_EMAIL}?subject=${subject}&body=${body}`;
   }, [INTAKE_EMAIL, intakeText]);
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setStatus('copied');
+      setTimeout(() => setStatus('idle'), 2200);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const onSend = async () => {
+    setStatus('idle');
+
+    if (!canSend) {
+      alert('Please write the decision (one sentence) first.');
+      return;
+    }
+
+    // If env var isn't configured, we can’t open a mailto reliably — but we can still copy.
+    if (!INTAKE_EMAIL || !mailtoHref) {
+      setStatus('missingEmail');
+      const ok = await copyToClipboard(intakeText);
+      if (!ok) setStatus('error');
+      return;
+    }
+
+    // Open the email draft first.
+    // Many browsers won’t open anything if the user has no mail app configured — so we always copy as fallback.
+    try {
+      window.location.assign(mailtoHref);
+      await copyToClipboard(intakeText);
+    } catch {
+      const ok = await copyToClipboard(intakeText);
+      setStatus(ok ? 'copied' : 'error');
+    }
+  };
 
   const label = (text: string, hint?: string) => (
     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
@@ -126,16 +176,12 @@ Decision-quality review. Not investment advice.`;
         <section style={{ textAlign: 'center', marginTop: 54 }}>
           <h1 style={{ fontSize: 52, margin: 0, letterSpacing: -1.0 }}>Private Review</h1>
 
-          <p style={{ margin: '10px 0 0', fontSize: 18, opacity: 0.9 }}>
-            One decision. Pressure-tested.
-          </p>
+          <p style={{ margin: '10px 0 0', fontSize: 18, opacity: 0.9 }}>One decision. Pressure-tested.</p>
 
-          <p style={{ margin: '10px 0 0', fontSize: 13, opacity: 0.58 }}>
-            About decision quality. Not advice.
-          </p>
+          <p style={{ margin: '8px 0 0', fontSize: 14, opacity: 0.65 }}>About decision quality. Not advice.</p>
         </section>
 
-        {/* Card */}
+        {/* Single card */}
         <section
           style={{
             maxWidth: 720,
@@ -191,6 +237,7 @@ Decision-quality review. Not investment advice.`;
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
+              placeholder=""
               style={{
                 width: '100%',
                 borderRadius: 12,
@@ -206,6 +253,7 @@ Decision-quality review. Not investment advice.`;
             <input
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              placeholder=""
               style={{
                 width: '100%',
                 borderRadius: 12,
@@ -217,28 +265,57 @@ Decision-quality review. Not investment advice.`;
               }}
             />
 
-            <a
-              href={canSend ? mailtoHref : undefined}
-              onClick={(e) => {
-                if (!canSend) {
-                  e.preventDefault();
-                  alert('Please write the decision (one sentence) first.');
-                }
-              }}
+            <button
+              type="button"
+              onClick={onSend}
               style={{
-                ...navLinkStyle,
                 ...primaryBtn,
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
                 opacity: canSend ? 1 : 0.5,
+                cursor: canSend ? 'pointer' : 'not-allowed',
+                background: canSend ? '#0b0b0b' : '#6b7280',
               }}
+              disabled={!canSend}
             >
               Send for review →
-            </a>
+            </button>
 
-            <div style={{ fontSize: 12.5, opacity: 0.55, lineHeight: 1.6 }}>
-              Not investment advice. Decision-quality review.
+            {/* Status messages (no debug / no “Intake: NOT SET”) */}
+            {status === 'copied' && (
+              <div style={{ fontSize: 12.5, opacity: 0.75 }}>
+                Copied. If your email client didn’t open, paste into a new email and send it.
+              </div>
+            )}
+
+            {status === 'missingEmail' && (
+              <div style={{ fontSize: 12.5, opacity: 0.75 }}>
+                Your site isn’t configured to receive submissions yet. Set{' '}
+                <strong>NEXT_PUBLIC_INTAKE_EMAIL</strong> in Vercel and redeploy. Your message was copied as a
+                fallback.
+              </div>
+            )}
+
+            {status === 'error' && (
+              <div style={{ fontSize: 12.5, opacity: 0.75 }}>
+                Couldn’t open email or copy automatically. Manually copy the text below.
+                <pre
+                  style={{
+                    marginTop: 10,
+                    borderRadius: 12,
+                    border: '1px solid rgba(0,0,0,0.12)',
+                    background: '#fff',
+                    padding: 12,
+                    fontSize: 12.5,
+                    lineHeight: 1.5,
+                    whiteSpace: 'pre-wrap',
+                  }}
+                >
+                  {intakeText}
+                </pre>
+              </div>
+            )}
+
+            <div style={{ fontSize: 12.5, opacity: 0.62, lineHeight: 1.6 }}>
+              Decision-quality review. Not investment advice.
             </div>
           </div>
         </section>
