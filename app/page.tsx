@@ -13,7 +13,7 @@ export default function HomePage() {
   const [lastUsedAt, setLastUsedAt] = useState<string | null>(null);
 
   // progressive disclosure + mobile nav cleanup
-  const [hasGenerated, setHasGenerated] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   const promptDetailsRef = useRef<HTMLDetailsElement | null>(null);
@@ -26,7 +26,6 @@ export default function HomePage() {
   const tone = 'Calm, precise, direct. Like a senior engineer doing a design review.';
 
   useEffect(() => {
-    // load last used
     try {
       const lu = localStorage.getItem(STORAGE.lastUsed);
       setLastUsedAt(lu);
@@ -34,7 +33,6 @@ export default function HomePage() {
       // ignore
     }
 
-    // mobile detection
     const onResize = () => setIsMobile(window.innerWidth < 640);
     onResize();
     window.addEventListener('resize', onResize);
@@ -99,14 +97,13 @@ Now run a Decision Review with this structure:
 9) Recommendation (Proceed / Proceed smaller / Wait / Don't do it) + 2-line rationale`;
   }, [decision, context, horizon]);
 
-  // Generate = mark used + copy prompt + reveal prompt section
-  const generateDecisionReview = async () => {
+  const startDecision = async () => {
     if (!decision.trim()) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
-    setHasGenerated(true);
+    setHasStarted(true);
 
     const iso = new Date().toISOString();
     setLastUsedAt(iso);
@@ -114,13 +111,12 @@ Now run a Decision Review with this structure:
       localStorage.setItem(STORAGE.lastUsed, iso);
     } catch {}
 
-    // Try copy prompt (best UX)
     try {
       await navigator.clipboard.writeText(prompt);
       setCopied(true);
       setTimeout(() => setCopied(false), 1200);
     } catch {
-      // clipboard may be blocked; still reveal prompt for manual copy
+      // clipboard may be blocked
     }
 
     setTimeout(() => {
@@ -131,7 +127,6 @@ Now run a Decision Review with this structure:
     }, 50);
   };
 
-  // Copy prompt explicitly (green button)
   const copyPrompt = async () => {
     try {
       await navigator.clipboard.writeText(prompt);
@@ -142,7 +137,6 @@ Now run a Decision Review with this structure:
     }
   };
 
-  // Only shown after Generate
   const saveAsDecisionNote = async () => {
     const noteText = `Decision:
 ${decision.trim() || '[fill]'}
@@ -210,6 +204,9 @@ Confidence:
 
   const lastUsedLabel = formatShort(lastUsedAt);
 
+  // Roundtable change: nav should steal less attention on mobile
+  const navOpacity = isMobile ? 0.35 : 0.55;
+
   return (
     <div style={{ minHeight: '100vh', background: '#f4f5f6', color: '#111' }}>
       <main style={{ maxWidth: 980, margin: '28px auto 60px', padding: '0 20px' }}>
@@ -217,58 +214,57 @@ Confidence:
         <header
           style={{
             display: 'flex',
-            justifyContent: 'flex-end',
+            justifyContent: 'space-between',
             alignItems: 'center',
             paddingTop: 6,
           }}
         >
+          <div style={{ fontSize: 12, opacity: 0.55 }}>
+            {!isMobile && (
+              <>
+                Last used: <span style={{ opacity: 0.75 }}>{lastUsedLabel}</span>
+              </>
+            )}
+          </div>
+
           <nav
             style={{
               display: 'flex',
               gap: 18,
               fontSize: 13,
-              opacity: 0.62,
+              opacity: navOpacity,
               fontWeight: 400,
               alignItems: 'center',
+              whiteSpace: 'nowrap',
             }}
           >
             <Link href="/decision-review" style={navLinkStyle}>
               Decision Review
             </Link>
             <Link href="/decision-notes" style={navLinkStyle}>
-              Decision Notes
+              Notes
             </Link>
             <Link href="/decision-library" style={navLinkStyle}>
-              Decision Library
+              Library
             </Link>
-
-            {!isMobile && (
-              <>
-                <span style={{ opacity: 0.5, marginLeft: 6 }}>•</span>
-                <span style={{ fontSize: 12, opacity: 0.55 }}>
-                  Last used: <span style={{ opacity: 0.75 }}>{lastUsedLabel}</span>
-                </span>
-                <span style={{ fontSize: 12, opacity: 0.45 }}>
-                  (bookmark + return before you commit)
-                </span>
-              </>
-            )}
+            <Link href="/private-review" style={navLinkStyle}>
+              Private Review
+            </Link>
           </nav>
         </header>
 
-        {/* Centered hero */}
+        {/* Hero */}
         <section style={{ textAlign: 'center', marginTop: 54 }}>
           <h1 style={{ fontSize: 64, margin: 0, letterSpacing: -1.1 }}>Decision Layer</h1>
 
-          <p style={{ margin: '10px 0 0', fontSize: 18, opacity: 0.9 }}>
-            Clear thinking before committing capital — time, or reputation.
+          {/* Roundtable change: calmer, shorter subhead */}
+          <p style={{ margin: '14px auto 0', fontSize: 18, opacity: 0.9, maxWidth: 820 }}>
+            High-stakes decision? Pressure-test it.
           </p>
 
-          {hasGenerated && (
-            <p style={{ margin: '8px 0 0', fontSize: 14, opacity: 0.65 }}>
-              No stock picks. No predictions. No market commentary.
-            </p>
-          )}
+          <p style={{ margin: '10px auto 0', fontSize: 13, opacity: 0.58, maxWidth: 820 }}>
+            Not advice. No recommendations. A structured pause before you commit.
+          </p>
         </section>
 
         {/* Card */}
@@ -286,10 +282,11 @@ Confidence:
         >
           <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Decision</div>
 
+          {/* Roundtable change: shorter placeholder */}
           <textarea
             value={decision}
             onChange={(e) => setDecision(e.target.value)}
-            placeholder="Example: I’m considering increasing my NVIDIA exposure, but I’m unsure how to size it given RSUs, valuation risk, and a 30% drawdown tolerance."
+            placeholder="Example: Commit significant capital or reputation to a single decision. Pressure-test what must be true and what would change my mind."
             rows={5}
             style={{
               width: '100%',
@@ -304,12 +301,12 @@ Confidence:
             }}
           />
 
-          {/* ✅ RESTORED: Optional toggle exactly like before */}
+          {/* Optional context */}
           <div style={{ marginTop: 12 }}>
             <details style={detailStyle}>
+              {/* Roundtable change: remove redundant right-side “expand” */}
               <summary style={summaryStyle}>
                 <span>▶ Optional: context</span>
-                <span style={{ opacity: 0.55, fontSize: 12 }}>expand</span>
               </summary>
 
               <div style={{ marginTop: 12 }}>
@@ -321,7 +318,7 @@ Confidence:
                     <textarea
                       value={context}
                       onChange={(e) => setContext(e.target.value)}
-                      placeholder="Role, comp structure, existing exposures, constraints, liquidity needs…"
+                      placeholder="Constraints, exposures, liquidity needs, timeline, reputational stakes…"
                       rows={4}
                       style={{
                         width: '100%',
@@ -381,9 +378,9 @@ Confidence:
             </details>
           </div>
 
-          {/* Primary action */}
+          {/* CTA */}
           <button
-            onClick={generateDecisionReview}
+            onClick={startDecision}
             style={{
               marginTop: 14,
               width: '100%',
@@ -398,17 +395,22 @@ Confidence:
               boxShadow: '0 10px 20px rgba(0,0,0,0.12)',
             }}
           >
-            Generate decision review
+            Run a Decision Review
           </button>
 
-          {/* After Generate */}
-          {hasGenerated && (
+          {/* Roundtable change: micro-clarifier under CTA */}
+          <div style={{ marginTop: 8, fontSize: 12.5, opacity: 0.6, textAlign: 'center' }}>
+            Generates a review prompt you can copy into ChatGPT/Claude/Gemini.
+          </div>
+
+          {/* After Start */}
+          {hasStarted && (
             <>
               <div style={{ marginTop: 12 }}>
                 <details ref={promptDetailsRef} style={detailStyle}>
+                  {/* Optional: also remove "expand" here for consistency */}
                   <summary style={summaryStyle}>
-                    <span>▶ View generated prompt</span>
-                    <span style={{ opacity: 0.55, fontSize: 12 }}>expand</span>
+                    <span>▶ View the Decision Layer prompt</span>
                   </summary>
 
                   <div
@@ -421,10 +423,9 @@ Confidence:
                     }}
                   >
                     <div style={{ fontSize: 13, opacity: 0.62 }}>
-                      Paste in ChatGPT / Claude / Gemini.
+                      Use with your preferred LLM. This is a first pass — not a verdict.
                     </div>
 
-                    {/* ✅ Green copy prompt button */}
                     <button
                       onClick={copyPrompt}
                       style={{
@@ -485,11 +486,11 @@ Confidence:
                   }}
                   title="Copies a note scaffold and takes you to Decision Notes"
                 >
-                  Save as Decision Note
+                  Save a Decision Note
                 </button>
 
                 <div style={{ fontSize: 13, opacity: 0.55 }}>
-                  Reminder: return here <strong>before</strong> you act.
+                  Return <strong>before</strong> you act.
                 </div>
               </div>
             </>
@@ -505,6 +506,7 @@ Confidence:
             justifyContent: 'center',
           }}
         >
+          {/* Roundtable change: less “marketing”, more design-review language */}
           <div
             style={{
               fontSize: 13,
@@ -518,11 +520,11 @@ Confidence:
               paddingBottom: 6,
             }}
           >
-            <span>Pressure-tested decisions</span>
+            <span>Assumptions made explicit</span>
             <span style={{ opacity: 0.5 }}>•</span>
-            <span>Capital-aware reasoning</span>
+            <span>Failure modes surfaced</span>
             <span style={{ opacity: 0.5 }}>•</span>
-            <span>Executive-grade clarity</span>
+            <span>Triggers defined</span>
           </div>
         </footer>
       </main>

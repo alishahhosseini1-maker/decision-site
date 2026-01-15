@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 export default function DecisionReviewPage() {
   const border = '1px solid rgba(0,0,0,0.08)';
@@ -41,19 +41,20 @@ export default function DecisionReviewPage() {
     lineHeight: 1.8,
   };
 
+  // Less ticker-y, more stakes-y
   const exampleDecision =
-    "I’m considering increasing my NVIDIA exposure by ~5% of liquid net worth, but I’m already concentrated via RSUs and don’t want a single-name drawdown to force a bad sale.";
+    'I’m considering concentrating a large portion of my liquid net worth into a single position, but I need to define downside, what has to be true, and what would change my mind before I commit.';
 
-  const exampleContext = `Role: Senior engineer
-Existing exposure: ~18% of liquid net worth (incl. RSUs)
-Constraint: 30% drawdown tolerance
+  const exampleContext = `Constraint: I cannot tolerate a forced sale
+Downside tolerance: 25–35% drawdown
+Correlation risk: income + holdings tied to the same company/sector
 Horizon: 24–48 months
-Goal: Increase exposure only if sizing + triggers are defined`;
+Goal: Commit only with explicit sizing + disconfirming triggers`;
 
   return (
     <div style={{ minHeight: '100vh', background: '#f4f5f6', color: '#111' }}>
       <main style={{ maxWidth: 980, margin: '28px auto 70px', padding: '0 20px' }}>
-        {/* Top nav */}
+        {/* Top nav (Decision Review is primary, others demoted) */}
         <header
           style={{
             display: 'flex',
@@ -71,26 +72,30 @@ Goal: Increase exposure only if sizing + triggers are defined`;
               display: 'flex',
               gap: 18,
               fontSize: 13,
-              opacity: 0.6,
+              opacity: 0.55,
               fontWeight: 400,
               whiteSpace: 'nowrap',
+              alignItems: 'center',
             }}
           >
-            <Link href="/decision-review" style={navLinkStyle}>
+            <Link href="/decision-review" style={{ ...navLinkStyle, opacity: 0.9, fontWeight: 600 }}>
               Decision Review
             </Link>
             <Link href="/decision-notes" style={navLinkStyle}>
-              Decision Notes
+              Notes
             </Link>
             <Link href="/decision-library" style={navLinkStyle}>
-              Decision Library
+              Library
+            </Link>
+            <Link href="/private-review" style={navLinkStyle}>
+              Private Review
             </Link>
 
             {!isMobile && (
               <>
-                <span style={{ opacity: 0.4 }}>•</span>
-                <span style={{ fontSize: 12, opacity: 0.5 }}>
-                  Quick primer → then act
+                <span style={{ opacity: 0.35 }}>•</span>
+                <span style={{ fontSize: 12, opacity: 0.45 }}>
+                  Use when the cost of being wrong is real
                 </span>
               </>
             )}
@@ -99,16 +104,19 @@ Goal: Increase exposure only if sizing + triggers are defined`;
 
         {/* Hero */}
         <section style={{ textAlign: 'center', marginTop: 56 }}>
-          <h1 style={{ fontSize: 48, margin: 0, letterSpacing: -0.8 }}>
-            Decision Review
-          </h1>
+          <h1 style={{ fontSize: 48, margin: 0, letterSpacing: -0.8 }}>Decision Review</h1>
 
+          {/* ✅ Updated */}
           <p style={{ marginTop: 10, fontSize: 17, opacity: 0.85 }}>
-            A structured pause before you commit.
+            A structured pause before irreversible commitment.
           </p>
 
           <p style={{ marginTop: 6, fontSize: 14, opacity: 0.6 }}>
-            Assumptions → disconfirming evidence → risks → sizing → triggers.
+            Clarify → assumptions → disconfirming evidence → failure modes → commitment criteria.
+          </p>
+
+          <p style={{ marginTop: 10, fontSize: 13, opacity: 0.55 }}>
+            Not advice. No recommendations. This exists to make your assumptions explicit.
           </p>
         </section>
 
@@ -123,21 +131,25 @@ Goal: Increase exposure only if sizing + triggers are defined`;
         >
           <DetailsSection title="When to run one (rule-of-thumb)">
             <ul style={{ paddingLeft: 18, ...bodyText }}>
-              <li>The decision is costly or irreversible.</li>
-              <li>Being wrong would matter.</li>
-              <li>You’re relying on assumptions.</li>
-              <li>You feel urgency or narrative pull.</li>
+              <li>The decision is costly, heavy, or hard to reverse.</li>
+              <li>Being wrong would change your life, finances, or reputation.</li>
+              <li>You’re relying on assumptions you haven’t written down.</li>
+              <li>You feel urgency, narrative pull, or social pressure.</li>
             </ul>
           </DetailsSection>
 
           <DetailsSection title="What it forces (the checklist)">
             <ol style={{ paddingLeft: 18, ...bodyText }}>
-              <li>Clarify the decision.</li>
-              <li>List assumptions.</li>
-              <li>Define disconfirming evidence.</li>
-              <li>Rank risks.</li>
-              <li>Set sizing and triggers.</li>
+              <li>Rewrite the decision in one sentence.</li>
+              <li>State what must be true (assumptions) for it to be a good move.</li>
+              <li>Define disconfirming evidence (what would change your mind).</li>
+              <li>Rank failure modes (how you could be wrong).</li>
+              <li>Set commitment criteria (what “proceed” means).</li>
             </ol>
+
+            <div style={{ marginTop: 10, fontSize: 13, opacity: 0.55 }}>
+              The goal is clarity, not speed.
+            </div>
           </DetailsSection>
 
           <DetailsSection title="A realistic example">
@@ -158,17 +170,22 @@ Goal: Increase exposure only if sizing + triggers are defined`;
             >
               {exampleContext}
             </pre>
+
+            <div style={{ marginTop: 10, fontSize: 13, opacity: 0.55 }}>
+              Notice: no outcomes, no “alpha,” no story. Only the structure.
+            </div>
           </DetailsSection>
 
           <DetailsSection title="What it is not">
             <ul style={{ paddingLeft: 18, ...bodyText }}>
-              <li>Stock picks.</li>
-              <li>Predictions.</li>
+              <li>Stock picks or trade signals.</li>
+              <li>Predictions or forecasts.</li>
               <li>Post-hoc justification.</li>
-              <li>A daily ritual.</li>
+              <li>A daily ritual to feel productive.</li>
             </ul>
           </DetailsSection>
 
+          {/* Model 2 fork: end with tension + next step */}
           <div
             style={{
               marginTop: 18,
@@ -179,13 +196,84 @@ Goal: Increase exposure only if sizing + triggers are defined`;
               boxShadow: softShadow,
             }}
           >
-            <div style={{ fontSize: 13, fontWeight: 600, opacity: 0.85 }}>
-              After you commit
+            <div style={{ fontSize: 13, fontWeight: 700, opacity: 0.9 }}>Before you act</div>
+
+            {/* ✅ Tightened per roundtable */}
+            <p style={{ marginTop: 8, ...bodyText }}>
+              If this decision carries real stakes, do not act until assumptions are explicit and
+              disconfirming evidence is named.
+            </p>
+
+            <p style={{ marginTop: 8, ...bodyText }}>
+              A second set of eyes helps surface blind spots you can't see alone.
+            </p>
+
+            <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <Link
+                href="/"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textDecoration: 'none',
+                  borderRadius: 12,
+                  border: '1px solid rgba(0,0,0,0.12)',
+                  padding: '10px 12px',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: '#111',
+                  background: 'rgba(255,255,255,0.8)',
+                  opacity: 0.9,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {/* ✅ Renamed */}
+                Pause and revisit
+              </Link>
+
+              <Link
+                href="/private-review"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textDecoration: 'none',
+                  borderRadius: 12,
+                  border: 'none',
+                  padding: '10px 12px',
+                  fontSize: 13,
+                  fontWeight: 800,
+                  color: '#fff',
+                  background: '#0b0b0b',
+                  boxShadow: '0 10px 20px rgba(0,0,0,0.10)',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Pressure-test with a human →
+              </Link>
             </div>
 
-            <p style={{ marginTop: 6, ...bodyText }}>
-              Once you act, use a Decision Note to preserve judgment at the moment
-              of commitment — outcomes excluded.
+            <div style={{ marginTop: 10, fontSize: 12, opacity: 0.5 }}>
+              Outcomes intentionally excluded. This is about decision quality, not hindsight.
+            </div>
+          </div>
+
+          {/* Keep this, but make it clearly post-commitment */}
+          <div
+            style={{
+              marginTop: 12,
+              border,
+              borderRadius: 18,
+              background: 'rgba(255,255,255,0.70)',
+              padding: 18,
+              boxShadow: softShadow,
+            }}
+          >
+            <div style={{ fontSize: 13, fontWeight: 700, opacity: 0.9 }}>After you commit</div>
+
+            <p style={{ marginTop: 8, ...bodyText }}>
+              Once you act, write a Decision Note to preserve judgment at the moment of commitment —
+              outcomes excluded.
             </p>
 
             <Link
@@ -194,12 +282,12 @@ Goal: Increase exposure only if sizing + triggers are defined`;
                 marginTop: 10,
                 display: 'inline-block',
                 fontSize: 13,
-                fontWeight: 600,
+                fontWeight: 700,
                 textDecoration: 'none',
                 color: '#111',
               }}
             >
-              Go to Decision Notes →
+              Go to Notes →
             </Link>
 
             <div style={{ marginTop: 8, fontSize: 12, opacity: 0.5 }}>
@@ -210,22 +298,14 @@ Goal: Increase exposure only if sizing + triggers are defined`;
 
         {/* Footer */}
         <footer style={{ marginTop: 22, textAlign: 'center' }}>
-          <div style={{ fontSize: 13, opacity: 0.5 }}>
-            Clarity before commitment. Nothing more.
-          </div>
+          <div style={{ fontSize: 13, opacity: 0.5 }}>Clarity before commitment. Nothing more.</div>
         </footer>
       </main>
     </div>
   );
 }
 
-function DetailsSection({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function DetailsSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <details
       style={{

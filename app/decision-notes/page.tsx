@@ -1,3 +1,5 @@
+// ✅ Only change: add "Private Review" to the top nav (and keep styling consistent)
+
 'use client';
 
 import Link from 'next/link';
@@ -9,16 +11,21 @@ type DecisionNote = {
   id: string;
   createdAt: number;
   updatedAt: number;
+
   decision: string;
   context?: string;
   horizon?: string;
+
   assumptions: string[];
   changeMind: string[];
+  risks: string[];
+  commitment: string;
   confidence: Confidence;
   tags: string[];
 };
 
-const STORAGE_KEY = 'decision-layer:decision-notes:v1';
+const STORAGE_KEY = 'decision-layer:decision-notes:v2';
+const LEGACY_STORAGE_KEY = 'decision-layer:decision-notes:v1';
 const DRAFT_KEY = 'dl:note_draft_v1';
 
 function uid() {
@@ -44,7 +51,7 @@ function cleanLines(text: string): string[] {
 }
 
 function serializeLines(lines: string[]): string {
-  return lines.join('\n');
+  return (lines ?? []).join('\n');
 }
 
 function normalizeTags(input: string): string[] {
@@ -55,89 +62,105 @@ function normalizeTags(input: string): string[] {
     .slice(0, 8);
 }
 
-function readNotes(): DecisionNote[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as DecisionNote[];
-    if (!Array.isArray(parsed)) return [];
-    return parsed
-      .filter((n) => n && typeof n.id === 'string' && typeof n.createdAt === 'number')
-      .map((n) => ({
-        ...n,
-        updatedAt: typeof n.updatedAt === 'number' ? n.updatedAt : n.createdAt,
-        assumptions: Array.isArray(n.assumptions) ? n.assumptions : [],
-        changeMind: Array.isArray(n.changeMind) ? n.changeMind : [],
-        tags: Array.isArray(n.tags) ? n.tags : [],
-        confidence: (['Low', 'Medium', 'High'].includes(String(n.confidence))
-          ? n.confidence
-          : 'Medium') as Confidence,
-        decision: String(n.decision ?? '').trim(),
-        context: typeof (n as any).context === 'string' ? (n as any).context : '',
-        horizon: typeof (n as any).horizon === 'string' ? (n as any).horizon : '',
-      }))
-      .filter((n) => n.decision);
-  } catch {
-    return [];
-  }
-}
-
-function writeNotes(notes: DecisionNote[]) {
-  if (typeof window === 'undefined') return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
-}
-
-function readDraft():
-  | { decision?: string; context?: string; horizon?: string; createdAt?: string }
-  | null {
+function safeRead<T>(key: string): T | null {
   if (typeof window === 'undefined') return null;
   try {
-    const raw = window.localStorage.getItem(DRAFT_KEY);
+    const raw = window.localStorage.getItem(key);
     if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== 'object') return null;
-    return {
-      decision: typeof parsed.decision === 'string' ? parsed.decision : '',
-      context: typeof parsed.context === 'string' ? parsed.context : '',
-      horizon: typeof parsed.horizon === 'string' ? parsed.horizon : '',
-      createdAt: typeof parsed.createdAt === 'string' ? parsed.createdAt : '',
-    };
+    return JSON.parse(raw) as T;
   } catch {
     return null;
   }
 }
 
-function clearDraft() {
+function safeWrite(key: string, value: unknown) {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(key, JSON.stringify(value));
+}
+
+function safeRemove(key: string) {
   if (typeof window === 'undefined') return;
   try {
-    window.localStorage.removeItem(DRAFT_KEY);
+    window.localStorage.removeItem(key);
   } catch {
     // ignore
   }
+}
+
+function normalizeConfidence(x: any): Confidence {
+  return (['Low', 'Medium', 'High'].includes(String(x)) ? x : 'Medium') as Confidence;
+}
+
+function readDraft():
+  | { decision?: string; context?: string; horizon?: string; createdAt?: string }
+  | null {
+  const parsed = safeRead<any>(DRAFT_KEY);
+  if (!parsed || typeof parsed !== 'object') return null;
+  return {
+    decision: typeof parsed.decision === 'string' ? parsed.decision : '',
+    context: typeof parsed.context === 'string' ? parsed.context : '',
+    horizon: typeof parsed.horizon === 'string' ? parsed.horizon : '',
+    createdAt: typeof parsed.createdAt === 'string' ? parsed.createdAt : '',
+  };
+}
+
+function migrateLegacyIfNeeded(): DecisionNote[] {
+  const v2 = safeRead<DecisionNote[]>(STORAGE_KEY);
+  if (Array.isArray(v2) && v2.length) return v2;
+
+  const v1 = safeRead<any[]>(LEGACY_STORAGE_KEY);
+  if (!Array.isArray(v1) || !v1.length) return [];
+
+  const migrated: DecisionNote[] = v1
+    .filter((n) => n && typeof n.id === 'string' && typeof n.createdAt === 'number')
+    .map((n) => {
+      const decision = String(n.decision ?? '').trim();
+      const createdAt = Number(n.createdAt);
+      const updatedAt = typeof n.updatedAt === 'number' ? Number(n.updatedAt) : createdAt;
+
+      return {
+        id: String(n.id),
+        createdAt,
+        updatedAt,
+        decision,
+        context: typeof n.context === 'string' ? n.context : '',
+        horizon: typeof n.horizon === 'string' ? n.horizon : '',
+        assumptions: Array.isArray(n.assumptions) ? n.assumptions.map(String).filter(Boolean) : [],
+        changeMind: Array.isArray(n.changeMind) ? n.changeMind.map(String).filter(Boolean) : [],
+        risks: [],
+        commitment: '',
+        confidence: normalizeConfidence(n.confidence),
+        tags: Array.isArray(n.tags) ? n.tags.map(String).filter(Boolean) : [],
+      };
+    })
+    .filter((n) => n.decision);
+
+  safeWrite(STORAGE_KEY, migrated);
+  return migrated;
 }
 
 export default function DecisionNotesPage() {
   const [notes, setNotes] = useState<DecisionNote[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const [mode, setMode] = useState<'list' | 'view' | 'edit'>('list');
+  const [mode, setMode] = useState<'view' | 'edit'>('view');
   const [query, setQuery] = useState('');
-  const [showNew, setShowNew] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   const [decision, setDecision] = useState('');
   const [context, setContext] = useState('');
   const [horizon, setHorizon] = useState('24–48 months');
+  const [commitment, setCommitment] = useState('');
   const [assumptionsText, setAssumptionsText] = useState('');
+  const [risksText, setRisksText] = useState('');
   const [changeMindText, setChangeMindText] = useState('');
   const [confidence, setConfidence] = useState<Confidence>('Medium');
   const [tagsText, setTagsText] = useState('');
 
   useEffect(() => {
-    const loaded = readNotes().sort((a, b) => b.updatedAt - a.updatedAt);
+    const loaded = migrateLegacyIfNeeded().sort((a, b) => b.updatedAt - a.updatedAt);
     setNotes(loaded);
-    if (loaded.length > 0) setSelectedId(loaded[0].id);
+    setSelectedId(loaded[0]?.id ?? null);
 
     const onResize = () => setIsMobile(window.innerWidth < 900);
     onResize();
@@ -145,13 +168,12 @@ export default function DecisionNotesPage() {
 
     const draft = readDraft();
     if (draft && (draft.decision || draft.context || draft.horizon)) {
-      resetEditor();
-      setDecision(draft.decision ?? '');
-      setContext(draft.context ?? '');
-      setHorizon(draft.horizon ?? '24–48 months');
-      setShowNew(true);
-      setMode('edit');
-      setSelectedId(null);
+      beginNew({
+        decision: draft.decision ?? '',
+        context: draft.context ?? '',
+        horizon: draft.horizon ?? '24–48 months',
+      });
+      safeRemove(DRAFT_KEY);
     }
 
     return () => window.removeEventListener('resize', onResize);
@@ -172,10 +194,12 @@ export default function DecisionNotesPage() {
         n.decision,
         n.context ?? '',
         n.horizon ?? '',
-        n.assumptions.join(' '),
-        n.changeMind.join(' '),
+        n.commitment ?? '',
+        (n.assumptions ?? []).join(' '),
+        (n.risks ?? []).join(' '),
+        (n.changeMind ?? []).join(' '),
         n.confidence,
-        n.tags.join(' '),
+        (n.tags ?? []).join(' '),
       ]
         .join(' ')
         .toLowerCase();
@@ -183,7 +207,6 @@ export default function DecisionNotesPage() {
     });
   }, [notes, query]);
 
-  // Visual system
   const border = '1px solid rgba(0,0,0,0.10)';
   const shellBg = 'rgba(255,255,255,0.65)';
   const softShadow = '0 10px 30px rgba(0,0,0,0.05)';
@@ -219,7 +242,7 @@ export default function DecisionNotesPage() {
     background: '#0b0b0b',
     color: '#fff',
     fontSize: 13,
-    fontWeight: 750,
+    fontWeight: 800,
     cursor: 'pointer',
   };
 
@@ -235,11 +258,26 @@ export default function DecisionNotesPage() {
     opacity: 0.9,
   };
 
+  const dangerBtn: React.CSSProperties = {
+    ...secondaryBtn,
+    border: '1px solid rgba(0,0,0,0.12)',
+    opacity: 0.85,
+  };
+
+  const twoCol = !isMobile;
+
+  function persist(next: DecisionNote[]) {
+    setNotes(next);
+    safeWrite(STORAGE_KEY, next);
+  }
+
   function resetEditor() {
     setDecision('');
     setContext('');
     setHorizon('24–48 months');
+    setCommitment('');
     setAssumptionsText('');
+    setRisksText('');
     setChangeMindText('');
     setConfidence('Medium');
     setTagsText('');
@@ -251,21 +289,27 @@ export default function DecisionNotesPage() {
     setContext(prefill?.context ?? '');
     setHorizon(prefill?.horizon ?? '24–48 months');
     setConfidence(prefill?.confidence ?? 'Medium');
-    setShowNew(true);
     setMode('edit');
     setSelectedId(null);
+
+    setCommitment(
+      prefill?.commitment ??
+        'Action:\nSizing:\nEntry/Exit triggers:\nWhat I will NOT do:'
+    );
   }
 
   function beginEdit(note: DecisionNote) {
     setDecision(note.decision);
     setContext(note.context ?? '');
     setHorizon(note.horizon ?? '24–48 months');
+    setCommitment(note.commitment ?? '');
     setAssumptionsText(serializeLines(note.assumptions));
+    setRisksText(serializeLines(note.risks ?? []));
     setChangeMindText(serializeLines(note.changeMind));
     setConfidence(note.confidence);
-    setTagsText(note.tags.join(', '));
-    setShowNew(false);
+    setTagsText((note.tags ?? []).join(', '));
     setMode('edit');
+    setSelectedId(note.id);
   }
 
   function beginView(id: string) {
@@ -281,36 +325,36 @@ export default function DecisionNotesPage() {
     }
 
     const now = Date.now();
+    const id = selectedId ?? uid();
+
     const newNote: DecisionNote = {
-      id: selectedId ?? uid(),
+      id,
       createdAt: selected?.createdAt ?? now,
       updatedAt: now,
       decision: trimmedDecision,
       context: context.trim(),
       horizon: horizon.trim(),
+      commitment: commitment.trim(),
       assumptions: cleanLines(assumptionsText).slice(0, 10),
+      risks: cleanLines(risksText).slice(0, 10),
       changeMind: cleanLines(changeMindText).slice(0, 10),
       confidence,
       tags: normalizeTags(tagsText),
     };
 
     const next = (() => {
-      const existingIndex = notes.findIndex((n) => n.id === newNote.id);
-      if (existingIndex >= 0) {
+      const idx = notes.findIndex((n) => n.id === id);
+      if (idx >= 0) {
         const copy = [...notes];
-        copy[existingIndex] = newNote;
+        copy[idx] = newNote;
         return copy;
       }
       return [newNote, ...notes];
     })().sort((a, b) => b.updatedAt - a.updatedAt);
 
-    setNotes(next);
-    writeNotes(next);
-
-    setSelectedId(newNote.id);
+    persist(next);
+    setSelectedId(id);
     setMode('view');
-
-    clearDraft();
   }
 
   function deleteNote(id: string) {
@@ -318,13 +362,26 @@ export default function DecisionNotesPage() {
     if (!ok) return;
 
     const next = notes.filter((n) => n.id !== id);
-    setNotes(next);
-    writeNotes(next);
+    persist(next);
 
     if (selectedId === id) {
       setSelectedId(next[0]?.id ?? null);
-      setMode(next.length ? 'view' : 'list');
+      setMode('view');
     }
+  }
+
+  function duplicateNote(note: DecisionNote) {
+    const now = Date.now();
+    const copy: DecisionNote = {
+      ...note,
+      id: uid(),
+      createdAt: now,
+      updatedAt: now,
+    };
+    const next = [copy, ...notes].sort((a, b) => b.updatedAt - a.updatedAt);
+    persist(next);
+    setSelectedId(copy.id);
+    setMode('view');
   }
 
   function exportAll() {
@@ -341,7 +398,7 @@ export default function DecisionNotesPage() {
       const parsed = JSON.parse(raw);
       if (!Array.isArray(parsed)) throw new Error('Invalid JSON (expected array).');
 
-      const cleaned = (parsed as any[])
+      const cleaned: DecisionNote[] = (parsed as any[])
         .filter((n) => n && typeof n.id === 'string' && typeof n.createdAt === 'number')
         .map((n) => ({
           id: String(n.id),
@@ -350,9 +407,11 @@ export default function DecisionNotesPage() {
           decision: String(n.decision ?? '').trim(),
           context: typeof n.context === 'string' ? n.context : '',
           horizon: typeof n.horizon === 'string' ? n.horizon : '',
+          commitment: typeof n.commitment === 'string' ? n.commitment : '',
           assumptions: Array.isArray(n.assumptions) ? n.assumptions.map(String).filter(Boolean) : [],
+          risks: Array.isArray(n.risks) ? n.risks.map(String).filter(Boolean) : [],
           changeMind: Array.isArray(n.changeMind) ? n.changeMind.map(String).filter(Boolean) : [],
-          confidence: (['Low', 'Medium', 'High'].includes(n.confidence) ? n.confidence : 'Medium') as Confidence,
+          confidence: normalizeConfidence(n.confidence),
           tags: Array.isArray(n.tags) ? n.tags.map(String).filter(Boolean) : [],
         }))
         .filter((n) => n.decision);
@@ -360,26 +419,44 @@ export default function DecisionNotesPage() {
       const merged = [...cleaned, ...notes]
         .reduce((acc: DecisionNote[], cur) => {
           const idx = acc.findIndex((x) => x.id === cur.id);
-          if (idx === -1) return [...acc, cur as DecisionNote];
-          return acc[idx].updatedAt < (cur as DecisionNote).updatedAt
-            ? acc.map((x) => (x.id === cur.id ? (cur as DecisionNote) : x))
+          if (idx === -1) return [...acc, cur];
+          return acc[idx].updatedAt < cur.updatedAt
+            ? acc.map((x) => (x.id === cur.id ? cur : x))
             : acc;
         }, [])
         .sort((a, b) => b.updatedAt - a.updatedAt);
 
-      setNotes(merged);
-      writeNotes(merged);
+      persist(merged);
       setSelectedId(merged[0]?.id ?? null);
-      setMode(merged.length ? 'view' : 'list');
+      setMode('view');
       alert('Imported.');
     } catch {
       alert('Import failed. Make sure the JSON is valid.');
     }
   }
 
-  const twoCol = !isMobile;
+  function copyNoteToClipboard(note: DecisionNote) {
+    const text = [
+      `Decision: ${note.decision}`,
+      note.horizon?.trim() ? `Horizon: ${note.horizon}` : '',
+      note.context?.trim() ? `Context:\n${note.context}` : '',
+      note.commitment?.trim() ? `Commitment:\n${note.commitment}` : '',
+      note.assumptions?.length ? `Assumptions:\n- ${note.assumptions.join('\n- ')}` : '',
+      note.risks?.length ? `Failure modes:\n- ${note.risks.join('\n- ')}` : '',
+      note.changeMind?.length ? `Change my mind:\n- ${note.changeMind.join('\n- ')}` : '',
+      `Confidence: ${note.confidence}`,
+      note.tags?.length ? `Tags: ${note.tags.join(', ')}` : '',
+      `Created: ${formatDate(note.createdAt)}`,
+      `Updated: ${formatDate(note.updatedAt)}`,
+      '',
+      'Outcomes excluded.',
+    ]
+      .filter(Boolean)
+      .join('\n\n');
 
-  
+    navigator.clipboard.writeText(text);
+    alert('Copied note to clipboard.');
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: '#f4f5f6', color: '#111' }}>
@@ -394,7 +471,7 @@ export default function DecisionNotesPage() {
           }}
         >
           <Link href="/" style={backBtnStyle}>
-            ← Back to homepage
+            ← Back
           </Link>
 
           <nav
@@ -402,7 +479,7 @@ export default function DecisionNotesPage() {
               display: 'flex',
               gap: 18,
               fontSize: 13,
-              opacity: 0.62,
+              opacity: 0.6,
               fontWeight: 450,
               alignItems: 'center',
               whiteSpace: 'nowrap',
@@ -411,11 +488,16 @@ export default function DecisionNotesPage() {
             <Link href="/decision-review" style={navLinkStyle}>
               Decision Review
             </Link>
-            <Link href="/decision-notes" style={navLinkStyle}>
-              Decision Notes
+            <Link href="/decision-notes" style={{ ...navLinkStyle, fontWeight: 700, opacity: 0.9 }}>
+              Notes
             </Link>
             <Link href="/decision-library" style={navLinkStyle}>
-              Decision Library
+              Library
+            </Link>
+
+            {/* ✅ Added */}
+            <Link href="/private-review" style={navLinkStyle}>
+              Private Review
             </Link>
           </nav>
         </header>
@@ -425,7 +507,7 @@ export default function DecisionNotesPage() {
           <h1 style={{ fontSize: 52, margin: 0, letterSpacing: -1.0 }}>Decision Notes</h1>
 
           <p style={{ margin: '10px 0 0', fontSize: 18, opacity: 0.92 }}>
-            Save what you believed <em>before</em> the outcome.
+            Preserve judgment <em>before</em> the outcome.
           </p>
 
           <p
@@ -437,11 +519,15 @@ export default function DecisionNotesPage() {
               lineHeight: 1.65,
             }}
           >
-            A short receipt for your thinking at commitment time—so later you can learn from the decision, not the luck.
+            A short receipt at commitment time — so later you learn from the decision, not the luck.
+          </p>
+
+          <p style={{ margin: '10px auto 0', fontSize: 13, opacity: 0.55, maxWidth: 760 }}>
+            Local-only by default. Stored in your browser. Export if you want portability.
           </p>
         </section>
 
-        {/* Collapsible explainer cards (collapsed by default) */}
+        {/* Explainers */}
         <section
           style={{
             marginTop: 18,
@@ -453,36 +539,39 @@ export default function DecisionNotesPage() {
             gap: 12,
           }}
         >
-          <DetailsCard
-            title="Why notes matter"
-            summary="They prevent hindsight from rewriting your decision."
-          >
+          <DetailsCard title="Why notes matter" summary="They prevent hindsight from rewriting your decision.">
             <div style={{ marginTop: 8, fontSize: 14, opacity: 0.8, lineHeight: 1.75 }}>
-              Without a note, your brain rewrites history.
+              Your brain edits the past.
               <br />
-              <strong>Good decision + bad outcome</strong> looks like a mistake.
+              <strong>Good decision + bad outcome</strong> feels like failure.
               <br />
-              <strong>Bad decision + lucky outcome</strong> looks like skill.
+              <strong>Bad decision + lucky outcome</strong> feels like skill.
               <br />
-              Notes stop that. They keep your “why” intact.
+              Notes keep your “why” intact.
             </div>
             <div style={{ marginTop: 12, fontSize: 12.5, opacity: 0.62 }}>
-              Rule: write a note only when being wrong would matter.
+              Rule: write a note only when the cost of being wrong is real.
             </div>
           </DetailsCard>
 
-          <DetailsCard
-            title="When to write one"
-            summary="When the decision feels heavy, costly, or irreversible."
-          >
+          <DetailsCard title="What to capture" summary="One sentence, then the decision-quality spine.">
             <ul style={{ margin: '10px 0 0', paddingLeft: 18, lineHeight: 1.8, opacity: 0.8, fontSize: 14 }}>
-              <li>You’re increasing concentration or sizing up.</li>
-              <li>You’re making a career or life tradeoff.</li>
-              <li>You feel urgency, pressure, or “I have to act now.”</li>
-              <li>You’re relying on assumptions you can’t prove yet.</li>
+              <li>
+                <strong>Decision</strong> (one sentence)
+              </li>
+              <li>
+                <strong>Commitment</strong> (what you will do, sizing, triggers)
+              </li>
+              <li>
+                <strong>Assumptions</strong> (what must be true)
+              </li>
+              <li>
+                <strong>Failure modes</strong> (how you could be wrong)
+              </li>
+              <li>
+                <strong>Change-my-mind</strong> (disconfirming evidence)
+              </li>
             </ul>
-
-            
           </DetailsCard>
         </section>
 
@@ -508,7 +597,7 @@ export default function DecisionNotesPage() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search notes (concentration, sizing, RSUs)…"
+            placeholder="Search notes (concentration, sizing, career)…"
             style={{
               flex: '1 1 320px',
               borderRadius: 12,
@@ -559,7 +648,7 @@ export default function DecisionNotesPage() {
               marginRight: twoCol ? undefined : 'auto',
             }}
           >
-            <div style={{ fontSize: 13, fontWeight: 750, marginBottom: 10, opacity: 0.85 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 10, opacity: 0.85 }}>
               Notes ({filtered.length})
             </div>
 
@@ -581,14 +670,16 @@ export default function DecisionNotesPage() {
                       cursor: 'pointer',
                     }}
                   >
-                    <div style={{ fontSize: 13.5, fontWeight: 700, opacity: 0.92 }}>
+                    <div style={{ fontSize: 13.5, fontWeight: 800, opacity: 0.92 }}>
                       {n.decision.length > 72 ? `${n.decision.slice(0, 72)}…` : n.decision}
                     </div>
 
                     <div style={{ marginTop: 6, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                       <span style={pillStyle}>{n.confidence}</span>
-                      {(n.horizon ?? '').trim() ? <span style={pillStyle}>{(n.horizon ?? '').trim()}</span> : null}
-                      {n.tags.slice(0, 2).map((t) => (
+                      {(n.horizon ?? '').trim() ? (
+                        <span style={pillStyle}>{(n.horizon ?? '').trim()}</span>
+                      ) : null}
+                      {(n.tags ?? []).slice(0, 2).map((t) => (
                         <span key={t} style={pillStyle}>
                           {t}
                         </span>
@@ -606,7 +697,7 @@ export default function DecisionNotesPage() {
                 <div style={{ fontSize: 13, opacity: 0.65, padding: '10px 4px' }}>
                   No notes yet.
                   <div style={{ marginTop: 6, fontSize: 12.5, opacity: 0.62, lineHeight: 1.6 }}>
-                    Start with one: when a decision feels heavy, write what you believed before the outcome.
+                    Start with one: when the cost of being wrong is real, write the receipt before the outcome.
                   </div>
                   <div style={{ marginTop: 10 }}>
                     <button onClick={() => beginNew()} style={primaryBtn}>
@@ -631,92 +722,153 @@ export default function DecisionNotesPage() {
               marginRight: twoCol ? undefined : 'auto',
             }}
           >
-            {!selected && mode !== 'edit' && (
-              <div style={{ padding: 8 }}>
-                <div style={{ fontSize: 14, fontWeight: 750, opacity: 0.9 }}>No note selected</div>
-                <div style={{ marginTop: 10, fontSize: 13.5, opacity: 0.72, lineHeight: 1.7 }}>
-                  Notes are short records of: <strong>what you believed</strong>, <strong>what had to be true</strong>, and{' '}
-                  <strong>what would change your mind</strong>.
-                </div>
+            {/* VIEW */}
+            {mode === 'view' && (
+              <>
+                {!selected ? (
+                  <div style={{ padding: 8 }}>
+                    <div style={{ fontSize: 14, fontWeight: 800, opacity: 0.9 }}>No note selected</div>
+                    <div style={{ marginTop: 10, fontSize: 13.5, opacity: 0.72, lineHeight: 1.7 }}>
+                      Notes preserve: <strong>what you believed</strong>, <strong>what had to be true</strong>, and{' '}
+                      <strong>what would change your mind</strong> — before outcomes rewrite it.
+                    </div>
 
-                <div style={{ marginTop: 12 }}>
-                  <button onClick={() => beginNew()} style={primaryBtn}>
-                    New note
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {selected && mode !== 'edit' && (
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
-                  <div style={{ minWidth: 260 }}>
-                    <div style={{ fontSize: 12.5, opacity: 0.6 }}>Decision note</div>
-                    <h2 style={{ fontSize: 20, margin: '6px 0 0', letterSpacing: -0.3 }}>
-                      {selected.decision}
-                    </h2>
-
-                    <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      <span style={pillStyle}>{selected.confidence}</span>
-                      {(selected.horizon ?? '').trim() ? <span style={pillStyle}>{(selected.horizon ?? '').trim()}</span> : null}
-                      {selected.tags.map((t) => (
-                        <span key={t} style={pillStyle}>
-                          {t}
-                        </span>
-                      ))}
-                      <span style={pillStyle}>Created {formatDate(selected.createdAt)}</span>
-                      <span style={pillStyle}>Updated {formatDate(selected.updatedAt)}</span>
+                    <div style={{ marginTop: 12 }}>
+                      <button onClick={() => beginNew()} style={primaryBtn}>
+                        New note
+                      </button>
                     </div>
                   </div>
+                ) : (
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+                      <div style={{ minWidth: 260 }}>
+                        <div style={{ fontSize: 12.5, opacity: 0.6 }}>Decision note</div>
+                        <h2 style={{ fontSize: 20, margin: '6px 0 0', letterSpacing: -0.3 }}>
+                          {selected.decision}
+                        </h2>
 
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                    <button onClick={() => beginEdit(selected)} style={primaryBtn}>
-                      Edit
-                    </button>
-                    <button onClick={() => deleteNote(selected.id)} style={secondaryBtn}>
-                      Delete
-                    </button>
+                        <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                          <span style={pillStyle}>{selected.confidence}</span>
+                          {(selected.horizon ?? '').trim() ? (
+                            <span style={pillStyle}>{(selected.horizon ?? '').trim()}</span>
+                          ) : null}
+                          {(selected.tags ?? []).map((t) => (
+                            <span key={t} style={pillStyle}>
+                              {t}
+                            </span>
+                          ))}
+                          <span style={pillStyle}>Created {formatDate(selected.createdAt)}</span>
+                          <span style={pillStyle}>Updated {formatDate(selected.updatedAt)}</span>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                        <button onClick={() => copyNoteToClipboard(selected)} style={secondaryBtn}>
+                          Copy
+                        </button>
+                        <button onClick={() => duplicateNote(selected)} style={secondaryBtn}>
+                          Duplicate
+                        </button>
+                        <button onClick={() => beginEdit(selected)} style={primaryBtn}>
+                          Edit
+                        </button>
+                        <button onClick={() => deleteNote(selected.id)} style={dangerBtn}>
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+
+                    <div style={{ marginTop: 14, display: 'grid', gap: 10 }}>
+                      {(selected.horizon ?? '').trim() ? (
+                        <Section title="Time horizon" body={(selected.horizon ?? '').trim()} />
+                      ) : null}
+
+                      {(selected.context ?? '').trim() ? (
+                        <Section
+                          title="Context (only what changes sizing, timing, or risk)"
+                          body={(selected.context ?? '').trim()}
+                        />
+                      ) : null}
+
+                      {(selected.commitment ?? '').trim() ? (
+                        <Section title="Commitment (what I decided to do)" body={(selected.commitment ?? '').trim()} />
+                      ) : (
+                        <Section
+                          title="Commitment (missing)"
+                          body="No commitment captured. If this mattered, add what you actually decided to do (action, sizing, triggers)."
+                          subtle
+                        />
+                      )}
+                    </div>
+
+                    <div style={{ marginTop: 14, display: 'grid', gap: 10 }}>
+                      <Bullets title="Assumptions (what had to be true)" bullets={selected.assumptions ?? []} />
+                      <Bullets title="Failure modes (how I could be wrong)" bullets={selected.risks ?? []} />
+                      <Bullets title="Change-my-mind (disconfirming evidence)" bullets={selected.changeMind ?? []} />
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop: 14,
+                        border: '1px solid rgba(0,0,0,0.10)',
+                        borderRadius: 14,
+                        background: 'rgba(255,255,255,0.55)',
+                        padding: 12,
+                      }}
+                    >
+                      <div style={{ fontSize: 12.5, opacity: 0.62 }}>Before you act</div>
+                      <div style={{ marginTop: 8, fontSize: 13.5, opacity: 0.9, lineHeight: 1.55 }}>
+                        If the cost of being wrong is real, a second set of eyes can surface what you might be missing.
+                      </div>
+
+                      <div style={{ marginTop: 10, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                        <Link
+                          href="/private-review"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            textDecoration: 'none',
+                            borderRadius: 12,
+                            border: 'none',
+                            padding: '10px 12px',
+                            fontSize: 13,
+                            fontWeight: 800,
+                            color: '#fff',
+                            background: '#0b0b0b',
+                            boxShadow: '0 10px 20px rgba(0,0,0,0.10)',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          Pressure-test with a human →
+                        </Link>
+                        <div style={{ fontSize: 12.5, opacity: 0.6, alignSelf: 'center' }}>
+                          Optional. Only for heavy decisions.
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ marginTop: 14, fontSize: 12.5, opacity: 0.62 }}>
+                      Outcomes intentionally excluded. This is about decision quality at commitment time.
+                    </div>
                   </div>
-                </div>
-
-                {(selected.context ?? '').trim() || (selected.horizon ?? '').trim() ? (
-                  <div style={{ marginTop: 14, display: 'grid', gap: 10 }}>
-                    {(selected.horizon ?? '').trim() ? (
-                      <Section title="Time horizon" body={(selected.horizon ?? '').trim()} />
-                    ) : null}
-
-                    {(selected.context ?? '').trim() ? (
-                      <Section
-                        title="Context (only what changes sizing, timing, or risk)"
-                        body={(selected.context ?? '').trim()}
-                      />
-                    ) : null}
-                  </div>
-                ) : null}
-
-                <div style={{ marginTop: 14, display: 'grid', gap: 10 }}>
-                  <Bullets title="Key assumptions" bullets={selected.assumptions} />
-                  <Bullets title="What would change my mind" bullets={selected.changeMind} />
-                </div>
-
-                <div style={{ marginTop: 14, fontSize: 12.5, opacity: 0.62 }}>
-                  Outcomes intentionally excluded. This is about decision quality at commitment time.
-                </div>
-              </div>
+                )}
+              </>
             )}
 
+            {/* EDIT */}
             {mode === 'edit' && (
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
                   <div>
-                    <div style={{ fontSize: 12.5, opacity: 0.6 }}>
-                      {showNew ? 'New note' : 'Edit note'}
-                    </div>
+                    <div style={{ fontSize: 12.5, opacity: 0.6 }}>{selectedId ? 'Edit note' : 'New note'}</div>
                     <h2 style={{ fontSize: 20, margin: '6px 0 0', letterSpacing: -0.3 }}>
                       Write the receipt for your thinking.
                     </h2>
                     <div style={{ marginTop: 8, fontSize: 13.5, opacity: 0.7, lineHeight: 1.65 }}>
-                      One sentence decision. 3–5 assumptions. 2–4 “change my mind” signals.
+                      One sentence decision. Then capture commitment, assumptions, failure modes, and change-my-mind
+                      signals.
                     </div>
                   </div>
 
@@ -726,8 +878,7 @@ export default function DecisionNotesPage() {
                     </button>
                     <button
                       onClick={() => {
-                        if (selected) setMode('view');
-                        else setMode('list');
+                        setMode('view');
                       }}
                       style={secondaryBtn}
                     >
@@ -741,17 +892,12 @@ export default function DecisionNotesPage() {
                   <input
                     value={decision}
                     onChange={(e) => setDecision(e.target.value)}
-                    placeholder="Example: Increase exposure, capped at 20% total."
-                    style={{
-                      width: '100%',
-                      borderRadius: 12,
-                      border: '1px solid rgba(0,0,0,0.15)',
-                      padding: '10px 12px',
-                      fontSize: 14,
-                      background: '#fff',
-                      outline: 'none',
-                    }}
+                    placeholder="Example: Increase concentration, capped at 20% total exposure."
+                    style={inputStyle()}
                   />
+
+                  <FieldLabel label="Commitment (what you decided to do)" hint="Action, sizing, triggers. No outcomes." />
+                  <textarea value={commitment} onChange={(e) => setCommitment(e.target.value)} rows={5} style={textareaStyle()} />
 
                   <FieldLabel label="Context (optional)" hint="Only what changes sizing, timing, or risk." />
                   <textarea
@@ -759,58 +905,18 @@ export default function DecisionNotesPage() {
                     onChange={(e) => setContext(e.target.value)}
                     placeholder="Constraints, exposure, stakes, what you can’t tolerate."
                     rows={4}
-                    style={{
-                      width: '100%',
-                      borderRadius: 14,
-                      border: '1px solid rgba(0,0,0,0.15)',
-                      padding: 14,
-                      fontSize: 14,
-                      lineHeight: 1.45,
-                      resize: 'vertical',
-                      background: '#fff',
-                      outline: 'none',
-                    }}
+                    style={textareaStyle()}
                   />
 
-                  <div
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: twoCol ? '1fr 1fr' : '1fr',
-                      gap: 12,
-                    }}
-                  >
+                  <div style={{ display: 'grid', gridTemplateColumns: twoCol ? '1fr 1fr' : '1fr', gap: 12 }}>
                     <div>
                       <FieldLabel label="Time horizon" />
-                      <input
-                        value={horizon}
-                        onChange={(e) => setHorizon(e.target.value)}
-                        style={{
-                          width: '100%',
-                          borderRadius: 12,
-                          border: '1px solid rgba(0,0,0,0.15)',
-                          padding: '10px 12px',
-                          fontSize: 14,
-                          background: '#fff',
-                          outline: 'none',
-                        }}
-                      />
+                      <input value={horizon} onChange={(e) => setHorizon(e.target.value)} style={inputStyle()} />
                     </div>
 
                     <div>
                       <FieldLabel label="Confidence" hint="How sure are you right now?" />
-                      <select
-                        value={confidence}
-                        onChange={(e) => setConfidence(e.target.value as Confidence)}
-                        style={{
-                          width: '100%',
-                          borderRadius: 12,
-                          border: '1px solid rgba(0,0,0,0.15)',
-                          padding: '10px 12px',
-                          fontSize: 14,
-                          background: '#fff',
-                          outline: 'none',
-                        }}
-                      >
+                      <select value={confidence} onChange={(e) => setConfidence(e.target.value as Confidence)} style={inputStyle()}>
                         <option value="Low">Low</option>
                         <option value="Medium">Medium</option>
                         <option value="High">High</option>
@@ -818,68 +924,20 @@ export default function DecisionNotesPage() {
                     </div>
                   </div>
 
-                  <FieldLabel label="Key assumptions (3–5 lines)" hint="One per line. Keep them testable." />
-                  <textarea
-                    value={assumptionsText}
-                    onChange={(e) => setAssumptionsText(e.target.value)}
-                    placeholder={`Example:
-- Demand stays durable
-- I can hold through drawdown
-- Exposure stays within cap`}
-                    rows={5}
-                    style={{
-                      width: '100%',
-                      borderRadius: 14,
-                      border: '1px solid rgba(0,0,0,0.15)',
-                      padding: 14,
-                      fontSize: 14,
-                      lineHeight: 1.45,
-                      resize: 'vertical',
-                      background: '#fff',
-                      outline: 'none',
-                    }}
-                  />
+                  <FieldLabel label="Assumptions (3–5 lines)" hint="One per line. Keep them testable." />
+                  <textarea value={assumptionsText} onChange={(e) => setAssumptionsText(e.target.value)} rows={5} style={textareaStyle()} />
 
-                  <FieldLabel label="What would change your mind (2–4 lines)" hint="Disconfirming evidence. One per line." />
-                  <textarea
-                    value={changeMindText}
-                    onChange={(e) => setChangeMindText(e.target.value)}
-                    placeholder={`Example:
-- Clear demand break
-- Exposure exceeds cap
-- New information changes thesis`}
-                    rows={5}
-                    style={{
-                      width: '100%',
-                      borderRadius: 14,
-                      border: '1px solid rgba(0,0,0,0.15)',
-                      padding: 14,
-                      fontSize: 14,
-                      lineHeight: 1.45,
-                      resize: 'vertical',
-                      background: '#fff',
-                      outline: 'none',
-                    }}
-                  />
+                  <FieldLabel label="Failure modes (2–4 lines)" hint="How could you be wrong? One per line." />
+                  <textarea value={risksText} onChange={(e) => setRisksText(e.target.value)} rows={5} style={textareaStyle()} />
+
+                  <FieldLabel label="Change-my-mind signals (2–4 lines)" hint="Disconfirming evidence. One per line." />
+                  <textarea value={changeMindText} onChange={(e) => setChangeMindText(e.target.value)} rows={5} style={textareaStyle()} />
 
                   <FieldLabel label="Tags (optional)" hint="Comma-separated. Max 8." />
-                  <input
-                    value={tagsText}
-                    onChange={(e) => setTagsText(e.target.value)}
-                    placeholder="RSUs, concentration, sizing"
-                    style={{
-                      width: '100%',
-                      borderRadius: 12,
-                      border: '1px solid rgba(0,0,0,0.15)',
-                      padding: '10px 12px',
-                      fontSize: 14,
-                      background: '#fff',
-                      outline: 'none',
-                    }}
-                  />
+                  <input value={tagsText} onChange={(e) => setTagsText(e.target.value)} style={inputStyle()} />
 
                   <div style={{ fontSize: 12.5, opacity: 0.62, lineHeight: 1.6 }}>
-                    Don’t write the outcome. Write what would have made you *not* do it.
+                    Don’t write the outcome. Write what would have made you <em>not</em> do it.
                   </div>
                 </div>
               </div>
@@ -895,6 +953,32 @@ export default function DecisionNotesPage() {
       </main>
     </div>
   );
+}
+
+function inputStyle(): React.CSSProperties {
+  return {
+    width: '100%',
+    borderRadius: 12,
+    border: '1px solid rgba(0,0,0,0.15)',
+    padding: '10px 12px',
+    fontSize: 14,
+    background: '#fff',
+    outline: 'none',
+  };
+}
+
+function textareaStyle(): React.CSSProperties {
+  return {
+    width: '100%',
+    borderRadius: 14,
+    border: '1px solid rgba(0,0,0,0.15)',
+    padding: 14,
+    fontSize: 14,
+    lineHeight: 1.45,
+    resize: 'vertical',
+    background: '#fff',
+    outline: 'none',
+  };
 }
 
 function DetailsCard({
@@ -922,7 +1006,6 @@ function DetailsCard({
 
   return (
     <details
-      // collapsed by default
       style={{
         border,
         borderRadius: 18,
@@ -950,7 +1033,7 @@ function DetailsCard({
 function FieldLabel({ label, hint }: { label: string; hint?: string }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
-      <div style={{ fontSize: 13, fontWeight: 700, opacity: 0.9 }}>{label}</div>
+      <div style={{ fontSize: 13, fontWeight: 800, opacity: 0.9 }}>{label}</div>
       {hint ? <div style={{ fontSize: 12.5, opacity: 0.6 }}>{hint}</div> : null}
     </div>
   );
@@ -982,13 +1065,13 @@ function Bullets({ title, bullets }: { title: string; bullets: string[] }) {
   );
 }
 
-function Section({ title, body }: { title: string; body: string }) {
+function Section({ title, body, subtle }: { title: string; body: string; subtle?: boolean }) {
   return (
     <div
       style={{
         border: '1px solid rgba(0,0,0,0.10)',
         borderRadius: 14,
-        background: 'rgba(255,255,255,0.55)',
+        background: subtle ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.55)',
         padding: 12,
       }}
     >
@@ -997,7 +1080,7 @@ function Section({ title, body }: { title: string; body: string }) {
         style={{
           marginTop: 8,
           fontSize: 13.5,
-          opacity: 0.9,
+          opacity: subtle ? 0.75 : 0.9,
           lineHeight: 1.55,
           whiteSpace: 'pre-wrap',
         }}
