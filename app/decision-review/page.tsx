@@ -205,7 +205,8 @@ Goal: Commit only with explicit sizing + disconfirming triggers`;
             </p>
 
             <p style={{ marginTop: 8, ...bodyText }}>
-              A second set of eyes helps surface blind spots you can't see alone.
+            A second set of eyes helps surface blind spots you can&apos;t see alone.
+
             </p>
 
             <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
