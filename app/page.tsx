@@ -10,7 +10,7 @@ export default function HomePage() {
 
   // UX state
   const [copied, setCopied] = useState(false);
-  const [ctaCopied, setCtaCopied] = useState(false); // ✅ green only after click (this page load)
+  const [ctaCopied, setCtaCopied] = useState(false); // green only after click (this page load)
   const [lastUsedAt, setLastUsedAt] = useState<string | null>(null);
 
   // progressive disclosure
@@ -58,9 +58,7 @@ export default function HomePage() {
       ? `DECISION:\n${trimmedDecision}`
       : `DECISION:\n[Paste the decision here]`;
 
-    const contextBlock = trimmedContext
-      ? `\n\nWHY THIS IS HARD TO UNDO (constraints / stakes):\n${trimmedContext}`
-      : '';
+    const contextBlock = trimmedContext ? `\n\nWHY THIS IS HARD TO UNDO (constraints / stakes):\n${trimmedContext}` : '';
 
     return `You are a disciplined decision partner.
 
@@ -122,7 +120,7 @@ Now run a Decision Review with this structure:
       setCopied(true);
       setTimeout(() => setCopied(false), 1200);
 
-      // ✅ once clicked successfully, stays green until refresh
+      // once clicked successfully, stays green until refresh
       setCtaCopied(true);
     } catch {
       // clipboard may be blocked
@@ -234,7 +232,7 @@ Now run a Decision Review with this structure:
             onChange={(e) => {
               setDecision(e.target.value);
               if (decisionError) setDecisionError(null);
-              // ✅ if they change the decision after copying, reset CTA to black
+              // if they change the decision after copying, reset CTA to black
               if (ctaCopied) setCtaCopied(false);
             }}
             placeholder="Examples: signing an offer • investing $500k • hiring a VP • killing a product • choosing a roadmap • acquiring a company"
@@ -258,9 +256,7 @@ Now run a Decision Review with this structure:
             </div>
           )}
 
-          <div style={{ marginTop: 8, fontSize: 12.5, opacity: 0.62 }}>
-            Write it like you&apos;re sending it to your board.
-          </div>
+          <div style={{ marginTop: 8, fontSize: 12.5, opacity: 0.62 }}>Write it like you&apos;re sending it to your board.</div>
 
           {/* Context */}
           <div style={{ marginTop: 10 }}>
@@ -299,9 +295,7 @@ Now run a Decision Review with this structure:
 
                   <div style={{ display: 'grid', gap: 12 }}>
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6, opacity: 0.9 }}>
-                        Time horizon
-                      </div>
+                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6, opacity: 0.9 }}>Time horizon</div>
                       <input
                         value={horizon}
                         onChange={(e) => {
@@ -321,9 +315,7 @@ Now run a Decision Review with this structure:
                     </div>
 
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6, opacity: 0.9 }}>
-                        Tone (fixed)
-                      </div>
+                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6, opacity: 0.9 }}>Tone (fixed)</div>
                       <div
                         style={{
                           width: '100%',
@@ -386,9 +378,7 @@ Now run a Decision Review with this structure:
                     flexWrap: 'wrap',
                   }}
                 >
-                  <div style={{ fontSize: 13, opacity: 0.62 }}>
-                    Copy it, run the review, and keep the output with the decision.
-                  </div>
+                  <div style={{ fontSize: 13, opacity: 0.62 }}>Copy it, run the review, and keep the output with the decision.</div>
 
                   <button
                     onClick={copyPrompt}
@@ -430,13 +420,15 @@ Now run a Decision Review with this structure:
           )}
         </section>
 
-        {/* Bottom benefits */}
+        {/* Bottom benefits + quiet Door Notes link */}
         <footer
           style={{
             maxWidth: 720,
             margin: '18px auto 0',
             display: 'flex',
-            justifyContent: 'center',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 12,
           }}
         >
           <div
@@ -457,6 +449,12 @@ Now run a Decision Review with this structure:
             <span>Risks named</span>
             <span style={{ opacity: 0.5 }}>•</span>
             <span>Triggers defined</span>
+          </div>
+
+          <div style={{ fontSize: 13, opacity: 0.55, whiteSpace: 'nowrap' }}>
+            <Link href="/door-notes" style={navLinkStyle}>
+              Door Notes
+            </Link>
           </div>
         </footer>
       </main>

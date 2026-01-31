@@ -1,0 +1,107 @@
+import Link from 'next/link';
+import React from 'react';
+
+export default function DoorNotesIndexPage() {
+  const shellBg = 'rgba(255,255,255,0.65)';
+  const border = '1px solid rgba(0,0,0,0.10)';
+
+  const navLinkStyle: React.CSSProperties = {
+    textDecoration: 'none',
+    color: 'inherit',
+  };
+
+  const cardStyle: React.CSSProperties = {
+    border,
+    borderRadius: 18,
+    background: shellBg,
+    padding: 18,
+    boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
+  };
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#f4f5f6', color: '#111' }}>
+      <main style={{ maxWidth: 980, margin: '28px auto 60px', padding: '0 20px' }}>
+        {/* Header */}
+        <header
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingTop: 6,
+          }}
+        >
+          <div style={{ fontSize: 12, opacity: 0.55 }}>Decision Layer</div>
+
+          <nav style={{ fontSize: 13, opacity: 0.55, fontWeight: 400, whiteSpace: 'nowrap' }}>
+            <Link href="/" style={navLinkStyle}>
+              Home
+            </Link>
+          </nav>
+        </header>
+
+        {/* Title */}
+        <section style={{ textAlign: 'center', marginTop: 54 }}>
+          <h1 style={{ fontSize: 44, margin: 0, letterSpacing: -0.8 }}>Door Notes</h1>
+          <p
+            style={{
+              margin: '12px auto 0',
+              fontSize: 14,
+              opacity: 0.68,
+              maxWidth: 760,
+              lineHeight: 1.5,
+            }}
+          >
+            Short observations on which doors are opening, closing, or trapping people.
+          </p>
+        </section>
+
+        {/* Archive */}
+        <section style={{ maxWidth: 720, margin: '28px auto 0' }}>
+          <div style={cardStyle}>
+            <div style={{ fontSize: 13, fontWeight: 700, opacity: 0.85, marginBottom: 10 }}>
+              Archive
+            </div>
+
+            <div style={{ display: 'grid', gap: 12 }}>
+              <Link href="/door-notes/001-revolving-glass-door" style={navLinkStyle}>
+                <div
+                  style={{
+                    border: '1px solid rgba(0,0,0,0.10)',
+                    borderRadius: 14,
+                    background: '#fff',
+                    padding: '14px 16px',
+                    display: 'grid',
+                    gap: 6,
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                    <div style={{ fontSize: 14, fontWeight: 800 }}>
+                      Door Note #001 — Revolving Glass Door
+                    </div>
+                    <div style={{ fontSize: 12, opacity: 0.55, whiteSpace: 'nowrap' }}>
+                      Flow research
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      fontSize: 13,
+                      opacity: 0.7,
+                      lineHeight: 1.45,
+                    }}
+                  >
+                    How crowded risk-taking has become and what happens when exits shrink.
+                  </div>
+                </div>
+              </Link>
+            </div>
+
+            <div style={{ marginTop: 14, fontSize: 12.5, opacity: 0.6 }}>
+              One note at a time. Same structure. No hype.
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+}
