@@ -420,37 +420,16 @@ Now run a Decision Review with this structure:
           )}
         </section>
 
-        {/* Bottom benefits + quiet Door Notes link */}
+        {/* Bottom: Door Notes only */}
         <footer
           style={{
             maxWidth: 720,
             margin: '18px auto 0',
             display: 'flex',
-            justifyContent: 'space-between',
+            justifyContent: 'flex-end',
             alignItems: 'center',
-            gap: 12,
           }}
         >
-          <div
-            style={{
-              fontSize: 13,
-              opacity: 0.62,
-              display: 'flex',
-              gap: 12,
-              alignItems: 'center',
-              flexWrap: 'nowrap',
-              whiteSpace: 'nowrap',
-              overflowX: 'auto',
-              paddingBottom: 6,
-            }}
-          >
-            <span>Assumptions explicit</span>
-            <span style={{ opacity: 0.5 }}>•</span>
-            <span>Risks named</span>
-            <span style={{ opacity: 0.5 }}>•</span>
-            <span>Triggers defined</span>
-          </div>
-
           <div style={{ fontSize: 13, opacity: 0.55, whiteSpace: 'nowrap' }}>
             <Link href="/door-notes" style={navLinkStyle}>
               Door Notes
