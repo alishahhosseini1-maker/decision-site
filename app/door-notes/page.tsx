@@ -18,6 +18,27 @@ export default function DoorNotesIndexPage() {
     boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
   };
 
+  const itemStyle: React.CSSProperties = {
+    border: '1px solid rgba(0,0,0,0.10)',
+    borderRadius: 14,
+    background: '#fff',
+    padding: '14px 16px',
+    display: 'grid',
+    gap: 6,
+  };
+
+  const metaStyle: React.CSSProperties = {
+    fontSize: 12,
+    opacity: 0.55,
+    whiteSpace: 'nowrap',
+  };
+
+  const descStyle: React.CSSProperties = {
+    fontSize: 13,
+    opacity: 0.7,
+    lineHeight: 1.45,
+  };
+
   return (
     <div style={{ minHeight: '100vh', background: '#f4f5f6', color: '#111' }}>
       <main style={{ maxWidth: 980, margin: '28px auto 60px', padding: '0 20px' }}>
@@ -51,8 +72,20 @@ export default function DoorNotesIndexPage() {
               lineHeight: 1.5,
             }}
           >
-            Short observations on which doors are opening, closing, or trapping people.
+            One decision per note. Same ritual every time.
           </p>
+
+          <div
+            style={{
+              margin: '10px auto 0',
+              fontSize: 12.5,
+              opacity: 0.55,
+              maxWidth: 760,
+              lineHeight: 1.5,
+            }}
+          >
+            Door → Hinge → Locks → Trap → Exit sign → Step
+          </div>
         </section>
 
         {/* Archive */}
@@ -63,34 +96,30 @@ export default function DoorNotesIndexPage() {
             </div>
 
             <div style={{ display: 'grid', gap: 12 }}>
-              <Link href="/door-notes/001-revolving-glass-door" style={navLinkStyle}>
-                <div
-                  style={{
-                    border: '1px solid rgba(0,0,0,0.10)',
-                    borderRadius: 14,
-                    background: '#fff',
-                    padding: '14px 16px',
-                    display: 'grid',
-                    gap: 6,
-                  }}
-                >
+              {/* 001 */}
+              <Link href="/door-notes/001" style={navLinkStyle}>
+                <div style={itemStyle}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-                    <div style={{ fontSize: 14, fontWeight: 800 }}>
-                      Door Note #001 — Revolving Glass Door
-                    </div>
-                    <div style={{ fontSize: 12, opacity: 0.55, whiteSpace: 'nowrap' }}>
-                      Flow research
-                    </div>
+                    <div style={{ fontSize: 14, fontWeight: 800 }}>Door Note #001</div>
+                    <div style={metaStyle}>Flow research</div>
                   </div>
 
-                  <div
-                    style={{
-                      fontSize: 13,
-                      opacity: 0.7,
-                      lineHeight: 1.45,
-                    }}
-                  >
-                    How crowded risk-taking has become and what happens when exits shrink.
+                  <div style={descStyle}>
+                    Revolving glass door. Crowding risk and what happens when exits shrink.
+                  </div>
+                </div>
+              </Link>
+
+              {/* 002 */}
+              <Link href="/door-notes/002" style={navLinkStyle}>
+                <div style={itemStyle}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                    <div style={{ fontSize: 14, fontWeight: 800 }}>Door Note #002</div>
+                    <div style={metaStyle}>Housing</div>
+                  </div>
+
+                  <div style={descStyle}>
+                    Buying a home in a buyer-leaning market. Leverage exists until urgency returns.
                   </div>
                 </div>
               </Link>

@@ -1,16 +1,18 @@
+'use client';
+
 import Link from 'next/link';
-import React from 'react';
+import React, { type CSSProperties } from 'react';
 
 export default function DoorNote001Page() {
   const shellBg = 'rgba(255,255,255,0.65)';
   const border = '1px solid rgba(0,0,0,0.10)';
 
-  const navLinkStyle: React.CSSProperties = {
+  const navLinkStyle: CSSProperties = {
     textDecoration: 'none',
     color: 'inherit',
   };
 
-  const cardStyle: React.CSSProperties = {
+  const cardStyle: CSSProperties = {
     border,
     borderRadius: 18,
     background: shellBg,
@@ -18,21 +20,21 @@ export default function DoorNote001Page() {
     boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
   };
 
-  const h3Style: React.CSSProperties = {
+  const h3Style: CSSProperties = {
     margin: '18px 0 8px',
     fontSize: 14,
     fontWeight: 800,
     opacity: 0.9,
   };
 
-  const pStyle: React.CSSProperties = {
+  const pStyle: CSSProperties = {
     margin: '0 0 10px',
     fontSize: 14,
     lineHeight: 1.6,
     opacity: 0.88,
   };
 
-  const actionStyle: React.CSSProperties = {
+  const actionStyle: CSSProperties = {
     marginTop: 10,
     border: '1px solid rgba(0,0,0,0.10)',
     borderRadius: 14,
