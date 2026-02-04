@@ -8,6 +8,7 @@ export default function DoorNotesIndexPage() {
   const navLinkStyle: React.CSSProperties = {
     textDecoration: 'none',
     color: 'inherit',
+    display: 'block', // makes the whole row reliably clickable
   };
 
   const cardStyle: React.CSSProperties = {
@@ -25,6 +26,8 @@ export default function DoorNotesIndexPage() {
     padding: '14px 16px',
     display: 'grid',
     gap: 6,
+    cursor: 'pointer',
+    userSelect: 'none',
   };
 
   const metaStyle: React.CSSProperties = {
@@ -54,7 +57,7 @@ export default function DoorNotesIndexPage() {
           <div style={{ fontSize: 12, opacity: 0.55 }}>Decision Layer</div>
 
           <nav style={{ fontSize: 13, opacity: 0.55, fontWeight: 400, whiteSpace: 'nowrap' }}>
-            <Link href="/" style={navLinkStyle}>
+            <Link href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
               Home
             </Link>
           </nav>
@@ -97,7 +100,7 @@ export default function DoorNotesIndexPage() {
 
             <div style={{ display: 'grid', gap: 12 }}>
               {/* 001 */}
-              <Link href="/door-notes/001" style={navLinkStyle}>
+              <Link href="/door-notes/001" style={navLinkStyle} aria-label="Open Door Note 001">
                 <div style={itemStyle}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
                     <div style={{ fontSize: 14, fontWeight: 800 }}>Door Note #001</div>
@@ -111,7 +114,7 @@ export default function DoorNotesIndexPage() {
               </Link>
 
               {/* 002 */}
-              <Link href="/door-notes/002" style={navLinkStyle}>
+              <Link href="/door-notes/002" style={navLinkStyle} aria-label="Open Door Note 002">
                 <div style={itemStyle}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
                     <div style={{ fontSize: 14, fontWeight: 800 }}>Door Note #002</div>
@@ -120,6 +123,20 @@ export default function DoorNotesIndexPage() {
 
                   <div style={descStyle}>
                     Buying a home in a buyer-leaning market. Leverage exists until urgency returns.
+                  </div>
+                </div>
+              </Link>
+
+              {/* 003 */}
+              <Link href="/door-notes/003" style={navLinkStyle} aria-label="Open Door Note 003">
+                <div style={itemStyle}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                    <div style={{ fontSize: 14, fontWeight: 800 }}>Door Note #003</div>
+                    <div style={metaStyle}>AI / Energy</div>
+                  </div>
+
+                  <div style={descStyle}>
+                    Heavy steel door. Power becomes a gating factor for AI. The trap is overbuilding ahead of durable demand.
                   </div>
                 </div>
               </Link>
