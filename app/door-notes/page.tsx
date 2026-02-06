@@ -136,7 +136,23 @@ export default function DoorNotesIndexPage() {
                   </div>
 
                   <div style={descStyle}>
-                    Heavy steel door. Power becomes a gating factor for AI. The trap is overbuilding ahead of durable demand.
+                    Heavy steel door. Power becomes a gating factor for AI. The trap is overbuilding ahead of durable
+                    demand.
+                  </div>
+                </div>
+              </Link>
+
+              {/* 004 */}
+              <Link href="/door-notes/004" style={navLinkStyle} aria-label="Open Door Note 004">
+                <div style={itemStyle}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                    <div style={{ fontSize: 14, fontWeight: 800 }}>Door Note #004</div>
+                    <div style={metaStyle}>Crowding / Rates</div>
+                  </div>
+
+                  <div style={descStyle}>
+                    Some winning trades are heavy steel doors. Crowded exits, rate sensitivity, and the moment good
+                    news stops working.
                   </div>
                 </div>
               </Link>
