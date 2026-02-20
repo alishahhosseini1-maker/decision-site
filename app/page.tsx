@@ -20,12 +20,13 @@ export default function HomePage() {
   const [decisionError, setDecisionError] = useState<string | null>(null);
 
   const reviewRef = useRef<HTMLDetailsElement | null>(null);
+  const decisionInputRef = useRef<HTMLTextAreaElement | null>(null);
 
   const STORAGE = {
     lastUsed: 'dl:last_used_at',
   };
 
-  const tone = 'Calm, precise, direct. Like a senior engineer doing a design review.';
+  const tone = 'Calm, precise, direct — like a senior engineer doing a design review.';
 
   useEffect(() => {
     try {
@@ -34,6 +35,12 @@ export default function HomePage() {
     } catch {
       // ignore
     }
+
+    // welcoming: put cursor where the user should start
+    setTimeout(() => {
+      decisionInputRef.current?.focus();
+    }, 50);
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -58,12 +65,14 @@ export default function HomePage() {
       ? `DECISION:\n${trimmedDecision}`
       : `DECISION:\n[Paste the decision here]`;
 
-    const contextBlock = trimmedContext ? `\n\nWHY THIS IS HARD TO UNDO (constraints / stakes):\n${trimmedContext}` : '';
+    const contextBlock = trimmedContext
+      ? `\n\nWHY THIS IS HARD TO UNDO (constraints / stakes):\n${trimmedContext}`
+      : '';
 
     return `You are a disciplined decision partner.
 
 Your job is NOT to provide advice, recommendations, or predictions.
-Your job is to pressure-test a decision before commitment.
+Your job is to slow the moment before commitment and pressure-test the decision.
 
 Time horizon: ${horizon}
 
@@ -71,23 +80,55 @@ Style requirements:
 - ${tone}
 - Challenge vague thinking
 - Force specificity (numbers, constraints, triggers)
-- Surface assumptions and failure modes
+- Surface hidden assumptions and failure modes
 - Separate knowns vs unknowns
-- Output should be skimmable and actionable
+- Optimize for clarity and survivability, not certainty
+
+---
 
 ${decisionBlock}${contextBlock}
 
-Now run a Decision Review with this structure:
+Now run a Decision Review using this structure:
 
-1) Clarify the decision (rewrite it in 1 sentence)
-2) What has to be true? (top 5 assumptions)
-3) What would change your mind? (disconfirming evidence)
-4) Key risks / failure modes (ranked)
-5) Opportunity cost (what you're giving up)
-6) Decision rule + sizing (simple rule-of-thumb given uncertainty + downside)
-7) Triggers (what would make you proceed / pause / stop)
-8) Checklist (10 yes/no items)
-9) Verdict (Proceed / Proceed smaller / Wait / Don’t do it) + 2-line rationale`;
+1) Decision classification
+What kind of decision is this?
+(e.g., reversible experiment, capital allocation, identity/career move, strategic lock-in, irreversible commitment)
+
+2) Clarify the decision
+Rewrite it in one precise sentence including scope, size, and timing.
+
+3) What has to be true? (Top 3 hinges)
+List the three load-bearing assumptions.
+If any one fails, the decision meaningfully breaks.
+
+4) Irreversibility check
+What becomes hard to undo after committing?
+(Time, capital, reputation, optionality, relationships)
+
+5) Disconfirming evidence
+What observable facts would make a rational person pause or walk away?
+
+6) Failure modes (ranked)
+How does this realistically go wrong?
+Describe consequences, not probabilities.
+
+7) Opportunity cost
+What future paths or options are you giving up by stepping through this door?
+
+8) Decision rule + sizing
+Given uncertainty and downside, what is a survivable way to proceed?
+Define scope, pacing, or limits.
+
+9) Triggers
+What signals would make you:
+- Proceed
+- Pause
+- Stop or exit
+
+10) Verdict
+(Proceed / Proceed smaller / Wait / Don’t do it)
+
+Provide a 2-line rationale focused on survivability and clarity — not confidence.`;
   }, [decision, context, horizon]);
 
   const validateDecision = () => {
@@ -162,7 +203,7 @@ Now run a Decision Review with this structure:
     alignItems: 'center',
     justifyContent: 'space-between',
     fontSize: 14,
-    fontWeight: 500,
+    fontWeight: 600,
     opacity: 0.9,
   };
 
@@ -188,27 +229,27 @@ Now run a Decision Review with this structure:
             paddingTop: 6,
           }}
         >
-          <div style={{ fontSize: 12, opacity: 0.55 }}>
-            Last used: <span style={{ opacity: 0.75 }}>{lastUsedLabel}</span>
+          <div style={{ fontSize: 12, opacity: 0.42 }}>
+            Last used: <span style={{ opacity: 0.65 }}>{lastUsedLabel}</span>
           </div>
 
-          <nav style={{ fontSize: 13, opacity: 0.45, fontWeight: 400, whiteSpace: 'nowrap' }}>
+          <nav style={{ fontSize: 13, opacity: 0.35, fontWeight: 500, whiteSpace: 'nowrap' }}>
             <Link href="/private-review" style={navLinkStyle}>
               Leave
             </Link>
           </nav>
         </header>
 
-        {/* Hero */}
-        <section style={{ textAlign: 'center', marginTop: 54 }}>
+        {/* Hero (welcoming, 2 lines) */}
+        <section style={{ textAlign: 'center', marginTop: 56 }}>
           <h1 style={{ fontSize: 64, margin: 0, letterSpacing: -1.1 }}>Decision Layer</h1>
 
-          <p style={{ margin: '14px auto 0', fontSize: 18, opacity: 0.92, maxWidth: 820 }}>
-            Run a decision review before you commit.
+          <p style={{ margin: '16px auto 0', fontSize: 18, opacity: 0.92, maxWidth: 820 }}>
+            Before you commit — slow the decision.
           </p>
 
-          <p style={{ margin: '10px auto 0', fontSize: 13, opacity: 0.58, maxWidth: 820, lineHeight: 1.45 }}>
-            Takes ~10 minutes. Start only if you&apos;re close to committing.
+          <p style={{ margin: '10px auto 0', fontSize: 13.5, opacity: 0.62, maxWidth: 820, lineHeight: 1.55 }}>
+            Run a 10-minute decision review.
           </p>
         </section>
 
@@ -216,7 +257,7 @@ Now run a Decision Review with this structure:
         <section
           style={{
             maxWidth: 720,
-            margin: '28px auto 0',
+            margin: '40px auto 0',
             border,
             borderRadius: 18,
             background: shellBg,
@@ -225,17 +266,17 @@ Now run a Decision Review with this structure:
             textAlign: 'left',
           }}
         >
-          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>What are you about to commit to?</div>
+          <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>What are you about to decide?</div>
 
           <textarea
+            ref={decisionInputRef}
             value={decision}
             onChange={(e) => {
               setDecision(e.target.value);
               if (decisionError) setDecisionError(null);
-              // if they change the decision after copying, reset CTA to black
               if (ctaCopied) setCtaCopied(false);
             }}
-            placeholder="Examples: signing an offer • investing $500k • hiring a VP • killing a product • choosing a roadmap • acquiring a company"
+            placeholder="Examples: signing an offer • wiring $500k • hiring a VP • killing a product • choosing a roadmap • acquiring a company"
             rows={5}
             style={{
               width: '100%',
@@ -251,15 +292,17 @@ Now run a Decision Review with this structure:
           />
 
           {decisionError && (
-            <div style={{ marginTop: 8, fontSize: 12.5, color: '#dc2626', fontWeight: 600 }}>
+            <div style={{ marginTop: 8, fontSize: 12.5, color: '#dc2626', fontWeight: 700 }}>
               {decisionError}
             </div>
           )}
 
-          <div style={{ marginTop: 8, fontSize: 12.5, opacity: 0.62 }}>Write it like you&apos;re sending it to your board.</div>
+          <div style={{ marginTop: 8, fontSize: 12.5, opacity: 0.62 }}>
+            Write the decision that would be hardest to undo.
+          </div>
 
           {/* Context */}
-          <div style={{ marginTop: 10 }}>
+          <div style={{ marginTop: 12 }}>
             <details style={detailStyle}>
               <summary style={summaryStyle}>
                 <span>▶ Why this is hard to undo</span>
@@ -268,7 +311,7 @@ Now run a Decision Review with this structure:
               <div style={{ marginTop: 12 }}>
                 <div style={{ display: 'grid', gap: 12 }}>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6, opacity: 0.9 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6, opacity: 0.9 }}>
                       Constraints / stakes (optional)
                     </div>
                     <textarea
@@ -295,7 +338,9 @@ Now run a Decision Review with this structure:
 
                   <div style={{ display: 'grid', gap: 12 }}>
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6, opacity: 0.9 }}>Time horizon</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6, opacity: 0.9 }}>
+                        Time horizon
+                      </div>
                       <input
                         value={horizon}
                         onChange={(e) => {
@@ -315,7 +360,9 @@ Now run a Decision Review with this structure:
                     </div>
 
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6, opacity: 0.9 }}>Tone (fixed)</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6, opacity: 0.9 }}>
+                        Tone (fixed)
+                      </div>
                       <div
                         style={{
                           width: '100%',
@@ -329,6 +376,16 @@ Now run a Decision Review with this structure:
                       >
                         {tone}
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Philosophy + gravity moved inside accordion */}
+                  <div style={{ display: 'grid', gap: 8 }}>
+                    <div style={{ fontSize: 12.5, opacity: 0.62, lineHeight: 1.55 }}>
+                      The goal is clarity — not confidence.
+                    </div>
+                    <div style={{ fontSize: 12.5, opacity: 0.56, lineHeight: 1.55 }}>
+                      Decisions compound. This is where you slow one down.
                     </div>
                   </div>
                 </div>
@@ -348,17 +405,17 @@ Now run a Decision Review with this structure:
               background: ctaBg,
               color: '#fff',
               fontSize: 14,
-              fontWeight: 800,
+              fontWeight: 900,
               cursor: 'pointer',
               boxShadow: '0 10px 20px rgba(0,0,0,0.12)',
               transition: 'background 180ms ease',
             }}
           >
-            {ctaCopied ? 'Copied ✓' : 'Begin review (copy prompt)'}
+            {ctaCopied ? 'Copied ✓' : 'Start Decision Review'}
           </button>
 
           <div style={{ marginTop: 8, fontSize: 12.5, opacity: 0.62, textAlign: 'center' }}>
-            Paste into your preferred tool. The goal is clarity, not perfection.
+            Creates a decision record you can keep with the outcome.
           </div>
 
           {/* After Start */}
@@ -378,7 +435,9 @@ Now run a Decision Review with this structure:
                     flexWrap: 'wrap',
                   }}
                 >
-                  <div style={{ fontSize: 13, opacity: 0.62 }}>Copy it, run the review, and keep the output with the decision.</div>
+                  <div style={{ fontSize: 13, opacity: 0.62 }}>
+                    Copy it, run the review, and keep the output with the decision.
+                  </div>
 
                   <button
                     onClick={copyPrompt}
@@ -389,7 +448,7 @@ Now run a Decision Review with this structure:
                       background: '#111',
                       color: '#fff',
                       fontSize: 13,
-                      fontWeight: 700,
+                      fontWeight: 800,
                       cursor: 'pointer',
                       boxShadow: '0 10px 20px rgba(0,0,0,0.08)',
                       marginLeft: 'auto',
@@ -440,4 +499,3 @@ Now run a Decision Review with this structure:
     </div>
   );
 }
-
