@@ -3,6 +3,16 @@
 import Link from 'next/link';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
+type Snapshot = {
+  door: string;
+  hinge: string;
+  lock: string;
+  trap: string;
+  exit: string;
+  step: string;
+  domain: 'Money/Portfolio' | 'Career/Business' | 'Relationships/Family' | 'Health' | 'Time/Commitments' | 'General';
+};
+
 export default function HomePage() {
   const [decision, setDecision] = useState('');
   const [context, setContext] = useState('');
@@ -19,6 +29,7 @@ export default function HomePage() {
   // validation
   const [decisionError, setDecisionError] = useState<string | null>(null);
 
+  const snapshotRef = useRef<HTMLDivElement | null>(null);
   const reviewRef = useRef<HTMLDetailsElement | null>(null);
   const decisionInputRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -57,17 +68,16 @@ export default function HomePage() {
     });
   };
 
+  // -------------------------
+  // PROMPT ENGINE (kept)
+  // -------------------------
   const reviewPrompt = useMemo(() => {
     const trimmedDecision = decision.trim();
     const trimmedContext = context.trim();
 
-    const decisionBlock = trimmedDecision
-      ? `DECISION:\n${trimmedDecision}`
-      : `DECISION:\n[Paste the decision here]`;
+    const decisionBlock = trimmedDecision ? `DECISION:\n${trimmedDecision}` : `DECISION:\n[Paste the decision here]`;
 
-    const contextBlock = trimmedContext
-      ? `\n\nWHY THIS IS HARD TO UNDO (constraints / stakes):\n${trimmedContext}`
-      : '';
+    const contextBlock = trimmedContext ? `\n\nWHY THIS IS HARD TO UNDO (constraints / stakes):\n${trimmedContext}` : '';
 
     return `You are a disciplined decision partner.
 
@@ -131,6 +141,224 @@ What signals would make you:
 Provide a 2-line rationale focused on survivability and clarity — not confidence.`;
   }, [decision, context, horizon]);
 
+  // -------------------------
+  // DOMAIN + SNAPSHOT (expanded)
+  // Zero cognitive load: user does not choose anything.
+  // -------------------------
+  const instantSnapshot: Snapshot | null = useMemo(() => {
+    const d = decision.trim().toLowerCase();
+    if (!d) return null;
+
+    const includesAny = (words: string[]) => words.some((w) => d.includes(w));
+
+    // Domains (tight set covering most use cases)
+    const money = includesAny([
+      'portfolio',
+      'stocks',
+      'stock',
+      'etf',
+      'index',
+      'spy',
+      'qqq',
+      'nvda',
+      'msft',
+      'aapl',
+      'crypto',
+      'bitcoin',
+      'btc',
+      'options',
+      'call',
+      'put',
+      'spread',
+      'rotate',
+      'rotation',
+      'rebalance',
+      'rebal',
+      'risk-on',
+      'risk off',
+      'allocation',
+      'invest',
+      'investment',
+      'buy',
+      'sell',
+      'halo',
+      'ai',
+      'capex',
+      'rates',
+      'treasury',
+      'bond',
+    ]);
+
+    const careerBusiness = includesAny([
+      'job',
+      'career',
+      'quit',
+      'leave',
+      'resign',
+      'offer',
+      'promotion',
+      'raise',
+      'comp',
+      'salary',
+      'join',
+      'startup',
+      'founder',
+      'cofounder',
+      'hire',
+      'hiring',
+      'fire',
+      'firing',
+      'vp',
+      'director',
+      'ceo',
+      'roadmap',
+      'product',
+      'pricing',
+      'strategy',
+      'acquire',
+      'acquisition',
+      'm&a',
+      'contract',
+      'customer',
+      'client',
+      'pipeline',
+      'sales',
+      'business',
+    ]);
+
+    const relationshipsFamily = includesAny([
+      'marry',
+      'marriage',
+      'divorce',
+      'relationship',
+      'partner',
+      'girlfriend',
+      'boyfriend',
+      'wife',
+      'husband',
+      'move in',
+      'break up',
+      'breakup',
+      'baby',
+      'kids',
+      'child',
+      'parenting',
+      'family',
+      'custody',
+      'school',
+    ]);
+
+    const health = includesAny([
+      'health',
+      'diet',
+      'fasting',
+      'workout',
+      'training',
+      'injury',
+      'pain',
+      'surgery',
+      'med',
+      'meds',
+      'medicine',
+      'doctor',
+      'therapy',
+      'sleep',
+      'alcohol',
+      'weight',
+      'cut',
+      'bulk',
+      'run',
+      'ironman',
+      'triathlon',
+    ]);
+
+    const timeCommitments = includesAny([
+      'schedule',
+      'time',
+      'commit',
+      'commitment',
+      'routine',
+      'habit',
+      'daily',
+      'weekly',
+      'calendar',
+      'meeting',
+      'board',
+      'volunteer',
+      'side project',
+      'project',
+      'course',
+      'mba',
+      'cfa',
+      'program',
+      'class',
+    ]);
+
+    let domain: Snapshot['domain'] = 'General';
+
+    if (money) domain = 'Money/Portfolio';
+    else if (careerBusiness) domain = 'Career/Business';
+    else if (relationshipsFamily) domain = 'Relationships/Family';
+    else if (health) domain = 'Health';
+    else if (timeCommitments) domain = 'Time/Commitments';
+
+    // defaults (General)
+    let door = 'Revolving steel-glass door (reversible, but momentum builds)';
+    let hinge = 'One assumption quietly holds this decision up.';
+    let lock = 'Reversal gets harder due to timing + attention + emotion.';
+    let trap = 'Turning uncertainty into a story you defend.';
+    let exit = 'Clear real-world signals contradict the premise.';
+    let step = 'Proceed partially; preserve optionality.';
+
+    // Domain-specific templates
+    if (domain === 'Money/Portfolio') {
+      door = 'Revolving steel-glass door (reversible allocation change; heavy momentum)';
+      hinge = 'Durability + real earnings must matter more than expectation-driven growth over your horizon.';
+      lock = 'Re-entry friction: selling winners, then hesitating to buy back higher.';
+      trap = 'Accidentally making a macro bet (“AI is over” / “HALO is safe”).';
+      exit = 'Earnings + guidance consistently favor the side you reduced, or resilience fails on the side you added.';
+      step = 'Rotate in tranches; cap the move so you can be wrong and still be fine.';
+    }
+
+    if (domain === 'Career/Business') {
+      door = 'Steel door (trajectory + reputation; harder to undo)';
+      hinge = 'This path must compound skill and create runway before regret becomes permanent.';
+      lock = 'Time + reputation: reversing later is possible but not symmetrical.';
+      trap = 'Romanticizing upside while ignoring survivability and constraints.';
+      exit = 'Runway shrinks, execution slips, or reality contradicts the core “why.”';
+      step = 'De-risk with reversible experiments and explicit triggers.';
+    }
+
+    if (domain === 'Relationships/Family') {
+      door = 'Steel door (high irreversibility; long tail)';
+      hinge = 'Values alignment must be real, repeated, and observable.';
+      lock = 'Emotional + legal + time compounding locks.';
+      trap = 'Optimism bias under uncertainty / ignoring repeated signals.';
+      exit = 'Repeated evidence of misalignment (patterns), not one-off conflict.';
+      step = 'Slow down; collect disconfirming evidence; define non-negotiables.';
+    }
+
+    if (domain === 'Health') {
+      door = 'Steel door (compounding effects; harder to reverse quickly)';
+      hinge = 'Correct diagnosis + consistent adherence must be real, not hoped for.';
+      lock = 'Physiology + habit formation: changes compound in one direction.';
+      trap = 'Extreme swings (all-or-nothing) instead of sustainable systems.';
+      exit = 'Symptoms persist, performance declines, or side effects outweigh benefits.';
+      step = 'Start smaller, measure, iterate; choose actions you can repeat daily.';
+    }
+
+    if (domain === 'Time/Commitments') {
+      door = 'Trapdoor disguised as a revolving door (looks small, becomes permanent)';
+      hinge = 'You must be able to sustain this without stealing from critical priorities.';
+      lock = 'Recurring obligation + guilt lock: it’s hard to stop once others depend on you.';
+      trap = 'Overcommitment from identity signaling (“I should do this”).';
+      exit = 'Calendar overload, missed core work, rising stress, or persistent resentment.';
+      step = 'Time-box it (trial), define stop rules, and protect a hard cap on commitments.';
+    }
+
+    return { domain, door, hinge, lock, trap, exit, step };
+  }, [decision]);
+
   const validateDecision = () => {
     const text = decision.trim();
     if (!text) return 'Write the decision first.';
@@ -155,23 +383,19 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
       localStorage.setItem(STORAGE.lastUsed, iso);
     } catch {}
 
+    // Copy prompt (keep your current behavior)
     try {
       await navigator.clipboard.writeText(reviewPrompt);
-
       setCopied(true);
       setTimeout(() => setCopied(false), 1200);
-
-      // once clicked successfully, stays green until refresh
       setCtaCopied(true);
     } catch {
       // clipboard may be blocked
     }
 
+    // Scroll user to the snapshot first (not the prompt)
     setTimeout(() => {
-      if (reviewRef.current) {
-        reviewRef.current.open = true;
-        reviewRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+      snapshotRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 50);
   };
 
@@ -240,7 +464,7 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
           </nav>
         </header>
 
-        {/* Hero (welcoming, 2 lines) */}
+        {/* Hero */}
         <section style={{ textAlign: 'center', marginTop: 56 }}>
           <h1 style={{ fontSize: 64, margin: 0, letterSpacing: -1.1 }}>Decision Layer</h1>
 
@@ -249,7 +473,7 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
           </p>
 
           <p style={{ margin: '10px auto 0', fontSize: 13.5, opacity: 0.62, maxWidth: 820, lineHeight: 1.55 }}>
-            Run a 10-minute decision review.
+            Type the decision. We map the situation for you.
           </p>
         </section>
 
@@ -275,8 +499,9 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
               setDecision(e.target.value);
               if (decisionError) setDecisionError(null);
               if (ctaCopied) setCtaCopied(false);
+              if (hasStarted) setHasStarted(false);
             }}
-            placeholder="Examples: signing an offer • wiring $500k • hiring a VP • killing a product • choosing a roadmap • acquiring a company"
+            placeholder="Describe the decision in your own words…"
             rows={5}
             style={{
               width: '100%',
@@ -298,21 +523,21 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
           )}
 
           <div style={{ marginTop: 8, fontSize: 12.5, opacity: 0.62 }}>
-            Write the decision that would be hardest to undo.
+            Describe it simply.
           </div>
 
-          {/* Context */}
+          {/* Context (still optional, collapsed) */}
           <div style={{ marginTop: 12 }}>
             <details style={detailStyle}>
               <summary style={summaryStyle}>
-                <span>▶ Why this is hard to undo</span>
+                <span>▶ Optional details</span>
               </summary>
 
               <div style={{ marginTop: 12 }}>
                 <div style={{ display: 'grid', gap: 12 }}>
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6, opacity: 0.9 }}>
-                      Constraints / stakes (optional)
+                      Why this is hard to undo (optional)
                     </div>
                     <textarea
                       value={context}
@@ -379,7 +604,6 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
                     </div>
                   </div>
 
-                  {/* Philosophy + gravity moved inside accordion */}
                   <div style={{ display: 'grid', gap: 8 }}>
                     <div style={{ fontSize: 12.5, opacity: 0.62, lineHeight: 1.55 }}>
                       The goal is clarity — not confidence.
@@ -411,75 +635,116 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
               transition: 'background 180ms ease',
             }}
           >
-            {ctaCopied ? 'Copied ✓' : 'Start Decision Review'}
+            {ctaCopied ? 'Copied ✓' : 'See My Decision Clearly'}
           </button>
 
           <div style={{ marginTop: 8, fontSize: 12.5, opacity: 0.62, textAlign: 'center' }}>
-            Creates a decision record you can keep with the outcome.
+            Generates a clear snapshot. Copies the full review prompt (optional).
           </div>
 
-          {/* After Start */}
+          {/* After Start: Snapshot FIRST, prompt hidden */}
           {hasStarted && (
-            <div style={{ marginTop: 12 }}>
-              <details ref={reviewRef} style={detailStyle} open>
-                <summary style={summaryStyle}>
-                  <span>▶ Decision Review prompt</span>
-                </summary>
-
-                <div
-                  style={{
-                    marginTop: 10,
-                    display: 'flex',
-                    gap: 10,
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                  }}
-                >
-                  <div style={{ fontSize: 13, opacity: 0.62 }}>
-                    Copy it, run the review, and keep the output with the decision.
+            <div style={{ marginTop: 12 }} ref={snapshotRef}>
+              <div
+                style={{
+                  border,
+                  borderRadius: 14,
+                  background: '#fff',
+                  padding: 14,
+                  boxShadow: '0 10px 20px rgba(0,0,0,0.04)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10 }}>
+                  <div style={{ fontSize: 14, fontWeight: 900 }}>🧭 Instant Decision Snapshot</div>
+                  <div style={{ fontSize: 12, opacity: 0.55 }}>
+                    Domain: <span style={{ fontWeight: 700 }}>{instantSnapshot?.domain ?? 'General'}</span>
                   </div>
-
-                  <button
-                    onClick={copyPrompt}
-                    style={{
-                      borderRadius: 12,
-                      border: 'none',
-                      padding: '10px 12px',
-                      background: '#111',
-                      color: '#fff',
-                      fontSize: 13,
-                      fontWeight: 800,
-                      cursor: 'pointer',
-                      boxShadow: '0 10px 20px rgba(0,0,0,0.08)',
-                      marginLeft: 'auto',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {copied ? 'Copied ✓' : 'Copy prompt'}
-                  </button>
                 </div>
 
-                <pre
-                  style={{
-                    marginTop: 12,
-                    borderRadius: 14,
-                    border: '1px solid rgba(0,0,0,0.12)',
-                    background: '#fff',
-                    padding: 14,
-                    fontSize: 12.5,
-                    lineHeight: 1.45,
-                    whiteSpace: 'pre-wrap',
-                    overflowWrap: 'anywhere',
-                  }}
-                >
-                  {reviewPrompt}
-                </pre>
-              </details>
+                <div style={{ marginTop: 10, display: 'grid', gap: 8, fontSize: 13.5, lineHeight: 1.55 }}>
+                  <div>
+                    <strong>Door:</strong> {instantSnapshot?.door ?? '—'}
+                  </div>
+                  <div>
+                    <strong>Hinge:</strong> {instantSnapshot?.hinge ?? '—'}
+                  </div>
+                  <div>
+                    <strong>Lock:</strong> {instantSnapshot?.lock ?? '—'}
+                  </div>
+                  <div>
+                    <strong>Trap:</strong> {instantSnapshot?.trap ?? '—'}
+                  </div>
+                  <div>
+                    <strong>Exit sign:</strong> {instantSnapshot?.exit ?? '—'}
+                  </div>
+                  <div>
+                    <strong>Step:</strong> {instantSnapshot?.step ?? '—'}
+                  </div>
+                </div>
+
+                {/* Advanced: prompt is optional + collapsed */}
+                <div style={{ marginTop: 12 }}>
+                  <details ref={reviewRef} style={detailStyle}>
+                    <summary style={summaryStyle}>
+                      <span>▶ Advanced reasoning (optional)</span>
+                    </summary>
+
+                    <div
+                      style={{
+                        marginTop: 10,
+                        display: 'flex',
+                        gap: 10,
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      <div style={{ fontSize: 13, opacity: 0.62 }}>
+                        Copy the full prompt if you want to run a deep review.
+                      </div>
+
+                      <button
+                        onClick={copyPrompt}
+                        style={{
+                          borderRadius: 12,
+                          border: 'none',
+                          padding: '10px 12px',
+                          background: '#111',
+                          color: '#fff',
+                          fontSize: 13,
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          boxShadow: '0 10px 20px rgba(0,0,0,0.08)',
+                          marginLeft: 'auto',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {copied ? 'Copied ✓' : 'Copy prompt'}
+                      </button>
+                    </div>
+
+                    <pre
+                      style={{
+                        marginTop: 12,
+                        borderRadius: 14,
+                        border: '1px solid rgba(0,0,0,0.12)',
+                        background: '#fff',
+                        padding: 14,
+                        fontSize: 12.5,
+                        lineHeight: 1.45,
+                        whiteSpace: 'pre-wrap',
+                        overflowWrap: 'anywhere',
+                      }}
+                    >
+                      {reviewPrompt}
+                    </pre>
+                  </details>
+                </div>
+              </div>
             </div>
           )}
         </section>
 
-        {/* Bottom: Door Notes only */}
+        {/* Bottom */}
         <footer
           style={{
             maxWidth: 720,
