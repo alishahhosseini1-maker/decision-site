@@ -172,7 +172,7 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
   };
 
   // -------------------------
-  // More tailored Instant Snapshot
+  // More tailored Instant Snapshot (kept from your current version)
   // Goal: reads like a smart 15-year-old (clear, direct, no jargon)
   // -------------------------
   const instantSnapshot: Snapshot | null = useMemo(() => {
@@ -182,7 +182,7 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
 
     const includesAny = (words: string[]) => words.some((w) => d.includes(w));
 
-    // ---- 1) Detect the "decision archetype" FIRST (most important)
+    // 1) Detect archetype first
     const isOffer = includesAny([
       'offer',
       'sign',
@@ -289,7 +289,7 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
       'hold',
     ]);
 
-    // ---- 2) Pick a domain (only for label)
+    // 2) Domain (label only)
     let domain: Domain = 'General';
 
     const careerBusiness = includesAny([
@@ -428,7 +428,7 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
     else if (health) domain = 'Health';
     else if (timeCommitments) domain = 'Time/Commitments';
 
-    // ---- 3) Tailored teen-level snapshots by archetype
+    // 3) Archetype snapshots
     const offerSnap: Snapshot = {
       domain: 'Career/Business',
       door: 'Heavy door (once you sign, your life starts moving in that direction fast).',
@@ -485,8 +485,8 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
     if (isOffer) return offerSnap;
     if (isInvestCapital) return investSnap;
 
-    // ---- 4) Fallback
-    const fallback: Snapshot = {
+    // 4) fallback
+    return {
       domain,
       door: 'Revolving door (you can change your mind, but it gets harder once you start moving).',
       hinge: 'What is the ONE thing that has to be true for this to be a good move?',
@@ -495,8 +495,6 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
       exit: 'If real-world signals keep disagreeing with your plan.',
       step: 'Take a smaller first step that keeps an easy exit.',
     };
-
-    return fallback;
   }, [decision]);
 
   const validateDecision = () => {
@@ -571,11 +569,19 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
   };
 
   const lastUsedLabel = formatShort(lastUsedAt);
-
   const ctaBg = ctaCopied ? '#16a34a' : '#0b0b0b';
 
+  // Updated examples (recommended wording)
   const decisionPlaceholder =
-    'Examples: signing an offer · investing capital · hiring a VP · shut down or double down · raise, sell, or wait';
+    'Examples: sign an offer · invest capital · hire a VP · kill or double down · raise or sell · acquire a company';
+
+  // ✅ NEW microcopy for optional context section (per your screenshot changes)
+  const contextLabel = 'What makes this hard to reverse? (optional)';
+  const contextPlaceholder =
+    'What’s at stake? Time, money, reputation, people depending on this, or doors that close after you decide…';
+  const horizonLabel = 'Decision horizon';
+  const toneLabel = 'How this review thinks';
+  const optionalDetailsLabel = '▶ Context (optional)';
 
   return (
     <div style={{ minHeight: '100vh', background: '#f4f5f6', color: '#111' }}>
@@ -660,14 +666,14 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
           <div style={{ marginTop: 12 }}>
             <details style={detailStyle}>
               <summary style={summaryStyle}>
-                <span>▶ Optional details</span>
+                <span>{optionalDetailsLabel}</span>
               </summary>
 
               <div style={{ marginTop: 12 }}>
                 <div style={{ display: 'grid', gap: 12 }}>
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6, opacity: 0.9 }}>
-                      Why this is hard to undo (optional)
+                      {contextLabel}
                     </div>
                     <textarea
                       value={context}
@@ -675,7 +681,7 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
                         setContext(e.target.value);
                         if (ctaCopied) setCtaCopied(false);
                       }}
-                      placeholder="Timeline, reputation, capital at risk, opportunity cost, dependencies, constraints…"
+                      placeholder={contextPlaceholder}
                       rows={4}
                       style={{
                         width: '100%',
@@ -694,7 +700,7 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
                   <div style={{ display: 'grid', gap: 12 }}>
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6, opacity: 0.9 }}>
-                        Time horizon
+                        {horizonLabel}
                       </div>
                       <input
                         value={horizon}
@@ -716,7 +722,7 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
 
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6, opacity: 0.9 }}>
-                        Tone (fixed)
+                        {toneLabel}
                       </div>
                       <div
                         style={{
@@ -785,8 +791,7 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
                 <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10 }}>
                   <div style={{ fontSize: 14, fontWeight: 900 }}>🧭 Instant Snapshot</div>
                   <div style={{ fontSize: 12, opacity: 0.55 }}>
-                    Category:{' '}
-                    <span style={{ fontWeight: 800 }}>{labelForDomain(instantSnapshot?.domain ?? 'General')}</span>
+                    Category: <span style={{ fontWeight: 800 }}>{labelForDomain(instantSnapshot?.domain ?? 'General')}</span>
                   </div>
                 </div>
 
