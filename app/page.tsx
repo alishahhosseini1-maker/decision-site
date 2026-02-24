@@ -3,14 +3,22 @@
 import Link from 'next/link';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
+type Domain =
+  | 'Money/Portfolio'
+  | 'Career/Business'
+  | 'Relationships/Family'
+  | 'Health'
+  | 'Time/Commitments'
+  | 'General';
+
 type Snapshot = {
+  domain: Domain;
   door: string;
   hinge: string;
   lock: string;
   trap: string;
   exit: string;
   step: string;
-  domain: 'Money/Portfolio' | 'Career/Business' | 'Relationships/Family' | 'Health' | 'Time/Commitments' | 'General';
 };
 
 export default function HomePage() {
@@ -77,7 +85,9 @@ export default function HomePage() {
 
     const decisionBlock = trimmedDecision ? `DECISION:\n${trimmedDecision}` : `DECISION:\n[Paste the decision here]`;
 
-    const contextBlock = trimmedContext ? `\n\nWHY THIS IS HARD TO UNDO (constraints / stakes):\n${trimmedContext}` : '';
+    const contextBlock = trimmedContext
+      ? `\n\nWHY THIS IS HARD TO UNDO (constraints / stakes):\n${trimmedContext}`
+      : '';
 
     return `You are a disciplined decision partner.
 
@@ -142,6 +152,108 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
   }, [decision, context, horizon]);
 
   // -------------------------
+  // Translate snapshot language to "15-year-old clear"
+  // (keeps meaning; drops jargon)
+  // -------------------------
+  const labelForDomain = (d: Domain) => {
+    switch (d) {
+      case 'Money/Portfolio':
+        return 'Money';
+      case 'Career/Business':
+        return 'Work/Business';
+      case 'Relationships/Family':
+        return 'Relationships';
+      case 'Health':
+        return 'Health';
+      case 'Time/Commitments':
+        return 'Time';
+      default:
+        return 'General';
+    }
+  };
+
+  const teenifyDoor = (raw: string) => {
+    // quick rewrites of common door types
+    const s = raw.toLowerCase();
+
+    if (s.includes('trapdoor')) return 'Trapdoor (looks small, but you might get stuck doing it)';
+    if (s.includes('steel') && s.includes('glass')) return 'Heavy door with a window (you can change it, but people will notice)';
+    if (s.includes('steel')) return 'Heavy door (hard to undo once you go through)';
+    if (s.includes('revolving')) return 'Revolving door (you can change your mind, but it can get messy)';
+    if (s.includes('glass')) return 'Glass door (easy to change, but can crack fast)';
+
+    return raw;
+  };
+
+  const teenify = (domain: Domain, snap: Omit<Snapshot, 'domain'>): Omit<Snapshot, 'domain'> => {
+    // Domain-aware, but still short.
+    if (domain === 'Money/Portfolio') {
+      return {
+        door: teenifyDoor(snap.door),
+        hinge: 'The big question: will the “safer” stuff actually hold up better when things get weird?',
+        lock: 'If you sell now, it’s hard to buy back later without feeling dumb (especially if price goes up).',
+        trap: 'Thinking you’re “being safe” when you’re really making a big market prediction.',
+        exit: 'If the companies you moved into start missing earnings, or the ones you sold keep crushing it.',
+        step: 'Don’t go all-in. Move a little at a time and set a max amount you’re willing to shift.',
+      };
+    }
+
+    if (domain === 'Career/Business') {
+      return {
+        door: teenifyDoor(snap.door),
+        hinge: 'Will this actually work in real life (with real customers / real bosses), not just in your head?',
+        lock: 'Once people see you as “that guy,” it’s harder to change your brand later.',
+        trap: 'Chasing the exciting upside and ignoring what could break you.',
+        exit: 'If you can’t get results fast enough (money, traction, performance) within a clear time limit.',
+        step: 'Test it small first. Set a deadline and a “stop rule” if it’s not working.',
+      };
+    }
+
+    if (domain === 'Relationships/Family') {
+      return {
+        door: teenifyDoor(snap.door),
+        hinge: 'Do your values match in a way you can see over and over (not just one good week)?',
+        lock: 'Emotions + time + life setup make it harder to reverse later.',
+        trap: 'Ignoring repeated red flags because you want it to work.',
+        exit: 'If the same issues keep happening and don’t improve with honest effort.',
+        step: 'Slow down. Look for patterns. Decide what you will not compromise on.',
+      };
+    }
+
+    if (domain === 'Health') {
+      return {
+        door: teenifyDoor(snap.door),
+        hinge: 'Is this the right plan for you, and can you actually stick to it?',
+        lock: 'Your body and habits change over time, so it’s not easy to “undo” fast.',
+        trap: 'Going extreme for 1 week, then quitting and starting over.',
+        exit: 'If you feel worse, get injured, or results don’t show up even when you’re consistent.',
+        step: 'Start small and track it. Do the version you can repeat every day.',
+      };
+    }
+
+    if (domain === 'Time/Commitments') {
+      return {
+        door: teenifyDoor(snap.door),
+        hinge: 'Can you do this every week without it wrecking your main priorities?',
+        lock: 'Once people depend on you, it’s hard to quit without drama or guilt.',
+        trap: 'Saying yes because it sounds good, not because it fits your life.',
+        exit: 'If your calendar gets packed, you feel stressed, or you start resenting it.',
+        step: 'Try it for a short trial. Put an end date on it. Cap your commitments.',
+      };
+    }
+
+    // General
+    return {
+      door: teenifyDoor(snap.door),
+      hinge: 'What is the ONE thing that has to be true for this to be a good move?',
+      lock: 'Once you start, backing out might cost time, money, or reputation.',
+      trap: 'Making up a story that feels true instead of checking reality.',
+      exit: 'If the real-world signs start clearly going against you.',
+      step: 'Take a smaller step first. Keep an easy way to exit.',
+    };
+  };
+
+  // -------------------------
   // DOMAIN + SNAPSHOT (expanded)
   // Zero cognitive load: user does not choose anything.
   // -------------------------
@@ -151,7 +263,8 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
 
     const includesAny = (words: string[]) => words.some((w) => d.includes(w));
 
-    // Domains (tight set covering most use cases)
+    // 👇 Fix the earlier bug: prioritize Career/Business BEFORE Money
+    // Also: money list should be OBJECT words (not generic buy/sell/invest)
     const money = includesAny([
       'portfolio',
       'stocks',
@@ -174,19 +287,13 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
       'rotation',
       'rebalance',
       'rebal',
-      'risk-on',
-      'risk off',
       'allocation',
-      'invest',
-      'investment',
-      'buy',
-      'sell',
       'halo',
-      'ai',
       'capex',
       'rates',
       'treasury',
       'bond',
+      'yield',
     ]);
 
     const careerBusiness = includesAny([
@@ -224,6 +331,14 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
       'pipeline',
       'sales',
       'business',
+      'program',
+      'high ticket',
+      'coaching',
+      'offer test',
+      'funnel',
+      'lead',
+      'close',
+      'closing',
     ]);
 
     const relationshipsFamily = includesAny([
@@ -290,19 +405,19 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
       'course',
       'mba',
       'cfa',
-      'program',
       'class',
     ]);
 
-    let domain: Snapshot['domain'] = 'General';
+    let domain: Domain = 'General';
 
-    if (money) domain = 'Money/Portfolio';
-    else if (careerBusiness) domain = 'Career/Business';
+    // priority order matters
+    if (careerBusiness) domain = 'Career/Business';
+    else if (money) domain = 'Money/Portfolio';
     else if (relationshipsFamily) domain = 'Relationships/Family';
     else if (health) domain = 'Health';
     else if (timeCommitments) domain = 'Time/Commitments';
 
-    // defaults (General)
+    // defaults (General) — adult version
     let door = 'Revolving steel-glass door (reversible, but momentum builds)';
     let hinge = 'One assumption quietly holds this decision up.';
     let lock = 'Reversal gets harder due to timing + attention + emotion.';
@@ -310,7 +425,7 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
     let exit = 'Clear real-world signals contradict the premise.';
     let step = 'Proceed partially; preserve optionality.';
 
-    // Domain-specific templates
+    // Domain-specific templates (adult version)
     if (domain === 'Money/Portfolio') {
       door = 'Revolving steel-glass door (reversible allocation change; heavy momentum)';
       hinge = 'Durability + real earnings must matter more than expectation-driven growth over your horizon.';
@@ -321,12 +436,12 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
     }
 
     if (domain === 'Career/Business') {
-      door = 'Steel door (trajectory + reputation; harder to undo)';
-      hinge = 'This path must compound skill and create runway before regret becomes permanent.';
-      lock = 'Time + reputation: reversing later is possible but not symmetrical.';
-      trap = 'Romanticizing upside while ignoring survivability and constraints.';
-      exit = 'Runway shrinks, execution slips, or reality contradicts the core “why.”';
-      step = 'De-risk with reversible experiments and explicit triggers.';
+      door = 'Revolving steel-glass door (reversible tests, but reputation forms fast)';
+      hinge = 'Real demand must exist at your price, from a specific buyer, with a specific pain.';
+      lock = 'Positioning + reputation: once people label you, it’s harder to reset.';
+      trap = 'Mistaking compliments for customers / interest for payment.';
+      exit = 'You can’t get qualified calls or close within a defined number of attempts.';
+      step = 'Run a time-boxed offer test (limited seats, clear stop rule).';
     }
 
     if (domain === 'Relationships/Family') {
@@ -356,7 +471,10 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
       step = 'Time-box it (trial), define stop rules, and protect a hard cap on commitments.';
     }
 
-    return { domain, door, hinge, lock, trap, exit, step };
+    // ✅ Apply teen translation right before returning
+    const teen = teenify(domain, { door, hinge, lock, trap, exit, step });
+
+    return { domain, ...teen };
   }, [decision]);
 
   const validateDecision = () => {
@@ -383,17 +501,13 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
       localStorage.setItem(STORAGE.lastUsed, iso);
     } catch {}
 
-    // Copy prompt (keep your current behavior)
     try {
       await navigator.clipboard.writeText(reviewPrompt);
       setCopied(true);
       setTimeout(() => setCopied(false), 1200);
       setCtaCopied(true);
-    } catch {
-      // clipboard may be blocked
-    }
+    } catch {}
 
-    // Scroll user to the snapshot first (not the prompt)
     setTimeout(() => {
       snapshotRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 50);
@@ -404,9 +518,7 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
       await navigator.clipboard.writeText(reviewPrompt);
       setCopied(true);
       setTimeout(() => setCopied(false), 1200);
-    } catch {
-      // ignore
-    }
+    } catch {}
   };
 
   const shellBg = 'rgba(255,255,255,0.65)';
@@ -438,13 +550,15 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
 
   const lastUsedLabel = formatShort(lastUsedAt);
 
-  // CTA: black default, green only after click-copy success (this page load)
   const ctaBg = ctaCopied ? '#16a34a' : '#0b0b0b';
+
+  // ✅ NEW placeholder: your roundtable examples
+  const decisionPlaceholder =
+    'Examples: signing an offer · investing capital · hiring a VP · shut down or double down · raise, sell, or wait';
 
   return (
     <div style={{ minHeight: '100vh', background: '#f4f5f6', color: '#111' }}>
       <main style={{ maxWidth: 980, margin: '28px auto 60px', padding: '0 20px' }}>
-        {/* Top bar */}
         <header
           style={{
             display: 'flex',
@@ -464,7 +578,6 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
           </nav>
         </header>
 
-        {/* Hero */}
         <section style={{ textAlign: 'center', marginTop: 56 }}>
           <h1 style={{ fontSize: 64, margin: 0, letterSpacing: -1.1 }}>Decision Layer</h1>
 
@@ -477,7 +590,6 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
           </p>
         </section>
 
-        {/* Card */}
         <section
           style={{
             maxWidth: 720,
@@ -490,7 +602,8 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
             textAlign: 'left',
           }}
         >
-          <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>What are you about to decide?</div>
+          <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>What are you deciding?</div>
+
 
           <textarea
             ref={decisionInputRef}
@@ -501,7 +614,8 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
               if (ctaCopied) setCtaCopied(false);
               if (hasStarted) setHasStarted(false);
             }}
-            placeholder="Describe the decision in your own words…"
+            // ✅ CHANGED: placeholder now uses the examples (substitute the old text)
+            placeholder={decisionPlaceholder}
             rows={5}
             style={{
               width: '100%',
@@ -522,11 +636,8 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
             </div>
           )}
 
-          <div style={{ marginTop: 8, fontSize: 12.5, opacity: 0.62 }}>
-            Describe it simply.
-          </div>
+          <div style={{ marginTop: 8, fontSize: 12.5, opacity: 0.62 }}>Describe it simply.</div>
 
-          {/* Context (still optional, collapsed) */}
           <div style={{ marginTop: 12 }}>
             <details style={detailStyle}>
               <summary style={summaryStyle}>
@@ -617,7 +728,6 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
             </details>
           </div>
 
-          {/* CTA */}
           <button
             onClick={beginReview}
             style={{
@@ -642,7 +752,6 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
             Generates a clear snapshot. Copies the full review prompt (optional).
           </div>
 
-          {/* After Start: Snapshot FIRST, prompt hidden */}
           {hasStarted && (
             <div style={{ marginTop: 12 }} ref={snapshotRef}>
               <div
@@ -655,9 +764,10 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10 }}>
-                  <div style={{ fontSize: 14, fontWeight: 900 }}>🧭 Instant Decision Snapshot</div>
+                  <div style={{ fontSize: 14, fontWeight: 900 }}>🧭 Instant Snapshot</div>
                   <div style={{ fontSize: 12, opacity: 0.55 }}>
-                    Domain: <span style={{ fontWeight: 700 }}>{instantSnapshot?.domain ?? 'General'}</span>
+                    Category:{' '}
+                    <span style={{ fontWeight: 800 }}>{labelForDomain(instantSnapshot?.domain ?? 'General')}</span>
                   </div>
                 </div>
 
@@ -666,23 +776,22 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
                     <strong>Door:</strong> {instantSnapshot?.door ?? '—'}
                   </div>
                   <div>
-                    <strong>Hinge:</strong> {instantSnapshot?.hinge ?? '—'}
+                    <strong>Main thing that must be true:</strong> {instantSnapshot?.hinge ?? '—'}
                   </div>
                   <div>
-                    <strong>Lock:</strong> {instantSnapshot?.lock ?? '—'}
+                    <strong>What makes it hard to undo:</strong> {instantSnapshot?.lock ?? '—'}
                   </div>
                   <div>
-                    <strong>Trap:</strong> {instantSnapshot?.trap ?? '—'}
+                    <strong>Common mistake:</strong> {instantSnapshot?.trap ?? '—'}
                   </div>
                   <div>
-                    <strong>Exit sign:</strong> {instantSnapshot?.exit ?? '—'}
+                    <strong>Red flag (time to pause):</strong> {instantSnapshot?.exit ?? '—'}
                   </div>
                   <div>
-                    <strong>Step:</strong> {instantSnapshot?.step ?? '—'}
+                    <strong>Safest next step:</strong> {instantSnapshot?.step ?? '—'}
                   </div>
                 </div>
 
-                {/* Advanced: prompt is optional + collapsed */}
                 <div style={{ marginTop: 12 }}>
                   <details ref={reviewRef} style={detailStyle}>
                     <summary style={summaryStyle}>
@@ -698,9 +807,7 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
                         flexWrap: 'wrap',
                       }}
                     >
-                      <div style={{ fontSize: 13, opacity: 0.62 }}>
-                        Copy the full prompt if you want to run a deep review.
-                      </div>
+                      <div style={{ fontSize: 13, opacity: 0.62 }}>Copy the full prompt if you want a deep review.</div>
 
                       <button
                         onClick={copyPrompt}
@@ -744,7 +851,6 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
           )}
         </section>
 
-        {/* Bottom */}
         <footer
           style={{
             maxWidth: 720,
