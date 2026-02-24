@@ -21,10 +21,25 @@ type Snapshot = {
   step: string;
 };
 
+type RankedSnapshot = {
+  primary: Snapshot | null;
+  secondary: Snapshot | null;
+  primaryLabel: string | null;
+  secondaryLabel: string | null;
+  confidence: number; // 0..1
+  lowConfidence: boolean;
+  reasonHints: string[]; // short bullets explaining uncertainty
+};
+
+type Hint = 'money' | 'job' | 'strategy' | null;
+
 export default function HomePage() {
   const [decision, setDecision] = useState('');
   const [context, setContext] = useState('');
   const [horizon, setHorizon] = useState('24–48 months');
+
+  // Optional: user hint to disambiguate low confidence
+  const [hint, setHint] = useState<Hint>(null);
 
   // UX state
   const [copied, setCopied] = useState(false);
@@ -55,7 +70,6 @@ export default function HomePage() {
       // ignore
     }
 
-    // welcoming: put cursor where the user should start
     setTimeout(() => {
       decisionInputRef.current?.focus();
     }, 50);
@@ -83,7 +97,9 @@ export default function HomePage() {
     const trimmedDecision = decision.trim();
     const trimmedContext = context.trim();
 
-    const decisionBlock = trimmedDecision ? `DECISION:\n${trimmedDecision}` : `DECISION:\n[Paste the decision here]`;
+    const decisionBlock = trimmedDecision
+      ? `DECISION:\n${trimmedDecision}`
+      : `DECISION:\n[Paste the decision here]`;
 
     const contextBlock = trimmedContext
       ? `\n\nWHY THIS IS HARD TO UNDO (constraints / stakes):\n${trimmedContext}`
@@ -172,263 +188,9 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
   };
 
   // -------------------------
-  // More tailored Instant Snapshot (kept from your current version)
-  // Goal: reads like a smart 15-year-old (clear, direct, no jargon)
+  // Snapshot library (teen-clear)
   // -------------------------
-  const instantSnapshot: Snapshot | null = useMemo(() => {
-    const raw = decision.trim();
-    const d = raw.toLowerCase();
-    if (!d) return null;
-
-    const includesAny = (words: string[]) => words.some((w) => d.includes(w));
-
-    // 1) Detect archetype first
-    const isOffer = includesAny([
-      'offer',
-      'sign',
-      'accept',
-      'decline',
-      'job',
-      'role',
-      'promotion',
-      'comp',
-      'salary',
-      'equity',
-      'package',
-      'join',
-      'resign',
-      'quit',
-    ]);
-
-    const isInvestCapital = includesAny([
-      'invest',
-      'investment',
-      'deploy',
-      'allocate',
-      'allocation',
-      'wire',
-      'commit capital',
-      'check',
-      'seed',
-      'series',
-      'angel',
-      'fund',
-      'term sheet',
-      'portfolio',
-      'stocks',
-      'stock',
-      'etf',
-      'options',
-      'crypto',
-      'bitcoin',
-      'btc',
-      'put',
-      'call',
-      'spread',
-      'bond',
-      'treasury',
-      'yield',
-    ]);
-
-    const isHireExec = includesAny([
-      'hire',
-      'hiring',
-      'vp',
-      'vice president',
-      'head of',
-      'cfo',
-      'cto',
-      'coo',
-      'ceo',
-      'director',
-      'exec',
-      'executive',
-      'replace',
-      'fire',
-      'firing',
-      'let go',
-      'terminate',
-    ]);
-
-    const isShutOrDouble = includesAny([
-      'shut down',
-      'shutdown',
-      'sunset',
-      'kill',
-      'cancel',
-      'end',
-      'pause',
-      'stop',
-      'wind down',
-      'double down',
-      'scale',
-      'invest more',
-      'go all in',
-      'pivot',
-    ]);
-
-    const isRaiseSellWait = includesAny([
-      'raise',
-      'fundraise',
-      'fundraising',
-      'round',
-      'series a',
-      'series b',
-      'seed',
-      'sell',
-      'acquire',
-      'acquisition',
-      'm&a',
-      'exit',
-      'buyout',
-      'offer to buy',
-      'liquidity',
-      'secondary',
-      'wait',
-      'delay',
-      'hold',
-    ]);
-
-    // 2) Domain (label only)
-    let domain: Domain = 'General';
-
-    const careerBusiness = includesAny([
-      'job',
-      'career',
-      'quit',
-      'leave',
-      'resign',
-      'offer',
-      'promotion',
-      'raise',
-      'comp',
-      'salary',
-      'join',
-      'startup',
-      'founder',
-      'cofounder',
-      'hire',
-      'hiring',
-      'fire',
-      'firing',
-      'vp',
-      'director',
-      'ceo',
-      'product',
-      'pricing',
-      'strategy',
-      'contract',
-      'customer',
-      'client',
-      'pipeline',
-      'sales',
-      'business',
-    ]);
-
-    const money = includesAny([
-      'portfolio',
-      'stocks',
-      'stock',
-      'etf',
-      'index',
-      'spy',
-      'qqq',
-      'nvda',
-      'msft',
-      'aapl',
-      'crypto',
-      'bitcoin',
-      'btc',
-      'options',
-      'call',
-      'put',
-      'spread',
-      'rebalance',
-      'allocation',
-      'rates',
-      'treasury',
-      'bond',
-      'yield',
-      'invest',
-      'investment',
-      'fund',
-      'term sheet',
-    ]);
-
-    const relationshipsFamily = includesAny([
-      'marry',
-      'marriage',
-      'divorce',
-      'relationship',
-      'partner',
-      'girlfriend',
-      'boyfriend',
-      'wife',
-      'husband',
-      'move in',
-      'break up',
-      'breakup',
-      'baby',
-      'kids',
-      'child',
-      'parenting',
-      'family',
-      'custody',
-      'school',
-    ]);
-
-    const health = includesAny([
-      'health',
-      'diet',
-      'fasting',
-      'workout',
-      'training',
-      'injury',
-      'pain',
-      'surgery',
-      'med',
-      'meds',
-      'medicine',
-      'doctor',
-      'therapy',
-      'sleep',
-      'alcohol',
-      'weight',
-      'cut',
-      'bulk',
-      'run',
-      'ironman',
-      'triathlon',
-    ]);
-
-    const timeCommitments = includesAny([
-      'schedule',
-      'time',
-      'commit',
-      'commitment',
-      'routine',
-      'habit',
-      'daily',
-      'weekly',
-      'calendar',
-      'meeting',
-      'board',
-      'volunteer',
-      'side project',
-      'project',
-      'course',
-      'mba',
-      'cfa',
-      'class',
-    ]);
-
-    if (careerBusiness) domain = 'Career/Business';
-    else if (money) domain = 'Money/Portfolio';
-    else if (relationshipsFamily) domain = 'Relationships/Family';
-    else if (health) domain = 'Health';
-    else if (timeCommitments) domain = 'Time/Commitments';
-
-    // 3) Archetype snapshots
+  const SNAPSHOTS = useMemo(() => {
     const offerSnap: Snapshot = {
       domain: 'Career/Business',
       door: 'Heavy door (once you sign, your life starts moving in that direction fast).',
@@ -479,15 +241,38 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
       step: 'List 3 paths: raise, sell, wait. For each: what you gain, what you lose, and what could blow up.',
     };
 
-    if (isRaiseSellWait) return raiseSellWaitSnap;
-    if (isShutOrDouble) return shutOrDoubleSnap;
-    if (isHireExec) return hireSnap;
-    if (isOffer) return offerSnap;
-    if (isInvestCapital) return investSnap;
+    const relationshipSnap: Snapshot = {
+      domain: 'Relationships/Family',
+      door: 'Steel door (it gets way harder to undo after time + emotions pile up).',
+      hinge: 'Values have to match in real life, not just in a good week.',
+      lock: 'Living situation, families, and habits start linking together.',
+      trap: 'Ignoring patterns because you want it to work.',
+      exit: 'If the same problem repeats and honest effort doesn’t change it.',
+      step: 'Slow down. Name your non-negotiables. Watch the pattern, not the promises.',
+    };
 
-    // 4) fallback
-    return {
-      domain,
+    const healthSnap: Snapshot = {
+      domain: 'Health',
+      door: 'Steel door (your body reacts and it’s not instant to reverse).',
+      hinge: 'This only works if you can stick to it and it’s safe for you.',
+      lock: 'Habits form fast; injuries are slow to fix.',
+      trap: 'Going extreme for 7 days, then quitting and starting over.',
+      exit: 'If pain, sleep, mood, or performance gets worse consistently.',
+      step: 'Start smaller. Track it. Keep the version you can repeat daily.',
+    };
+
+    const timeSnap: Snapshot = {
+      domain: 'Time/Commitments',
+      door: 'Trapdoor (looks small, turns into a permanent obligation).',
+      hinge: 'You can only say yes if it doesn’t steal from your real priorities.',
+      lock: 'Once people depend on you, quitting gets messy.',
+      trap: 'Saying yes to feel like “that person” instead of because it fits your life.',
+      exit: 'If you feel dread, resentment, or your calendar starts breaking.',
+      step: 'Put an end date on it. Define a stop rule. Cap the commitment.',
+    };
+
+    const generalSnap: Snapshot = {
+      domain: 'General',
       door: 'Revolving door (you can change your mind, but it gets harder once you start moving).',
       hinge: 'What is the ONE thing that has to be true for this to be a good move?',
       lock: 'Once you commit time/money/reputation, backing out feels painful.',
@@ -495,7 +280,391 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
       exit: 'If real-world signals keep disagreeing with your plan.',
       step: 'Take a smaller first step that keeps an easy exit.',
     };
-  }, [decision]);
+
+    return {
+      OFFER: offerSnap,
+      INVEST: investSnap,
+      HIRE: hireSnap,
+      SHUT_OR_DOUBLE: shutOrDoubleSnap,
+      RAISE_SELL_WAIT: raiseSellWaitSnap,
+      RELATIONSHIP: relationshipSnap,
+      HEALTH: healthSnap,
+      TIME: timeSnap,
+      GENERAL: generalSnap,
+    };
+  }, []);
+
+  // -------------------------
+  // HARDENED CLASSIFIER (improved)
+  // - decision + context
+  // - phrase + word-boundary
+  // - negation guard
+  // - proximity disambiguation (raise salary vs raise round)
+  // - acquire users vs acquire company
+  // - confidence + low-confidence behavior
+  // - optional user hint chips to disambiguate
+  // -------------------------
+  const rankedSnapshot: RankedSnapshot = useMemo(() => {
+    const decisionRaw = decision.trim();
+    const contextRaw = context.trim();
+    const textRaw = `${decisionRaw} ${contextRaw}`.trim();
+
+    if (!textRaw) {
+      return {
+        primary: null,
+        secondary: null,
+        primaryLabel: null,
+        secondaryLabel: null,
+        confidence: 0,
+        lowConfidence: false,
+        reasonHints: [],
+      };
+    }
+
+    const text = textRaw.toLowerCase();
+
+    const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    // Tokenize for proximity logic
+    const tokens = (text.match(/[a-z0-9]+/g) ?? []).map((t) => t.toLowerCase());
+
+    const NEGATIONS = new Set(['not', 'dont', "don't", 'avoid', 'no', 'never']);
+
+    const indicesOf = (needle: string) => {
+      const n = needle.toLowerCase();
+      const out: number[] = [];
+      for (let i = 0; i < tokens.length; i++) if (tokens[i] === n) out.push(i);
+      return out;
+    };
+
+    const negatedNearIndex = (idx: number, window = 3) => {
+      const start = Math.max(0, idx - window);
+      for (let i = start; i < idx; i++) if (NEGATIONS.has(tokens[i])) return true;
+      return false;
+    };
+
+    const hasWord = (word: string) => {
+      const w = word.toLowerCase();
+      const re = new RegExp(`\\b${escapeRegExp(w)}\\b`, 'i');
+      if (!re.test(text)) return false;
+      // if any occurrence is NOT negated, count as true
+      const idxs = indicesOf(w);
+      if (idxs.length === 0) return true;
+      return idxs.some((idx) => !negatedNearIndex(idx, 3));
+    };
+
+    const hasPhrase = (phrase: string) => {
+      const p = phrase.toLowerCase().trim();
+      if (!p) return false;
+      const parts = p.split(/\s+/).map(escapeRegExp);
+      const re = new RegExp(`\\b${parts.join('\\s+')}\\b`, 'i');
+      if (!re.test(text)) return false;
+
+      // negation guard: use first token of phrase
+      const first = p.split(/\s+/)[0];
+      const idxs = indicesOf(first);
+      if (idxs.length === 0) return true;
+      return idxs.some((idx) => !negatedNearIndex(idx, 3));
+    };
+
+    const withinWindow = (aWords: string[], bWords: string[], window = 5) => {
+      const aIdxs: number[] = [];
+      const bIdxs: number[] = [];
+
+      for (const w of aWords) aIdxs.push(...indicesOf(w));
+      for (const w of bWords) bIdxs.push(...indicesOf(w));
+
+      if (aIdxs.length === 0 || bIdxs.length === 0) return false;
+
+      for (const ai of aIdxs) {
+        for (const bi of bIdxs) {
+          if (Math.abs(ai - bi) <= window) return true;
+        }
+      }
+      return false;
+    };
+
+    // Stakes extractor (simple but high-leverage)
+    const stakeSignals = {
+      money: ['savings', 'cash', 'runway', 'debt', 'mortgage', 'rent', 'wire', 'capital', 'bankrupt', 'broke', '$'],
+      reputation: ['announce', 'public', 'brand', 'board', 'investors', 'press', 'reputation'],
+      people: ['team', 'layoff', 'employees', 'customer', 'clients', 'family', 'kids'],
+      time: ['weeks', 'months', 'every week', 'daily', 'deadline', 'calendar'],
+    };
+
+    const stakeHits = {
+      money: stakeSignals.money.some((w) => (w === '$' ? text.includes('$') : hasWord(w) || hasPhrase(w))),
+      reputation: stakeSignals.reputation.some((w) => hasWord(w) || hasPhrase(w)),
+      people: stakeSignals.people.some((w) => hasWord(w) || hasPhrase(w)),
+      time: stakeSignals.time.some((w) => hasWord(w) || hasPhrase(w)),
+    };
+
+    // Acquire users vs acquire company
+    const acquireCompanySignals = [
+      'acquire a company',
+      'buy the company',
+      'purchase the company',
+      'm&a',
+      'loi',
+      'letter of intent',
+      'term sheet',
+      'purchase agreement',
+      'buyout',
+    ];
+    const acquireUsersSignals = ['acquire users', 'user acquisition', 'paid acquisition', 'growth marketing'];
+
+    const looksLikeAcquireCompany = acquireCompanySignals.some((p) => hasPhrase(p));
+    const looksLikeAcquireUsers = acquireUsersSignals.some((p) => hasPhrase(p));
+
+    // Raise disambiguation: salary raise vs fundraising raise
+    const raiseNearComp = withinWindow(['raise'], ['salary', 'comp', 'promotion', 'title'], 5);
+    const raiseNearFund = withinWindow(['raise'], ['round', 'capital', 'investors', 'valuation', 'dilution', 'runway'], 6);
+    const hasFundPhrases =
+      hasPhrase('raise a round') || hasPhrase('raise capital') || hasPhrase('fundraising') || hasPhrase('seed round') || hasPhrase('series a') || hasPhrase('series b');
+
+    type RuleKey =
+      | 'RAISE_SELL_WAIT'
+      | 'SHUT_OR_DOUBLE'
+      | 'HIRE'
+      | 'OFFER'
+      | 'INVEST'
+      | 'RELATIONSHIP'
+      | 'HEALTH'
+      | 'TIME';
+
+    type RuleSet = {
+      label: string;
+      key: RuleKey;
+      domain: Domain;
+      phrasesStrong: string[];
+      phrasesWeak: string[];
+      wordsStrong: string[];
+      wordsWeak: string[];
+      // optional exclusions
+      downweightIf: () => boolean;
+      downweightBy: number;
+      boostIf: () => boolean;
+      boostBy: number;
+    };
+
+    const rules: RuleSet[] = [
+      {
+        label: 'Raise / Sell / Exit',
+        key: 'RAISE_SELL_WAIT',
+        domain: 'Career/Business',
+        phrasesStrong: [
+          'raise a round',
+          'raise capital',
+          'fundraising round',
+          'term sheet',
+          'letter of intent',
+          'loi',
+          'buyout offer',
+          'offer to buy',
+          'sell the company',
+          'm&a',
+          'series a',
+          'series b',
+          'seed round',
+          'secondary sale',
+          'liquidity event',
+        ],
+        phrasesWeak: ['fundraise', 'fundraising', 'raise money', 'exit', 'acquisition', 'sell'],
+        wordsStrong: ['investors', 'valuation', 'dilution', 'runway', 'equity'],
+        wordsWeak: ['raise', 'acquire', 'buyout', 'buyer'],
+        downweightIf: () => (raiseNearComp && !raiseNearFund && !hasFundPhrases) || (looksLikeAcquireUsers && !looksLikeAcquireCompany),
+        downweightBy: 6,
+        boostIf: () => raiseNearFund || hasFundPhrases || hasWord('investors') || hasWord('dilution') || hasWord('runway'),
+        boostBy: 4,
+      },
+      {
+        label: 'Kill / Double Down / Pivot',
+        key: 'SHUT_OR_DOUBLE',
+        domain: 'Career/Business',
+        phrasesStrong: ['shut down', 'wind down', 'double down', 'kill the product', 'sunset the product', 'cancel the product'],
+        phrasesWeak: ['sunset', 'shutdown', 'shut it down', 'pause the product', 'pivot'],
+        wordsStrong: ['sunset', 'shutdown', 'pivot', 'scale'],
+        wordsWeak: ['pause', 'stop', 'kill', 'cancel', 'end'],
+        downweightIf: () => false,
+        downweightBy: 0,
+        boostIf: () => hasWord('product') || hasWord('roadmap') || hasWord('traction'),
+        boostBy: 2,
+      },
+      {
+        label: 'Hire / Fire Exec',
+        key: 'HIRE',
+        domain: 'Career/Business',
+        phrasesStrong: ['hire a vp', 'hire vp', 'hire a cfo', 'hire a cto', 'hire a coo', 'head of sales', 'head of product'],
+        phrasesWeak: ['senior hire', 'executive hire', 'replace the vp', 'fire the vp', 'let go'],
+        wordsStrong: ['vp', 'cfo', 'cto', 'coo', 'executive'],
+        wordsWeak: ['hire', 'hiring', 'fire', 'firing', 'terminate', 'director'],
+        downweightIf: () => false,
+        downweightBy: 0,
+        boostIf: () => stakeHits.people,
+        boostBy: 2,
+      },
+      {
+        label: 'Job Offer / Comp',
+        key: 'OFFER',
+        domain: 'Career/Business',
+        phrasesStrong: ['job offer', 'sign the offer', 'accept the offer', 'decline the offer', 'new role', 'comp package', 'equity package'],
+        phrasesWeak: ['ask for a raise', 'salary raise', 'promotion', 'join the company', 'resign', 'quit'],
+        wordsStrong: ['offer', 'promotion', 'salary', 'equity'],
+        wordsWeak: ['sign', 'accept', 'decline', 'raise', 'resign', 'quit', 'role', 'job', 'comp'],
+        downweightIf: () => raiseNearFund || hasFundPhrases || hasWord('investors') || hasWord('valuation') || hasWord('dilution'),
+        downweightBy: 7,
+        boostIf: () => raiseNearComp || hasWord('manager') || hasWord('team') || hasWord('role'),
+        boostBy: 3,
+      },
+      {
+        label: 'Invest Significant Capital',
+        key: 'INVEST',
+        domain: 'Money/Portfolio',
+        phrasesStrong: ['invest significant capital', 'commit capital', 'deploy capital', 'all in', 'go all in', 'wire money'],
+        phrasesWeak: ['invest', 'investment', 'allocate', 'rebalance', 'buy shares', 'buy calls', 'buy puts'],
+        wordsStrong: ['portfolio', 'stocks', 'stock', 'options', 'crypto', 'bitcoin', 'btc', 'etf', 'bond', 'treasury'],
+        wordsWeak: ['invest', 'allocate', 'allocation', 'buy', 'sell', 'call', 'put', 'yield', 'rates', 'capital'],
+        downweightIf: () => hasPhrase('job offer') || (hasWord('offer') && !hasWord('invest') && !hasWord('capital')),
+        downweightBy: 4,
+        boostIf: () => stakeHits.money || hasWord('savings') || hasPhrase('no money') || hasPhrase('go broke'),
+        boostBy: 4,
+      },
+      {
+        label: 'Relationships / Family',
+        key: 'RELATIONSHIP',
+        domain: 'Relationships/Family',
+        phrasesStrong: ['move in', 'break up', 'get married', 'have a baby'],
+        phrasesWeak: ['relationship', 'marriage', 'divorce', 'partner'],
+        wordsStrong: ['marry', 'marriage', 'divorce', 'custody'],
+        wordsWeak: ['partner', 'family', 'kids', 'baby'],
+        downweightIf: () => false,
+        downweightBy: 0,
+        boostIf: () => false,
+        boostBy: 0,
+      },
+      {
+        label: 'Health',
+        key: 'HEALTH',
+        domain: 'Health',
+        phrasesStrong: ['surgery', 'start medication', 'stop medication'],
+        phrasesWeak: ['workout plan', 'diet plan', 'training plan'],
+        wordsStrong: ['surgery', 'injury', 'meds', 'medicine', 'doctor', 'therapy'],
+        wordsWeak: ['diet', 'fasting', 'workout', 'training', 'sleep', 'weight'],
+        downweightIf: () => false,
+        downweightBy: 0,
+        boostIf: () => false,
+        boostBy: 0,
+      },
+      {
+        label: 'Time / Commitments',
+        key: 'TIME',
+        domain: 'Time/Commitments',
+        phrasesStrong: ['join a board', 'weekly commitment', 'daily commitment'],
+        phrasesWeak: ['side project', 'new project', 'new course'],
+        wordsStrong: ['board', 'calendar', 'meeting'],
+        wordsWeak: ['schedule', 'commitment', 'routine', 'daily', 'weekly', 'course', 'mba', 'cfa'],
+        downweightIf: () => false,
+        downweightBy: 0,
+        boostIf: () => stakeHits.time,
+        boostBy: 2,
+      },
+    ];
+
+    // Scoring
+    const scoreRule = (r: RuleSet) => {
+      let score = 0;
+
+      for (const p of r.phrasesStrong) if (hasPhrase(p)) score += 7;
+      for (const p of r.phrasesWeak) if (hasPhrase(p)) score += 4;
+
+      for (const w of r.wordsStrong) if (hasWord(w)) score += 2;
+      for (const w of r.wordsWeak) if (hasWord(w)) score += 1;
+
+      // Disambiguation / adjustments
+      if (r.downweightIf()) score -= r.downweightBy;
+      if (r.boostIf()) score += r.boostBy;
+
+      // Hint boosts (user-controlled for low confidence)
+      if (hint === 'money') {
+        if (r.key === 'INVEST') score += 5;
+        if (r.key === 'RAISE_SELL_WAIT') score += 2;
+        if (r.key === 'OFFER') score -= 2;
+      }
+      if (hint === 'job') {
+        if (r.key === 'OFFER') score += 5;
+        if (r.key === 'INVEST') score -= 2;
+        if (r.key === 'RAISE_SELL_WAIT') score -= 2;
+      }
+      if (hint === 'strategy') {
+        if (r.key === 'SHUT_OR_DOUBLE') score += 4;
+        if (r.key === 'RAISE_SELL_WAIT') score += 3;
+        if (r.key === 'INVEST') score += 1;
+        if (r.key === 'OFFER') score -= 2;
+      }
+
+      return score;
+    };
+
+    const scored = rules
+      .map((r) => ({ r, score: scoreRule(r) }))
+      .filter((x) => x.score > 0)
+      .sort((a, b) => b.score - a.score);
+
+    const top = scored[0];
+    const second = scored[1];
+
+    // If nothing matched, fallback to GENERAL with low confidence
+    if (!top) {
+      return {
+        primary: SNAPSHOTS.GENERAL,
+        secondary: null,
+        primaryLabel: 'General',
+        secondaryLabel: null,
+        confidence: 0.2,
+        lowConfidence: true,
+        reasonHints: ['Not enough signal in the wording. Add one detail (money/job/strategy).'],
+      };
+    }
+
+    // Confidence
+    const topScore = Math.max(0, top.score);
+    const secondScore = Math.max(0, second?.score ?? 0);
+
+    const confidence = topScore / (topScore + secondScore + 1);
+
+    // Minimum bar so we don’t confidently show wrong stuff
+    const MIN_SCORE = 5;
+    const lowConfidence = topScore < MIN_SCORE || confidence < 0.55;
+
+    // Primary + Secondary (only if close)
+    const primary = SNAPSHOTS[top.r.key];
+    const primaryLabel = top.r.label;
+
+    let secondary: Snapshot | null = null;
+    let secondaryLabel: string | null = null;
+
+    if (second) {
+      const ratio = secondScore / (topScore + 1e-9);
+      if (ratio >= 0.6) {
+        secondary = SNAPSHOTS[second.r.key];
+        secondaryLabel = second.r.label;
+      }
+    }
+
+    // Explain uncertainty (simple)
+    const reasonHints: string[] = [];
+    if (lowConfidence) {
+      if (topScore < MIN_SCORE) reasonHints.push('This looks vague / short. One extra detail will sharpen it.');
+      if (confidence < 0.55) reasonHints.push('Two categories are competing. Pick what this is mainly about.');
+      if (looksLikeAcquireUsers && !looksLikeAcquireCompany) reasonHints.push('“Acquire” could mean users (marketing) or a company (M&A).');
+      if (hasWord('raise') && !hasFundPhrases && !raiseNearFund && !raiseNearComp) reasonHints.push('“Raise” could mean salary or fundraising.');
+      if (reasonHints.length === 0) reasonHints.push('Low confidence. Add one constraint or stake to clarify.');
+    }
+
+    return { primary, secondary, primaryLabel, secondaryLabel, confidence, lowConfidence, reasonHints };
+  }, [decision, context, hint, SNAPSHOTS]);
+
+  const instantSnapshot = rankedSnapshot.primary;
 
   const validateDecision = () => {
     const text = decision.trim();
@@ -571,17 +740,45 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
   const lastUsedLabel = formatShort(lastUsedAt);
   const ctaBg = ctaCopied ? '#16a34a' : '#0b0b0b';
 
-  // Updated examples (recommended wording)
+  // Examples
   const decisionPlaceholder =
-    'Examples: sign an offer · invest capital · hire a VP · kill or double down · raise or sell · acquire a company';
+    'Examples: sign an offer · invest capital · hire a VP · cut or double down · raise or sell · acquire a company';
 
-  // ✅ NEW microcopy for optional context section (per your screenshot changes)
+  // Microcopy
   const contextLabel = 'What makes this hard to reverse? (optional)';
   const contextPlaceholder =
     'What’s at stake? Time, money, reputation, people depending on this, or doors that close after you decide…';
   const horizonLabel = 'Decision horizon';
   const toneLabel = 'How this review thinks';
   const optionalDetailsLabel = '▶ Context (optional)';
+
+  const Chip = ({
+    active,
+    label,
+    onClick,
+  }: {
+    active: boolean;
+    label: string;
+    onClick: () => void;
+  }) => (
+    <button
+      onClick={onClick}
+      style={{
+        borderRadius: 999,
+        border: active ? '1px solid rgba(0,0,0,0.35)' : '1px solid rgba(0,0,0,0.12)',
+        background: active ? 'rgba(0,0,0,0.06)' : '#fff',
+        padding: '8px 10px',
+        fontSize: 12.5,
+        fontWeight: 800,
+        cursor: 'pointer',
+      }}
+      type="button"
+    >
+      {label}
+    </button>
+  );
+
+  const confidencePct = Math.round((rankedSnapshot.confidence || 0) * 100);
 
   return (
     <div style={{ minHeight: '100vh', background: '#f4f5f6', color: '#111' }}>
@@ -639,6 +836,7 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
               if (decisionError) setDecisionError(null);
               if (ctaCopied) setCtaCopied(false);
               if (hasStarted) setHasStarted(false);
+              if (hint) setHint(null); // reset hint on new input
             }}
             placeholder={decisionPlaceholder}
             rows={5}
@@ -680,6 +878,7 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
                       onChange={(e) => {
                         setContext(e.target.value);
                         if (ctaCopied) setCtaCopied(false);
+                        if (hint) setHint(null);
                       }}
                       placeholder={contextPlaceholder}
                       rows={4}
@@ -790,10 +989,70 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
               >
                 <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10 }}>
                   <div style={{ fontSize: 14, fontWeight: 900 }}>🧭 Instant Snapshot</div>
-                  <div style={{ fontSize: 12, opacity: 0.55 }}>
-                    Category: <span style={{ fontWeight: 800 }}>{labelForDomain(instantSnapshot?.domain ?? 'General')}</span>
+
+                  <div style={{ fontSize: 12, opacity: 0.55, textAlign: 'right' }}>
+                    Category:{' '}
+                    <span style={{ fontWeight: 800 }}>{labelForDomain(instantSnapshot?.domain ?? 'General')}</span>
+                    <div style={{ marginTop: 2, fontSize: 11.5, opacity: 0.78 }}>
+                      Confidence: <span style={{ fontWeight: 800 }}>{confidencePct}%</span>
+                      {rankedSnapshot.lowConfidence && (
+                        <span style={{ marginLeft: 8, fontWeight: 900, color: '#b45309' }}>Low</span>
+                      )}
+                    </div>
+                    {rankedSnapshot.secondary && rankedSnapshot.secondaryLabel && (
+                      <div style={{ marginTop: 2, fontSize: 11.5, opacity: 0.75 }}>
+                        Also relevant: <span style={{ fontWeight: 700 }}>{rankedSnapshot.secondaryLabel}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
+
+                {/* Low-confidence guardrail */}
+                {rankedSnapshot.lowConfidence && (
+                  <div
+                    style={{
+                      marginTop: 10,
+                      border: '1px solid rgba(180,83,9,0.25)',
+                      background: 'rgba(180,83,9,0.06)',
+                      borderRadius: 12,
+                      padding: 12,
+                    }}
+                  >
+                    <div style={{ fontSize: 13, fontWeight: 900, marginBottom: 6 }}>
+                      Quick check (to make this accurate)
+                    </div>
+
+                    {rankedSnapshot.reasonHints.length > 0 && (
+                      <div style={{ fontSize: 12.5, opacity: 0.8, lineHeight: 1.55 }}>
+                        {rankedSnapshot.reasonHints.slice(0, 3).map((t, i) => (
+                          <div key={i}>• {t}</div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      <Chip
+                        active={hint === 'money'}
+                        label="Mainly money / investing"
+                        onClick={() => setHint(hint === 'money' ? null : 'money')}
+                      />
+                      <Chip
+                        active={hint === 'job'}
+                        label="Mainly job / offer / comp"
+                        onClick={() => setHint(hint === 'job' ? null : 'job')}
+                      />
+                      <Chip
+                        active={hint === 'strategy'}
+                        label="Mainly company strategy"
+                        onClick={() => setHint(hint === 'strategy' ? null : 'strategy')}
+                      />
+                    </div>
+
+                    <div style={{ marginTop: 8, fontSize: 12.5, opacity: 0.75 }}>
+                      (Optional) Pick one — it re-ranks the snapshot instantly.
+                    </div>
+                  </div>
+                )}
 
                 <div style={{ marginTop: 10, display: 'grid', gap: 8, fontSize: 13.5, lineHeight: 1.55 }}>
                   <div>
@@ -815,6 +1074,40 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
                     <strong>Safest next step:</strong> {instantSnapshot?.step ?? '—'}
                   </div>
                 </div>
+
+                {rankedSnapshot.secondary && (
+                  <div style={{ marginTop: 12 }}>
+                    <details style={detailStyle}>
+                      <summary style={summaryStyle}>
+                        <span>▶ Also relevant snapshot</span>
+                      </summary>
+
+                      <div style={{ marginTop: 10, display: 'grid', gap: 8, fontSize: 13.5, lineHeight: 1.55 }}>
+                        <div style={{ fontSize: 12.5, opacity: 0.7 }}>
+                          This decision hits more than one “shape.” Here’s the second one.
+                        </div>
+                        <div>
+                          <strong>Door:</strong> {rankedSnapshot.secondary.door}
+                        </div>
+                        <div>
+                          <strong>Main thing that must be true:</strong> {rankedSnapshot.secondary.hinge}
+                        </div>
+                        <div>
+                          <strong>What makes it hard to undo:</strong> {rankedSnapshot.secondary.lock}
+                        </div>
+                        <div>
+                          <strong>Common mistake:</strong> {rankedSnapshot.secondary.trap}
+                        </div>
+                        <div>
+                          <strong>Red flag (time to pause):</strong> {rankedSnapshot.secondary.exit}
+                        </div>
+                        <div>
+                          <strong>Safest next step:</strong> {rankedSnapshot.secondary.step}
+                        </div>
+                      </div>
+                    </details>
+                  </div>
+                )}
 
                 <div style={{ marginTop: 12 }}>
                   <details ref={reviewRef} style={detailStyle}>
@@ -850,6 +1143,7 @@ Provide a 2-line rationale focused on survivability and clarity — not confiden
                           marginLeft: 'auto',
                           whiteSpace: 'nowrap',
                         }}
+                        type="button"
                       >
                         {copied ? 'Copied ✓' : 'Copy prompt'}
                       </button>
