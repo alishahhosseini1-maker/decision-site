@@ -15,6 +15,9 @@ export default function HomePage() {
   const [apiError, setApiError] = useState<string | null>(null);
   const [reviewResult, setReviewResult] = useState<any | null>(null);
 
+  const [deepLoading, setDeepLoading] = useState(false);
+  const [deepReview, setDeepReview] = useState<string | null>(null);
+
   const snapshotRef = useRef<HTMLDivElement | null>(null);
   const decisionInputRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -99,6 +102,8 @@ export default function HomePage() {
     setHasStarted(true);
     setApiError(null);
     setLoading(true);
+    setDeepLoading(false);
+    setDeepReview(null);
 
     try {
       const res = await fetch('/api/review', {
@@ -137,6 +142,34 @@ export default function HomePage() {
       setReviewResult(null);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadDeepReview = async () => {
+    if (deepReview || deepLoading) return;
+
+    setDeepLoading(true);
+
+    try {
+      const res = await fetch('/api/review/deep', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ decision, context }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || 'Deep review request failed');
+      }
+
+      setDeepReview(data?.analysis ?? 'No deep review returned.');
+    } catch (err: any) {
+      setDeepReview(err?.message || 'Failed to load deep review.');
+    } finally {
+      setDeepLoading(false);
     }
   };
 
@@ -228,6 +261,8 @@ export default function HomePage() {
               if (hasStarted) setHasStarted(false);
               if (apiError) setApiError(null);
               if (reviewResult) setReviewResult(null);
+              if (deepReview) setDeepReview(null);
+              if (deepLoading) setDeepLoading(false);
             }}
             placeholder={decisionPlaceholder}
             rows={5}
@@ -269,6 +304,8 @@ export default function HomePage() {
                       setContext(e.target.value);
                       if (apiError) setApiError(null);
                       if (reviewResult) setReviewResult(null);
+                      if (deepReview) setDeepReview(null);
+                      if (deepLoading) setDeepLoading(false);
                     }}
                     placeholder={contextPlaceholder}
                     rows={4}
@@ -394,13 +431,18 @@ export default function HomePage() {
                 </div>
 
                 <div style={{ marginTop: 12 }}>
-                  <details style={detailStyle}>
+                  <details style={detailStyle} onToggle={(e) => {
+                    const el = e.currentTarget;
+                    if (el.open) {
+                      void loadDeepReview();
+                    }
+                  }}>
                     <summary style={summaryStyle}>
                       <span>▶ See In-Depth Review</span>
                     </summary>
 
-                    <div style={{ marginTop: 10, fontSize: 13, opacity: 0.72, lineHeight: 1.6 }}>
-                      In-depth review coming next.
+                    <div style={{ marginTop: 10, fontSize: 13, opacity: 0.72, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                      {deepLoading ? 'Loading deep review...' : deepReview ?? 'In-depth review coming next.'}
                     </div>
                   </details>
                 </div>

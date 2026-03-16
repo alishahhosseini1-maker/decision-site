@@ -29,8 +29,10 @@ export async function POST(req: Request) {
     const systemPrompt = `
 You are a disciplined decision partner.
 
-Your job is NOT to provide advice, predictions, or motivational language.
+Your job is NOT to provide predictions, motivational language, or consultant-style advice.
 Your job is to assess decision quality and produce a fast, structured snapshot.
+
+Write in plain English so a smart 15-year-old can understand it.
 
 Return ONLY valid JSON.
 Do not wrap the JSON in markdown.
@@ -55,7 +57,8 @@ Return this exact shape:
     "trap": string,
     "exit": string,
     "step": string
-  }
+  },
+  "keyThing": string
 }
 
 Rules:
@@ -63,6 +66,10 @@ Rules:
 - total must equal the sum of the 5 category scores.
 - summary should be one short sentence.
 - snapshot language should be clear, concise, and specific.
+- Each snapshot field should be easy to understand and short enough to scan quickly.
+- keyThing should be ONE short insight sentence.
+- keyThing should feel helpful, calm, and thoughtful — not scary or dramatic.
+- keyThing should highlight the one thing the person should think about most after reading Door / Hinge / Locks / Trap / Exit / Step.
 - Optimize for clarity and survivability, not certainty.
 `;
 
@@ -108,7 +115,7 @@ ${context || 'None provided'}
       );
     }
 
-    let parsed;
+    let parsed: any;
     try {
       parsed = JSON.parse(content);
     } catch {
@@ -121,7 +128,43 @@ ${context || 'None provided'}
       );
     }
 
-    return NextResponse.json(parsed);
+    const safeResult = {
+      score: {
+        clarity: Number.isInteger(parsed?.score?.clarity) ? parsed.score.clarity : 0,
+        assumptions: Number.isInteger(parsed?.score?.assumptions) ? parsed.score.assumptions : 0,
+        reversibility: Number.isInteger(parsed?.score?.reversibility) ? parsed.score.reversibility : 0,
+        risk: Number.isInteger(parsed?.score?.risk) ? parsed.score.risk : 0,
+        exitLogic: Number.isInteger(parsed?.score?.exitLogic) ? parsed.score.exitLogic : 0,
+        total: Number.isInteger(parsed?.score?.total) ? parsed.score.total : 0,
+        summary:
+          typeof parsed?.score?.summary === 'string'
+            ? parsed.score.summary
+            : 'Decision reviewed.',
+      },
+      snapshot: {
+        door: typeof parsed?.snapshot?.door === 'string' ? parsed.snapshot.door : '',
+        hinge: typeof parsed?.snapshot?.hinge === 'string' ? parsed.snapshot.hinge : '',
+        lock: typeof parsed?.snapshot?.lock === 'string' ? parsed.snapshot.lock : '',
+        trap: typeof parsed?.snapshot?.trap === 'string' ? parsed.snapshot.trap : '',
+        exit: typeof parsed?.snapshot?.exit === 'string' ? parsed.snapshot.exit : '',
+        step: typeof parsed?.snapshot?.step === 'string' ? parsed.snapshot.step : '',
+      },
+      keyThing:
+        typeof parsed?.keyThing === 'string'
+          ? parsed.keyThing
+          : 'The main thing to think about is whether the downside is small enough if this goes wrong.',
+    };
+
+    const calculatedTotal =
+      safeResult.score.clarity +
+      safeResult.score.assumptions +
+      safeResult.score.reversibility +
+      safeResult.score.risk +
+      safeResult.score.exitLogic;
+
+    safeResult.score.total = calculatedTotal;
+
+    return NextResponse.json(safeResult);
   } catch (error) {
     return NextResponse.json(
       { error: 'Something went wrong while generating the review.' },
