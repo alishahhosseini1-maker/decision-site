@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import React, { useEffect, useRef, useState } from 'react';
 
 export default function HomePage() {
@@ -18,8 +17,14 @@ export default function HomePage() {
   const [deepLoading, setDeepLoading] = useState(false);
   const [deepReview, setDeepReview] = useState<string | null>(null);
 
+  const [finalThoughts, setFinalThoughts] = useState('');
+  const [verdictRequested, setVerdictRequested] = useState(false);
+  const [verdict, setVerdict] = useState<string | null>(null);
+  const [verdictLoading, setVerdictLoading] = useState(false);
+
   const snapshotRef = useRef<HTMLDivElement | null>(null);
   const decisionInputRef = useRef<HTMLTextAreaElement | null>(null);
+  const verdictRef = useRef<HTMLDivElement | null>(null);
 
   const STORAGE = {
     lastUsed: 'dl:last_used_at',
@@ -49,6 +54,23 @@ export default function HomePage() {
       hour: 'numeric',
       minute: '2-digit',
     });
+  };
+
+  const cleanDeepReview = (text?: string | null) => {
+    if (!text) return '';
+
+    let cleaned = text;
+
+    cleaned = cleaned.replace(
+      /\n*(➡️\s*Final call|Final call)[\s\S]*?(?=(\n*(🧾\s*Why|Why))|$)/i,
+      ''
+    );
+
+    cleaned = cleaned.replace(/\n*(🧾\s*Why|Why)[\s\S]*$/i, '');
+
+    cleaned = cleaned.replace(/\n{3,}/g, '\n\n').trim();
+
+    return cleaned;
   };
 
   const scoreTotal =
@@ -104,6 +126,10 @@ export default function HomePage() {
     setLoading(true);
     setDeepLoading(false);
     setDeepReview(null);
+    setFinalThoughts('');
+    setVerdictRequested(false);
+    setVerdict(null);
+    setVerdictLoading(false);
 
     try {
       const res = await fetch('/api/review', {
@@ -173,6 +199,44 @@ export default function HomePage() {
     }
   };
 
+  const handleGenerateVerdict = async () => {
+    if (!finalThoughts.trim()) return;
+
+    setVerdictRequested(true);
+    setVerdictLoading(true);
+    setVerdict(null);
+
+    try {
+      const res = await fetch('/api/review/verdict', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          decision,
+          context,
+          thoughts: finalThoughts,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || 'Verdict failed.');
+      }
+
+      setVerdict(data?.verdict ?? '');
+
+      setTimeout(() => {
+        verdictRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    } catch (err: any) {
+      setVerdict('Something went wrong. Try again.');
+    } finally {
+      setVerdictLoading(false);
+    }
+  };
+
   const shellBg = 'rgba(255,255,255,0.65)';
   const border = '1px solid rgba(0,0,0,0.10)';
 
@@ -195,41 +259,33 @@ export default function HomePage() {
     opacity: 0.9,
   };
 
-  const navLinkStyle: React.CSSProperties = {
-    textDecoration: 'none',
-    color: 'inherit',
-  };
-
   const lastUsedLabel = formatShort(lastUsedAt);
   const ctaBg = '#0b0b0b';
 
   const decisionPlaceholder =
     'Examples: quit my job · invest money · hire someone · move cities · start a company';
 
-  const contextLabel = 'Add any details that might matter (optional)';
   const contextPlaceholder = 'Examples: money involved, people affected, deadlines, risks ...';
-  const optionalDetailsLabel = '▶ Context (optional)';
+  const optionalDetailsLabel = '▶ Any details I should know (optional)';
+  const finalThoughtsPlaceholder =
+    'What stands out most? What still feels uncertain? What are you leaning toward after reading this?';
+
+  const visibleDeepReview = cleanDeepReview(deepReview);
+  const verdictParts = verdict ? verdict.split('\n\n') : [];
+  const verdictTitle = verdictParts[0] ?? '';
+  const verdictReason = verdictParts.slice(1).join('\n\n');
 
   return (
     <div style={{ minHeight: '100vh', background: '#f4f5f6', color: '#111' }}>
       <main style={{ maxWidth: 980, margin: '28px auto 60px', padding: '0 20px' }}>
         <header
           style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
             paddingTop: 6,
           }}
         >
           <div style={{ fontSize: 12, opacity: 0.42 }}>
             Last used: <span style={{ opacity: 0.65 }}>{lastUsedLabel}</span>
           </div>
-
-          <nav style={{ fontSize: 13, opacity: 0.35, fontWeight: 500, whiteSpace: 'nowrap' }}>
-            <Link href="/private-review" style={navLinkStyle}>
-              Leave
-            </Link>
-          </nav>
         </header>
 
         <section style={{ textAlign: 'center', marginTop: 56 }}>
@@ -263,6 +319,10 @@ export default function HomePage() {
               if (reviewResult) setReviewResult(null);
               if (deepReview) setDeepReview(null);
               if (deepLoading) setDeepLoading(false);
+              if (finalThoughts) setFinalThoughts('');
+              if (verdictRequested) setVerdictRequested(false);
+              if (verdict) setVerdict(null);
+              if (verdictLoading) setVerdictLoading(false);
             }}
             placeholder={decisionPlaceholder}
             rows={5}
@@ -294,34 +354,33 @@ export default function HomePage() {
               </summary>
 
               <div style={{ marginTop: 12 }}>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6, opacity: 0.9 }}>
-                    {contextLabel}
-                  </div>
-                  <textarea
-                    value={context}
-                    onChange={(e) => {
-                      setContext(e.target.value);
-                      if (apiError) setApiError(null);
-                      if (reviewResult) setReviewResult(null);
-                      if (deepReview) setDeepReview(null);
-                      if (deepLoading) setDeepLoading(false);
-                    }}
-                    placeholder={contextPlaceholder}
-                    rows={4}
-                    style={{
-                      width: '100%',
-                      borderRadius: 14,
-                      border: '1px solid rgba(0,0,0,0.15)',
-                      padding: 14,
-                      fontSize: 14,
-                      lineHeight: 1.45,
-                      resize: 'vertical',
-                      background: '#fff',
-                      outline: 'none',
-                    }}
-                  />
-                </div>
+                <textarea
+                  value={context}
+                  onChange={(e) => {
+                    setContext(e.target.value);
+                    if (apiError) setApiError(null);
+                    if (reviewResult) setReviewResult(null);
+                    if (deepReview) setDeepReview(null);
+                    if (deepLoading) setDeepLoading(false);
+                    if (finalThoughts) setFinalThoughts('');
+                    if (verdictRequested) setVerdictRequested(false);
+                    if (verdict) setVerdict(null);
+                    if (verdictLoading) setVerdictLoading(false);
+                  }}
+                  placeholder={contextPlaceholder}
+                  rows={4}
+                  style={{
+                    width: '100%',
+                    borderRadius: 14,
+                    border: '1px solid rgba(0,0,0,0.15)',
+                    padding: 14,
+                    fontSize: 14,
+                    lineHeight: 1.45,
+                    resize: 'vertical',
+                    background: '#fff',
+                    outline: 'none',
+                  }}
+                />
               </div>
             </details>
           </div>
@@ -409,7 +468,15 @@ export default function HomePage() {
                   </div>
                 )}
 
-                <div style={{ marginTop: 10, display: 'grid', gap: 8, fontSize: 13.5, lineHeight: 1.55 }}>
+                <div
+                  style={{
+                    marginTop: 10,
+                    display: 'grid',
+                    gap: 8,
+                    fontSize: 13.5,
+                    lineHeight: 1.55,
+                  }}
+                >
                   <div>
                     <strong>Door (the decision):</strong> {reviewResult?.snapshot?.door ?? '—'}
                   </div>
@@ -431,41 +498,159 @@ export default function HomePage() {
                 </div>
 
                 <div style={{ marginTop: 12 }}>
-                  <details style={detailStyle} onToggle={(e) => {
-                    const el = e.currentTarget;
-                    if (el.open) {
-                      void loadDeepReview();
-                    }
-                  }}>
+                  <details
+                    style={detailStyle}
+                    onToggle={(e) => {
+                      const el = e.currentTarget;
+                      if (el.open) {
+                        void loadDeepReview();
+                      }
+                    }}
+                  >
                     <summary style={summaryStyle}>
-                      <span>▶ See In-Depth Review</span>
+                      <span>▶ See the details why</span>
                     </summary>
 
-                    <div style={{ marginTop: 10, fontSize: 13, opacity: 0.72, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
-                      {deepLoading ? 'Loading deep review...' : deepReview ?? 'In-depth review coming next.'}
+                    <div
+                      style={{
+                        marginTop: 10,
+                        fontSize: 13,
+                        opacity: 0.72,
+                        lineHeight: 1.6,
+                        whiteSpace: 'pre-wrap',
+                      }}
+                    >
+                      {deepLoading
+                        ? 'Loading deep review...'
+                        : visibleDeepReview || 'In-depth review coming next.'}
                     </div>
+
+                    {!deepLoading && visibleDeepReview && (
+                      <div style={{ marginTop: 18 }}>
+                        <div
+                          style={{
+                            border: '1px solid rgba(0,0,0,0.10)',
+                            borderRadius: 14,
+                            background: '#fff',
+                            padding: 14,
+                          }}
+                        >
+                          <div style={{ fontSize: 14, fontWeight: 900, marginBottom: 10 }}>
+                            Final thoughts
+                          </div>
+
+                          <textarea
+                            value={finalThoughts}
+                            onChange={(e) => {
+                              setFinalThoughts(e.target.value);
+                              if (verdictRequested) setVerdictRequested(false);
+                              if (verdict) setVerdict(null);
+                              if (verdictLoading) setVerdictLoading(false);
+                            }}
+                            placeholder={finalThoughtsPlaceholder}
+                            rows={4}
+                            style={{
+                              width: '100%',
+                              borderRadius: 12,
+                              border: '1px solid rgba(0,0,0,0.15)',
+                              padding: 12,
+                              fontSize: 13.5,
+                              lineHeight: 1.5,
+                              resize: 'vertical',
+                              background: '#fff',
+                              outline: 'none',
+                            }}
+                          />
+
+                          <button
+                            onClick={handleGenerateVerdict}
+                            disabled={verdictLoading || !finalThoughts.trim()}
+                            style={{
+                              marginTop: 12,
+                              width: '100%',
+                              borderRadius: 12,
+                              border: 'none',
+                              padding: '13px 15px',
+                              background: '#111',
+                              color: '#fff',
+                              fontSize: 13.5,
+                              fontWeight: 800,
+                              cursor:
+                                verdictLoading || !finalThoughts.trim() ? 'default' : 'pointer',
+                              opacity: verdictLoading || !finalThoughts.trim() ? 0.72 : 1,
+                              boxShadow: '0 8px 18px rgba(0,0,0,0.10)',
+                            }}
+                          >
+                            {verdictLoading ? 'Generating Verdict...' : 'Generate Verdict'}
+                          </button>
+                        </div>
+
+                        {verdictRequested && (
+                          <div
+                            ref={verdictRef}
+                            style={{
+                              marginTop: 12,
+                              border: '1px solid rgba(0,0,0,0.14)',
+                              borderRadius: 16,
+                              background: 'rgba(0,0,0,0.02)',
+                              padding: 16,
+                              boxShadow: '0 10px 20px rgba(0,0,0,0.04)',
+                            }}
+                          >
+                            <div style={{ fontSize: 13, fontWeight: 900, opacity: 0.82 }}>
+                              Verdict
+                            </div>
+
+                            {verdictLoading ? (
+                              <div
+                                style={{
+                                  marginTop: 8,
+                                  fontSize: 20,
+                                  fontWeight: 900,
+                                  letterSpacing: -0.02,
+                                  lineHeight: 1.3,
+                                }}
+                              >
+                                Thinking...
+                              </div>
+                            ) : (
+                              <div style={{ marginTop: 8 }}>
+                                <div
+                                  style={{
+                                    fontSize: 22,
+                                    fontWeight: 900,
+                                    letterSpacing: -0.03,
+                                    lineHeight: 1.2,
+                                  }}
+                                >
+                                  {verdictTitle}
+                                </div>
+
+                                {verdictReason && (
+                                  <div
+                                    style={{
+                                      marginTop: 8,
+                                      fontSize: 13.5,
+                                      lineHeight: 1.6,
+                                      opacity: 0.76,
+                                      whiteSpace: 'pre-wrap',
+                                    }}
+                                  >
+                                    {verdictReason}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </details>
                 </div>
               </div>
             </div>
           )}
         </section>
-
-        <footer
-          style={{
-            maxWidth: 720,
-            margin: '18px auto 0',
-            display: 'flex',
-            justifyContent: 'flex-end',
-            alignItems: 'center',
-          }}
-        >
-          <div style={{ fontSize: 13, opacity: 0.55, whiteSpace: 'nowrap' }}>
-            <Link href="/door-notes" style={navLinkStyle}>
-              Door Notes
-            </Link>
-          </div>
-        </footer>
       </main>
     </div>
   );

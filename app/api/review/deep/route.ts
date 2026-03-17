@@ -59,50 +59,42 @@ Return the answer using the EXACT structure below.
 
 Do not add extra sections.
 
----
+Use clean spacing between sections.
+Do NOT use em dashes, horizontal dividers, or separator lines like ---.
+Leave one blank line between sections so it feels easy to read.
 
 🎯 Decision
 
 Rewrite the decision in ONE clear sentence.
 
----
-
 🧠 What must go right
 
 List exactly 3 bullets.
 
-•  
-•  
-•  
-
----
+•
+•
+•
 
 ⚠️ What could go wrong
 
 List exactly 3 real failure modes.
 
-•  
-•  
-•  
-
----
+•
+•
+•
 
 🛑 What would make a smart person pause
 
 List 2–3 red flags or disconfirming signals.
 
-•  
-•  
-
----
+•
+•
 
 💸 Opportunity cost
 
 Explain what you are giving up by doing this.
 
 Limit to 1–2 short sentences.
-
----
 
 🚪 Hard to undo
 
@@ -112,44 +104,21 @@ Focus on time, money, reputation, stress, or flexibility.
 
 Limit to 1–2 sentences.
 
----
-
 📏 Sizing rule
 
 Give a simple rule-of-thumb for how big or small this decision should be sized.
 
 Use 1–2 bullets.
 
-•  
-•  
-
----
+•
+•
 
 🚨 Exit signals
 
 List 2–3 triggers that should cause someone to stop, exit, or reconsider.
 
-•  
-•  
-
----
-
-➡️ Final call
-
-Choose ONE:
-
-Proceed
-Proceed smaller
-Wait
-Don’t do it
-
----
-
-🧾 Why
-
-Explain the reasoning in 2 short sentences.
-
----
+•
+•
 
 Formatting rules:
 - Keep sentences short
@@ -159,6 +128,9 @@ Formatting rules:
 - Be honest
 - If something is unknown, say it is unknown
 - Optimize for clarity and survivability, not confidence
+- Do not use separator lines
+- Do not use markdown code blocks
+- Keep the output clean and easy to scan
 `;
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
