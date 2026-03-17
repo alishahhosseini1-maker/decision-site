@@ -209,7 +209,7 @@ Goal: Commit only with explicit sizing + disconfirming triggers`;
 
             </p>
 
-            <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <div style={{ marginTop: 14, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <Link
                 href="/"
                 style={{
