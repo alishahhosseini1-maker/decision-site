@@ -6,13 +6,13 @@ import { supabase } from '../../../lib/supabase';
 
 type Input = {
   id: string;
-  name: string;
+  name: string | null;
   department: string;
   moved_forward: string;
   not_working: string;
   risk: string;
   needs: string;
-  next_action: string;
+  next_action: string | null;
 };
 
 type TeamSummary = {
@@ -27,6 +27,7 @@ type TeamSummary = {
 
 export default function SummaryPage() {
   const { id } = useParams();
+
   const [inputs, setInputs] = useState<Input[]>([]);
   const [summary, setSummary] = useState<TeamSummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,6 +38,9 @@ export default function SummaryPage() {
     if (!id) return;
 
     const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+
       const { data, error } = await supabase
         .from('team_inputs')
         .select('*')
@@ -83,13 +87,9 @@ export default function SummaryPage() {
           risks: Array.isArray(result?.risks) ? result.risks : [],
           actions: Array.isArray(result?.actions) ? result.actions : [],
           contradiction:
-            typeof result?.contradiction === 'string'
-              ? result.contradiction
-              : 'No contradiction identified.',
+            typeof result?.contradiction === 'string' ? result.contradiction : '',
           hiddenRisk:
-            typeof result?.hiddenRisk === 'string'
-              ? result.hiddenRisk
-              : 'No hidden risk identified.',
+            typeof result?.hiddenRisk === 'string' ? result.hiddenRisk : '',
         });
       } catch (err: any) {
         setError(err?.message || 'Failed to generate summary.');
@@ -98,7 +98,7 @@ export default function SummaryPage() {
       }
     };
 
-    fetchData();
+    void fetchData();
   }, [id]);
 
   const pageStyle: React.CSSProperties = {
@@ -151,6 +151,27 @@ export default function SummaryPage() {
     lineHeight: 1.65,
   };
 
+  const emptyTextStyle: React.CSSProperties = {
+    margin: 0,
+    opacity: 0.65,
+    lineHeight: 1.7,
+    fontSize: 14,
+  };
+
+  const renderList = (items: string[]) => {
+    if (!items || items.length === 0) {
+      return <p style={emptyTextStyle}>None identified yet.</p>;
+    }
+
+    return (
+      <ul style={listStyle}>
+        {items.map((item, index) => (
+          <li key={`${item}-${index}`}>{item}</li>
+        ))}
+      </ul>
+    );
+  };
+
   if (loading) {
     return <div style={{ padding: 20 }}>Loading...</div>;
   }
@@ -171,52 +192,47 @@ export default function SummaryPage() {
         </div>
       )}
 
-      {summaryLoading && <p>Generating executive summary...</p>}
+      {summaryLoading && (
+        <p style={{ marginBottom: 20, lineHeight: 1.6 }}>Generating executive summary...</p>
+      )}
 
       {summary && (
         <>
           <div style={cardStyle}>
             <h2 style={sectionTitleStyle}>Executive Summary</h2>
-            <p style={{ margin: 0, lineHeight: 1.75, fontSize: 16 }}>{summary.overallSummary}</p>
+
+            <p style={{ margin: 0, lineHeight: 1.75, fontSize: 16 }}>
+              {summary.overallSummary || 'No summary returned.'}
+            </p>
 
             <div style={subTitleStyle}>What’s Working</div>
-            <ul style={listStyle}>
-              {summary.working.map((item, index) => (
-                <li key={`working-${index}`}>{item}</li>
-              ))}
-            </ul>
+            {renderList(summary.working)}
 
             <div style={subTitleStyle}>What’s Breaking</div>
-            <ul style={listStyle}>
-              {summary.breaking.map((item, index) => (
-                <li key={`breaking-${index}`}>{item}</li>
-              ))}
-            </ul>
+            {renderList(summary.breaking)}
 
             <div style={subTitleStyle}>Top Risks</div>
-            <ul style={listStyle}>
-              {summary.risks.map((item, index) => (
-                <li key={`risk-${index}`}>{item}</li>
-              ))}
-            </ul>
+            {renderList(summary.risks)}
 
             <div style={subTitleStyle}>Recommended Actions</div>
-            <ul style={listStyle}>
-              {summary.actions.map((item, index) => (
-                <li key={`action-${index}`}>{item}</li>
-              ))}
-            </ul>
+            {renderList(summary.actions)}
           </div>
 
-          <div style={insightCardStyle}>
-            <h2 style={sectionTitleStyle}>Critical Insight</h2>
+          {(summary.contradiction || summary.hiddenRisk) && (
+            <div style={insightCardStyle}>
+              <h2 style={sectionTitleStyle}>Critical Insight</h2>
 
-            <div style={subTitleStyle}>Contradiction</div>
-            <p style={{ margin: 0, lineHeight: 1.7 }}>{summary.contradiction}</p>
+              <div style={subTitleStyle}>Contradiction</div>
+              <p style={{ margin: 0, lineHeight: 1.7 }}>
+                {summary.contradiction || 'No major contradiction identified.'}
+              </p>
 
-            <div style={subTitleStyle}>Hidden Risk</div>
-            <p style={{ margin: 0, lineHeight: 1.7 }}>{summary.hiddenRisk}</p>
-          </div>
+              <div style={subTitleStyle}>Hidden Risk</div>
+              <p style={{ margin: 0, lineHeight: 1.7 }}>
+                {summary.hiddenRisk || 'No hidden risk identified.'}
+              </p>
+            </div>
+          )}
         </>
       )}
 
@@ -227,7 +243,7 @@ export default function SummaryPage() {
       {inputs.map((input) => (
         <div key={input.id} style={rawInputCardStyle}>
           <p>
-            <strong>Name:</strong> {input.name}
+            <strong>Name:</strong> {input.name?.trim() ? input.name : 'Anonymous'}
           </p>
           <p>
             <strong>Department:</strong> {input.department}
@@ -245,7 +261,7 @@ export default function SummaryPage() {
             <strong>Needs:</strong> {input.needs}
           </p>
           <p>
-            <strong>Next Action:</strong> {input.next_action}
+            <strong>Anything Else:</strong> {input.next_action?.trim() ? input.next_action : '—'}
           </p>
         </div>
       ))}

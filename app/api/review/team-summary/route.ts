@@ -1,14 +1,22 @@
 import { NextResponse } from 'next/server';
 
+type TeamInput = {
+  id?: string;
+  name?: string | null;
+  department?: string;
+  moved_forward?: string;
+  not_working?: string;
+  risk?: string;
+  needs?: string;
+  next_action?: string | null;
+};
+
 export async function POST(req: Request) {
   try {
     const { inputs } = await req.json();
 
     if (!Array.isArray(inputs) || inputs.length === 0) {
-      return NextResponse.json(
-        { error: 'Inputs are required.' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Inputs are required.' }, { status: 400 });
     }
 
     const apiKey = process.env.OPENAI_API_KEY;
@@ -20,19 +28,25 @@ export async function POST(req: Request) {
       );
     }
 
+    const safeInputs: TeamInput[] = inputs.map((input: TeamInput) => ({
+      name: input?.name ?? null,
+      department: input?.department ?? '',
+      moved_forward: input?.moved_forward ?? '',
+      not_working: input?.not_working ?? '',
+      risk: input?.risk ?? '',
+      needs: input?.needs ?? '',
+      next_action: input?.next_action ?? null,
+    }));
+
     const systemPrompt = `
 You are a sharp executive operator reviewing a weekly team report.
 
-Your job is NOT to summarize line by line.
+Your job is not to summarize line by line.
 Your job is to identify what actually matters.
 
 Write in plain English so a smart 15-year-old can understand it.
 
-Return ONLY valid JSON.
-Do not wrap the JSON in markdown.
-Do not include any text before or after the JSON.
-
-Return this exact shape:
+Return only valid JSON with this exact shape:
 
 {
   "overallSummary": string,
@@ -45,14 +59,14 @@ Return this exact shape:
 }
 
 Rules:
-- overallSummary: 2–3 sentences explaining what is really going on.
-- working: only include things that are clearly positive signals.
-- breaking: include real problems, not duplicates of working.
-- risks: include forward-looking risks, not just repeated issues.
-- actions: must be specific and realistic, not generic.
-- contradiction: identify something that does not add up across inputs.
-- hiddenRisk: identify something leadership might miss if they only skim this.
-- Do not copy inputs directly unless absolutely necessary.
+- overallSummary: 2-3 sentences explaining what is really going on.
+- working: only clear positive signals.
+- breaking: real problems, not duplicates of working.
+- risks: forward-looking risks, not repeated issues.
+- actions: specific and realistic, not generic.
+- contradiction: identify something that does not add up across inputs. If none, return an empty string.
+- hiddenRisk: identify something leadership might miss if they only skim this. If none, return an empty string.
+- The field "next_action" may actually represent optional extra notes or "anything else to share."
 - Compress and interpret.
 - Prioritize signal over completeness.
 - Be concise.
@@ -64,7 +78,7 @@ Rules:
     const userPrompt = `
 Here are the team inputs:
 
-${JSON.stringify(inputs, null, 2)}
+${JSON.stringify(safeInputs, null, 2)}
 `;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -76,6 +90,7 @@ ${JSON.stringify(inputs, null, 2)}
       body: JSON.stringify({
         model: 'gpt-4o',
         temperature: 0.2,
+        response_format: { type: 'json_object' },
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
@@ -106,15 +121,10 @@ ${JSON.stringify(inputs, null, 2)}
     try {
       parsed = JSON.parse(content);
     } catch {
-      return NextResponse.json({
-        overallSummary: 'Could not parse summary, but inputs were received.',
-        working: [],
-        breaking: [],
-        risks: [],
-        actions: [],
-        contradiction: 'Could not identify a contradiction.',
-        hiddenRisk: 'Could not identify a hidden risk.',
-      });
+      return NextResponse.json(
+        { error: 'OpenAI returned invalid JSON.' },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({
@@ -127,13 +137,9 @@ ${JSON.stringify(inputs, null, 2)}
       risks: Array.isArray(parsed?.risks) ? parsed.risks : [],
       actions: Array.isArray(parsed?.actions) ? parsed.actions : [],
       contradiction:
-        typeof parsed?.contradiction === 'string'
-          ? parsed.contradiction
-          : 'No contradiction identified.',
+        typeof parsed?.contradiction === 'string' ? parsed.contradiction : '',
       hiddenRisk:
-        typeof parsed?.hiddenRisk === 'string'
-          ? parsed.hiddenRisk
-          : 'No hidden risk identified.',
+        typeof parsed?.hiddenRisk === 'string' ? parsed.hiddenRisk : '',
     });
   } catch (error: any) {
     return NextResponse.json(

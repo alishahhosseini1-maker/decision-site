@@ -14,25 +14,6 @@ type TeamSessionPreview = {
   createdAt: string;
 };
 
-const TEAM_QUESTIONS = [
-  'What moved forward this week?',
-  'What is not working or off track?',
-  'What is the biggest risk or issue right now?',
-  'What do you need from leadership?',
-  'What action should happen next?',
-];
-
-const MANAGER_OUTPUT_SECTIONS = [
-  'Executive Summary',
-  'What is actually working',
-  'What is breaking or off track',
-  'Where teams are misaligned',
-  'Top risks',
-  'Required leadership decisions',
-  'Recommended actions',
-  'Overall alignment score',
-];
-
 export default function HomePage() {
   const [mode, setMode] = useState<Mode>('solo');
 
@@ -424,13 +405,6 @@ export default function HomePage() {
     background: '#fff',
     padding: 14,
     boxShadow: '0 10px 20px rgba(0,0,0,0.04)',
-  };
-
-  const subCardTitle: React.CSSProperties = {
-    fontSize: 13,
-    fontWeight: 900,
-    marginBottom: 10,
-    opacity: 0.82,
   };
 
   const lastUsedLabel = formatShort(lastUsedAt);
@@ -1023,65 +997,6 @@ export default function HomePage() {
                         </button>
                       </div>
                     </div>
-                  </div>
-
-                  <div style={cardStyle}>
-                    <div style={subCardTitle}>What participants will answer</div>
-
-                    <div style={{ display: 'grid', gap: 10 }}>
-                      {TEAM_QUESTIONS.map((question, index) => (
-                        <div
-                          key={question}
-                          style={{
-                            borderRadius: 12,
-                            border: '1px solid rgba(0,0,0,0.08)',
-                            background: 'rgba(0,0,0,0.02)',
-                            padding: '12px 14px',
-                            fontSize: 13.5,
-                            lineHeight: 1.5,
-                          }}
-                        >
-                          <strong>{index + 1}.</strong> {question}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div style={cardStyle}>
-                    <div style={subCardTitle}>What the manager will receive</div>
-
-                    <div style={{ display: 'grid', gap: 10 }}>
-                      {MANAGER_OUTPUT_SECTIONS.map((section) => (
-                        <div
-                          key={section}
-                          style={{
-                            borderRadius: 12,
-                            border: '1px solid rgba(0,0,0,0.08)',
-                            background: 'rgba(0,0,0,0.02)',
-                            padding: '12px 14px',
-                            fontSize: 13.5,
-                            lineHeight: 1.5,
-                          }}
-                        >
-                          {section}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      borderRadius: 14,
-                      border: '1px solid rgba(0,0,0,0.10)',
-                      background: 'rgba(255,255,255,0.55)',
-                      padding: 14,
-                      fontSize: 12.5,
-                      lineHeight: 1.6,
-                      opacity: 0.72,
-                    }}
-                  >
-                    This team review is now stored in Supabase. Next step: view the participant page
-                    from the share link and submit a real response.
                   </div>
                 </div>
               )}

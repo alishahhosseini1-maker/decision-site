@@ -27,7 +27,7 @@ export default function TeamParticipantPage() {
   const [offTrack, setOffTrack] = useState('');
   const [biggestRisk, setBiggestRisk] = useState('');
   const [leadershipNeed, setLeadershipNeed] = useState('');
-  const [nextAction, setNextAction] = useState('');
+  const [anythingElse, setAnythingElse] = useState('');
 
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -86,7 +86,6 @@ export default function TeamParticipantPage() {
     if (!offTrack.trim()) return 'Please answer what is not working or off track.';
     if (!biggestRisk.trim()) return 'Please answer the biggest risk or issue.';
     if (!leadershipNeed.trim()) return 'Please answer what you need from leadership.';
-    if (!nextAction.trim()) return 'Please answer what action should happen next.';
     return null;
   };
 
@@ -108,7 +107,7 @@ export default function TeamParticipantPage() {
       not_working: offTrack.trim(),
       risk: biggestRisk.trim(),
       needs: leadershipNeed.trim(),
-      next_action: nextAction.trim(),
+      next_action: anythingElse.trim() || null,
     });
 
     if (error) {
@@ -312,10 +311,10 @@ export default function TeamParticipantPage() {
             </div>
 
             <div>
-              <div style={labelStyle}>5. What action should happen next?</div>
+              <div style={labelStyle}>5. Anything else you’d like to share? (optional)</div>
               <textarea
-                value={nextAction}
-                onChange={(e) => setNextAction(e.target.value)}
+                value={anythingElse}
+                onChange={(e) => setAnythingElse(e.target.value)}
                 rows={4}
                 style={{ ...inputStyle, resize: 'vertical' }}
               />
