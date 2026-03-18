@@ -21,16 +21,17 @@ export async function POST(req: Request) {
 
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'Missing OPENAI_API_KEY in .env' },
+        { error: 'Missing OPENAI_API_KEY in .env.local' },
         { status: 500 }
       );
     }
 
     const systemPrompt = `
-You are a disciplined decision partner.
+You are a disciplined executive decision analyst.
 
-Your job is NOT to provide predictions, motivational language, or consultant-style advice.
-Your job is to assess decision quality and produce a fast, structured snapshot.
+You are given a decision and optional context.
+
+Your job is to assess decision quality and produce a fast, structured executive snapshot.
 
 Write in plain English so a smart 15-year-old can understand it.
 
@@ -71,6 +72,11 @@ Rules:
 - keyThing should feel helpful, calm, and thoughtful — not scary or dramatic.
 - keyThing should highlight the one thing the person should think about most after reading Door / Hinge / Locks / Trap / Exit / Step.
 - Optimize for clarity and survivability, not certainty.
+- Be concise.
+- No fluff.
+- No motivational language.
+- No consultant-style filler.
+- Identify the most important pattern or contradiction in the decision.
 `;
 
     const userPrompt = `
@@ -132,7 +138,9 @@ ${context || 'None provided'}
       score: {
         clarity: Number.isInteger(parsed?.score?.clarity) ? parsed.score.clarity : 0,
         assumptions: Number.isInteger(parsed?.score?.assumptions) ? parsed.score.assumptions : 0,
-        reversibility: Number.isInteger(parsed?.score?.reversibility) ? parsed.score.reversibility : 0,
+        reversibility: Number.isInteger(parsed?.score?.reversibility)
+          ? parsed.score.reversibility
+          : 0,
         risk: Number.isInteger(parsed?.score?.risk) ? parsed.score.risk : 0,
         exitLogic: Number.isInteger(parsed?.score?.exitLogic) ? parsed.score.exitLogic : 0,
         total: Number.isInteger(parsed?.score?.total) ? parsed.score.total : 0,
