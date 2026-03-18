@@ -100,7 +100,7 @@ export default function DoorNote001Page() {
             <p style={pStyle}>Everyone turns at once.</p>
             <p style={pStyle}>That is when glass doors break. Not from impact, but from pressure.</p>
 
-            <h3 style={h3Style}>Where is the exit?</h3>
+            <h3 style={h3Style}>Where is the exit</h3>
             <p style={pStyle}>Stay near the edge.</p>
             <p style={pStyle}>Keep your weight outside.</p>
             <p style={pStyle}>Move slowly enough that you can step back without forcing others.</p>
