@@ -437,9 +437,9 @@ export default function HomePage() {
   const ctaBg = '#0b0b0b';
 
   const decisionPlaceholder =
-    'Examples: quit my job · invest money · hire someone · move cities · start a company';
+    'Examples: ship or delay · escalate or handle · hire or wait · speak or hold · commit or pivot';
 
-  const contextPlaceholder = 'Examples: money involved, people affected, deadlines, risks ...';
+  const contextPlaceholder = 'deadlines · who’s affected · risk · cost · downside';
   const optionalDetailsLabel = '▶ Any details I should know (optional)';
   const finalThoughtsPlaceholder =
     'What stands out most? What still feels uncertain? What are you leaning toward after reading this?';
@@ -881,7 +881,7 @@ export default function HomePage() {
 
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>
-                    What do you want input on?
+                    What is the focus?
                   </div>
                   <textarea
                     value={teamPrompt}
@@ -890,7 +890,7 @@ export default function HomePage() {
                       if (teamError) setTeamError(null);
                       if (teamSessionPreview) setTeamSessionPreview(null);
                     }}
-                    placeholder="Example: What happened this week, what matters most, and what needs action before Thursday’s meeting?"
+                    placeholder="Example: How did the event go? What worked well? What should improve for next time?"
                     rows={5}
                     style={{
                       ...inputStyle,
