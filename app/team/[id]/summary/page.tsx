@@ -16,13 +16,20 @@ type Input = {
 };
 
 type TeamSummary = {
-  overallSummary: string;
-  working: string[];
-  breaking: string[];
-  risks: string[];
-  actions: string[];
-  contradiction: string;
-  hiddenRisk: string;
+  topSignal?: string;
+  decision?: string;
+  tradeoff?: string;
+  recommendation?: string;
+  priority?: string[];
+  owners?: string[];
+  timeline?: string[];
+  overallSummary?: string;
+  working?: string[];
+  breaking?: string[];
+  risks?: string[];
+  actions?: string[];
+  contradiction?: string;
+  hiddenRisk?: string;
 };
 
 export default function SummaryPage() {
@@ -33,6 +40,8 @@ export default function SummaryPage() {
   const [loading, setLoading] = useState(true);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showFullBreakdown, setShowFullBreakdown] = useState(false);
+  const [showRawInputs, setShowRawInputs] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -77,20 +86,7 @@ export default function SummaryPage() {
           throw new Error(result?.error || 'Failed to generate summary.');
         }
 
-        setSummary({
-          overallSummary:
-            typeof result?.overallSummary === 'string'
-              ? result.overallSummary
-              : 'No summary returned.',
-          working: Array.isArray(result?.working) ? result.working : [],
-          breaking: Array.isArray(result?.breaking) ? result.breaking : [],
-          risks: Array.isArray(result?.risks) ? result.risks : [],
-          actions: Array.isArray(result?.actions) ? result.actions : [],
-          contradiction:
-            typeof result?.contradiction === 'string' ? result.contradiction : '',
-          hiddenRisk:
-            typeof result?.hiddenRisk === 'string' ? result.hiddenRisk : '',
-        });
+        setSummary(result);
       } catch (err: any) {
         setError(err?.message || 'Failed to generate summary.');
       } finally {
@@ -103,22 +99,34 @@ export default function SummaryPage() {
 
   const pageStyle: React.CSSProperties = {
     padding: 24,
-    maxWidth: 980,
+    maxWidth: 960,
     margin: '0 auto',
     color: '#111',
   };
 
   const cardStyle: React.CSSProperties = {
     border: '1px solid rgba(0,0,0,0.10)',
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 18,
-    marginBottom: 20,
+    marginBottom: 16,
     background: '#fff',
   };
 
-  const insightCardStyle: React.CSSProperties = {
+  const heroCardStyle: React.CSSProperties = {
+    ...cardStyle,
+    boxShadow: '0 10px 24px rgba(0,0,0,0.05)',
+  };
+
+  const mutedCardStyle: React.CSSProperties = {
     ...cardStyle,
     background: 'rgba(0,0,0,0.02)',
+  };
+
+  const gridTwoStyle: React.CSSProperties = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    gap: 16,
+    marginBottom: 16,
   };
 
   const sectionTitleStyle: React.CSSProperties = {
@@ -136,6 +144,27 @@ export default function SummaryPage() {
     marginBottom: 8,
   };
 
+  const labelStyle: React.CSSProperties = {
+    fontSize: 12,
+    fontWeight: 800,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    opacity: 0.58,
+    marginBottom: 6,
+  };
+
+  const bodyStyle: React.CSSProperties = {
+    margin: 0,
+    lineHeight: 1.7,
+    fontSize: 16,
+  };
+
+  const compactBodyStyle: React.CSSProperties = {
+    margin: 0,
+    lineHeight: 1.65,
+    fontSize: 14.5,
+  };
+
   const listStyle: React.CSSProperties = {
     margin: 0,
     paddingLeft: 20,
@@ -146,7 +175,7 @@ export default function SummaryPage() {
     border: '1px solid #ddd',
     padding: 14,
     marginBottom: 12,
-    borderRadius: 8,
+    borderRadius: 10,
     background: '#fff',
     lineHeight: 1.65,
   };
@@ -158,9 +187,28 @@ export default function SummaryPage() {
     fontSize: 14,
   };
 
-  const renderList = (items: string[]) => {
+  const topSignalBoxStyle: React.CSSProperties = {
+    border: '1px solid rgba(0,0,0,0.10)',
+    borderRadius: 12,
+    padding: 14,
+    background: 'rgba(0,0,0,0.02)',
+  };
+
+  const buttonStyle: React.CSSProperties = {
+    width: '100%',
+    borderRadius: 12,
+    border: '1px solid rgba(0,0,0,0.10)',
+    padding: '12px 14px',
+    background: '#fff',
+    fontSize: 14,
+    fontWeight: 800,
+    cursor: 'pointer',
+    marginBottom: 16,
+  };
+
+  const renderList = (items?: string[], emptyLabel = 'None identified yet.') => {
     if (!items || items.length === 0) {
-      return <p style={emptyTextStyle}>None identified yet.</p>;
+      return <p style={emptyTextStyle}>{emptyLabel}</p>;
     }
 
     return (
@@ -198,73 +246,135 @@ export default function SummaryPage() {
 
       {summary && (
         <>
-          <div style={cardStyle}>
-            <h2 style={sectionTitleStyle}>Executive Summary</h2>
+          <div style={heroCardStyle}>
+            <h2 style={sectionTitleStyle}>Top Signal</h2>
 
-            <p style={{ margin: 0, lineHeight: 1.75, fontSize: 16 }}>
-              {summary.overallSummary || 'No summary returned.'}
-            </p>
-
-            <div style={subTitleStyle}>What’s Working</div>
-            {renderList(summary.working)}
-
-            <div style={subTitleStyle}>What’s Breaking</div>
-            {renderList(summary.breaking)}
-
-            <div style={subTitleStyle}>Top Risks</div>
-            {renderList(summary.risks)}
-
-            <div style={subTitleStyle}>Recommended Actions</div>
-            {renderList(summary.actions)}
-          </div>
-
-          {(summary.contradiction || summary.hiddenRisk) && (
-            <div style={insightCardStyle}>
-              <h2 style={sectionTitleStyle}>Critical Insight</h2>
-
-              <div style={subTitleStyle}>Contradiction</div>
-              <p style={{ margin: 0, lineHeight: 1.7 }}>
-                {summary.contradiction || 'No major contradiction identified.'}
-              </p>
-
-              <div style={subTitleStyle}>Hidden Risk</div>
-              <p style={{ margin: 0, lineHeight: 1.7 }}>
-                {summary.hiddenRisk || 'No hidden risk identified.'}
+            <div style={topSignalBoxStyle}>
+              <p style={bodyStyle}>
+                {summary.topSignal || 'No primary issue identified.'}
               </p>
             </div>
+
+            <div style={{ marginTop: 16 }}>
+              <div style={labelStyle}>Recommendation</div>
+              <p style={{ ...bodyStyle, fontWeight: 700 }}>
+                {summary.recommendation || 'No recommendation returned yet.'}
+              </p>
+            </div>
+
+            {summary.decision && (
+              <div style={{ marginTop: 16 }}>
+                <div style={labelStyle}>Decision Required</div>
+                <p style={bodyStyle}>{summary.decision}</p>
+              </div>
+            )}
+          </div>
+
+          <div style={gridTwoStyle}>
+            <div style={cardStyle}>
+              <h2 style={sectionTitleStyle}>Priority Stack</h2>
+              {renderList(summary.priority, 'No priorities identified yet.')}
+            </div>
+
+            <div style={cardStyle}>
+              <h2 style={sectionTitleStyle}>Action Ownership</h2>
+              {renderList(summary.owners, 'No owners assigned yet.')}
+            </div>
+          </div>
+
+          <div style={cardStyle}>
+            <h2 style={sectionTitleStyle}>Timeline</h2>
+            {renderList(summary.timeline, 'No timeline identified yet.')}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowFullBreakdown((prev) => !prev)}
+            style={buttonStyle}
+          >
+            {showFullBreakdown ? 'Hide Full Breakdown' : 'See Full Breakdown'}
+          </button>
+
+          {showFullBreakdown && (
+            <>
+              <div style={cardStyle}>
+                <h2 style={sectionTitleStyle}>Executive Summary</h2>
+                <p style={bodyStyle}>
+                  {summary.overallSummary || 'No summary returned.'}
+                </p>
+
+                <div style={subTitleStyle}>What’s Working</div>
+                {renderList(summary.working)}
+
+                <div style={subTitleStyle}>What’s Breaking</div>
+                {renderList(summary.breaking)}
+
+                <div style={subTitleStyle}>Top Risks</div>
+                {renderList(summary.risks)}
+
+                <div style={subTitleStyle}>Recommended Actions</div>
+                {renderList(summary.actions)}
+              </div>
+
+              {(summary.contradiction || summary.hiddenRisk) && (
+                <div style={mutedCardStyle}>
+                  <h2 style={sectionTitleStyle}>Critical Insight</h2>
+
+                  <div style={subTitleStyle}>Contradiction</div>
+                  <p style={compactBodyStyle}>
+                    {summary.contradiction || 'No major contradiction identified.'}
+                  </p>
+
+                  <div style={subTitleStyle}>Hidden Risk</div>
+                  <p style={compactBodyStyle}>
+                    {summary.hiddenRisk || 'No hidden risk identified.'}
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </>
       )}
 
-      <h2 style={{ ...sectionTitleStyle, marginTop: 28 }}>Raw Inputs</h2>
+      <button
+        type="button"
+        onClick={() => setShowRawInputs((prev) => !prev)}
+        style={buttonStyle}
+      >
+        {showRawInputs ? 'Hide Raw Inputs' : 'Show Raw Inputs'}
+      </button>
 
-      {inputs.length === 0 && <p>No inputs yet.</p>}
+      {showRawInputs && (
+        <>
+          {inputs.length === 0 && <p>No inputs yet.</p>}
 
-      {inputs.map((input) => (
-        <div key={input.id} style={rawInputCardStyle}>
-          <p>
-            <strong>Name:</strong> {input.name?.trim() ? input.name : 'Anonymous'}
-          </p>
-          <p>
-            <strong>Department:</strong> {input.department}
-          </p>
-          <p>
-            <strong>Moved Forward:</strong> {input.moved_forward}
-          </p>
-          <p>
-            <strong>Not Working:</strong> {input.not_working}
-          </p>
-          <p>
-            <strong>Risk:</strong> {input.risk}
-          </p>
-          <p>
-            <strong>Needs:</strong> {input.needs}
-          </p>
-          <p>
-            <strong>Anything Else:</strong> {input.next_action?.trim() ? input.next_action : '—'}
-          </p>
-        </div>
-      ))}
+          {inputs.map((input) => (
+            <div key={input.id} style={rawInputCardStyle}>
+              <p>
+                <strong>Name:</strong> {input.name?.trim() ? input.name : 'Anonymous'}
+              </p>
+              <p>
+                <strong>Department:</strong> {input.department}
+              </p>
+              <p>
+                <strong>Moved Forward:</strong> {input.moved_forward}
+              </p>
+              <p>
+                <strong>Not Working:</strong> {input.not_working}
+              </p>
+              <p>
+                <strong>Risk:</strong> {input.risk}
+              </p>
+              <p>
+                <strong>Needs:</strong> {input.needs}
+              </p>
+              <p>
+                <strong>Anything Else:</strong> {input.next_action?.trim() ? input.next_action : '—'}
+              </p>
+            </div>
+          ))}
+        </>
+      )}
     </div>
   );
 }

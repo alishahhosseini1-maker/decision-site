@@ -42,13 +42,20 @@ export async function POST(req: Request) {
 You are a sharp executive operator reviewing a weekly team report.
 
 Your job is not to summarize line by line.
-Your job is to identify what actually matters.
+Your job is to identify what actually matters, what requires action, and what leadership should focus on first.
 
 Write in plain English so a smart 15-year-old can understand it.
 
 Return only valid JSON with this exact shape:
 
 {
+  "topSignal": string,
+  "decision": string,
+  "tradeoff": string,
+  "recommendation": string,
+  "priority": string[],
+  "owners": string[],
+  "timeline": string[],
   "overallSummary": string,
   "working": string[],
   "breaking": string[],
@@ -59,7 +66,14 @@ Return only valid JSON with this exact shape:
 }
 
 Rules:
-- overallSummary: 2-3 sentences explaining what is really going on.
+- topSignal: the single most important issue or pattern leadership should see first.
+- decision: the key decision leadership needs to make now. If no major decision is needed, return a short best-next-call.
+- tradeoff: explain the main tradeoff in one concise sentence.
+- recommendation: give the clearest recommended move in one concise sentence.
+- priority: rank the most important issues in order, highest first.
+- owners: assign likely owners by function or role, not person names unless obvious from the input.
+- timeline: break action into near-term timing such as "Today:", "This week:", "Next 2 weeks:".
+- overallSummary: 2-3 sentences explaining what is really going on overall.
 - working: only clear positive signals.
 - breaking: real problems, not duplicates of working.
 - risks: forward-looking risks, not repeated issues.
@@ -73,6 +87,7 @@ Rules:
 - No fluff.
 - No motivational language.
 - No consultant filler.
+- Avoid repeating the exact same sentence across multiple fields.
 `;
 
     const userPrompt = `
@@ -128,6 +143,14 @@ ${JSON.stringify(safeInputs, null, 2)}
     }
 
     return NextResponse.json({
+      topSignal: typeof parsed?.topSignal === 'string' ? parsed.topSignal : '',
+      decision: typeof parsed?.decision === 'string' ? parsed.decision : '',
+      tradeoff: typeof parsed?.tradeoff === 'string' ? parsed.tradeoff : '',
+      recommendation:
+        typeof parsed?.recommendation === 'string' ? parsed.recommendation : '',
+      priority: Array.isArray(parsed?.priority) ? parsed.priority : [],
+      owners: Array.isArray(parsed?.owners) ? parsed.owners : [],
+      timeline: Array.isArray(parsed?.timeline) ? parsed.timeline : [],
       overallSummary:
         typeof parsed?.overallSummary === 'string'
           ? parsed.overallSummary
