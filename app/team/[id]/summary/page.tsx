@@ -40,7 +40,8 @@ export default function SummaryPage() {
   const [loading, setLoading] = useState(true);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showFullBreakdown, setShowFullBreakdown] = useState(false);
+  const [showLeadershipContext, setShowLeadershipContext] = useState(false);
+  const [showOperatingBreakdown, setShowOperatingBreakdown] = useState(false);
   const [showRawInputs, setShowRawInputs] = useState(false);
 
   useEffect(() => {
@@ -99,7 +100,7 @@ export default function SummaryPage() {
 
   const pageStyle: React.CSSProperties = {
     padding: 24,
-    maxWidth: 960,
+    maxWidth: 860,
     margin: '0 auto',
     color: '#111',
   };
@@ -112,7 +113,7 @@ export default function SummaryPage() {
     background: '#fff',
   };
 
-  const heroCardStyle: React.CSSProperties = {
+  const primaryCardStyle: React.CSSProperties = {
     ...cardStyle,
     boxShadow: '0 10px 24px rgba(0,0,0,0.05)',
   };
@@ -122,15 +123,23 @@ export default function SummaryPage() {
     background: 'rgba(0,0,0,0.02)',
   };
 
-  const gridTwoStyle: React.CSSProperties = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-    gap: 16,
-    marginBottom: 16,
+  const signalBoxStyle: React.CSSProperties = {
+    border: '1px solid rgba(0,0,0,0.10)',
+    borderRadius: 12,
+    padding: 14,
+    background: 'rgba(0,0,0,0.02)',
+  };
+
+  const consequenceBoxStyle: React.CSSProperties = {
+    border: '1px solid rgba(185,28,28,0.16)',
+    borderRadius: 12,
+    padding: 14,
+    background: 'rgba(185,28,28,0.03)',
+    marginTop: 14,
   };
 
   const sectionTitleStyle: React.CSSProperties = {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: 800,
     margin: 0,
     marginBottom: 14,
@@ -187,13 +196,6 @@ export default function SummaryPage() {
     fontSize: 14,
   };
 
-  const topSignalBoxStyle: React.CSSProperties = {
-    border: '1px solid rgba(0,0,0,0.10)',
-    borderRadius: 12,
-    padding: 14,
-    background: 'rgba(0,0,0,0.02)',
-  };
-
   const buttonStyle: React.CSSProperties = {
     width: '100%',
     borderRadius: 12,
@@ -203,6 +205,13 @@ export default function SummaryPage() {
     fontSize: 14,
     fontWeight: 800,
     cursor: 'pointer',
+    marginBottom: 16,
+  };
+
+  const gridTwoStyle: React.CSSProperties = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    gap: 16,
     marginBottom: 16,
   };
 
@@ -219,6 +228,32 @@ export default function SummaryPage() {
       </ul>
     );
   };
+
+  const primaryRiskSignal =
+    summary?.topSignal?.trim() ||
+    summary?.breaking?.[0] ||
+    'No primary risk signal identified yet.';
+
+  const immediateDecision =
+    summary?.decision?.trim() ||
+    summary?.recommendation?.trim() ||
+    'No immediate decision identified yet.';
+
+  const ifIgnoredText =
+    summary?.hiddenRisk?.trim() ||
+    summary?.risks?.[0] ||
+    'If ignored, this issue will likely stay hidden until it starts affecting outcomes more visibly.';
+
+  const leadershipMissText =
+    summary?.overallSummary?.trim() || 'No leadership summary returned.';
+
+  const contradictionText =
+    summary?.contradiction?.trim() ||
+    'Inputs appear aligned. Risk of blind agreement if no dissenting signal is surfacing.';
+
+  const hiddenRiskText =
+    summary?.hiddenRisk?.trim() ||
+    'Leadership may underestimate how quickly a small operating issue can spread into execution risk.';
 
   if (loading) {
     return <div style={{ padding: 20 }}>Loading...</div>;
@@ -241,96 +276,111 @@ export default function SummaryPage() {
       )}
 
       {summaryLoading && (
-        <p style={{ marginBottom: 20, lineHeight: 1.6 }}>Generating executive summary...</p>
+        <p style={{ marginBottom: 20, lineHeight: 1.6 }}>Generating leadership review...</p>
       )}
 
       {summary && (
         <>
-          <div style={heroCardStyle}>
-            <h2 style={sectionTitleStyle}>Top Signal</h2>
+          <div style={primaryCardStyle}>
+            <h2 style={sectionTitleStyle}>Decision Card</h2>
 
-            <div style={topSignalBoxStyle}>
-              <p style={bodyStyle}>
-                {summary.topSignal || 'No primary issue identified.'}
-              </p>
+            <div style={labelStyle}>Primary Risk Signal</div>
+            <div style={signalBoxStyle}>
+              <p style={bodyStyle}>{primaryRiskSignal}</p>
+            </div>
+
+            <div style={consequenceBoxStyle}>
+              <div style={labelStyle}>If not addressed</div>
+              <p style={{ ...bodyStyle, fontWeight: 700 }}>{ifIgnoredText}</p>
             </div>
 
             <div style={{ marginTop: 16 }}>
-              <div style={labelStyle}>Recommendation</div>
-              <p style={{ ...bodyStyle, fontWeight: 700 }}>
-                {summary.recommendation || 'No recommendation returned yet.'}
-              </p>
+              <div style={labelStyle}>What should we decide right now</div>
+              <p style={{ ...bodyStyle, fontWeight: 700 }}>{immediateDecision}</p>
             </div>
-
-            {summary.decision && (
-              <div style={{ marginTop: 16 }}>
-                <div style={labelStyle}>Decision Required</div>
-                <p style={bodyStyle}>{summary.decision}</p>
-              </div>
-            )}
-          </div>
-
-          <div style={gridTwoStyle}>
-            <div style={cardStyle}>
-              <h2 style={sectionTitleStyle}>Priority Stack</h2>
-              {renderList(summary.priority, 'No priorities identified yet.')}
-            </div>
-
-            <div style={cardStyle}>
-              <h2 style={sectionTitleStyle}>Action Ownership</h2>
-              {renderList(summary.owners, 'No owners assigned yet.')}
-            </div>
-          </div>
-
-          <div style={cardStyle}>
-            <h2 style={sectionTitleStyle}>Timeline</h2>
-            {renderList(summary.timeline, 'No timeline identified yet.')}
           </div>
 
           <button
             type="button"
-            onClick={() => setShowFullBreakdown((prev) => !prev)}
+            onClick={() => setShowLeadershipContext((prev) => !prev)}
             style={buttonStyle}
           >
-            {showFullBreakdown ? 'Hide Full Breakdown' : 'See Full Breakdown'}
+            {showLeadershipContext ? 'Hide Why This Matters' : 'See Why This Matters'}
           </button>
 
-          {showFullBreakdown && (
+          {showLeadershipContext && (
             <>
               <div style={cardStyle}>
-                <h2 style={sectionTitleStyle}>Executive Summary</h2>
-                <p style={bodyStyle}>
-                  {summary.overallSummary || 'No summary returned.'}
-                </p>
+                <h2 style={sectionTitleStyle}>What Leadership Is About to Miss</h2>
+                <p style={bodyStyle}>{leadershipMissText}</p>
 
-                <div style={subTitleStyle}>What’s Working</div>
+                {summary?.tradeoff && (
+                  <div style={{ marginTop: 16 }}>
+                    <div style={labelStyle}>Tradeoff</div>
+                    <p style={bodyStyle}>{summary.tradeoff}</p>
+                  </div>
+                )}
+
+                {summary?.recommendation && (
+                  <div style={{ marginTop: 16 }}>
+                    <div style={labelStyle}>Recommended move</div>
+                    <p style={{ ...bodyStyle, fontWeight: 700 }}>{summary.recommendation}</p>
+                  </div>
+                )}
+              </div>
+
+              <div style={mutedCardStyle}>
+                <h2 style={sectionTitleStyle}>Critical Insight</h2>
+
+                <div style={subTitleStyle}>Contradiction</div>
+                <p style={compactBodyStyle}>{contradictionText}</p>
+
+                <div style={subTitleStyle}>Hidden Risk</div>
+                <p style={compactBodyStyle}>{hiddenRiskText}</p>
+              </div>
+            </>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setShowOperatingBreakdown((prev) => !prev)}
+            style={buttonStyle}
+          >
+            {showOperatingBreakdown ? 'Hide Operating Breakdown' : 'See Operating Breakdown'}
+          </button>
+
+          {showOperatingBreakdown && (
+            <>
+              <div style={gridTwoStyle}>
+                <div style={cardStyle}>
+                  <h2 style={sectionTitleStyle}>Priority Stack</h2>
+                  {renderList(summary.priority, 'No priorities identified yet.')}
+                </div>
+
+                <div style={cardStyle}>
+                  <h2 style={sectionTitleStyle}>Action Ownership</h2>
+                  {renderList(summary.owners, 'No owners assigned yet.')}
+                </div>
+              </div>
+
+              <div style={cardStyle}>
+                <h2 style={sectionTitleStyle}>Timeline</h2>
+                {renderList(summary.timeline, 'No timeline identified yet.')}
+              </div>
+
+              <div style={cardStyle}>
+                <h2 style={sectionTitleStyle}>What’s Working</h2>
                 {renderList(summary.working)}
 
                 <div style={subTitleStyle}>What’s Breaking</div>
                 {renderList(summary.breaking)}
 
-                <div style={subTitleStyle}>Top Risks</div>
+                <div style={subTitleStyle}>Forward Risks</div>
                 {renderList(summary.risks)}
 
                 <div style={subTitleStyle}>Recommended Actions</div>
                 {renderList(summary.actions)}
               </div>
-
-              {(summary.contradiction || summary.hiddenRisk) && (
-                <div style={mutedCardStyle}>
-                  <h2 style={sectionTitleStyle}>Critical Insight</h2>
-
-                  <div style={subTitleStyle}>Contradiction</div>
-                  <p style={compactBodyStyle}>
-                    {summary.contradiction || 'No major contradiction identified.'}
-                  </p>
-
-                  <div style={subTitleStyle}>Hidden Risk</div>
-                  <p style={compactBodyStyle}>
-                    {summary.hiddenRisk || 'No hidden risk identified.'}
-                  </p>
-                </div>
-              )}
             </>
           )}
         </>
@@ -369,7 +419,8 @@ export default function SummaryPage() {
                 <strong>Needs:</strong> {input.needs}
               </p>
               <p>
-                <strong>Anything Else:</strong> {input.next_action?.trim() ? input.next_action : '—'}
+                <strong>Anything Else:</strong>{' '}
+                {input.next_action?.trim() ? input.next_action : '—'}
               </p>
             </div>
           ))}
