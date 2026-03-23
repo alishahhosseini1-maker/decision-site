@@ -1078,7 +1078,7 @@ function Section({ title, body, subtle }: { title: string; body: string; subtle?
       <div style={{ fontSize: 12.5, opacity: 0.62 }}>{title}</div>
       <div
         style={{
-          marginTop: 8,
+          marginTop: 10,
           fontSize: 13.5,
           opacity: subtle ? 0.75 : 0.9,
           lineHeight: 1.55,
