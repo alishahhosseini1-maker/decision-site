@@ -11,11 +11,16 @@ type TeamSessionPreview = {
   prompt: string;
   deadline: string | null;
   shareUrl: string;
+  summaryUrl: string;
   createdAt: string;
 };
 
 export default function HomePage() {
   const [mode, setMode] = useState<Mode>('solo');
+
+  const [user, setUser] = useState<{ id: string; email?: string | null } | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const [decision, setDecision] = useState('');
   const [context, setContext] = useState('');
@@ -65,6 +70,91 @@ export default function HomePage() {
       decisionInputRef.current?.focus();
     }, 50);
   }, []);
+
+  useEffect(() => {
+    const getSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const authUser = session?.user ?? null;
+
+      setUser(
+        authUser
+          ? {
+              id: authUser.id,
+              email: authUser.email ?? null,
+            }
+          : null
+      );
+
+      setAuthLoading(false);
+    };
+
+    void getSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      const authUser = session?.user ?? null;
+
+      setUser(
+        authUser
+          ? {
+              id: authUser.id,
+              email: authUser.email ?? null,
+            }
+          : null
+      );
+
+      setAuthLoading(false);
+      setAuthError(null);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleSignIn = async () => {
+    console.log('Sign In clicked');
+    setAuthError(null);
+
+    const email = window.prompt('Enter your email to sign in:');
+    console.log('Prompt returned:', email);
+
+    if (!email) return;
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: window.location.origin,
+      },
+    });
+
+    console.log('OTP result error:', error);
+
+    if (error) {
+      if (error.message.toLowerCase().includes('rate limit')) {
+        setAuthError('Too many sign-in emails were requested. Wait a few minutes, then try again.');
+      } else {
+        setAuthError(error.message);
+      }
+      return;
+    }
+
+    window.alert('Check your email for the sign-in link.');
+  };
+
+  const handleSignOut = async () => {
+    setAuthError(null);
+
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      setAuthError(error.message);
+    }
+  };
 
   const formatShort = (iso?: string | null) => {
     if (!iso) return '—';
@@ -290,7 +380,7 @@ export default function HomePage() {
       setTimeout(() => {
         verdictRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 50);
-    } catch (err: any) {
+    } catch {
       setVerdict('Something went wrong. Try again.');
     } finally {
       setVerdictLoading(false);
@@ -298,50 +388,93 @@ export default function HomePage() {
   };
 
   const handleCreateTeamSession = async () => {
-    const err = validateTeamSession();
-    if (err) {
-      setTeamError(err);
-      setTeamSessionPreview(null);
-      return;
-    }
-
     setTeamError(null);
     setCopied(false);
-    setCreatingTeamSession(true);
 
-    const id = `team-${Date.now().toString(36)}`;
-    const origin = typeof window !== 'undefined' ? window.location.origin : '';
-
-    const preview: TeamSessionPreview = {
-      id,
-      title: teamTitle.trim(),
-      prompt: teamPrompt.trim(),
-      deadline: teamDeadline || null,
-      shareUrl: `${origin}/team/${id}`,
-      createdAt: new Date().toISOString(),
-    };
-
-    const { error } = await supabase.from('team_sessions').insert({
-      id: preview.id,
-      title: preview.title,
-      prompt: preview.prompt,
-      deadline: preview.deadline,
-      share_url: preview.shareUrl,
-    });
-
-    if (error) {
-      setTeamError(error.message);
+    const validationError = validateTeamSession();
+    if (validationError) {
+      setTeamError(validationError);
       setTeamSessionPreview(null);
-      setCreatingTeamSession(false);
       return;
     }
 
-    setTeamSessionPreview(preview);
-    setCreatingTeamSession(false);
+    setCreatingTeamSession(true);
 
-    setTimeout(() => {
-      teamPreviewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 50);
+    try {
+      const {
+        data: { user: authUser },
+        error: authLookupError,
+      } = await supabase.auth.getUser();
+
+      console.log('Fresh auth user before insert:', authUser);
+      console.log('Fresh auth lookup error:', authLookupError);
+
+      if (authLookupError) {
+        setTeamError(authLookupError.message);
+        setTeamSessionPreview(null);
+        setCreatingTeamSession(false);
+        return;
+      }
+
+      if (!authUser?.id) {
+        setTeamError('You are not fully signed in yet. Refresh once, then try again.');
+        setTeamSessionPreview(null);
+        setCreatingTeamSession(false);
+        return;
+      }
+
+      const id = `team-${Date.now().toString(36)}`;
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+
+      const preview: TeamSessionPreview = {
+        id,
+        title: teamTitle.trim(),
+        prompt: teamPrompt.trim(),
+        deadline: teamDeadline || null,
+        shareUrl: `${origin}/team/${id}`,
+        summaryUrl: `${origin}/team/${id}/summary`,
+        createdAt: new Date().toISOString(),
+      };
+
+      const payload = {
+        id: preview.id,
+        title: preview.title,
+        prompt: preview.prompt,
+        deadline: preview.deadline,
+        share_url: preview.shareUrl,
+        
+      };
+
+      console.log('Insert payload:', payload);
+
+      const { data, error } = await supabase.from('team_sessions').insert(payload).select();
+
+      console.log('Insert response data:', data);
+      console.log('Insert response error:', error);
+
+      if (error) {
+        setTeamError(error.message);
+        setTeamSessionPreview(null);
+        setCreatingTeamSession(false);
+        return;
+      }
+
+      setUser({
+        id: authUser.id,
+        email: authUser.email ?? null,
+      });
+
+      setTeamSessionPreview(preview);
+
+      setTimeout(() => {
+        teamPreviewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    } catch (err: any) {
+      setTeamError(err?.message || 'Failed to create team review.');
+      setTeamSessionPreview(null);
+    } finally {
+      setCreatingTeamSession(false);
+    }
   };
 
   const handleCopyShareLink = async () => {
@@ -354,6 +487,23 @@ export default function HomePage() {
     } catch {
       setCopied(false);
     }
+  };
+
+  const handleTeamCreateButtonClick = async () => {
+    if (authLoading) return;
+
+    const {
+      data: { user: freshUser },
+    } = await supabase.auth.getUser();
+
+    console.log('Button click fresh user:', freshUser);
+
+    if (!freshUser) {
+      await handleSignIn();
+      return;
+    }
+
+    await handleCreateTeamSession();
   };
 
   const shellBg = 'rgba(255,255,255,0.65)';
@@ -407,6 +557,18 @@ export default function HomePage() {
     boxShadow: '0 10px 20px rgba(0,0,0,0.04)',
   };
 
+  const topActionButtonStyle: React.CSSProperties = {
+    borderRadius: 999,
+    border: user ? '1px solid rgba(0,0,0,0.12)' : 'none',
+    padding: '10px 14px',
+    background: user ? '#fff' : '#111',
+    color: user ? '#111' : '#fff',
+    fontSize: 12.5,
+    fontWeight: 800,
+    cursor: 'pointer',
+    textDecoration: 'none',
+  };
+
   const lastUsedLabel = formatShort(lastUsedAt);
   const ctaBg = '#0b0b0b';
 
@@ -426,9 +588,33 @@ export default function HomePage() {
   return (
     <div style={{ minHeight: '100vh', background: '#f4f5f6', color: '#111' }}>
       <main style={{ maxWidth: 980, margin: '28px auto 60px', padding: '0 20px' }}>
-        <header style={{ paddingTop: 6 }}>
+        <header
+          style={{
+            paddingTop: 6,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+          }}
+        >
           <div style={{ fontSize: 12, opacity: 0.42 }}>
             Last used: <span style={{ opacity: 0.65 }}>{lastUsedLabel}</span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {!authLoading && user && (
+              <div style={{ fontSize: 12.5, opacity: 0.62 }}>{user.email || 'Signed in'}</div>
+            )}
+
+            {authLoading ? null : user ? (
+              <button type="button" onClick={handleSignOut} style={topActionButtonStyle}>
+                Sign Out
+              </button>
+            ) : (
+              <button type="button" onClick={handleSignIn} style={topActionButtonStyle}>
+                Sign In
+              </button>
+            )}
           </div>
         </header>
 
@@ -848,7 +1034,7 @@ export default function HomePage() {
                       if (teamError) setTeamError(null);
                       if (teamSessionPreview) setTeamSessionPreview(null);
                     }}
-                    placeholder="Example: Weekly Director Review — Kisco Senior Living"
+                    placeholder="Example: Weekly Director Review - Kisco Senior Living"
                     style={inputStyle}
                   />
                 </div>
@@ -889,16 +1075,28 @@ export default function HomePage() {
                 </div>
               </div>
 
+              {!user && (
+                <div style={{ marginTop: 10, fontSize: 12.5, opacity: 0.72, lineHeight: 1.6 }}>
+                  Sign in only appears when you create the review.
+                </div>
+              )}
+
               {teamError && (
                 <div style={{ marginTop: 10, fontSize: 12.5, color: '#dc2626', fontWeight: 700 }}>
                   {teamError}
                 </div>
               )}
 
+              {authError && (
+                <div style={{ marginTop: 10, fontSize: 12.5, color: '#dc2626', fontWeight: 700 }}>
+                  {authError}
+                </div>
+              )}
+
               <button
                 type="button"
-                onClick={handleCreateTeamSession}
-                disabled={creatingTeamSession}
+                onClick={handleTeamCreateButtonClick}
+                disabled={creatingTeamSession || authLoading}
                 style={{
                   marginTop: 14,
                   width: '100%',
@@ -909,12 +1107,18 @@ export default function HomePage() {
                   color: '#fff',
                   fontSize: 14,
                   fontWeight: 900,
-                  cursor: creatingTeamSession ? 'default' : 'pointer',
-                  opacity: creatingTeamSession ? 0.82 : 1,
+                  cursor: creatingTeamSession || authLoading ? 'default' : 'pointer',
+                  opacity: creatingTeamSession || authLoading ? 0.72 : 1,
                   boxShadow: '0 10px 20px rgba(0,0,0,0.12)',
                 }}
               >
-                {creatingTeamSession ? 'Creating Team Review...' : 'Create Team Review'}
+                {creatingTeamSession
+                  ? 'Creating Team Review...'
+                  : authLoading
+                    ? 'Checking Access...'
+                    : user
+                      ? 'Create Team Review'
+                      : 'Sign In To Create Team Review'}
               </button>
 
               {teamSessionPreview && (
@@ -996,6 +1200,39 @@ export default function HomePage() {
                           {copied ? 'Copied' : 'Copy Link'}
                         </button>
                       </div>
+                    </div>
+
+                    <div style={{ marginTop: 14 }}>
+                      <div
+                        style={{
+                          fontSize: 12.5,
+                          fontWeight: 700,
+                          marginBottom: 6,
+                          opacity: 0.7,
+                        }}
+                      >
+                        Owner summary page
+                      </div>
+
+                      <a
+                        href={teamSessionPreview.summaryUrl}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderRadius: 12,
+                          border: '1px solid rgba(0,0,0,0.12)',
+                          padding: '12px 14px',
+                          background: '#fff',
+                          fontSize: 12.5,
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          color: '#111',
+                          textDecoration: 'none',
+                        }}
+                      >
+                        Open Owner Summary Page
+                      </a>
                     </div>
                   </div>
                 </div>
