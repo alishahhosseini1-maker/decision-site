@@ -2,18 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { supabase } from '../../../lib/supabase';
-
-type Session = {
-  id: string;
-  title: string;
-  prompt: string;
-  deadline: string | null;
-  status: 'open' | 'complete';
-  expectedParticipants: number | null;
-  created_by: string | null;
-  summary_generated_at?: string | null;
-};
+import { supabase } from '@/app/lib/supabase';
 
 type Input = {
   id: string;
@@ -43,32 +32,64 @@ type TeamSummary = {
   hiddenRisk?: string;
 };
 
-export default function SummaryPage() {
-  const params = useParams();
-  const id = typeof params?.id === 'string' ? params.id : '';
+type TeamSession = {
+  id: string;
+  title: string;
+  prompt: string;
+  deadline: string | null;
+  status: string | null;
+  created_by: string | null;
+  closed_at: string | null;
+  summary_json: TeamSummary | null;
+  summary_generated_at: string | null;
+  summary_emailed_at: string | null;
+  dismissed_at: string | null;
+  archived_at: string | null;
+};
 
-  const [session, setSession] = useState<Session | null>(null);
-  const [inputs, setInputs] = useState<Input[]>([]);
-  const [summary, setSummary] = useState<TeamSummary | null>(null);
+function SectionList({
+  title,
+  items,
+}: {
+  title: string;
+  items?: string[];
+}) {
+  if (!items || items.length === 0) return null;
+
+  return (
+    <div className="rounded-2xl border border-black/10 bg-white p-4">
+      <h3 className="text-sm font-semibold text-black">{title}</h3>
+      <ul className="mt-3 space-y-2 text-sm text-black/70">
+        {items.map((item, idx) => (
+          <li key={`${title}-${idx}`} className="leading-6">
+            • {item}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default function SummaryPage() {
+  const { id } = useParams<{ id: string }>();
 
   const [loading, setLoading] = useState(true);
-  const [summaryLoading, setSummaryLoading] = useState(false);
+  const [finalizing, setFinalizing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [accessDenied, setAccessDenied] = useState(false);
 
-  const [showLeadershipContext, setShowLeadershipContext] = useState(false);
-  const [showOperatingBreakdown, setShowOperatingBreakdown] = useState(false);
+  const [session, setSession] = useState<TeamSession | null>(null);
+  const [summary, setSummary] = useState<TeamSummary | null>(null);
+  const [inputs, setInputs] = useState<Input[]>([]);
   const [showRawInputs, setShowRawInputs] = useState(false);
 
   useEffect(() => {
-    if (!id) return;
+    let cancelled = false;
 
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-      setAccessDenied(false);
-
+    async function loadPage() {
       try {
+        setLoading(true);
+        setError(null);
+
         const {
           data: { user },
           error: authError,
@@ -79,605 +100,376 @@ export default function SummaryPage() {
         }
 
         if (!user) {
-          setAccessDenied(true);
-          setLoading(false);
-          return;
+          throw new Error('You must be signed in to view this summary.');
         }
 
         const { data: sessionData, error: sessionError } = await supabase
           .from('team_sessions')
-          .select('*')
+          .select(
+            `
+            id,
+            title,
+            prompt,
+            deadline,
+            status,
+            created_by,
+            closed_at,
+            summary_json,
+            summary_generated_at,
+            summary_emailed_at,
+            dismissed_at,
+            archived_at
+          `
+          )
           .eq('id', id)
           .single();
 
         if (sessionError || !sessionData) {
-          throw new Error(sessionError?.message || 'Team session not found.');
+          throw new Error('Could not load session.');
         }
 
-        const safeSession = sessionData as Session;
-
-        if (!safeSession.created_by || safeSession.created_by !== user.id) {
-          setAccessDenied(true);
-          setSession(safeSession);
-          setLoading(false);
-          return;
+        if (sessionData.created_by !== user.id) {
+          throw new Error('You do not have access to this summary.');
         }
 
-        let nextStatus: 'open' | 'complete' = safeSession.status;
+        let resolvedSession = sessionData as TeamSession;
 
-        const deadlinePassed =
-          !!safeSession.deadline && new Date(safeSession.deadline).getTime() <= Date.now();
+        if (!resolvedSession.summary_generated_at) {
+          setFinalizing(true);
 
-        const { data: inputData, error: inputError } = await supabase
-          .from('team_inputs')
-          .select('*')
-          .eq('session_id', id);
-
-        if (inputError) {
-          throw new Error(inputError.message);
-        }
-
-        const safeInputs = (inputData || []) as Input[];
-
-        if (
-          nextStatus === 'open' &&
-          (deadlinePassed ||
-            (safeSession.expectedParticipants &&
-              safeInputs.length >= safeSession.expectedParticipants))
-        ) {
-          const { error: closeError } = await supabase
-            .from('team_sessions')
-            .update({
-              status: 'complete',
-              closed_at: new Date().toISOString(),
-            })
-            .eq('id', id);
-
-          if (!closeError) {
-            nextStatus = 'complete';
-          }
-        }
-
-        const normalizedSession: Session = {
-          ...safeSession,
-          status: nextStatus,
-        };
-
-        setSession(normalizedSession);
-        setInputs(safeInputs);
-
-        const reviewClosed =
-          normalizedSession.status === 'complete' ||
-          (!!normalizedSession.deadline &&
-            new Date(normalizedSession.deadline).getTime() <= Date.now());
-
-        if (!reviewClosed) {
-          setLoading(false);
-          return;
-        }
-
-        if (safeInputs.length === 0) {
-          setLoading(false);
-          return;
-        }
-
-        setSummaryLoading(true);
-
-        try {
-          const response = await fetch('/api/review/team-summary', {
+          const finalizeRes = await fetch('/api/team/finalize', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-              inputs: safeInputs,
-            }),
+            body: JSON.stringify({ sessionId: id }),
           });
 
-          const result = await response.json();
+          const finalizeJson = await finalizeRes.json();
 
-          if (!response.ok) {
-            throw new Error(result?.error || 'Failed to generate summary.');
+          if (!finalizeRes.ok) {
+            throw new Error(finalizeJson?.error || 'Failed to finalize session.');
           }
 
-          setSummary(result);
-
-          const generatedAt = new Date().toISOString();
-
-          await supabase
+          const { data: refreshedSession, error: refreshedError } = await supabase
             .from('team_sessions')
-            .update({
-              summary_generated_at: generatedAt,
-            })
-            .eq('id', id);
+            .select(
+              `
+              id,
+              title,
+              prompt,
+              deadline,
+              status,
+              created_by,
+              closed_at,
+              summary_json,
+              summary_generated_at,
+              summary_emailed_at,
+              dismissed_at,
+              archived_at
+            `
+            )
+            .eq('id', id)
+            .single();
 
-          setSession((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  summary_generated_at: generatedAt,
-                }
-              : prev
-          );
-        } catch (err: any) {
-          setError(err?.message || 'Failed to generate summary.');
-        } finally {
-          setSummaryLoading(false);
+          if (refreshedError || !refreshedSession) {
+            throw new Error('Summary was finalized, but failed to reload session.');
+          }
+
+          resolvedSession = refreshedSession as TeamSession;
         }
 
-        setLoading(false);
+        const { data: inputRows, error: inputsError } = await supabase
+          .from('team_inputs')
+          .select(
+            `
+            id,
+            name,
+            department,
+            moved_forward,
+            not_working,
+            risk,
+            needs,
+            next_action
+          `
+          )
+          .eq('team_session_id', id)
+          .order('department', { ascending: true });
+
+        if (inputsError) {
+          throw new Error('Could not load team inputs.');
+        }
+
+        if (!cancelled) {
+          setSession(resolvedSession);
+          setSummary((resolvedSession.summary_json as TeamSummary | null) ?? null);
+          setInputs((inputRows as Input[]) ?? []);
+        }
       } catch (err: any) {
-        setError(err?.message || 'Something went wrong.');
-        setLoading(false);
+        if (!cancelled) {
+          setError(err?.message || 'Something went wrong.');
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+          setFinalizing(false);
+        }
       }
-    };
-
-    void fetchData();
-  }, [id]);
-
-  const formatDeadline = (value?: string | null) => {
-    if (!value) return 'No deadline set';
-
-    const d = new Date(value);
-    if (Number.isNaN(d.getTime())) return 'No deadline set';
-
-    return d.toLocaleString(undefined, {
-      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      year: 'numeric',
-      month: 'short',
-      day: '2-digit',
-      hour: 'numeric',
-      minute: '2-digit',
-    });
-  };
-
-  const pageStyle: React.CSSProperties = {
-    padding: 24,
-    maxWidth: 860,
-    margin: '0 auto',
-    color: '#111',
-  };
-
-  const headerCardStyle: React.CSSProperties = {
-    border: '1px solid rgba(0,0,0,0.10)',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 18,
-    background: '#fff',
-    boxShadow: '0 10px 24px rgba(0,0,0,0.04)',
-  };
-
-  const cardStyle: React.CSSProperties = {
-    border: '1px solid rgba(0,0,0,0.10)',
-    borderRadius: 14,
-    padding: 18,
-    marginBottom: 16,
-    background: '#fff',
-  };
-
-  const primaryCardStyle: React.CSSProperties = {
-    ...cardStyle,
-    boxShadow: '0 10px 24px rgba(0,0,0,0.05)',
-  };
-
-  const mutedCardStyle: React.CSSProperties = {
-    ...cardStyle,
-    background: 'rgba(0,0,0,0.02)',
-  };
-
-  const signalBoxStyle: React.CSSProperties = {
-    border: '1px solid rgba(0,0,0,0.10)',
-    borderRadius: 12,
-    padding: 14,
-    background: 'rgba(0,0,0,0.02)',
-  };
-
-  const consequenceBoxStyle: React.CSSProperties = {
-    border: '1px solid rgba(185,28,28,0.16)',
-    borderRadius: 12,
-    padding: 14,
-    background: 'rgba(185,28,28,0.03)',
-    marginTop: 14,
-  };
-
-  const sectionTitleStyle: React.CSSProperties = {
-    fontSize: 24,
-    fontWeight: 800,
-    margin: 0,
-    marginBottom: 14,
-    letterSpacing: -0.03,
-  };
-
-  const subTitleStyle: React.CSSProperties = {
-    fontSize: 15,
-    fontWeight: 800,
-    marginTop: 18,
-    marginBottom: 8,
-  };
-
-  const labelStyle: React.CSSProperties = {
-    fontSize: 12,
-    fontWeight: 800,
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-    opacity: 0.58,
-    marginBottom: 6,
-  };
-
-  const bodyStyle: React.CSSProperties = {
-    margin: 0,
-    lineHeight: 1.7,
-    fontSize: 16,
-  };
-
-  const compactBodyStyle: React.CSSProperties = {
-    margin: 0,
-    lineHeight: 1.65,
-    fontSize: 14.5,
-  };
-
-  const listStyle: React.CSSProperties = {
-    margin: 0,
-    paddingLeft: 20,
-    lineHeight: 1.7,
-  };
-
-  const rawInputCardStyle: React.CSSProperties = {
-    border: '1px solid #ddd',
-    padding: 14,
-    marginBottom: 12,
-    borderRadius: 10,
-    background: '#fff',
-    lineHeight: 1.65,
-  };
-
-  const emptyTextStyle: React.CSSProperties = {
-    margin: 0,
-    opacity: 0.65,
-    lineHeight: 1.7,
-    fontSize: 14,
-  };
-
-  const buttonStyle: React.CSSProperties = {
-    width: '100%',
-    borderRadius: 12,
-    border: '1px solid rgba(0,0,0,0.10)',
-    padding: '12px 14px',
-    background: '#fff',
-    fontSize: 14,
-    fontWeight: 800,
-    cursor: 'pointer',
-    marginBottom: 16,
-  };
-
-  const gridTwoStyle: React.CSSProperties = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-    gap: 16,
-    marginBottom: 16,
-  };
-
-  const metaGridStyle: React.CSSProperties = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-    gap: 12,
-    marginTop: 16,
-  };
-
-  const metaBoxStyle: React.CSSProperties = {
-    border: '1px solid rgba(0,0,0,0.08)',
-    borderRadius: 12,
-    background: 'rgba(0,0,0,0.02)',
-    padding: '12px 14px',
-    fontSize: 13,
-    lineHeight: 1.55,
-  };
-
-  const readyBannerStyle: React.CSSProperties = {
-    marginTop: 14,
-    padding: 12,
-    borderRadius: 10,
-    background: '#ecfdf5',
-    border: '1px solid #10b981',
-    fontSize: 13,
-    fontWeight: 700,
-  };
-
-  const renderList = (items?: string[], emptyLabel = 'None identified yet.') => {
-    if (!items || items.length === 0) {
-      return <p style={emptyTextStyle}>{emptyLabel}</p>;
     }
 
-    return (
-      <ul style={listStyle}>
-        {items.map((item, index) => (
-          <li key={`${item}-${index}`}>{item}</li>
-        ))}
-      </ul>
-    );
-  };
+    loadPage();
 
-  const reviewClosed =
-    !!session &&
-    (session.status === 'complete' ||
-      (!!session.deadline && new Date(session.deadline).getTime() <= Date.now()));
-
-      const summaryReady =
-      !!session?.summary_generated_at || session?.status === 'complete';
-
-  const primaryRiskSignal =
-    summary?.topSignal?.trim() ||
-    summary?.breaking?.[0] ||
-    'No primary risk signal identified yet.';
-
-  const immediateDecision =
-    summary?.decision?.trim() ||
-    summary?.recommendation?.trim() ||
-    'No immediate decision identified yet.';
-
-  const ifIgnoredText =
-    summary?.hiddenRisk?.trim() ||
-    summary?.risks?.[0] ||
-    'If ignored, this issue will likely stay hidden until it starts affecting outcomes more visibly.';
-
-  const leadershipMissText =
-    summary?.overallSummary?.trim() || 'No leadership summary returned.';
-
-  const contradictionText =
-    summary?.contradiction?.trim() ||
-    'Inputs appear aligned. Risk of blind agreement if no dissenting signal is surfacing.';
-
-  const hiddenRiskText =
-    summary?.hiddenRisk?.trim() ||
-    'Leadership may underestimate how quickly a small operating issue can spread into execution risk.';
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
   if (loading) {
-    return <div style={{ padding: 20 }}>Loading...</div>;
-  }
-
-  if (accessDenied) {
     return (
-      <div style={pageStyle}>
-        <div style={headerCardStyle}>
-          <div style={{ fontSize: 12, opacity: 0.5 }}>Decision Layer — Summary</div>
-          <h1 style={{ fontSize: 30, margin: '12px 0 0', letterSpacing: -0.04 }}>
-            Access Restricted
-          </h1>
-          <p style={{ marginTop: 14, lineHeight: 1.7, fontSize: 16 }}>
-            This summary is only available to the review owner.
+      <main className="min-h-screen bg-[#f7f7f2] px-6 py-10 text-black">
+        <div className="mx-auto max-w-5xl">
+          <p className="text-sm text-black/60">
+            {finalizing ? 'Finalizing summary...' : 'Loading summary...'}
           </p>
         </div>
-      </div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="min-h-screen bg-[#f7f7f2] px-6 py-10 text-black">
+        <div className="mx-auto max-w-5xl rounded-2xl border border-red-200 bg-red-50 p-6">
+          <p className="text-sm font-medium text-red-700">{error}</p>
+        </div>
+      </main>
     );
   }
 
   if (!session) {
     return (
-      <div style={pageStyle}>
-        <div style={headerCardStyle}>
-          <h1 style={{ fontSize: 30, marginBottom: 18, letterSpacing: -0.04 }}>
-            Team Summary
-          </h1>
-          <p style={bodyStyle}>This review could not be found.</p>
+      <main className="min-h-screen bg-[#f7f7f2] px-6 py-10 text-black">
+        <div className="mx-auto max-w-5xl">
+          <p className="text-sm text-black/60">Session not found.</p>
         </div>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div style={pageStyle}>
-      <div style={headerCardStyle}>
-        <div style={{ fontSize: 12, opacity: 0.5 }}>Decision Layer — Summary</div>
-        <h1 style={{ fontSize: 30, margin: '12px 0 0', letterSpacing: -0.04 }}>
-          {session.title}
-        </h1>
-        <p style={{ marginTop: 16, lineHeight: 1.7, fontSize: 16, opacity: 0.84 }}>
-          {session.prompt}
-        </p>
+    <main className="min-h-screen bg-[#f7f7f2] px-6 py-10 text-black">
+      <div className="mx-auto max-w-5xl space-y-6">
+        <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm">
+          <div className="flex flex-col gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.18em] text-black/45">
+                Team Summary
+              </p>
+              <h1 className="mt-2 text-3xl font-semibold tracking-tight text-black">
+                {session.title}
+              </h1>
+            </div>
 
-        <div style={metaGridStyle}>
-          <div style={metaBoxStyle}>
-            <strong>Deadline:</strong> {formatDeadline(session.deadline)}
-          </div>
-          <div style={metaBoxStyle}>
-            <strong>Responses:</strong> {inputs.length}
-            {session.expectedParticipants ? ` / ${session.expectedParticipants}` : ''}
+            <p className="text-sm leading-6 text-black/70">{session.prompt}</p>
+
+            <div className="flex flex-wrap gap-3 text-xs text-black/55">
+              <span>
+                Status: {session.status || 'unknown'}
+              </span>
+              <span>
+                Deadline: {session.deadline ? new Date(session.deadline).toLocaleString() : 'None'}
+              </span>
+              <span>
+                Closed: {session.closed_at ? new Date(session.closed_at).toLocaleString() : 'Not yet'}
+              </span>
+              <span>
+                Summary generated:{' '}
+                {session.summary_generated_at
+                  ? new Date(session.summary_generated_at).toLocaleString()
+                  : 'Not yet'}
+              </span>
+              <span>
+                Email:{' '}
+                {session.summary_emailed_at
+                  ? `Sent ${new Date(session.summary_emailed_at).toLocaleString()}`
+                  : 'Not sent yet'}
+              </span>
+            </div>
           </div>
         </div>
 
-        {summaryReady && (
-          <div style={readyBannerStyle}>
-            Decision summary ready
+        {!summary ? (
+          <div className="rounded-2xl border border-black/10 bg-white p-6">
+            <p className="text-sm text-black/65">No summary is available yet.</p>
           </div>
+        ) : (
+          <>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="rounded-2xl border border-black/10 bg-white p-5">
+                <p className="text-xs uppercase tracking-[0.18em] text-black/45">
+                  Top Signal
+                </p>
+                <p className="mt-2 text-sm leading-6 text-black/80">
+                  {summary.topSignal || '—'}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-black/10 bg-white p-5">
+                <p className="text-xs uppercase tracking-[0.18em] text-black/45">
+                  Recommendation
+                </p>
+                <p className="mt-2 text-sm leading-6 text-black/80">
+                  {summary.recommendation || '—'}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="rounded-2xl border border-black/10 bg-white p-5">
+                <p className="text-xs uppercase tracking-[0.18em] text-black/45">
+                  Decision
+                </p>
+                <p className="mt-2 text-sm leading-6 text-black/80">
+                  {summary.decision || '—'}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-black/10 bg-white p-5">
+                <p className="text-xs uppercase tracking-[0.18em] text-black/45">
+                  Tradeoff
+                </p>
+                <p className="mt-2 text-sm leading-6 text-black/80">
+                  {summary.tradeoff || '—'}
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-black/10 bg-white p-5">
+              <p className="text-xs uppercase tracking-[0.18em] text-black/45">
+                Overall Summary
+              </p>
+              <p className="mt-2 text-sm leading-7 text-black/80">
+                {summary.overallSummary || '—'}
+              </p>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <SectionList title="Priority" items={summary.priority} />
+              <SectionList title="Owners" items={summary.owners} />
+              <SectionList title="Timeline" items={summary.timeline} />
+              <SectionList title="Actions" items={summary.actions} />
+              <SectionList title="What’s Working" items={summary.working} />
+              <SectionList title="What’s Breaking" items={summary.breaking} />
+              <SectionList title="Risks" items={summary.risks} />
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="rounded-2xl border border-black/10 bg-white p-5">
+                <p className="text-xs uppercase tracking-[0.18em] text-black/45">
+                  Contradiction
+                </p>
+                <p className="mt-2 text-sm leading-6 text-black/80">
+                  {summary.contradiction || '—'}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-black/10 bg-white p-5">
+                <p className="text-xs uppercase tracking-[0.18em] text-black/45">
+                  Hidden Risk
+                </p>
+                <p className="mt-2 text-sm leading-6 text-black/80">
+                  {summary.hiddenRisk || '—'}
+                </p>
+              </div>
+            </div>
+          </>
         )}
-      </div>
 
-      {error && (
-        <div
-          style={{
-            color: '#b91c1c',
-            marginBottom: 16,
-            fontWeight: 700,
-          }}
-        >
-          {error}
-        </div>
-      )}
-
-      {!reviewClosed && (
-        <div style={cardStyle}>
-          <h2 style={sectionTitleStyle}>Waiting for review completion</h2>
-          <p style={bodyStyle}>
-            This review is still open. The decision artifact will only unlock after the
-            review is closed.
-          </p>
-        </div>
-      )}
-
-      {reviewClosed && inputs.length === 0 && !summaryLoading && (
-        <div style={cardStyle}>
-          <h2 style={sectionTitleStyle}>No inputs submitted</h2>
-          <p style={bodyStyle}>
-            This review is closed, but no team inputs were submitted before completion.
-          </p>
-        </div>
-      )}
-
-      {summaryLoading && (
-        <p style={{ marginBottom: 20, lineHeight: 1.6 }}>Generating leadership review...</p>
-      )}
-
-      {reviewClosed && summary && (
-        <>
-          <div style={primaryCardStyle}>
-            <h2 style={sectionTitleStyle}>Decision Card</h2>
-
-            <div style={labelStyle}>Primary Risk Signal</div>
-            <div style={signalBoxStyle}>
-              <p style={bodyStyle}>{primaryRiskSignal}</p>
+        <div className="rounded-2xl border border-black/10 bg-white p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium text-black">Raw Inputs</p>
+              <p className="text-xs text-black/55">
+                View the original participant responses behind this summary.
+              </p>
             </div>
 
-            <div style={consequenceBoxStyle}>
-              <div style={labelStyle}>If not addressed</div>
-              <p style={{ ...bodyStyle, fontWeight: 700 }}>{ifIgnoredText}</p>
-            </div>
-
-            <div style={{ marginTop: 16 }}>
-              <div style={labelStyle}>What should we decide right now</div>
-              <p style={{ ...bodyStyle, fontWeight: 700 }}>{immediateDecision}</p>
-            </div>
+            <button
+              onClick={() => setShowRawInputs((v) => !v)}
+              className="rounded-full border border-black/10 px-4 py-2 text-sm text-black transition hover:bg-black hover:text-white"
+            >
+              {showRawInputs ? 'Hide Inputs' : 'Show Inputs'}
+            </button>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setShowLeadershipContext((prev) => !prev)}
-            style={buttonStyle}
-          >
-            {showLeadershipContext ? 'Hide Why This Matters' : 'See Why This Matters'}
-          </button>
+          {showRawInputs ? (
+            <div className="mt-5 space-y-4">
+              {inputs.length === 0 ? (
+                <p className="text-sm text-black/60">No inputs found.</p>
+              ) : (
+                inputs.map((input) => (
+                  <div
+                    key={input.id}
+                    className="rounded-2xl border border-black/10 bg-[#fcfcf8] p-4"
+                  >
+                    <div className="mb-3 flex flex-wrap gap-3 text-xs text-black/55">
+                      <span>Name: {input.name || 'Anonymous'}</span>
+                      <span>Department: {input.department || '—'}</span>
+                    </div>
 
-          {showLeadershipContext && (
-            <>
-              <div style={cardStyle}>
-                <h2 style={sectionTitleStyle}>What Leadership Is About to Miss</h2>
-                <p style={bodyStyle}>{leadershipMissText}</p>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-black/45">
+                          Moved Forward
+                        </p>
+                        <p className="mt-1 text-sm leading-6 text-black/75">
+                          {input.moved_forward || '—'}
+                        </p>
+                      </div>
 
-                {summary?.tradeoff && (
-                  <div style={{ marginTop: 16 }}>
-                    <div style={labelStyle}>Tradeoff</div>
-                    <p style={bodyStyle}>{summary.tradeoff}</p>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-black/45">
+                          Not Working
+                        </p>
+                        <p className="mt-1 text-sm leading-6 text-black/75">
+                          {input.not_working || '—'}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-black/45">
+                          Risk
+                        </p>
+                        <p className="mt-1 text-sm leading-6 text-black/75">
+                          {input.risk || '—'}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-black/45">
+                          Needs
+                        </p>
+                        <p className="mt-1 text-sm leading-6 text-black/75">
+                          {input.needs || '—'}
+                        </p>
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-black/45">
+                          Next Action
+                        </p>
+                        <p className="mt-1 text-sm leading-6 text-black/75">
+                          {input.next_action || '—'}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                )}
-
-                {summary?.recommendation && (
-                  <div style={{ marginTop: 16 }}>
-                    <div style={labelStyle}>Recommended move</div>
-                    <p style={{ ...bodyStyle, fontWeight: 700 }}>{summary.recommendation}</p>
-                  </div>
-                )}
-              </div>
-
-              <div style={mutedCardStyle}>
-                <h2 style={sectionTitleStyle}>Critical Insight</h2>
-
-                <div style={subTitleStyle}>Contradiction</div>
-                <p style={compactBodyStyle}>{contradictionText}</p>
-
-                <div style={subTitleStyle}>Hidden Risk</div>
-                <p style={compactBodyStyle}>{hiddenRiskText}</p>
-              </div>
-            </>
-          )}
-
-          <button
-            type="button"
-            onClick={() => setShowOperatingBreakdown((prev) => !prev)}
-            style={buttonStyle}
-          >
-            {showOperatingBreakdown ? 'Hide Operating Breakdown' : 'See Operating Breakdown'}
-          </button>
-
-          {showOperatingBreakdown && (
-            <>
-              <div style={gridTwoStyle}>
-                <div style={cardStyle}>
-                  <h2 style={sectionTitleStyle}>Priority Stack</h2>
-                  {renderList(summary.priority, 'No priorities identified yet.')}
-                </div>
-
-                <div style={cardStyle}>
-                  <h2 style={sectionTitleStyle}>Action Ownership</h2>
-                  {renderList(summary.owners, 'No owners assigned yet.')}
-                </div>
-              </div>
-
-              <div style={cardStyle}>
-                <h2 style={sectionTitleStyle}>Timeline</h2>
-                {renderList(summary.timeline, 'No timeline identified yet.')}
-              </div>
-
-              <div style={cardStyle}>
-                <h2 style={sectionTitleStyle}>What’s Working</h2>
-                {renderList(summary.working)}
-
-                <div style={subTitleStyle}>What’s Breaking</div>
-                {renderList(summary.breaking)}
-
-                <div style={subTitleStyle}>Forward Risks</div>
-                {renderList(summary.risks)}
-
-                <div style={subTitleStyle}>Recommended Actions</div>
-                {renderList(summary.actions)}
-              </div>
-            </>
-          )}
-        </>
-      )}
-
-      {reviewClosed && (
-        <>
-          <button
-            type="button"
-            onClick={() => setShowRawInputs((prev) => !prev)}
-            style={buttonStyle}
-          >
-            {showRawInputs ? 'Hide Raw Inputs' : 'Show Raw Inputs'}
-          </button>
-
-          {showRawInputs && (
-            <>
-              {inputs.length === 0 && <p>No inputs yet.</p>}
-
-              {inputs.map((input) => (
-                <div key={input.id} style={rawInputCardStyle}>
-                  <p>
-                    <strong>Name:</strong> {input.name?.trim() ? input.name : 'Anonymous'}
-                  </p>
-                  <p>
-                    <strong>Department:</strong> {input.department}
-                  </p>
-                  <p>
-                    <strong>Moved Forward:</strong> {input.moved_forward}
-                  </p>
-                  <p>
-                    <strong>Not Working:</strong> {input.not_working}
-                  </p>
-                  <p>
-                    <strong>Risk:</strong> {input.risk}
-                  </p>
-                  <p>
-                    <strong>Needs:</strong> {input.needs}
-                  </p>
-                  <p>
-                    <strong>Anything Else:</strong>{' '}
-                    {input.next_action?.trim() ? input.next_action : '—'}
-                  </p>
-                </div>
-              ))}
-            </>
-          )}
-        </>
-      )}
-    </div>
+                ))
+              )}
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </main>
   );
 }
