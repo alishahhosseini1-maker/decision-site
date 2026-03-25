@@ -202,7 +202,7 @@ export default function SummaryPage() {
             next_action
           `
           )
-          .eq('team_session_id', id)
+          .eq('session_id', id)
           .order('department', { ascending: true });
 
         if (inputsError) {

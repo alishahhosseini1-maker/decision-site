@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     const { data: inputs, error: inputsError } = await supabase
       .from('team_inputs')
       .select('*')
-      .eq('team_session_id', sessionId);
+      .eq('session_id', sessionId);
 
     if (inputsError || !inputs || inputs.length === 0) {
       return NextResponse.json({ error: 'No inputs found' }, { status: 400 });
