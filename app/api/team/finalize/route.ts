@@ -25,7 +25,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 });
     }
 
-    if (session.summary_generated_at) {
+    if (session.summary_generated_at && session.summary_json) {
       return NextResponse.json({ ok: true, alreadyFinalized: true });
     }
 

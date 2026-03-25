@@ -134,7 +134,7 @@ export default function SummaryPage() {
 
         let resolvedSession = sessionData as TeamSession;
 
-        if (!resolvedSession.summary_generated_at) {
+        if (!resolvedSession.summary_generated_at || !resolvedSession.summary_json) {
           setFinalizing(true);
 
           const finalizeRes = await fetch('/api/team/finalize', {
