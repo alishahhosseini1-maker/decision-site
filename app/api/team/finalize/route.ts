@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { generateTeamSummary } from '@/app/lib/team-summary';
+import { sendSummaryEmail } from '@/app/lib/email';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -26,6 +27,37 @@ export async function POST(req: Request) {
     }
 
     if (session.summary_generated_at && session.summary_json) {
+      if (!session.summary_emailed_at && session.created_by) {
+        try {
+          const { data: userData, error: userError } = await supabase.auth.admin.getUserById(
+            session.created_by
+          );
+
+          if (userError) {
+            throw userError;
+          }
+
+          const email = userData?.user?.email;
+
+          if (email) {
+            await sendSummaryEmail({
+              to: email,
+              title: session.title,
+              summary: session.summary_json,
+            });
+
+            await supabase
+              .from('team_sessions')
+              .update({
+                summary_emailed_at: new Date().toISOString(),
+              })
+              .eq('id', sessionId);
+          }
+        } catch (emailErr) {
+          console.error('Failed to send summary email for existing summary:', emailErr);
+        }
+      }
+
       return NextResponse.json({ ok: true, alreadyFinalized: true });
     }
 
@@ -38,38 +70,72 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'No inputs found' }, { status: 400 });
     }
 
+    const nowIso = new Date().toISOString();
+
     if (!session.closed_at) {
-      await supabase
+      const { error: closeError } = await supabase
         .from('team_sessions')
         .update({
           status: 'complete',
-          closed_at: new Date().toISOString(),
+          closed_at: nowIso,
         })
         .eq('id', sessionId);
+
+      if (closeError) {
+        return NextResponse.json({ error: closeError.message }, { status: 500 });
+      }
     }
 
     const summary = await generateTeamSummary(inputs);
 
-    await supabase
+    const { error: summarySaveError } = await supabase
       .from('team_sessions')
       .update({
         summary_json: summary,
-        summary_generated_at: new Date().toISOString(),
+        summary_generated_at: nowIso,
       })
       .eq('id', sessionId);
 
-    if (!session.summary_emailed_at) {
-      console.log('TODO: send email');
-
-      await supabase
-        .from('team_sessions')
-        .update({
-          summary_emailed_at: new Date().toISOString(),
-        })
-        .eq('id', sessionId);
+    if (summarySaveError) {
+      return NextResponse.json({ error: summarySaveError.message }, { status: 500 });
     }
 
-    return NextResponse.json({ ok: true });
+    if (!session.summary_emailed_at && session.created_by) {
+      try {
+        const { data: userData, error: userError } = await supabase.auth.admin.getUserById(
+          session.created_by
+        );
+
+        if (userError) {
+          throw userError;
+        }
+
+        const email = userData?.user?.email;
+
+        if (email) {
+          await sendSummaryEmail({
+            to: email,
+            title: session.title,
+            summary,
+          });
+
+          const { error: emailedAtError } = await supabase
+            .from('team_sessions')
+            .update({
+              summary_emailed_at: new Date().toISOString(),
+            })
+            .eq('id', sessionId);
+
+          if (emailedAtError) {
+            console.error('Failed to mark summary email as sent:', emailedAtError);
+          }
+        }
+      } catch (emailErr) {
+        console.error('Failed to send summary email:', emailErr);
+      }
+    }
+
+    return NextResponse.json({ ok: true, summary });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
