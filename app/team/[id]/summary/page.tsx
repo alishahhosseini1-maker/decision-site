@@ -11,6 +11,7 @@ type Session = {
   deadline: string | null;
   status: 'open' | 'complete';
   expectedParticipants: number | null;
+  created_by: string;
 };
 
 type Input = {
@@ -27,8 +28,12 @@ type Input = {
 type TeamSummary = {
   topSignal?: string;
   decision?: string;
+  tradeoff?: string;
   recommendation?: string;
-  priority?: string[];
+  priorities?: string[];
+  risks?: string[];
+  contradictions?: string[];
+  actions?: string[];
 };
 
 export default function SummaryPage() {
@@ -40,16 +45,27 @@ export default function SummaryPage() {
 
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   useEffect(() => {
     if (!id) return;
 
     const load = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       const { data: sessionData } = await supabase
         .from('team_sessions')
         .select('*')
         .eq('id', id)
         .single();
+
+      if (!user || user.id !== sessionData?.created_by) {
+        setAccessDenied(true);
+        setLoading(false);
+        return;
+      }
 
       const { data: inputData } = await supabase
         .from('team_inputs')
@@ -66,9 +82,12 @@ export default function SummaryPage() {
 
   const formatDeadline = (value?: string | null) => {
     if (!value) return 'No deadline';
-
     return new Date(value).toLocaleString();
   };
+
+  const isClosed =
+    session?.status === 'complete' ||
+    (session?.deadline && new Date(session.deadline).getTime() <= Date.now());
 
   const generateSummary = async () => {
     if (!inputs.length) return;
@@ -86,29 +105,37 @@ export default function SummaryPage() {
     setGenerating(false);
   };
 
-  if (loading || !session) {
+  if (loading) {
     return <div style={{ padding: 20 }}>Loading...</div>;
   }
 
-  const isClosed =
-    session.status === 'complete' ||
-    (session.deadline && new Date(session.deadline).getTime() <= Date.now());
+  if (accessDenied) {
+    return (
+      <div style={{ maxWidth: 600, margin: '80px auto', padding: 20 }}>
+        <h2>Access Restricted</h2>
+        <p>This summary is only available to the review owner.</p>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return <div style={{ padding: 20 }}>Session not found</div>;
+  }
 
   return (
     <div style={{ maxWidth: 800, margin: '40px auto', padding: 20 }}>
-      {/* HEADER */}
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontSize: 12, opacity: 0.5 }}>Decision Layer — Summary</div>
 
-        <h1 style={{ margin: '10px 0' }}>{session.title}</h1>
+        <h1>{session.title}</h1>
 
-        <p style={{ opacity: 0.8 }}>{session.prompt}</p>
+        <p>{session.prompt}</p>
 
-        <div style={{ marginTop: 10, fontSize: 13 }}>
+        <div>
           <strong>Deadline:</strong> {formatDeadline(session.deadline)}
         </div>
 
-        <div style={{ marginTop: 6, fontSize: 13 }}>
+        <div>
           <strong>Responses:</strong> {inputs.length}
           {session.expectedParticipants
             ? ` / ${session.expectedParticipants}`
@@ -116,50 +143,31 @@ export default function SummaryPage() {
         </div>
       </div>
 
-      {/* NOT CLOSED */}
       {!isClosed && (
-        <div
-          style={{
-            padding: 16,
-            borderRadius: 12,
-            background: '#fff',
-            border: '1px solid rgba(0,0,0,0.1)',
-          }}
-        >
-          <strong>This review is still open.</strong>
-
-          <div style={{ marginTop: 8, fontSize: 14, opacity: 0.8 }}>
-            Wait for all inputs or close the review before generating a summary.
-          </div>
+        <div style={{ padding: 16, border: '1px solid #ddd', borderRadius: 12 }}>
+          Review is still open. Summary not available yet.
         </div>
       )}
 
-      {/* CLOSED BUT NO INPUTS */}
       {isClosed && inputs.length === 0 && (
-        <div style={{ marginTop: 16 }}>
-          No inputs were submitted.
-        </div>
+        <div>No inputs submitted.</div>
       )}
 
-      {/* CLOSED + READY */}
       {isClosed && inputs.length > 0 && (
         <>
           {!summary && (
             <button
               onClick={generateSummary}
               style={{
-                marginTop: 20,
                 width: '100%',
                 padding: 14,
                 background: '#111',
                 color: '#fff',
                 borderRadius: 12,
-                border: 'none',
                 fontWeight: 800,
-                cursor: 'pointer',
               }}
             >
-              {generating ? 'Generating...' : 'Generate Summary'}
+              {generating ? 'Generating...' : 'Generate Decision Card'}
             </button>
           )}
 
@@ -167,32 +175,30 @@ export default function SummaryPage() {
             <div
               style={{
                 marginTop: 20,
-                padding: 16,
+                padding: 20,
+                border: '1px solid #ddd',
                 borderRadius: 12,
-                border: '1px solid rgba(0,0,0,0.1)',
                 background: '#fff',
               }}
             >
               <h2>Decision Card</h2>
 
-              <p>
-                <strong>Top Signal:</strong> {summary.topSignal}
-              </p>
+              <p><strong>Top Signal:</strong> {summary.topSignal}</p>
+              <p><strong>Decision:</strong> {summary.decision}</p>
+              <p><strong>Tradeoff:</strong> {summary.tradeoff}</p>
+              <p><strong>Recommendation:</strong> {summary.recommendation}</p>
 
-              <p>
-                <strong>Decision:</strong> {summary.decision}
-              </p>
+              <h3>Priorities</h3>
+              <ul>{summary.priorities?.map((p, i) => <li key={i}>{p}</li>)}</ul>
 
-              <p>
-                <strong>Recommendation:</strong> {summary.recommendation}
-              </p>
+              <h3>Risks</h3>
+              <ul>{summary.risks?.map((r, i) => <li key={i}>{r}</li>)}</ul>
 
-              <h3 style={{ marginTop: 12 }}>Priority</h3>
-              <ul>
-                {summary.priority?.map((p, i) => (
-                  <li key={i}>{p}</li>
-                ))}
-              </ul>
+              <h3>Contradictions</h3>
+              <ul>{summary.contradictions?.map((c, i) => <li key={i}>{c}</li>)}</ul>
+
+              <h3>Actions</h3>
+              <ul>{summary.actions?.map((a, i) => <li key={i}>{a}</li>)}</ul>
             </div>
           )}
         </>
