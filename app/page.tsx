@@ -10,10 +10,46 @@ type TeamSessionPreview = {
   title: string;
   prompt: string;
   deadline: string | null;
+  expectedParticipants: number | null;
   shareUrl: string;
   summaryUrl: string;
   createdAt: string;
 };
+
+function parseLocalDateTimeParts(value: string) {
+  if (!value) return null;
+
+  const [datePart, timePart] = value.split('T');
+  if (!datePart || !timePart) return null;
+
+  const [year, month, day] = datePart.split('-').map(Number);
+  const [hour, minute] = timePart.split(':').map(Number);
+
+  if ([year, month, day, hour, minute].some((n) => Number.isNaN(n))) {
+    return null;
+  }
+
+  return { year, month, day, hour, minute };
+}
+
+function localDateTimeToIso(value: string): string | null {
+  const parts = parseLocalDateTimeParts(value);
+  if (!parts) return null;
+
+  const localDate = new Date(
+    parts.year,
+    parts.month - 1,
+    parts.day,
+    parts.hour,
+    parts.minute,
+    0,
+    0
+  );
+
+  if (Number.isNaN(localDate.getTime())) return null;
+
+  return localDate.toISOString();
+}
 
 export default function HomePage() {
   const [mode, setMode] = useState<Mode>('solo');
@@ -28,6 +64,7 @@ export default function HomePage() {
   const [teamTitle, setTeamTitle] = useState('');
   const [teamPrompt, setTeamPrompt] = useState('');
   const [teamDeadline, setTeamDeadline] = useState('');
+  const [expectedParticipants, setExpectedParticipants] = useState('');
   const [teamError, setTeamError] = useState<string | null>(null);
   const [teamSessionPreview, setTeamSessionPreview] = useState<TeamSessionPreview | null>(null);
   const [copied, setCopied] = useState(false);
@@ -117,12 +154,9 @@ export default function HomePage() {
   }, []);
 
   const handleSignIn = async () => {
-    console.log('Sign In clicked');
     setAuthError(null);
 
     const email = window.prompt('Enter your email to sign in:');
-    console.log('Prompt returned:', email);
-
     if (!email) return;
 
     const { error } = await supabase.auth.signInWithOtp({
@@ -131,8 +165,6 @@ export default function HomePage() {
         emailRedirectTo: window.location.origin,
       },
     });
-
-    console.log('OTP result error:', error);
 
     if (error) {
       if (error.message.toLowerCase().includes('rate limit')) {
@@ -171,12 +203,15 @@ export default function HomePage() {
 
   const formatDeadline = (value?: string | null) => {
     if (!value) return 'No deadline set';
+
     const d = new Date(value);
     if (Number.isNaN(d.getTime())) return 'No deadline set';
+
     return d.toLocaleString(undefined, {
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      year: 'numeric',
       month: 'short',
       day: '2-digit',
-      year: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
     });
@@ -259,6 +294,15 @@ export default function HomePage() {
     if (teamPrompt.trim().length < 16) {
       return 'Make the prompt more specific so the team knows what to answer.';
     }
+
+    if (expectedParticipants.trim()) {
+      const count = Number(expectedParticipants);
+
+      if (!Number.isInteger(count) || count <= 0) {
+        return 'Expected participants must be a positive whole number.';
+      }
+    }
+
     return null;
   };
 
@@ -406,9 +450,6 @@ export default function HomePage() {
         error: authLookupError,
       } = await supabase.auth.getUser();
 
-      console.log('Fresh auth user before insert:', authUser);
-      console.log('Fresh auth lookup error:', authLookupError);
-
       if (authLookupError) {
         setTeamError(authLookupError.message);
         setTeamSessionPreview(null);
@@ -423,14 +464,24 @@ export default function HomePage() {
         return;
       }
 
+      const expectedCount =
+        expectedParticipants.trim() && !Number.isNaN(Number(expectedParticipants))
+          ? Number(expectedParticipants)
+          : null;
+
       const id = `team-${Date.now().toString(36)}`;
       const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      const parsedDeadlineIso = localDateTimeToIso(teamDeadline);
+
+      console.log('RAW teamDeadline:', teamDeadline);
+      console.log('PARSED ISO:', parsedDeadlineIso);
 
       const preview: TeamSessionPreview = {
         id,
         title: teamTitle.trim(),
         prompt: teamPrompt.trim(),
-        deadline: teamDeadline || null,
+        deadline: parsedDeadlineIso,
+        expectedParticipants: expectedCount,
         shareUrl: `${origin}/team/${id}`,
         summaryUrl: `${origin}/team/${id}/summary`,
         createdAt: new Date().toISOString(),
@@ -440,9 +491,9 @@ export default function HomePage() {
         id: preview.id,
         title: preview.title,
         prompt: preview.prompt,
-        deadline: preview.deadline,
+        deadline: parsedDeadlineIso,
         share_url: preview.shareUrl,
-        
+        expected_participants: expectedCount,
       };
 
       console.log('Insert payload:', payload);
@@ -495,8 +546,6 @@ export default function HomePage() {
     const {
       data: { user: freshUser },
     } = await supabase.auth.getUser();
-
-    console.log('Button click fresh user:', freshUser);
 
     if (!freshUser) {
       await handleSignIn();
@@ -1073,6 +1122,25 @@ export default function HomePage() {
                     style={inputStyle}
                   />
                 </div>
+
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>
+                    Expected participants <span style={{ opacity: 0.5, fontWeight: 500 }}>(optional)</span>
+                  </div>
+                  <input
+                    type="number"
+                    min={1}
+                    step={1}
+                    value={expectedParticipants}
+                    onChange={(e) => {
+                      setExpectedParticipants(e.target.value);
+                      if (teamError) setTeamError(null);
+                      if (teamSessionPreview) setTeamSessionPreview(null);
+                    }}
+                    placeholder="Example: 5"
+                    style={inputStyle}
+                  />
+                </div>
               </div>
 
               {!user && (
@@ -1142,6 +1210,10 @@ export default function HomePage() {
                       </div>
                       <div>
                         <strong>Deadline:</strong> {formatDeadline(teamSessionPreview.deadline)}
+                      </div>
+                      <div>
+                        <strong>Expected participants:</strong>{' '}
+                        {teamSessionPreview.expectedParticipants ?? 'Not set'}
                       </div>
                       <div>
                         <strong>Session ID:</strong> {teamSessionPreview.id}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '../../lib/supabase';
 
@@ -11,6 +11,8 @@ type StoredTeamSession = {
   deadline: string | null;
   shareUrl: string;
   createdAt: string;
+  status: 'open' | 'complete';
+  expectedParticipants: number | null;
 };
 
 export default function TeamParticipantPage() {
@@ -29,9 +31,23 @@ export default function TeamParticipantPage() {
   const [leadershipNeed, setLeadershipNeed] = useState('');
   const [anythingElse, setAnythingElse] = useState('');
 
+  const [responseCount, setResponseCount] = useState<number>(0);
+
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  const isDeadlinePassed = (deadline?: string | null) => {
+    if (!deadline) return false;
+    const d = new Date(deadline);
+    if (Number.isNaN(d.getTime())) return false;
+    return Date.now() >= d.getTime();
+  };
+
+  const reviewClosed = useMemo(() => {
+    if (!session) return false;
+    return session.status === 'complete' || isDeadlinePassed(session.deadline);
+  }, [session]);
 
   useEffect(() => {
     if (!id) return;
@@ -52,6 +68,54 @@ export default function TeamParticipantPage() {
         return;
       }
 
+      let nextStatus: 'open' | 'complete' = data.status;
+
+      if (
+        data.status === 'open' &&
+        data.deadline &&
+        new Date(data.deadline).getTime() <= Date.now()
+      ) {
+        const { error: closeError } = await supabase
+          .from('team_sessions')
+          .update({
+            status: 'complete',
+            closed_at: new Date().toISOString(),
+          })
+          .eq('id', id);
+
+        if (!closeError) {
+          nextStatus = 'complete';
+        }
+      }
+
+      const { count } = await supabase
+        .from('team_inputs')
+        .select('*', { count: 'exact', head: true })
+        .eq('session_id', id);
+
+      const safeCount = count ?? 0;
+
+      if (
+        nextStatus === 'open' &&
+        data.expected_participants &&
+        safeCount >= data.expected_participants
+      ) {
+        const { error: thresholdCloseError } = await supabase
+          .from('team_sessions')
+          .update({
+            status: 'complete',
+            closed_at: new Date().toISOString(),
+            summary_generated_at: new Date().toISOString(),
+          })
+          .eq('id', id);
+
+        if (!thresholdCloseError) {
+          nextStatus = 'complete';
+        }
+      }
+
+      setResponseCount(safeCount);
+
       setSession({
         id: data.id,
         title: data.title,
@@ -59,6 +123,8 @@ export default function TeamParticipantPage() {
         deadline: data.deadline,
         shareUrl: data.share_url,
         createdAt: data.created_at,
+        status: nextStatus,
+        expectedParticipants: data.expected_participants,
       });
 
       setLoadingSession(false);
@@ -69,12 +135,15 @@ export default function TeamParticipantPage() {
 
   const formatDeadline = (value?: string | null) => {
     if (!value) return 'No deadline set';
+
     const d = new Date(value);
     if (Number.isNaN(d.getTime())) return 'No deadline set';
+
     return d.toLocaleString(undefined, {
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      year: 'numeric',
       month: 'short',
       day: '2-digit',
-      year: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
     });
@@ -90,6 +159,13 @@ export default function TeamParticipantPage() {
   };
 
   const handleSubmit = async () => {
+    if (!session) return;
+
+    if (session.status === 'complete' || isDeadlinePassed(session.deadline)) {
+      setError('This review is closed. Inputs are no longer being accepted.');
+      return;
+    }
+
     const validationError = validate();
     if (validationError) {
       setError(validationError);
@@ -99,7 +175,7 @@ export default function TeamParticipantPage() {
     setSubmitting(true);
     setError(null);
 
-    const { error } = await supabase.from('team_inputs').insert({
+    const { error: insertError } = await supabase.from('team_inputs').insert({
       session_id: id,
       name: name.trim() || null,
       department: department.trim(),
@@ -110,10 +186,36 @@ export default function TeamParticipantPage() {
       next_action: anythingElse.trim() || null,
     });
 
-    if (error) {
-      setError(error.message);
+    if (insertError) {
+      setError(insertError.message);
       setSubmitting(false);
       return;
+    }
+
+    const { count } = await supabase
+      .from('team_inputs')
+      .select('*', { count: 'exact', head: true })
+      .eq('session_id', id);
+
+    const safeCount = count ?? responseCount + 1;
+    setResponseCount(safeCount);
+
+    if (session.expectedParticipants && safeCount >= session.expectedParticipants) {
+      const { error: closeError } = await supabase
+        .from('team_sessions')
+        .update({
+          status: 'complete',
+          closed_at: new Date().toISOString(),
+          summary_generated_at: new Date().toISOString(),
+        })
+        .eq('id', id);
+
+      if (!closeError) {
+        setSession({
+          ...session,
+          status: 'complete',
+        });
+      }
     }
 
     setSubmitted(true);
@@ -205,6 +307,37 @@ export default function TeamParticipantPage() {
             >
               Leadership will receive this later as part of a summarized team review.
             </div>
+
+            <div
+              style={{
+                marginTop: 12,
+                border: '1px solid rgba(0,0,0,0.08)',
+                borderRadius: 12,
+                background: 'rgba(0,0,0,0.02)',
+                padding: '12px 14px',
+                fontSize: 13,
+                lineHeight: 1.55,
+              }}
+            >
+              <strong>Responses received:</strong> {responseCount}
+              {session.expectedParticipants ? ` / ${session.expectedParticipants}` : ''}
+            </div>
+
+            {session.status === 'complete' || isDeadlinePassed(session.deadline) ? (
+              <div
+                style={{
+                  marginTop: 12,
+                  border: '1px solid rgba(0,0,0,0.10)',
+                  borderRadius: 14,
+                  background: '#fff',
+                  padding: 14,
+                  fontSize: 13.5,
+                  lineHeight: 1.6,
+                }}
+              >
+                This review is closed. The summary is being used as the final decision artifact.
+              </div>
+            ) : null}
           </div>
         </main>
       </div>
@@ -236,16 +369,53 @@ export default function TeamParticipantPage() {
           <div
             style={{
               marginTop: 14,
-              border: '1px solid rgba(0,0,0,0.08)',
-              borderRadius: 12,
-              background: 'rgba(0,0,0,0.02)',
-              padding: '12px 14px',
-              fontSize: 13,
-              lineHeight: 1.55,
+              display: 'grid',
+              gap: 10,
             }}
           >
-            <strong>Deadline:</strong> {formatDeadline(session.deadline)}
+            <div
+              style={{
+                border: '1px solid rgba(0,0,0,0.08)',
+                borderRadius: 12,
+                background: 'rgba(0,0,0,0.02)',
+                padding: '12px 14px',
+                fontSize: 13,
+                lineHeight: 1.55,
+              }}
+            >
+              <strong>Deadline:</strong> {formatDeadline(session.deadline)}
+            </div>
+
+            <div
+              style={{
+                border: '1px solid rgba(0,0,0,0.08)',
+                borderRadius: 12,
+                background: 'rgba(0,0,0,0.02)',
+                padding: '12px 14px',
+                fontSize: 13,
+                lineHeight: 1.55,
+              }}
+            >
+              <strong>Responses received:</strong> {responseCount}
+              {session.expectedParticipants ? ` / ${session.expectedParticipants}` : ''}
+            </div>
           </div>
+
+          {reviewClosed ? (
+            <div
+              style={{
+                marginTop: 16,
+                border: '1px solid rgba(0,0,0,0.10)',
+                borderRadius: 14,
+                background: '#fff',
+                padding: 14,
+                fontSize: 13.5,
+                lineHeight: 1.6,
+              }}
+            >
+              This review is closed. Inputs are no longer being accepted.
+            </div>
+          ) : null}
 
           <div style={{ marginTop: 20, display: 'grid', gap: 14 }}>
             <div>
@@ -256,6 +426,7 @@ export default function TeamParticipantPage() {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Your name"
                 style={inputStyle}
+                disabled={reviewClosed}
               />
             </div>
 
@@ -267,6 +438,7 @@ export default function TeamParticipantPage() {
                 onChange={(e) => setDepartment(e.target.value)}
                 placeholder="Example: Operations"
                 style={inputStyle}
+                disabled={reviewClosed}
               />
             </div>
 
@@ -277,6 +449,7 @@ export default function TeamParticipantPage() {
                 onChange={(e) => setMovedForward(e.target.value)}
                 rows={4}
                 style={{ ...inputStyle, resize: 'vertical' }}
+                disabled={reviewClosed}
               />
             </div>
 
@@ -287,6 +460,7 @@ export default function TeamParticipantPage() {
                 onChange={(e) => setOffTrack(e.target.value)}
                 rows={4}
                 style={{ ...inputStyle, resize: 'vertical' }}
+                disabled={reviewClosed}
               />
             </div>
 
@@ -297,6 +471,7 @@ export default function TeamParticipantPage() {
                 onChange={(e) => setBiggestRisk(e.target.value)}
                 rows={4}
                 style={{ ...inputStyle, resize: 'vertical' }}
+                disabled={reviewClosed}
               />
             </div>
 
@@ -307,6 +482,7 @@ export default function TeamParticipantPage() {
                 onChange={(e) => setLeadershipNeed(e.target.value)}
                 rows={4}
                 style={{ ...inputStyle, resize: 'vertical' }}
+                disabled={reviewClosed}
               />
             </div>
 
@@ -317,6 +493,7 @@ export default function TeamParticipantPage() {
                 onChange={(e) => setAnythingElse(e.target.value)}
                 rows={4}
                 style={{ ...inputStyle, resize: 'vertical' }}
+                disabled={reviewClosed}
               />
             </div>
           </div>
@@ -330,7 +507,7 @@ export default function TeamParticipantPage() {
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={submitting}
+            disabled={submitting || reviewClosed}
             style={{
               marginTop: 16,
               width: '100%',
@@ -341,12 +518,12 @@ export default function TeamParticipantPage() {
               color: '#fff',
               fontSize: 14,
               fontWeight: 900,
-              cursor: submitting ? 'default' : 'pointer',
-              opacity: submitting ? 0.82 : 1,
+              cursor: submitting || reviewClosed ? 'default' : 'pointer',
+              opacity: submitting || reviewClosed ? 0.72 : 1,
               boxShadow: '0 10px 20px rgba(0,0,0,0.12)',
             }}
           >
-            {submitting ? 'Submitting...' : 'Submit Team Input'}
+            {reviewClosed ? 'Review Closed' : submitting ? 'Submitting...' : 'Submit Team Input'}
           </button>
         </section>
       </main>
