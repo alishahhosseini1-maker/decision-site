@@ -335,7 +335,29 @@ export default function TeamParticipantPage() {
                   lineHeight: 1.6,
                 }}
               >
-                This review is closed. The summary is being used as the final decision artifact.
+                <div>
+                  This review is closed. The summary is being used as the final decision artifact.
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.location.href = `/team/${session.id}/summary`;
+                  }}
+                  style={{
+                    marginTop: 14,
+                    width: '100%',
+                    padding: '14px 16px',
+                    borderRadius: 12,
+                    border: 'none',
+                    background: '#0b0b0b',
+                    color: '#fff',
+                    fontWeight: 900,
+                    cursor: 'pointer',
+                  }}
+                >
+                  View Decision Summary
+                </button>
               </div>
             ) : null}
           </div>
@@ -413,7 +435,29 @@ export default function TeamParticipantPage() {
                 lineHeight: 1.6,
               }}
             >
-              This review is closed. Inputs are no longer being accepted. The summary will be used as the final decision artifact.
+              <div>
+                This review is closed. Inputs are no longer being accepted. The summary will be used as the final decision artifact.
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  window.location.href = `/team/${session.id}/summary`;
+                }}
+                style={{
+                  marginTop: 14,
+                  width: '100%',
+                  padding: '14px 16px',
+                  borderRadius: 12,
+                  border: 'none',
+                  background: '#0b0b0b',
+                  color: '#fff',
+                  fontWeight: 900,
+                  cursor: 'pointer',
+                }}
+              >
+                View Decision Summary
+              </button>
             </div>
           ) : null}
 
