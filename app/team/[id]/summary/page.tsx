@@ -402,7 +402,8 @@ export default function SummaryPage() {
     (session.status === 'complete' ||
       (!!session.deadline && new Date(session.deadline).getTime() <= Date.now()));
 
-  const summaryReady = !!session?.summary_generated_at || !!session?.status === 'complete';
+      const summaryReady =
+      !!session?.summary_generated_at || session?.status === 'complete';
 
   const primaryRiskSignal =
     summary?.topSignal?.trim() ||
