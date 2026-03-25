@@ -76,6 +76,8 @@ export default function SummaryPage() {
   const [loading, setLoading] = useState(true);
   const [finalizing, setFinalizing] = useState(false);
   const [closing, setClosing] = useState(false);
+  const [archiving, setArchiving] = useState(false);
+  const [dismissing, setDismissing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [session, setSession] = useState<TeamSession | null>(null);
@@ -114,6 +116,55 @@ export default function SummaryPage() {
       setError(err?.message || 'Failed to close and generate summary.');
     } finally {
       setClosing(false);
+    }
+  }
+
+  async function handleArchiveSummary() {
+    try {
+      setArchiving(true);
+      setError(null);
+
+      const { error } = await supabase
+        .from('team_sessions')
+        .update({
+          archived_at: new Date().toISOString(),
+          dismissed_at: null,
+        })
+        .eq('id', id);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      window.location.href = '/archive';
+    } catch (err: any) {
+      setError(err?.message || 'Failed to archive summary.');
+    } finally {
+      setArchiving(false);
+    }
+  }
+
+  async function handleDismissFromHome() {
+    try {
+      setDismissing(true);
+      setError(null);
+
+      const { error } = await supabase
+        .from('team_sessions')
+        .update({
+          dismissed_at: new Date().toISOString(),
+        })
+        .eq('id', id);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      window.location.href = '/';
+    } catch (err: any) {
+      setError(err?.message || 'Failed to dismiss summary from home.');
+    } finally {
+      setDismissing(false);
     }
   }
 
@@ -345,6 +396,22 @@ export default function SummaryPage() {
                 className="rounded-full border border-black/10 px-4 py-2 text-sm text-black transition hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {closing ? 'Closing...' : 'Close & Generate Summary'}
+              </button>
+
+              <button
+                onClick={handleDismissFromHome}
+                disabled={dismissing}
+                className="rounded-full border border-black/10 px-4 py-2 text-sm text-black transition hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {dismissing ? 'Dismissing...' : 'Dismiss from Home'}
+              </button>
+
+              <button
+                onClick={handleArchiveSummary}
+                disabled={archiving}
+                className="rounded-full border border-black/10 px-4 py-2 text-sm text-black transition hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {archiving ? 'Archiving...' : 'Archive Summary'}
               </button>
             </div>
           </div>

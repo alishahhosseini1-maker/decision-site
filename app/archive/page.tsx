@@ -52,6 +52,7 @@ export default function ArchivePage() {
           .select('id, title, summary_generated_at, dismissed_at, archived_at')
           .eq('created_by', authUser.id)
           .not('summary_generated_at', 'is', null)
+          .is('deleted_at', null)
           .or('dismissed_at.not.is.null,archived_at.not.is.null')
           .order('summary_generated_at', { ascending: false });
 
@@ -135,6 +136,29 @@ export default function ArchivePage() {
       );
     } catch (err: any) {
       window.alert(err?.message || 'Failed to archive summary.');
+    }
+  };
+
+  const handleDelete = async (sessionId: string) => {
+    const confirmDelete = window.confirm('Delete this summary permanently?');
+
+    if (!confirmDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from('team_sessions')
+        .update({
+          deleted_at: new Date().toISOString(),
+        })
+        .eq('id', sessionId);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      setItems((prev) => prev.filter((item) => item.id !== sessionId));
+    } catch (err: any) {
+      window.alert(err?.message || 'Failed to delete summary.');
     }
   };
 
@@ -259,6 +283,22 @@ export default function ArchivePage() {
                         }}
                       >
                         Restore
+                      </button>
+
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        style={{
+                          borderRadius: 999,
+                          border: '1px solid rgba(220,38,38,0.25)',
+                          padding: '8px 12px',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          background: '#fff',
+                          cursor: 'pointer',
+                          color: '#dc2626',
+                        }}
+                      >
+                        Delete
                       </button>
                     </div>
                   </div>
