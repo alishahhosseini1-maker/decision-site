@@ -16,6 +16,12 @@ type TeamSessionPreview = {
   createdAt: string;
 };
 
+type ReadySummarySession = {
+  id: string;
+  title: string;
+  summary_generated_at: string | null;
+};
+
 function parseLocalDateTimeParts(value: string) {
   if (!value) return null;
 
@@ -57,6 +63,9 @@ export default function HomePage() {
   const [user, setUser] = useState<{ id: string; email?: string | null } | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
+
+  const [readySummaries, setReadySummaries] = useState<ReadySummarySession[]>([]);
+  const [loadingReadySummaries, setLoadingReadySummaries] = useState(false);
 
   const [decision, setDecision] = useState('');
   const [context, setContext] = useState('');
@@ -152,6 +161,32 @@ export default function HomePage() {
       subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    const loadReadySummaries = async () => {
+      if (!user?.id) {
+        setReadySummaries([]);
+        return;
+      }
+
+      setLoadingReadySummaries(true);
+
+      const { data, error } = await supabase
+        .from('team_sessions')
+        .select('id, title, summary_generated_at')
+        .eq('created_by', user.id)
+        .not('summary_generated_at', 'is', null)
+        .order('summary_generated_at', { ascending: false });
+
+      if (!error) {
+        setReadySummaries((data || []) as ReadySummarySession[]);
+      }
+
+      setLoadingReadySummaries(false);
+    };
+
+    void loadReadySummaries();
+  }, [user?.id]);
 
   const handleSignIn = async () => {
     setAuthError(null);
@@ -473,9 +508,6 @@ export default function HomePage() {
       const origin = typeof window !== 'undefined' ? window.location.origin : '';
       const parsedDeadlineIso = localDateTimeToIso(teamDeadline);
 
-      console.log('RAW teamDeadline:', teamDeadline);
-      console.log('PARSED ISO:', parsedDeadlineIso);
-
       const preview: TeamSessionPreview = {
         id,
         title: teamTitle.trim(),
@@ -494,14 +526,10 @@ export default function HomePage() {
         deadline: parsedDeadlineIso,
         share_url: preview.shareUrl,
         expected_participants: expectedCount,
+        created_by: authUser.id,
       };
 
-      console.log('Insert payload:', payload);
-
       const { data, error } = await supabase.from('team_sessions').insert(payload).select();
-
-      console.log('Insert response data:', data);
-      console.log('Insert response error:', error);
 
       if (error) {
         setTeamError(error.message);
@@ -666,6 +694,58 @@ export default function HomePage() {
             )}
           </div>
         </header>
+
+        {user && (
+          <section style={{ maxWidth: 720, margin: '18px auto 0' }}>
+            <div
+              style={{
+                border: '1px solid rgba(16,185,129,0.22)',
+                borderRadius: 16,
+                background: 'rgba(16,185,129,0.06)',
+                padding: 16,
+              }}
+            >
+              <div style={{ fontSize: 13, fontWeight: 900, marginBottom: 8 }}>
+                Decision summaries
+              </div>
+
+              {loadingReadySummaries ? (
+                <div style={{ fontSize: 13.5, opacity: 0.72 }}>Checking for ready summaries...</div>
+              ) : readySummaries.length === 0 ? (
+                <div style={{ fontSize: 13.5, opacity: 0.72 }}>No summaries ready yet.</div>
+              ) : (
+                <>
+                  <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 10 }}>
+                    {readySummaries.length} summary{readySummaries.length === 1 ? '' : 'ies'} ready
+                  </div>
+
+                  <div style={{ display: 'grid', gap: 10 }}>
+                    {readySummaries.slice(0, 3).map((item) => (
+                      <a
+                        key={item.id}
+                        href={`/team/${item.id}/summary`}
+                        style={{
+                          display: 'block',
+                          borderRadius: 12,
+                          border: '1px solid rgba(0,0,0,0.08)',
+                          background: '#fff',
+                          padding: '12px 14px',
+                          color: '#111',
+                          textDecoration: 'none',
+                        }}
+                      >
+                        <div style={{ fontSize: 13.5, fontWeight: 800 }}>{item.title}</div>
+                        <div style={{ marginTop: 4, fontSize: 12.5, opacity: 0.66 }}>
+                          Summary ready
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </section>
+        )}
 
         <section style={{ textAlign: 'center', marginTop: 56 }}>
           <h1 style={{ fontSize: 64, margin: 0, letterSpacing: -1.1 }}>Decision Layer</h1>

@@ -12,6 +12,7 @@ type Session = {
   status: 'open' | 'complete';
   expectedParticipants: number | null;
   created_by: string | null;
+  summary_generated_at?: string | null;
 };
 
 type Input = {
@@ -129,7 +130,6 @@ export default function SummaryPage() {
             .update({
               status: 'complete',
               closed_at: new Date().toISOString(),
-              summary_generated_at: new Date().toISOString(),
             })
             .eq('id', id);
 
@@ -181,6 +181,24 @@ export default function SummaryPage() {
           }
 
           setSummary(result);
+
+          const generatedAt = new Date().toISOString();
+
+          await supabase
+            .from('team_sessions')
+            .update({
+              summary_generated_at: generatedAt,
+            })
+            .eq('id', id);
+
+          setSession((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  summary_generated_at: generatedAt,
+                }
+              : prev
+          );
         } catch (err: any) {
           setError(err?.message || 'Failed to generate summary.');
         } finally {
@@ -355,6 +373,16 @@ export default function SummaryPage() {
     lineHeight: 1.55,
   };
 
+  const readyBannerStyle: React.CSSProperties = {
+    marginTop: 14,
+    padding: 12,
+    borderRadius: 10,
+    background: '#ecfdf5',
+    border: '1px solid #10b981',
+    fontSize: 13,
+    fontWeight: 700,
+  };
+
   const renderList = (items?: string[], emptyLabel = 'None identified yet.') => {
     if (!items || items.length === 0) {
       return <p style={emptyTextStyle}>{emptyLabel}</p>;
@@ -373,6 +401,8 @@ export default function SummaryPage() {
     !!session &&
     (session.status === 'complete' ||
       (!!session.deadline && new Date(session.deadline).getTime() <= Date.now()));
+
+  const summaryReady = !!session?.summary_generated_at || !!session?.status === 'complete';
 
   const primaryRiskSignal =
     summary?.topSignal?.trim() ||
@@ -453,6 +483,12 @@ export default function SummaryPage() {
             {session.expectedParticipants ? ` / ${session.expectedParticipants}` : ''}
           </div>
         </div>
+
+        {summaryReady && (
+          <div style={readyBannerStyle}>
+            Decision summary ready
+          </div>
+        )}
       </div>
 
       {error && (
