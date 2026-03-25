@@ -145,10 +145,19 @@ export default function SummaryPage() {
             body: JSON.stringify({ sessionId: id }),
           });
 
-          const finalizeJson = await finalizeRes.json();
+          const rawText = await finalizeRes.text();
+
+          let finalizeJson: any = null;
+          try {
+            finalizeJson = JSON.parse(rawText);
+          } catch {
+            finalizeJson = null;
+          }
 
           if (!finalizeRes.ok) {
-            throw new Error(finalizeJson?.error || 'Failed to finalize session.');
+            throw new Error(
+              finalizeJson?.error || rawText || 'Failed to finalize session.'
+            );
           }
 
           const { data: refreshedSession, error: refreshedError } = await supabase
@@ -273,9 +282,7 @@ export default function SummaryPage() {
             <p className="text-sm leading-6 text-black/70">{session.prompt}</p>
 
             <div className="flex flex-wrap gap-3 text-xs text-black/55">
-              <span>
-                Status: {session.status || 'unknown'}
-              </span>
+              <span>Status: {session.status || 'unknown'}</span>
               <span>
                 Deadline: {session.deadline ? new Date(session.deadline).toLocaleString() : 'None'}
               </span>
