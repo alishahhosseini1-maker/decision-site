@@ -163,13 +163,20 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+
     const loadReadySummaries = async () => {
       if (!user?.id) {
-        setReadySummaries([]);
+        if (!cancelled) {
+          setReadySummaries([]);
+          setLoadingReadySummaries(false);
+        }
         return;
       }
 
-      setLoadingReadySummaries(true);
+      if (!cancelled) {
+        setLoadingReadySummaries(true);
+      }
 
       const { data, error } = await supabase
         .from('team_sessions')
@@ -178,14 +185,22 @@ export default function HomePage() {
         .not('summary_generated_at', 'is', null)
         .order('summary_generated_at', { ascending: false });
 
-      if (!error) {
-        setReadySummaries((data || []) as ReadySummarySession[]);
-      }
+      if (!cancelled) {
+        if (error) {
+          setReadySummaries([]);
+        } else {
+          setReadySummaries((data || []) as ReadySummarySession[]);
+        }
 
-      setLoadingReadySummaries(false);
+        setLoadingReadySummaries(false);
+      }
     };
 
     void loadReadySummaries();
+
+    return () => {
+      cancelled = true;
+    };
   }, [user?.id]);
 
   const handleSignIn = async () => {
@@ -529,7 +544,7 @@ export default function HomePage() {
         created_by: authUser.id,
       };
 
-      const { data, error } = await supabase.from('team_sessions').insert(payload).select();
+      const { error } = await supabase.from('team_sessions').insert(payload).select();
 
       if (error) {
         setTeamError(error.message);
@@ -699,9 +714,9 @@ export default function HomePage() {
           <section style={{ maxWidth: 720, margin: '18px auto 0' }}>
             <div
               style={{
-                border: '1px solid rgba(16,185,129,0.22)',
+                border: '1px solid rgba(16,185,129,0.25)',
                 borderRadius: 16,
-                background: 'rgba(16,185,129,0.06)',
+                background: 'rgba(16,185,129,0.08)',
                 padding: 16,
               }}
             >
@@ -710,17 +725,21 @@ export default function HomePage() {
               </div>
 
               {loadingReadySummaries ? (
-                <div style={{ fontSize: 13.5, opacity: 0.72 }}>Checking for ready summaries...</div>
+                <div style={{ fontSize: 13.5, opacity: 0.72 }}>
+                  Checking for ready summaries...
+                </div>
               ) : readySummaries.length === 0 ? (
-                <div style={{ fontSize: 13.5, opacity: 0.72 }}>No summaries ready yet.</div>
+                <div style={{ fontSize: 13.5, opacity: 0.72 }}>
+                  No summaries ready yet.
+                </div>
               ) : (
                 <>
-                  <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 10 }}>
-                    {readySummaries.length} summary{readySummaries.length === 1 ? '' : 'ies'} ready
+                  <div style={{ fontSize: 14, fontWeight: 900, marginBottom: 10 }}>
+                    {readySummaries.length} ready
                   </div>
 
                   <div style={{ display: 'grid', gap: 10 }}>
-                    {readySummaries.slice(0, 3).map((item) => (
+                    {readySummaries.map((item) => (
                       <a
                         key={item.id}
                         href={`/team/${item.id}/summary`}
@@ -734,9 +753,10 @@ export default function HomePage() {
                           textDecoration: 'none',
                         }}
                       >
-                        <div style={{ fontSize: 13.5, fontWeight: 800 }}>{item.title}</div>
-                        <div style={{ marginTop: 4, fontSize: 12.5, opacity: 0.66 }}>
-                          Summary ready
+                        <div style={{ fontSize: 14, fontWeight: 900 }}>{item.title}</div>
+
+                        <div style={{ marginTop: 4, fontSize: 12.5, opacity: 0.65 }}>
+                          Summary ready • Open
                         </div>
                       </a>
                     ))}
