@@ -75,12 +75,47 @@ export default function SummaryPage() {
 
   const [loading, setLoading] = useState(true);
   const [finalizing, setFinalizing] = useState(false);
+  const [closing, setClosing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [session, setSession] = useState<TeamSession | null>(null);
   const [summary, setSummary] = useState<TeamSummary | null>(null);
   const [inputs, setInputs] = useState<Input[]>([]);
   const [showRawInputs, setShowRawInputs] = useState(false);
+
+  async function handleCloseAndGenerate() {
+    try {
+      setClosing(true);
+      setError(null);
+
+      const res = await fetch('/api/team/finalize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ sessionId: id }),
+      });
+
+      const rawText = await res.text();
+
+      let json: any = null;
+      try {
+        json = JSON.parse(rawText);
+      } catch {
+        json = null;
+      }
+
+      if (!res.ok) {
+        throw new Error(json?.error || rawText || 'Failed to close and generate summary.');
+      }
+
+      window.location.reload();
+    } catch (err: any) {
+      setError(err?.message || 'Failed to close and generate summary.');
+    } finally {
+      setClosing(false);
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -301,6 +336,16 @@ export default function SummaryPage() {
                   ? `Sent ${new Date(session.summary_emailed_at).toLocaleString()}`
                   : 'Not sent yet'}
               </span>
+            </div>
+
+            <div className="flex flex-wrap gap-3 pt-2">
+              <button
+                onClick={handleCloseAndGenerate}
+                disabled={closing}
+                className="rounded-full border border-black/10 px-4 py-2 text-sm text-black transition hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {closing ? 'Closing...' : 'Close & Generate Summary'}
+              </button>
             </div>
           </div>
         </div>

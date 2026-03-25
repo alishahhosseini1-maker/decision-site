@@ -20,6 +20,8 @@ type ReadySummarySession = {
   id: string;
   title: string;
   summary_generated_at: string | null;
+  dismissed_at: string | null;
+  archived_at: string | null;
 };
 
 function parseLocalDateTimeParts(value: string) {
@@ -180,9 +182,11 @@ export default function HomePage() {
 
       const { data, error } = await supabase
         .from('team_sessions')
-        .select('id, title, summary_generated_at')
+        .select('id, title, summary_generated_at, dismissed_at, archived_at')
         .eq('created_by', user.id)
         .not('summary_generated_at', 'is', null)
+        .is('dismissed_at', null)
+        .is('archived_at', null)
         .order('summary_generated_at', { ascending: false });
 
       if (!cancelled) {
@@ -235,6 +239,24 @@ export default function HomePage() {
 
     if (error) {
       setAuthError(error.message);
+    }
+  };
+
+  const handleDismiss = async (sessionId: string) => {
+    try {
+      const { error } = await supabase
+        .from('team_sessions')
+        .update({ dismissed_at: new Date().toISOString() })
+        .eq('id', sessionId);
+
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      setReadySummaries((prev) => prev.filter((s) => s.id !== sessionId));
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -699,9 +721,28 @@ export default function HomePage() {
             )}
 
             {authLoading ? null : user ? (
-              <button type="button" onClick={handleSignOut} style={topActionButtonStyle}>
-                Sign Out
-              </button>
+              <>
+                <a
+                  href="/archive"
+                  style={{
+                    borderRadius: 999,
+                    border: '1px solid rgba(0,0,0,0.12)',
+                    padding: '10px 14px',
+                    background: '#fff',
+                    color: '#111',
+                    fontSize: 12.5,
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    textDecoration: 'none',
+                  }}
+                >
+                  Archive
+                </a>
+
+                <button type="button" onClick={handleSignOut} style={topActionButtonStyle}>
+                  Sign Out
+                </button>
+              </>
             ) : (
               <button type="button" onClick={handleSignIn} style={topActionButtonStyle}>
                 Sign In
@@ -740,25 +781,50 @@ export default function HomePage() {
 
                   <div style={{ display: 'grid', gap: 10 }}>
                     {readySummaries.map((item) => (
-                      <a
+                      <div
                         key={item.id}
-                        href={`/team/${item.id}/summary`}
                         style={{
-                          display: 'block',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: 10,
                           borderRadius: 12,
                           border: '1px solid rgba(0,0,0,0.08)',
                           background: '#fff',
                           padding: '12px 14px',
-                          color: '#111',
-                          textDecoration: 'none',
                         }}
                       >
-                        <div style={{ fontSize: 14, fontWeight: 900 }}>{item.title}</div>
+                        <a
+                          href={`/team/${item.id}/summary`}
+                          style={{
+                            flex: 1,
+                            color: '#111',
+                            textDecoration: 'none',
+                          }}
+                        >
+                          <div style={{ fontSize: 14, fontWeight: 900 }}>{item.title}</div>
 
-                        <div style={{ marginTop: 4, fontSize: 12.5, opacity: 0.65 }}>
-                          Summary ready • Open
-                        </div>
-                      </a>
+                          <div style={{ marginTop: 4, fontSize: 12.5, opacity: 0.65 }}>
+                            Summary ready • Open
+                          </div>
+                        </a>
+
+                        <button
+                          onClick={() => handleDismiss(item.id)}
+                          style={{
+                            borderRadius: 999,
+                            border: '1px solid rgba(0,0,0,0.12)',
+                            padding: '6px 10px',
+                            fontSize: 11.5,
+                            fontWeight: 700,
+                            background: '#fff',
+                            cursor: 'pointer',
+                            opacity: 0.7,
+                          }}
+                        >
+                          Dismiss
+                        </button>
+                      </div>
                     ))}
                   </div>
                 </>
