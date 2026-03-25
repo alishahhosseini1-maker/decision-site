@@ -413,118 +413,115 @@ export default function TeamParticipantPage() {
                 lineHeight: 1.6,
               }}
             >
-              This review is closed. Inputs are no longer being accepted.
+              This review is closed. Inputs are no longer being accepted. The summary will be used as the final decision artifact.
             </div>
           ) : null}
 
-          <div style={{ marginTop: 20, display: 'grid', gap: 14 }}>
-            <div>
-              <div style={labelStyle}>Name (optional)</div>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Your name"
-                style={inputStyle}
-                disabled={reviewClosed}
-              />
-            </div>
+          {!reviewClosed && (
+            <>
+              <div style={{ marginTop: 20, display: 'grid', gap: 14 }}>
+                <div>
+                  <div style={labelStyle}>Name (optional)</div>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Your name"
+                    style={inputStyle}
+                  />
+                </div>
 
-            <div>
-              <div style={labelStyle}>Department</div>
-              <input
-                type="text"
-                value={department}
-                onChange={(e) => setDepartment(e.target.value)}
-                placeholder="Example: Operations"
-                style={inputStyle}
-                disabled={reviewClosed}
-              />
-            </div>
+                <div>
+                  <div style={labelStyle}>Department</div>
+                  <input
+                    type="text"
+                    value={department}
+                    onChange={(e) => setDepartment(e.target.value)}
+                    placeholder="Example: Operations"
+                    style={inputStyle}
+                  />
+                </div>
 
-            <div>
-              <div style={labelStyle}>1. What moved forward this week?</div>
-              <textarea
-                value={movedForward}
-                onChange={(e) => setMovedForward(e.target.value)}
-                rows={4}
-                style={{ ...inputStyle, resize: 'vertical' }}
-                disabled={reviewClosed}
-              />
-            </div>
+                <div>
+                  <div style={labelStyle}>1. What moved forward this week?</div>
+                  <textarea
+                    value={movedForward}
+                    onChange={(e) => setMovedForward(e.target.value)}
+                    rows={4}
+                    style={{ ...inputStyle, resize: 'vertical' }}
+                  />
+                </div>
 
-            <div>
-              <div style={labelStyle}>2. What is not working or off track?</div>
-              <textarea
-                value={offTrack}
-                onChange={(e) => setOffTrack(e.target.value)}
-                rows={4}
-                style={{ ...inputStyle, resize: 'vertical' }}
-                disabled={reviewClosed}
-              />
-            </div>
+                <div>
+                  <div style={labelStyle}>2. What is not working or off track?</div>
+                  <textarea
+                    value={offTrack}
+                    onChange={(e) => setOffTrack(e.target.value)}
+                    rows={4}
+                    style={{ ...inputStyle, resize: 'vertical' }}
+                  />
+                </div>
 
-            <div>
-              <div style={labelStyle}>3. What is the biggest risk or issue right now?</div>
-              <textarea
-                value={biggestRisk}
-                onChange={(e) => setBiggestRisk(e.target.value)}
-                rows={4}
-                style={{ ...inputStyle, resize: 'vertical' }}
-                disabled={reviewClosed}
-              />
-            </div>
+                <div>
+                  <div style={labelStyle}>3. What is the biggest risk or issue right now?</div>
+                  <textarea
+                    value={biggestRisk}
+                    onChange={(e) => setBiggestRisk(e.target.value)}
+                    rows={4}
+                    style={{ ...inputStyle, resize: 'vertical' }}
+                  />
+                </div>
 
-            <div>
-              <div style={labelStyle}>4. What do you need from leadership?</div>
-              <textarea
-                value={leadershipNeed}
-                onChange={(e) => setLeadershipNeed(e.target.value)}
-                rows={4}
-                style={{ ...inputStyle, resize: 'vertical' }}
-                disabled={reviewClosed}
-              />
-            </div>
+                <div>
+                  <div style={labelStyle}>4. What do you need from leadership?</div>
+                  <textarea
+                    value={leadershipNeed}
+                    onChange={(e) => setLeadershipNeed(e.target.value)}
+                    rows={4}
+                    style={{ ...inputStyle, resize: 'vertical' }}
+                  />
+                </div>
 
-            <div>
-              <div style={labelStyle}>5. Anything else you’d like to share? (optional)</div>
-              <textarea
-                value={anythingElse}
-                onChange={(e) => setAnythingElse(e.target.value)}
-                rows={4}
-                style={{ ...inputStyle, resize: 'vertical' }}
-                disabled={reviewClosed}
-              />
-            </div>
-          </div>
+                <div>
+                  <div style={labelStyle}>5. Anything else you’d like to share? (optional)</div>
+                  <textarea
+                    value={anythingElse}
+                    onChange={(e) => setAnythingElse(e.target.value)}
+                    rows={4}
+                    style={{ ...inputStyle, resize: 'vertical' }}
+                  />
+                </div>
+              </div>
 
-          {error && (
-            <div style={{ marginTop: 12, fontSize: 12.5, color: '#dc2626', fontWeight: 700 }}>
-              {error}
-            </div>
+              {error && (
+                <div style={{ marginTop: 12, fontSize: 12.5, color: '#dc2626', fontWeight: 700 }}>
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={submitting}
+                style={{
+                  marginTop: 16,
+                  width: '100%',
+                  borderRadius: 14,
+                  border: 'none',
+                  padding: '14px 16px',
+                  background: '#0b0b0b',
+                  color: '#fff',
+                  fontSize: 14,
+                  fontWeight: 900,
+                  cursor: submitting ? 'default' : 'pointer',
+                  opacity: submitting ? 0.72 : 1,
+                  boxShadow: '0 10px 20px rgba(0,0,0,0.12)',
+                }}
+              >
+                {submitting ? 'Submitting...' : 'Submit Team Input'}
+              </button>
+            </>
           )}
-
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={submitting || reviewClosed}
-            style={{
-              marginTop: 16,
-              width: '100%',
-              borderRadius: 14,
-              border: 'none',
-              padding: '14px 16px',
-              background: '#0b0b0b',
-              color: '#fff',
-              fontSize: 14,
-              fontWeight: 900,
-              cursor: submitting || reviewClosed ? 'default' : 'pointer',
-              opacity: submitting || reviewClosed ? 0.72 : 1,
-              boxShadow: '0 10px 20px rgba(0,0,0,0.12)',
-            }}
-          >
-            {reviewClosed ? 'Review Closed' : submitting ? 'Submitting...' : 'Submit Team Input'}
-          </button>
         </section>
       </main>
     </div>
