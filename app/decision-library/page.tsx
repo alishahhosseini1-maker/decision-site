@@ -1023,7 +1023,7 @@ Now pressure-test: what would make me say “no” even if others say yes?`,
                     border: '1px solid rgba(0,0,0,0.10)',
                     borderRadius: 14,
                     background: 'rgba(255,255,255,0.55)',
-                    padding: 12,
+                    padding: 13,
                   }}
                 >
                   <summary
