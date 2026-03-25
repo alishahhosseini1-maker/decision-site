@@ -206,7 +206,7 @@ export default function SummaryPage() {
           .order('department', { ascending: true });
 
         if (inputsError) {
-          throw new Error('Could not load team inputs.');
+          throw new Error(inputsError.message || 'Could not load team inputs.');
         }
 
         if (!cancelled) {
