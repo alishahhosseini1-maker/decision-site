@@ -46,32 +46,6 @@ type TeamSession = {
   archived_at: string | null;
 };
 
-function SectionList({
-  title,
-  items,
-}: {
-  title: string;
-  items?: string[];
-}) {
-  if (!items || items.length === 0) return null;
-
-  return (
-    <div className="rounded-3xl border border-black/10 bg-white p-5 shadow-[0_10px_24px_rgba(0,0,0,0.04)]">
-      <div className="text-[11px] font-black uppercase tracking-[0.18em] text-black/40">
-        {title}
-      </div>
-      <ul className="mt-4 space-y-3 text-sm leading-6 text-black/75">
-        {items.map((item, idx) => (
-          <li key={`${title}-${idx}`} className="flex gap-2">
-            <span className="mt-[2px] text-black/35">•</span>
-            <span>{item}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
 function MetaChip({
   label,
   value,
@@ -89,7 +63,33 @@ function MetaChip({
   );
 }
 
-function InsightCard({
+function DetailList({
+  title,
+  items,
+}: {
+  title: string;
+  items?: string[];
+}) {
+  if (!items || items.length === 0) return null;
+
+  return (
+    <div className="rounded-2xl border border-black/10 bg-[#fcfcf8] p-4">
+      <div className="text-[11px] font-black uppercase tracking-[0.16em] text-black/40">
+        {title}
+      </div>
+      <ul className="mt-3 space-y-2 text-sm leading-6 text-black/75">
+        {items.map((item, idx) => (
+          <li key={`${title}-${idx}`} className="flex gap-2">
+            <span className="mt-[2px] text-black/35">•</span>
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function ExecutiveRow({
   label,
   value,
 }: {
@@ -97,11 +97,11 @@ function InsightCard({
   value?: string;
 }) {
   return (
-    <div className="rounded-3xl border border-black/10 bg-white p-5 shadow-[0_10px_24px_rgba(0,0,0,0.04)]">
-      <div className="text-[11px] font-black uppercase tracking-[0.18em] text-black/40">
+    <div className="border-t border-black/8 py-4 first:border-t-0 first:pt-0 last:pb-0">
+      <div className="text-[11px] font-black uppercase tracking-[0.16em] text-black/40">
         {label}
       </div>
-      <p className="mt-3 text-sm leading-7 text-black/80">{value || '—'}</p>
+      <div className="mt-2 text-[15px] leading-7 text-black/84">{value || '—'}</div>
     </div>
   );
 }
@@ -351,6 +351,10 @@ export default function SummaryPage() {
     );
   }
 
+  const whatMattersNow = summary?.topSignal || summary?.overallSummary || '—';
+  const decisionRequired = summary?.decision || summary?.recommendation || '—';
+  const ifWeWait = summary?.hiddenRisk || summary?.contradiction || summary?.tradeoff || '—';
+
   return (
     <main className="min-h-screen bg-[#f7f7f2] px-6 py-10 text-black">
       <div className="mx-auto max-w-5xl space-y-6">
@@ -359,7 +363,7 @@ export default function SummaryPage() {
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="max-w-3xl">
                 <p className="text-[11px] font-black uppercase tracking-[0.22em] text-black/40">
-                  Team Summary
+                  Leadership Summary
                 </p>
                 <h1 className="mt-3 text-4xl font-semibold tracking-tight text-black">
                   {session.title}
@@ -428,117 +432,167 @@ export default function SummaryPage() {
           </div>
         ) : (
           <>
-            <div className="grid gap-4 md:grid-cols-2">
-              <InsightCard label="Top Signal" value={summary.topSignal} />
-              <InsightCard label="Recommendation" value={summary.recommendation} />
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <InsightCard label="Decision" value={summary.decision} />
-              <InsightCard label="Tradeoff" value={summary.tradeoff} />
-            </div>
-
             <div className="rounded-[28px] border border-black/10 bg-white p-6 shadow-[0_14px_30px_rgba(0,0,0,0.05)]">
               <div className="text-[11px] font-black uppercase tracking-[0.18em] text-black/40">
-                Overall Summary
+                Decision Card
               </div>
-              <p className="mt-4 max-w-4xl text-[15px] leading-8 text-black/82">
-                {summary.overallSummary || '—'}
-              </p>
+
+              <div className="mt-5 space-y-1">
+                <ExecutiveRow label="What matters now" value={whatMattersNow} />
+                <ExecutiveRow label="Decision required" value={decisionRequired} />
+                <ExecutiveRow label="If we wait" value={ifWeWait} />
+              </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <SectionList title="Priority" items={summary.priority} />
-              <SectionList title="Owners" items={summary.owners} />
-              <SectionList title="Timeline" items={summary.timeline} />
-              <SectionList title="Actions" items={summary.actions} />
-              <SectionList title="What’s Working" items={summary.working} />
-              <SectionList title="What’s Breaking" items={summary.breaking} />
-              <SectionList title="Risks" items={summary.risks} />
-            </div>
+            <details
+              className="rounded-[24px] border border-black/10 bg-white p-5 shadow-[0_10px_24px_rgba(0,0,0,0.04)]"
+              open
+            >
+              <summary className="cursor-pointer list-none text-[13px] font-black uppercase tracking-[0.16em] text-black/55">
+                Leadership Context
+              </summary>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <InsightCard label="Contradiction" value={summary.contradiction} />
-              <InsightCard label="Hidden Risk" value={summary.hiddenRisk} />
-            </div>
+              <div className="mt-5 space-y-4">
+                <div className="rounded-2xl border border-black/10 bg-[#fcfcf8] p-5">
+                  <div className="text-[11px] font-black uppercase tracking-[0.16em] text-black/40">
+                    What this means
+                  </div>
+                  <p className="mt-3 text-[15px] leading-8 text-black/82">
+                    {summary.overallSummary || '—'}
+                  </p>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="rounded-2xl border border-black/10 bg-[#fcfcf8] p-5">
+                    <div className="text-[11px] font-black uppercase tracking-[0.16em] text-black/40">
+                      Recommendation
+                    </div>
+                    <p className="mt-3 text-sm leading-7 text-black/80">
+                      {summary.recommendation || '—'}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-black/10 bg-[#fcfcf8] p-5">
+                    <div className="text-[11px] font-black uppercase tracking-[0.16em] text-black/40">
+                      Tradeoff
+                    </div>
+                    <p className="mt-3 text-sm leading-7 text-black/80">
+                      {summary.tradeoff || '—'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </details>
+
+            <details className="rounded-[24px] border border-black/10 bg-white p-5 shadow-[0_10px_24px_rgba(0,0,0,0.04)]">
+              <summary className="cursor-pointer list-none text-[13px] font-black uppercase tracking-[0.16em] text-black/55">
+                Operating Breakdown
+              </summary>
+
+              <div className="mt-5 space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <DetailList title="Priority" items={summary.priority} />
+                  <DetailList title="Owners" items={summary.owners} />
+                  <DetailList title="Timeline" items={summary.timeline} />
+                  <DetailList title="Actions" items={summary.actions} />
+                  <DetailList title="What’s Working" items={summary.working} />
+                  <DetailList title="What’s Breaking" items={summary.breaking} />
+                  <DetailList title="Risks" items={summary.risks} />
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="rounded-2xl border border-black/10 bg-[#fcfcf8] p-5">
+                    <div className="text-[11px] font-black uppercase tracking-[0.16em] text-black/40">
+                      Contradiction
+                    </div>
+                    <p className="mt-3 text-sm leading-7 text-black/80">
+                      {summary.contradiction || '—'}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-black/10 bg-[#fcfcf8] p-5">
+                    <div className="text-[11px] font-black uppercase tracking-[0.16em] text-black/40">
+                      Hidden Risk
+                    </div>
+                    <p className="mt-3 text-sm leading-7 text-black/80">
+                      {summary.hiddenRisk || '—'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </details>
           </>
         )}
 
-        <div className="rounded-[28px] border border-black/10 bg-white p-5 shadow-[0_10px_24px_rgba(0,0,0,0.04)]">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm font-semibold text-black">Raw Inputs</p>
-              <p className="mt-1 text-xs leading-5 text-black/55">
-                Supporting evidence behind the summary. Use this when you want to inspect the original participant responses.
-              </p>
-            </div>
+        <details
+          className="rounded-[24px] border border-black/10 bg-white p-5 shadow-[0_10px_24px_rgba(0,0,0,0.04)]"
+          open={showRawInputs}
+          onToggle={(e) => setShowRawInputs(e.currentTarget.open)}
+        >
+          <summary className="cursor-pointer list-none text-[13px] font-black uppercase tracking-[0.16em] text-black/55">
+            Raw Inputs
+          </summary>
 
-            <button
-              onClick={() => setShowRawInputs((v) => !v)}
-              className="rounded-full border border-black/10 px-4 py-2 text-sm text-black transition hover:bg-black hover:text-white"
-            >
-              {showRawInputs ? 'Hide Inputs' : 'Show Inputs'}
-            </button>
+          <div className="mt-3 text-xs leading-5 text-black/55">
+            Supporting evidence behind the summary. Use this when you want to inspect the original participant responses.
           </div>
 
-          {showRawInputs ? (
-            <div className="mt-6 space-y-4">
-              {inputs.length === 0 ? (
-                <p className="text-sm text-black/60">No inputs found.</p>
-              ) : (
-                inputs.map((input) => (
-                  <div
-                    key={input.id}
-                    className="rounded-3xl border border-black/10 bg-[#fcfcf8] p-5"
-                  >
-                    <div className="mb-4 flex flex-wrap gap-3 text-xs text-black/55">
-                      <span>Name: {input.name || 'Anonymous'}</span>
-                      <span>Department: {input.department || '—'}</span>
+          <div className="mt-5 space-y-4">
+            {inputs.length === 0 ? (
+              <p className="text-sm text-black/60">No inputs found.</p>
+            ) : (
+              inputs.map((input) => (
+                <div
+                  key={input.id}
+                  className="rounded-3xl border border-black/10 bg-[#fcfcf8] p-5"
+                >
+                  <div className="mb-4 flex flex-wrap gap-3 text-xs text-black/55">
+                    <span>Name: {input.name || 'Anonymous'}</span>
+                    <span>Department: {input.department || '—'}</span>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-[0.14em] text-black/45">
+                        What Moved the Needle
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-black/75">
+                        {input.moved_forward || '—'}
+                      </p>
                     </div>
 
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div>
-                        <p className="text-[11px] font-black uppercase tracking-[0.14em] text-black/45">
-                          What Moved the Needle
-                        </p>
-                        <p className="mt-2 text-sm leading-6 text-black/75">
-                          {input.moved_forward || '—'}
-                        </p>
-                      </div>
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-[0.14em] text-black/45">
+                        What Is Slowing Things Down
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-black/75">
+                        {input.not_working || '—'}
+                      </p>
+                    </div>
 
-                      <div>
-                        <p className="text-[11px] font-black uppercase tracking-[0.14em] text-black/45">
-                          What Is Slowing Things Down
-                        </p>
-                        <p className="mt-2 text-sm leading-6 text-black/75">
-                          {input.not_working || '—'}
-                        </p>
-                      </div>
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-[0.14em] text-black/45">
+                        Decision Needed From Leadership
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-black/75">
+                        {input.needs || '—'}
+                      </p>
+                    </div>
 
-                      <div>
-                        <p className="text-[11px] font-black uppercase tracking-[0.14em] text-black/45">
-                          Decision Needed From Leadership
-                        </p>
-                        <p className="mt-2 text-sm leading-6 text-black/75">
-                          {input.needs || '—'}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-[11px] font-black uppercase tracking-[0.14em] text-black/45">
-                          What Should Happen Next
-                        </p>
-                        <p className="mt-2 text-sm leading-6 text-black/75">
-                          {input.next_action || '—'}
-                        </p>
-                      </div>
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-[0.14em] text-black/45">
+                        What Should Happen Next
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-black/75">
+                        {input.next_action || '—'}
+                      </p>
                     </div>
                   </div>
-                ))
-              )}
-            </div>
-          ) : null}
-        </div>
+                </div>
+              ))
+            )}
+          </div>
+        </details>
       </div>
     </main>
   );
