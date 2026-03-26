@@ -51,10 +51,8 @@ function getConfidenceMeta(score?: number) {
   if (value >= 80) {
     return {
       label: 'High Confidence',
-      cardClass:
-        'border-emerald-200 bg-emerald-50/70 text-emerald-950',
-      pillClass:
-        'bg-emerald-600 text-white',
+      cardClass: 'border-emerald-200 bg-emerald-50/70 text-emerald-950',
+      pillClass: 'bg-emerald-600 text-white',
       dotClass: 'bg-emerald-500',
     };
   }
@@ -62,20 +60,16 @@ function getConfidenceMeta(score?: number) {
   if (value >= 60) {
     return {
       label: 'Moderate Confidence',
-      cardClass:
-        'border-amber-200 bg-amber-50/70 text-amber-950',
-      pillClass:
-        'bg-amber-500 text-white',
+      cardClass: 'border-amber-200 bg-amber-50/70 text-amber-950',
+      pillClass: 'bg-amber-500 text-white',
       dotClass: 'bg-amber-500',
     };
   }
 
   return {
     label: 'Low Confidence',
-    cardClass:
-      'border-rose-200 bg-rose-50/70 text-rose-950',
-    pillClass:
-      'bg-rose-600 text-white',
+    cardClass: 'border-rose-200 bg-rose-50/70 text-rose-950',
+    pillClass: 'bg-rose-600 text-white',
     dotClass: 'bg-rose-500',
   };
 }
@@ -103,9 +97,13 @@ function Card({
   className?: string;
 }) {
   return (
-    <div className={`rounded-2xl border border-black/5 bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-[1px] hover:shadow-md ${className}`}>
+    <div
+      className={`rounded-2xl border border-black/5 bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-[1px] hover:shadow-md ${className}`}
+    >
       <p className="text-[11px] uppercase tracking-[0.18em] text-black/40">{title}</p>
-      <p className={`mt-3 text-sm leading-7 text-black/80 ${bold ? 'font-semibold text-black' : ''}`}>
+      <p
+        className={`mt-3 text-sm leading-7 text-black/80 ${bold ? 'font-semibold text-black' : ''}`}
+      >
         {value || '—'}
       </p>
     </div>
@@ -322,10 +320,18 @@ export default function SummaryPage() {
   }, [comparisonSessions]);
 
   const currentScore = safeNumber(summary?.confidence_score);
-  const previousComparable = comparisonRows.find((row) => row.id !== session?.id && row.score !== null);
+  const previousComparable = comparisonRows.find(
+    (row) => row.id !== session?.id && row.score !== null
+  );
+
+  const previousComparableScore =
+    previousComparable && previousComparable.score !== null
+      ? previousComparable.score
+      : null;
+
   const delta =
-    currentScore !== null && previousComparable?.score !== null
-      ? currentScore - previousComparable.score
+    currentScore !== null && previousComparableScore !== null
+      ? currentScore - previousComparableScore
       : null;
 
   const decisionLocked =
@@ -428,7 +434,9 @@ export default function SummaryPage() {
                 Confidence
               </p>
 
-              <span className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] ${confidenceMeta.pillClass}`}>
+              <span
+                className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] ${confidenceMeta.pillClass}`}
+              >
                 {confidenceMeta.label}
               </span>
             </div>
@@ -450,17 +458,18 @@ export default function SummaryPage() {
             {delta !== null ? (
               <div className="mt-4 border-t border-black/8 pt-4 text-sm">
                 <span className="opacity-65">Compared with last comparable review: </span>
-                <span className={`font-semibold ${delta > 0 ? 'text-emerald-700' : delta < 0 ? 'text-rose-700' : ''}`}>
+                <span
+                  className={`font-semibold ${
+                    delta > 0 ? 'text-emerald-700' : delta < 0 ? 'text-rose-700' : ''
+                  }`}
+                >
                   {delta > 0 ? `+${delta}` : delta}
                 </span>
               </div>
             ) : null}
           </div>
 
-          <Card
-            title="If Nothing Changes (14 Days)"
-            value={summary.projection_14d}
-          />
+          <Card title="If Nothing Changes (14 Days)" value={summary.projection_14d} />
         </section>
 
         {summary.contradictions ? (
@@ -496,7 +505,8 @@ export default function SummaryPage() {
                 Team comparison over time
               </p>
               <p className="mt-2 text-sm leading-6 text-black/58">
-                Recent reviews from this same owner. Use this to see whether decision quality and signal strength are improving.
+                Recent reviews from this same owner. Use this to see whether decision
+                quality and signal strength are improving.
               </p>
             </div>
           </div>
@@ -537,7 +547,9 @@ export default function SummaryPage() {
 
                     <div>
                       {row.score !== null ? (
-                        <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${rowMeta.pillClass}`}>
+                        <span
+                          className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${rowMeta.pillClass}`}
+                        >
                           {row.score}
                         </span>
                       ) : (
