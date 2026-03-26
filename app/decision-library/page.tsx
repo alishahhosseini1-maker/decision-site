@@ -985,7 +985,7 @@ Now pressure-test: what would make me say “no” even if others say yes?`,
                   </div>
                 </div>
 
-                <div style={{ marginTop: 14 }}>
+                <div style={{ marginTop: 12 }}>
                   <div style={{ fontSize: 13, fontWeight: 800, opacity: 0.88 }}>Context</div>
                   <ul style={{ margin: '8px 0 0', paddingLeft: 18, opacity: 0.88, lineHeight: 1.55 }}>
                     {active.context.map((c, idx) => (
