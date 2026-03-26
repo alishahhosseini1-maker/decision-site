@@ -18,6 +18,113 @@ type TeamInputRow = {
   next_action: string | null;
 };
 
+type TeamSummaryShape = {
+  executive_signal?: string;
+  decision?: string;
+  tension?: string;
+  recommended_move?: string;
+  tradeoff?: string;
+  confidence_score?: number;
+  confidence_reason?: string;
+  projection_14d?: string;
+  contradictions?: string | null;
+  operating?: {
+    working?: string[];
+    breaking?: string[];
+    top_risk?: string;
+  };
+  leadership_edge?: string;
+  raw_inputs?: Array<{
+    name: string | null;
+    department: string;
+    moved_forward: string;
+    not_working: string;
+    needs: string;
+    next_action: string | null;
+  }>;
+};
+
+function normalizeSummary(
+  summary: unknown,
+  safeInputs: Array<{
+    name: string | null;
+    department: string;
+    moved_forward: string;
+    not_working: string;
+    needs: string;
+    next_action: string | null;
+  }>
+): TeamSummaryShape {
+  const s = (summary ?? {}) as Record<string, any>;
+
+  return {
+    executive_signal:
+      typeof s.executive_signal === 'string' && s.executive_signal.trim()
+        ? s.executive_signal.trim()
+        : 'The team is showing progress, but leadership attention is needed to remove friction and keep momentum intact.',
+
+    decision:
+      typeof s.decision === 'string' && s.decision.trim()
+        ? s.decision.trim()
+        : 'Review the most immediate blocker and make a clear ownership decision.',
+
+    tension:
+      typeof s.tension === 'string' && s.tension.trim()
+        ? s.tension.trim()
+        : 'If the current friction is left unresolved, progress may continue unevenly and compound into slower execution.',
+
+    recommended_move:
+      typeof s.recommended_move === 'string' && s.recommended_move.trim()
+        ? s.recommended_move.trim()
+        : 'Address the primary operational blocker, assign ownership, and confirm the next action now.',
+
+    tradeoff:
+      typeof s.tradeoff === 'string' && s.tradeoff.trim()
+        ? s.tradeoff.trim()
+        : 'Solving this may require budget, time, or attention that would otherwise stay allocated elsewhere.',
+
+    confidence_score:
+      typeof s.confidence_score === 'number'
+        ? Math.max(0, Math.min(100, s.confidence_score))
+        : 72,
+
+    confidence_reason:
+      typeof s.confidence_reason === 'string' && s.confidence_reason.trim()
+        ? s.confidence_reason.trim()
+        : 'Signal is directionally clear, though some inputs may still lack full detail.',
+
+    projection_14d:
+      typeof s.projection_14d === 'string' && s.projection_14d.trim()
+        ? s.projection_14d.trim()
+        : 'If nothing changes over the next 14 days, current friction will likely continue to drag on execution and team effectiveness.',
+
+    contradictions:
+      typeof s.contradictions === 'string' && s.contradictions.trim()
+        ? s.contradictions.trim()
+        : null,
+
+    operating: {
+      working: Array.isArray(s?.operating?.working)
+        ? s.operating.working.filter((item: unknown) => typeof item === 'string' && item.trim())
+        : [],
+      breaking: Array.isArray(s?.operating?.breaking)
+        ? s.operating.breaking.filter((item: unknown) => typeof item === 'string' && item.trim())
+        : [],
+      top_risk:
+        typeof s?.operating?.top_risk === 'string' && s.operating.top_risk.trim()
+          ? s.operating.top_risk.trim()
+          : 'Unresolved operational friction weakens momentum and creates preventable execution drag.',
+    },
+
+    leadership_edge:
+      typeof s.leadership_edge === 'string' && s.leadership_edge.trim()
+        ? s.leadership_edge.trim()
+        : 'The issue is usually not effort. It is hidden friction. Leaders gain leverage fastest by removing recurring blockers, not by demanding more activity.',
+
+    raw_inputs: safeInputs,
+  };
+}
+
 export async function POST(req: Request) {
   try {
     const { sessionId } = await req.json();
@@ -68,7 +175,7 @@ export async function POST(req: Request) {
         }
       }
 
-      return NextResponse.json({ ok: true, alreadyFinalized: true });
+      return NextResponse.json({ ok: true, alreadyFinalized: true, summary: session.summary_json });
     }
 
     const { data: inputs, error: inputsError } = await supabase
@@ -116,7 +223,8 @@ export async function POST(req: Request) {
       }
     }
 
-    const summary = await generateTeamSummary(safeInputs);
+    const generatedSummary = await generateTeamSummary(safeInputs);
+    const summary = normalizeSummary(generatedSummary, safeInputs);
 
     const { error: summarySaveError } = await supabase
       .from('team_sessions')

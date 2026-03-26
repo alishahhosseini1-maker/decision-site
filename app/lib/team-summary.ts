@@ -9,38 +9,95 @@ type TeamInput = {
 };
 
 type TeamSummary = {
-  topSignal: string;
+  executive_signal: string;
   decision: string;
+  tension: string;
+  recommended_move: string;
   tradeoff: string;
-  recommendation: string;
-  priority: string[];
-  owners: string[];
-  timeline: string[];
-  overallSummary: string;
-  working: string[];
-  breaking: string[];
-  risks: string[];
-  actions: string[];
-  contradiction: string;
-  hiddenRisk: string;
+  confidence_score: number;
+  confidence_reason: string;
+  projection_14d: string;
+  contradictions: string | null;
+  operating: {
+    working: string[];
+    breaking: string[];
+    top_risk: string;
+  };
+  leadership_edge: string;
 };
 
 function normalizeSummary(raw: any): TeamSummary {
   return {
-    topSignal: typeof raw?.topSignal === 'string' ? raw.topSignal : '',
-    decision: typeof raw?.decision === 'string' ? raw.decision : '',
-    tradeoff: typeof raw?.tradeoff === 'string' ? raw.tradeoff : '',
-    recommendation: typeof raw?.recommendation === 'string' ? raw.recommendation : '',
-    priority: Array.isArray(raw?.priority) ? raw.priority.filter(Boolean) : [],
-    owners: Array.isArray(raw?.owners) ? raw.owners.filter(Boolean) : [],
-    timeline: Array.isArray(raw?.timeline) ? raw.timeline.filter(Boolean) : [],
-    overallSummary: typeof raw?.overallSummary === 'string' ? raw.overallSummary : '',
-    working: Array.isArray(raw?.working) ? raw.working.filter(Boolean) : [],
-    breaking: Array.isArray(raw?.breaking) ? raw.breaking.filter(Boolean) : [],
-    risks: Array.isArray(raw?.risks) ? raw.risks.filter(Boolean) : [],
-    actions: Array.isArray(raw?.actions) ? raw.actions.filter(Boolean) : [],
-    contradiction: typeof raw?.contradiction === 'string' ? raw.contradiction : '',
-    hiddenRisk: typeof raw?.hiddenRisk === 'string' ? raw.hiddenRisk : '',
+    executive_signal:
+      typeof raw?.executive_signal === 'string' && raw.executive_signal.trim()
+        ? raw.executive_signal.trim()
+        : 'The team is making progress, but leadership attention is needed to remove friction and keep momentum intact.',
+
+    decision:
+      typeof raw?.decision === 'string' && raw.decision.trim()
+        ? raw.decision.trim()
+        : 'Clarify the highest-priority leadership decision and assign ownership now.',
+
+    tension:
+      typeof raw?.tension === 'string' && raw.tension.trim()
+        ? raw.tension.trim()
+        : 'If the current blocker is not resolved, execution slows and avoidable drag compounds across the team.',
+
+    recommended_move:
+      typeof raw?.recommended_move === 'string' && raw.recommended_move.trim()
+        ? raw.recommended_move.trim()
+        : 'Remove the primary blocker, assign a clear owner, and confirm the next action immediately.',
+
+    tradeoff:
+      typeof raw?.tradeoff === 'string' && raw.tradeoff.trim()
+        ? raw.tradeoff.trim()
+        : 'Addressing this now may require time, budget, or attention that would otherwise remain allocated elsewhere.',
+
+    confidence_score:
+      typeof raw?.confidence_score === 'number'
+        ? Math.max(0, Math.min(100, raw.confidence_score))
+        : 72,
+
+    confidence_reason:
+      typeof raw?.confidence_reason === 'string' && raw.confidence_reason.trim()
+        ? raw.confidence_reason.trim()
+        : 'The signal is directionally clear, though some inputs may still lack full detail.',
+
+    projection_14d:
+      typeof raw?.projection_14d === 'string' && raw.projection_14d.trim()
+        ? raw.projection_14d.trim()
+        : 'If nothing changes in the next 14 days, current friction will likely continue to slow execution and reduce operating momentum.',
+
+    contradictions:
+      typeof raw?.contradictions === 'string' && raw.contradictions.trim()
+        ? raw.contradictions.trim()
+        : null,
+
+    operating: {
+      working: Array.isArray(raw?.operating?.working)
+        ? raw.operating.working
+            .filter((item: unknown) => typeof item === 'string')
+            .map((item: string) => item.trim())
+            .filter(Boolean)
+        : [],
+
+      breaking: Array.isArray(raw?.operating?.breaking)
+        ? raw.operating.breaking
+            .filter((item: unknown) => typeof item === 'string')
+            .map((item: string) => item.trim())
+            .filter(Boolean)
+        : [],
+
+      top_risk:
+        typeof raw?.operating?.top_risk === 'string' && raw.operating.top_risk.trim()
+          ? raw.operating.top_risk.trim()
+          : 'Unresolved friction weakens momentum and creates preventable execution drag.',
+    },
+
+    leadership_edge:
+      typeof raw?.leadership_edge === 'string' && raw.leadership_edge.trim()
+        ? raw.leadership_edge.trim()
+        : 'The real constraint is often not effort. It is friction. Strong leaders gain leverage faster by removing recurring blockers than by demanding more activity.',
   };
 }
 
@@ -64,56 +121,70 @@ export async function generateTeamSummary(inputs: TeamInput[]): Promise<TeamSumm
     next_action: input?.next_action ?? null,
   }));
 
-  const prompt = `
-You are a disciplined operating reviewer helping a leadership team quickly understand what matters most across team inputs.
+  const systemPrompt = `
+You are a senior operator preparing a private decision briefing for a manager.
 
-You will receive an array of team responses. Each response may contain:
-- name
-- department
-- moved_forward: what actually moved the needle
-- not_working: what is slowing things down or off track
-- needs: where a decision is needed from leadership
-- next_action: what should happen next
+Your job is NOT to summarize everything.
+Your job is to identify what actually matters, surface the real decision, highlight execution friction, and make the next move clear.
 
-Your job is to synthesize the responses into a concise executive-level summary.
+Write like a calm, elite operator.
+Not corporate. Not verbose. Not generic.
 
-Focus on:
-- what is actually working
-- what is slowing things down
-- where leadership decisions are needed
-- what actions should happen next
-- contradictions across participants
-- hidden risks inferred from what is slowing things down or where decisions are blocked
+Every sentence should feel sharp and earned.
 
-Do not treat this like a generic status recap.
-Write like an operator preparing leadership for a sharper meeting.
+The output should:
+- be easy to scan
+- feel slightly opinionated
+- increase the manager's confidence immediately
+- make the manager feel ahead of the situation
+- turn raw team inputs into a leadership-quality briefing
+
+Prioritize:
+- the signal beneath the noise
+- the operational tension
+- the decision leadership needs to make
+- what likely happens if nothing changes
+- contradictions or misalignment across inputs
+- one non-obvious insight that makes the manager sharper
+
+Do not write like a generic meeting summary.
+Do not repeat raw inputs word-for-word unless necessary.
+Infer patterns intelligently, but stay grounded in the data.
 
 Return valid JSON only with this exact shape:
 
 {
-  "topSignal": "string",
+  "executive_signal": "string",
   "decision": "string",
+  "tension": "string",
+  "recommended_move": "string",
   "tradeoff": "string",
-  "recommendation": "string",
-  "priority": ["string"],
-  "owners": ["string"],
-  "timeline": ["string"],
-  "overallSummary": "string",
-  "working": ["string"],
-  "breaking": ["string"],
-  "risks": ["string"],
-  "actions": ["string"],
-  "contradiction": "string",
-  "hiddenRisk": "string"
+  "confidence_score": 0,
+  "confidence_reason": "string",
+  "projection_14d": "string",
+  "contradictions": "string or null",
+  "operating": {
+    "working": ["string"],
+    "breaking": ["string"],
+    "top_risk": "string"
+  },
+  "leadership_edge": "string"
 }
 
 Rules:
-- Do not include markdown
-- Do not wrap in backticks
-- Return raw JSON only
-- Be specific, direct, and useful
-- Infer patterns from the responses
-- Keep outputs concise but meaningful
+- No markdown
+- No backticks
+- Raw JSON only
+- Keep each field concise but strong
+- confidence_score must be a number from 0 to 100
+- working and breaking should usually have 1 to 3 items max
+- recommended_move should be decisive, not a menu of options
+- leadership_edge should feel like a sharp insight, not a cliché
+`;
+
+  const userPrompt = `
+Team inputs:
+${JSON.stringify(safeInputs, null, 2)}
 `;
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -124,16 +195,16 @@ Rules:
     },
     body: JSON.stringify({
       model: 'gpt-4o',
-      temperature: 0.3,
+      temperature: 0.35,
       response_format: { type: 'json_object' },
       messages: [
         {
           role: 'system',
-          content: prompt,
+          content: systemPrompt,
         },
         {
           role: 'user',
-          content: JSON.stringify(safeInputs),
+          content: userPrompt,
         },
       ],
     }),
