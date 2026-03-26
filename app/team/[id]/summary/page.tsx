@@ -4,6 +4,16 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/app/lib/supabase';
 
+type TeamInput = {
+  id: string;
+  name: string | null;
+  department: string;
+  moved_forward: string;
+  not_working: string;
+  needs: string;
+  next_action: string | null;
+};
+
 type TeamSummary = {
   executive_signal?: string;
   decision?: string;
@@ -20,6 +30,7 @@ type TeamSummary = {
     top_risk?: string;
   };
   leadership_edge?: string;
+  raw_inputs?: TeamInput[];
 };
 
 type TeamSession = {
@@ -45,33 +56,11 @@ type ComparisonSession = {
   summary_json: TeamSummary | null;
 };
 
-function getConfidenceMeta(score?: number) {
-  const value = typeof score === 'number' ? score : 0;
-
-  if (value >= 80) {
-    return {
-      label: 'High Confidence',
-      cardClass: 'border-emerald-200 bg-emerald-50/70 text-emerald-950',
-      pillClass: 'bg-emerald-600 text-white',
-      dotClass: 'bg-emerald-500',
-    };
-  }
-
-  if (value >= 60) {
-    return {
-      label: 'Moderate Confidence',
-      cardClass: 'border-amber-200 bg-amber-50/70 text-amber-950',
-      pillClass: 'bg-amber-500 text-white',
-      dotClass: 'bg-amber-500',
-    };
-  }
-
-  return {
-    label: 'Low Confidence',
-    cardClass: 'border-rose-200 bg-rose-50/70 text-rose-950',
-    pillClass: 'bg-rose-600 text-white',
-    dotClass: 'bg-rose-500',
-  };
+function formatDateTime(value?: string | null) {
+  if (!value) return '—';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleString();
 }
 
 function formatDate(value?: string | null) {
@@ -85,55 +74,95 @@ function safeNumber(value?: number | null) {
   return typeof value === 'number' && !Number.isNaN(value) ? value : null;
 }
 
-function Card({
-  title,
+function getConfidenceMeta(score?: number) {
+  const value = typeof score === 'number' ? score : 0;
+
+  if (value >= 80) {
+    return {
+      label: 'High confidence',
+      cardClass: 'border-emerald-200 bg-emerald-50/70',
+      pillClass: 'bg-emerald-600 text-white',
+      textClass: 'text-emerald-950',
+      mutedClass: 'text-emerald-900/70',
+      dotClass: 'bg-emerald-500',
+    };
+  }
+
+  if (value >= 60) {
+    return {
+      label: 'Moderate confidence',
+      cardClass: 'border-amber-200 bg-amber-50/70',
+      pillClass: 'bg-amber-500 text-white',
+      textClass: 'text-amber-950',
+      mutedClass: 'text-amber-900/70',
+      dotClass: 'bg-amber-500',
+    };
+  }
+
+  return {
+    label: 'Low confidence',
+    cardClass: 'border-rose-200 bg-rose-50/70',
+    pillClass: 'bg-rose-600 text-white',
+    textClass: 'text-rose-950',
+    mutedClass: 'text-rose-900/70',
+    dotClass: 'bg-rose-500',
+  };
+}
+
+function PrimaryCard({
+  label,
   value,
-  bold = false,
-  className = '',
 }: {
-  title: string;
+  label: string;
   value?: string | null;
-  bold?: boolean;
-  className?: string;
 }) {
   return (
-    <div
-      className={`rounded-2xl border border-black/5 bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-[1px] hover:shadow-md ${className}`}
-    >
-      <p className="text-[11px] uppercase tracking-[0.18em] text-black/40">{title}</p>
-      <p
-        className={`mt-3 text-sm leading-7 text-black/80 ${bold ? 'font-semibold text-black' : ''}`}
-      >
-        {value || '—'}
-      </p>
-    </div>
+    <section className="rounded-[24px] border border-black/5 bg-white p-6 shadow-sm">
+      <p className="text-[11px] uppercase tracking-[0.18em] text-black/38">{label}</p>
+      <p className="mt-3 text-[17px] font-medium leading-8 text-black/90">{value || '—'}</p>
+    </section>
   );
 }
 
-function ListCard({
-  title,
+function SecondaryCard({
+  label,
+  value,
+}: {
+  label: string;
+  value?: string | null;
+}) {
+  return (
+    <section className="rounded-[22px] border border-black/5 bg-white p-6 shadow-sm">
+      <p className="text-[11px] uppercase tracking-[0.18em] text-black/38">{label}</p>
+      <p className="mt-3 text-sm leading-7 text-black/75">{value || '—'}</p>
+    </section>
+  );
+}
+
+function EvidenceCard({
+  label,
   items,
 }: {
-  title: string;
+  label: string;
   items?: string[];
 }) {
   return (
-    <div className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-[1px] hover:shadow-md">
-      <p className="text-[11px] uppercase tracking-[0.18em] text-black/40">{title}</p>
+    <section className="rounded-[22px] border border-black/5 bg-white p-6 shadow-sm">
+      <p className="text-[11px] uppercase tracking-[0.18em] text-black/38">{label}</p>
 
       {!items || items.length === 0 ? (
         <p className="mt-3 text-sm text-black/45">—</p>
       ) : (
-        <ul className="mt-3 space-y-2 text-sm leading-6 text-black/80">
-          {items.map((item, i) => (
-            <li key={`${title}-${i}`} className="flex gap-2">
+        <ul className="mt-3 space-y-2 text-sm leading-6 text-black/78">
+          {items.map((item, idx) => (
+            <li key={`${label}-${idx}`} className="flex gap-2">
               <span className="mt-[2px] text-black/35">•</span>
               <span>{item}</span>
             </li>
           ))}
         </ul>
       )}
-    </div>
+    </section>
   );
 }
 
@@ -146,7 +175,9 @@ export default function SummaryPage() {
 
   const [session, setSession] = useState<TeamSession | null>(null);
   const [summary, setSummary] = useState<TeamSummary | null>(null);
+  const [inputs, setInputs] = useState<TeamInput[]>([]);
   const [comparisonSessions, setComparisonSessions] = useState<ComparisonSession[]>([]);
+  const [showRawInputs, setShowRawInputs] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -252,6 +283,26 @@ export default function SummaryPage() {
           resolvedSession = refreshedSession as TeamSession;
         }
 
+        const { data: inputRows, error: inputsError } = await supabase
+          .from('team_inputs')
+          .select(
+            `
+            id,
+            name,
+            department,
+            moved_forward,
+            not_working,
+            needs,
+            next_action
+          `
+          )
+          .eq('session_id', id)
+          .order('department', { ascending: true });
+
+        if (inputsError) {
+          throw new Error(inputsError.message || 'Could not load raw inputs.');
+        }
+
         const { data: recentSessions, error: recentError } = await supabase
           .from('team_sessions')
           .select(
@@ -274,6 +325,7 @@ export default function SummaryPage() {
         if (!cancelled) {
           setSession(resolvedSession);
           setSummary((resolvedSession.summary_json as TeamSummary | null) ?? null);
+          setInputs((inputRows as TeamInput[]) ?? []);
           setComparisonSessions(((recentSessions as ComparisonSession[]) ?? []).filter(Boolean));
         }
       } catch (err: any) {
@@ -376,7 +428,7 @@ export default function SummaryPage() {
           animateIn ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'
         }`}
       >
-        <div className="flex flex-col gap-3">
+        <header className="flex flex-col gap-3">
           <p className="text-[10px] uppercase tracking-[0.32em] text-black/38">
             Prepared for: Decision, not review
           </p>
@@ -388,7 +440,7 @@ export default function SummaryPage() {
               </h1>
 
               {session.prompt ? (
-                <p className="mt-3 max-w-3xl text-sm leading-7 text-black/58">
+                <p className="mt-2 max-w-3xl text-sm leading-7 text-black/56">
                   {session.prompt}
                 </p>
               ) : null}
@@ -401,36 +453,33 @@ export default function SummaryPage() {
               </div>
             ) : null}
           </div>
-        </div>
+        </header>
 
-        <section className="rounded-[28px] border border-black/5 bg-white p-8 shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
+        <section className="rounded-[28px] border border-black/5 border-l-4 border-l-black bg-[#f1f1ec] p-8 shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
           <p className="text-[11px] uppercase tracking-[0.22em] text-black/38">
-            This is what matters
+            What matters now
           </p>
 
           <h2 className="mt-4 max-w-4xl text-3xl font-semibold leading-tight tracking-tight text-black md:text-[2.15rem]">
             {summary.executive_signal || '—'}
           </h2>
 
-          <div className="mt-5 inline-flex items-center gap-3 rounded-full border border-black/8 bg-black/[0.03] px-4 py-2 text-sm text-black/62">
-            <span className="text-black/35">→</span>
-            <span>If solved: unlocks execution speed and compounds results</span>
-          </div>
+          <p className="mt-4 text-sm leading-7 text-black/63">
+            {summary.tension || 'This is already affecting execution and needs a clear leadership response.'}
+          </p>
         </section>
 
         <section className="grid gap-6 md:grid-cols-2">
-          <Card title="The Decision" value={summary.decision} bold />
-          <Card title="Why It Matters" value={summary.tension} />
-          <Card title="Recommended Move" value={summary.recommended_move} bold />
-          <Card title="Tradeoff" value={summary.tradeoff} />
+          <PrimaryCard label="The decision" value={summary.decision} />
+          <PrimaryCard label="What to do now" value={summary.recommended_move} />
         </section>
 
         <section className="grid gap-6 md:grid-cols-2">
-          <div
-            className={`rounded-2xl border p-6 shadow-sm transition duration-200 hover:-translate-y-[1px] hover:shadow-md ${confidenceMeta.cardClass}`}
+          <section
+            className={`rounded-[24px] border p-6 shadow-sm ${confidenceMeta.cardClass}`}
           >
             <div className="flex items-center justify-between gap-4">
-              <p className="text-[11px] uppercase tracking-[0.18em] opacity-70">
+              <p className={`text-[11px] uppercase tracking-[0.18em] ${confidenceMeta.mutedClass}`}>
                 Confidence
               </p>
 
@@ -441,41 +490,54 @@ export default function SummaryPage() {
               </span>
             </div>
 
-            <div className="mt-4 flex items-end gap-3">
+            <div className={`mt-4 flex items-end gap-3 ${confidenceMeta.textClass}`}>
               <div className="text-4xl font-semibold leading-none">
                 {summary.confidence_score ?? '—'}
               </div>
-              <div className="mb-1 flex items-center gap-2 text-sm opacity-75">
+              <div className={`mb-1 flex items-center gap-2 text-sm ${confidenceMeta.mutedClass}`}>
                 <span className={`h-2.5 w-2.5 rounded-full ${confidenceMeta.dotClass}`} />
-                <span>Signal strength</span>
+                <span>Based on consistency across team inputs</span>
               </div>
             </div>
 
-            <p className="mt-4 text-sm leading-7 opacity-80">
+            <p className={`mt-4 text-sm leading-7 ${confidenceMeta.mutedClass}`}>
               {summary.confidence_reason || '—'}
             </p>
 
             {delta !== null ? (
-              <div className="mt-4 border-t border-black/8 pt-4 text-sm">
-                <span className="opacity-65">Compared with last comparable review: </span>
-                <span
-                  className={`font-semibold ${
-                    delta > 0 ? 'text-emerald-700' : delta < 0 ? 'text-rose-700' : ''
-                  }`}
-                >
+              <div className={`mt-4 border-t border-black/8 pt-4 text-sm ${confidenceMeta.mutedClass}`}>
+                <span>Compared with last comparable review: </span>
+                <span className="font-semibold">
                   {delta > 0 ? `+${delta}` : delta}
                 </span>
               </div>
             ) : null}
-          </div>
+          </section>
 
-          <Card title="If Nothing Changes (14 Days)" value={summary.projection_14d} />
+          <SecondaryCard
+            label="If delayed"
+            value={summary.projection_14d || summary.tradeoff || '—'}
+          />
+        </section>
+
+        <section className="rounded-[24px] bg-black p-6 text-white shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-white/58">
+            What others may miss
+          </p>
+          <p className="mt-3 text-lg leading-8 text-white">
+            {summary.leadership_edge || '—'}
+          </p>
+        </section>
+
+        <section className="grid gap-6 md:grid-cols-2">
+          <EvidenceCard label="What’s working" items={summary.operating?.working} />
+          <EvidenceCard label="What’s breaking" items={summary.operating?.breaking} />
         </section>
 
         {summary.contradictions ? (
-          <section className="rounded-2xl border border-amber-200 bg-amber-50/80 p-6 shadow-sm">
+          <section className="rounded-[22px] border border-amber-200 bg-amber-50/80 p-6 shadow-sm">
             <p className="text-[11px] uppercase tracking-[0.18em] text-amber-700">
-              Misalignment detected
+              Misalignment
             </p>
             <p className="mt-3 text-sm leading-7 text-amber-900">
               {summary.contradictions}
@@ -483,32 +545,14 @@ export default function SummaryPage() {
           </section>
         ) : null}
 
-        <section className="grid gap-6 md:grid-cols-3">
-          <ListCard title="Working" items={summary.operating?.working} />
-          <ListCard title="Breaking" items={summary.operating?.breaking} />
-          <Card title="Top Risk" value={summary.operating?.top_risk} />
-        </section>
-
-        <section className="rounded-2xl bg-black p-6 text-white shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-white/58">
-            Leadership Edge
-          </p>
-          <p className="mt-3 text-lg leading-8 text-white">
-            {summary.leadership_edge || '—'}
-          </p>
-        </section>
-
         <section className="rounded-[24px] border border-black/5 bg-white p-6 shadow-sm">
-          <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.18em] text-black/38">
-                Team comparison over time
-              </p>
-              <p className="mt-2 text-sm leading-6 text-black/58">
-                Recent reviews from this same owner. Use this to see whether decision
-                quality and signal strength are improving.
-              </p>
-            </div>
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-black/38">
+              Comparison over time
+            </p>
+            <p className="mt-2 text-sm leading-6 text-black/55">
+              A lighter historical view. Useful for trend, but secondary to the current decision.
+            </p>
           </div>
 
           {comparisonRows.length === 0 ? (
@@ -533,17 +577,17 @@ export default function SummaryPage() {
                     }`}
                   >
                     <div className="pr-4">
-                      <div className="font-medium text-black/88">
+                      <div className="font-medium text-black/86">
                         {row.title || 'Untitled review'}
                       </div>
                       {isCurrent ? (
-                        <div className="mt-1 text-xs uppercase tracking-[0.12em] text-black/40">
+                        <div className="mt-1 text-xs uppercase tracking-[0.12em] text-black/38">
                           Current
                         </div>
                       ) : null}
                     </div>
 
-                    <div className="text-black/58">{row.date}</div>
+                    <div className="text-black/55">{row.date}</div>
 
                     <div>
                       {row.score !== null ? (
@@ -562,6 +606,94 @@ export default function SummaryPage() {
             </div>
           )}
         </section>
+
+        <section className="rounded-[24px] border border-black/5 bg-white p-5 shadow-sm">
+          <button
+            type="button"
+            onClick={() => setShowRawInputs((prev) => !prev)}
+            className="flex w-full items-center justify-between text-left"
+          >
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-black/38">
+                Raw inputs
+              </p>
+              <p className="mt-2 text-sm leading-6 text-black/55">
+                Supporting evidence behind the summary.
+              </p>
+            </div>
+
+            <span className="text-sm font-medium text-black/65">
+              {showRawInputs ? 'Hide' : 'Show'}
+            </span>
+          </button>
+
+          {showRawInputs ? (
+            <div className="mt-5 space-y-4">
+              {inputs.length === 0 ? (
+                <p className="text-sm text-black/45">No inputs found.</p>
+              ) : (
+                inputs.map((input) => (
+                  <div
+                    key={input.id}
+                    className="rounded-[20px] border border-black/6 bg-[#fcfcf8] p-5"
+                  >
+                    <div className="mb-4 flex flex-wrap gap-3 text-xs text-black/52">
+                      <span>Name: {input.name || 'Anonymous'}</span>
+                      <span>Department: {input.department || '—'}</span>
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <p className="text-[11px] uppercase tracking-[0.14em] text-black/42">
+                          What moved forward
+                        </p>
+                        <p className="mt-2 text-sm leading-6 text-black/76">
+                          {input.moved_forward || '—'}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-[11px] uppercase tracking-[0.14em] text-black/42">
+                          What is not working
+                        </p>
+                        <p className="mt-2 text-sm leading-6 text-black/76">
+                          {input.not_working || '—'}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-[11px] uppercase tracking-[0.14em] text-black/42">
+                          What leadership needs to decide
+                        </p>
+                        <p className="mt-2 text-sm leading-6 text-black/76">
+                          {input.needs || '—'}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-[11px] uppercase tracking-[0.14em] text-black/42">
+                          Next action
+                        </p>
+                        <p className="mt-2 text-sm leading-6 text-black/76">
+                          {input.next_action || '—'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          ) : null}
+        </section>
+
+        <footer className="pt-1 text-xs text-black/38">
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
+            <span>Status: {session.status || '—'}</span>
+            <span>Deadline: {formatDateTime(session.deadline)}</span>
+            <span>Closed: {formatDateTime(session.closed_at)}</span>
+            <span>Generated: {formatDateTime(session.summary_generated_at)}</span>
+          </div>
+        </footer>
       </div>
     </main>
   );
