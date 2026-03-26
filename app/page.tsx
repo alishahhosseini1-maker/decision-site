@@ -830,35 +830,35 @@ export default function HomePage() {
         </header>
 
         {user && (
-          <section style={{ maxWidth: 720, margin: '18px auto 0' }}>
+          <section style={{ maxWidth: 680, margin: '18px auto 0' }}>
             <div
               style={{
-                border: '1px solid rgba(0,0,0,0.12)',
-                borderRadius: 16,
+                border: '1px solid rgba(0,0,0,0.10)',
+                borderRadius: 14,
                 background: '#fff',
-                padding: 16,
-                boxShadow: '0 12px 24px rgba(0,0,0,0.04)',
+                padding: 14,
+                boxShadow: '0 8px 18px rgba(0,0,0,0.035)',
               }}
             >
-              <div style={{ fontSize: 13, fontWeight: 900, marginBottom: 10 }}>
+              <div style={{ fontSize: 12, fontWeight: 900, marginBottom: 8, opacity: 0.72 }}>
                 Latest Team Review
               </div>
 
               {loadingLatestTeamSession ? (
-                <div style={{ fontSize: 13.5, opacity: 0.72 }}>Loading latest review...</div>
+                <div style={{ fontSize: 13, opacity: 0.72 }}>Loading latest review...</div>
               ) : !latestTeamSession ? (
                 <div
                   style={{
-                    borderRadius: 14,
+                    borderRadius: 12,
                     border: '1px dashed rgba(0,0,0,0.14)',
                     background: 'rgba(0,0,0,0.02)',
-                    padding: 16,
+                    padding: 14,
                   }}
                 >
-                  <div style={{ fontSize: 13.5, fontWeight: 800, marginBottom: 4 }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 4 }}>
                     No active team review
                   </div>
-                  <div style={{ fontSize: 12.5, lineHeight: 1.6, opacity: 0.68 }}>
+                  <div style={{ fontSize: 12, lineHeight: 1.55, opacity: 0.68 }}>
                     Create a team review below and it will appear here as your latest review.
                   </div>
                 </div>
@@ -877,8 +877,8 @@ export default function HomePage() {
                         ? 'rgba(16,185,129,0.10)'
                         : 'rgba(59,130,246,0.08)',
                       color: hasSummaryReady ? '#047857' : '#1d4ed8',
-                      padding: '6px 10px',
-                      fontSize: 11,
+                      padding: '5px 9px',
+                      fontSize: 10,
                       fontWeight: 900,
                       letterSpacing: '0.08em',
                     }}
@@ -886,13 +886,13 @@ export default function HomePage() {
                     {hasSummaryReady ? 'SUMMARY READY' : 'OPEN'}
                   </div>
 
-                  <div style={{ marginTop: 12 }}>
+                  <div style={{ marginTop: 10 }}>
                     <div
                       style={{
-                        fontSize: 18,
+                        fontSize: 16,
                         fontWeight: 900,
                         letterSpacing: -0.02,
-                        lineHeight: 1.25,
+                        lineHeight: 1.2,
                       }}
                     >
                       {latestTeamSession.title}
@@ -900,9 +900,9 @@ export default function HomePage() {
 
                     <div
                       style={{
-                        marginTop: 8,
-                        fontSize: 13,
-                        lineHeight: 1.55,
+                        marginTop: 6,
+                        fontSize: 12.5,
+                        lineHeight: 1.45,
                         opacity: 0.72,
                         display: '-webkit-box',
                         WebkitLineClamp: 2,
@@ -916,27 +916,27 @@ export default function HomePage() {
 
                   <div
                     style={{
-                      marginTop: 14,
+                      marginTop: 12,
                       display: 'grid',
                       gridTemplateColumns: hasSummaryReady
                         ? 'repeat(2, minmax(0, 1fr))'
                         : 'repeat(3, minmax(0, 1fr))',
-                      gap: 10,
+                      gap: 8,
                     }}
                   >
                     <div
                       style={{
-                        borderRadius: 12,
+                        borderRadius: 10,
                         background: 'rgba(0,0,0,0.03)',
-                        padding: '10px 12px',
+                        padding: '8px 10px',
                       }}
                     >
                       <div
-                        style={{ fontSize: 11, fontWeight: 800, opacity: 0.5, marginBottom: 4 }}
+                        style={{ fontSize: 10, fontWeight: 800, opacity: 0.5, marginBottom: 4 }}
                       >
                         DEADLINE
                       </div>
-                      <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.4 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.35 }}>
                         {formatDeadline(latestTeamSession.deadline)}
                       </div>
                     </div>
@@ -944,17 +944,17 @@ export default function HomePage() {
                     {!hasSummaryReady && (
                       <div
                         style={{
-                          borderRadius: 12,
+                          borderRadius: 10,
                           background: 'rgba(0,0,0,0.03)',
-                          padding: '10px 12px',
+                          padding: '8px 10px',
                         }}
                       >
                         <div
-                          style={{ fontSize: 11, fontWeight: 800, opacity: 0.5, marginBottom: 4 }}
+                          style={{ fontSize: 10, fontWeight: 800, opacity: 0.5, marginBottom: 4 }}
                         >
                           PARTICIPANTS
                         </div>
-                        <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.4 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.35 }}>
                           {latestTeamSession.expected_participants ?? 'Not set'}
                         </div>
                       </div>
@@ -962,17 +962,17 @@ export default function HomePage() {
 
                     <div
                       style={{
-                        borderRadius: 12,
+                        borderRadius: 10,
                         background: 'rgba(0,0,0,0.03)',
-                        padding: '10px 12px',
+                        padding: '8px 10px',
                       }}
                     >
                       <div
-                        style={{ fontSize: 11, fontWeight: 800, opacity: 0.5, marginBottom: 4 }}
+                        style={{ fontSize: 10, fontWeight: 800, opacity: 0.5, marginBottom: 4 }}
                       >
                         {hasSummaryReady ? 'GENERATED' : 'CREATED'}
                       </div>
-                      <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.4 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.35 }}>
                         {hasSummaryReady
                           ? formatShort(latestTeamSession.summary_generated_at)
                           : formatShort(latestTeamSession.created_at)}
@@ -982,7 +982,7 @@ export default function HomePage() {
 
                   <div
                     style={{
-                      marginTop: 14,
+                      marginTop: 12,
                       display: 'flex',
                       flexWrap: 'wrap',
                       gap: 8,
@@ -997,10 +997,10 @@ export default function HomePage() {
                           style={{
                             borderRadius: 999,
                             border: 'none',
-                            padding: '10px 14px',
+                            padding: '9px 12px',
                             background: '#111',
                             color: '#fff',
-                            fontSize: 12.5,
+                            fontSize: 12,
                             fontWeight: 900,
                             cursor:
                               closingSessionId === latestTeamSession.id ? 'default' : 'pointer',
@@ -1020,10 +1020,10 @@ export default function HomePage() {
                           style={{
                             borderRadius: 999,
                             border: '1px solid rgba(0,0,0,0.12)',
-                            padding: '10px 14px',
+                            padding: '9px 12px',
                             background: '#fff',
                             color: '#111',
-                            fontSize: 12.5,
+                            fontSize: 12,
                             fontWeight: 800,
                             cursor:
                               dismissingSessionId === latestTeamSession.id ? 'default' : 'pointer',
@@ -1042,10 +1042,10 @@ export default function HomePage() {
                           style={{
                             borderRadius: 999,
                             border: 'none',
-                            padding: '10px 14px',
+                            padding: '9px 12px',
                             background: '#111',
                             color: '#fff',
-                            fontSize: 12.5,
+                            fontSize: 12,
                             fontWeight: 900,
                             textDecoration: 'none',
                             boxShadow: '0 8px 18px rgba(0,0,0,0.10)',
@@ -1061,10 +1061,10 @@ export default function HomePage() {
                           style={{
                             borderRadius: 999,
                             border: '1px solid rgba(0,0,0,0.12)',
-                            padding: '10px 14px',
+                            padding: '9px 12px',
                             background: '#fff',
                             color: '#111',
-                            fontSize: 12.5,
+                            fontSize: 12,
                             fontWeight: 800,
                             cursor:
                               dismissingSessionId === latestTeamSession.id ? 'default' : 'pointer',
@@ -1085,7 +1085,7 @@ export default function HomePage() {
                 <div
                   style={{
                     marginTop: 10,
-                    fontSize: 12.5,
+                    fontSize: 12,
                     color: '#dc2626',
                     fontWeight: 700,
                   }}
