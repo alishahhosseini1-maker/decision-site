@@ -176,10 +176,43 @@ Rules:
 - No backticks
 - Raw JSON only
 - Keep each field concise but strong
-- confidence_score must be a number from 0 to 100
 - working and breaking should usually have 1 to 3 items max
 - recommended_move should be decisive, not a menu of options
 - leadership_edge should feel like a sharp insight, not a cliché
+
+You must calculate confidence_score using a structured scoring system.
+
+Break the score into 4 components (0–25 each):
+
+1. Alignment (0–25)
+- Are team inputs consistent or conflicting?
+- High alignment = higher score
+
+2. Clarity (0–25)
+- Is the decision clearly defined or vague?
+- Clear decision = higher score
+
+3. Risk visibility (0–25)
+- Are risks explicitly identified or unclear?
+- Clear risks = higher score
+
+4. Actionability (0–25)
+- Is there a clear, decisive next move?
+- Strong action = higher score
+
+Add the four components to produce the final confidence_score (0–100).
+
+Additional scoring rules:
+- Do NOT default to common numbers like 80 or 85
+- Scores must vary meaningfully based on input quality
+- If inputs are weak, unclear, or conflicting, the score should drop significantly into a lower range such as 40–60
+- If inputs are strong, aligned, and actionable, the score can be high such as 75–95
+- Use the full range when justified
+- Confidence must reflect the quality of the inputs, not optimism
+
+Also reflect this scoring in confidence_reason:
+- Briefly explain why the score is high or low
+- Mention alignment, clarity, risk visibility, or action strength
 `;
 
   const userPrompt = `
