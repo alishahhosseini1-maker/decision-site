@@ -8,6 +8,16 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+type TeamInputRow = {
+  id: string;
+  name: string | null;
+  department: string;
+  moved_forward: string;
+  not_working: string;
+  needs: string;
+  next_action: string | null;
+};
+
 export async function POST(req: Request) {
   try {
     const { sessionId } = await req.json();
@@ -63,12 +73,32 @@ export async function POST(req: Request) {
 
     const { data: inputs, error: inputsError } = await supabase
       .from('team_inputs')
-      .select('*')
+      .select(
+        `
+        id,
+        name,
+        department,
+        moved_forward,
+        not_working,
+        needs,
+        next_action
+      `
+      )
       .eq('session_id', sessionId);
 
     if (inputsError || !inputs || inputs.length === 0) {
       return NextResponse.json({ error: 'No inputs found' }, { status: 400 });
     }
+
+    const safeInputs = (inputs as TeamInputRow[]).map((input) => ({
+      id: input.id,
+      name: input.name ?? null,
+      department: input.department ?? '',
+      moved_forward: input.moved_forward ?? '',
+      not_working: input.not_working ?? '',
+      needs: input.needs ?? '',
+      next_action: input.next_action ?? null,
+    }));
 
     const nowIso = new Date().toISOString();
 
@@ -86,7 +116,7 @@ export async function POST(req: Request) {
       }
     }
 
-    const summary = await generateTeamSummary(inputs);
+    const summary = await generateTeamSummary(safeInputs);
 
     const { error: summarySaveError } = await supabase
       .from('team_sessions')

@@ -27,9 +27,8 @@ export default function TeamParticipantPage() {
   const [department, setDepartment] = useState('');
   const [movedForward, setMovedForward] = useState('');
   const [offTrack, setOffTrack] = useState('');
-  const [biggestRisk, setBiggestRisk] = useState('');
-  const [leadershipNeed, setLeadershipNeed] = useState('');
-  const [anythingElse, setAnythingElse] = useState('');
+  const [leadershipDecision, setLeadershipDecision] = useState('');
+  const [nextStep, setNextStep] = useState('');
 
   const [responseCount, setResponseCount] = useState<number>(0);
 
@@ -151,10 +150,9 @@ export default function TeamParticipantPage() {
 
   const validate = () => {
     if (!department.trim()) return 'Please add your department.';
-    if (!movedForward.trim()) return 'Please answer what moved forward.';
-    if (!offTrack.trim()) return 'Please answer what is not working or off track.';
-    if (!biggestRisk.trim()) return 'Please answer the biggest risk or issue.';
-    if (!leadershipNeed.trim()) return 'Please answer what you need from leadership.';
+    if (!movedForward.trim()) return 'Please answer what moved the needle.';
+    if (!offTrack.trim()) return 'Please answer what is slowing things down or at risk.';
+    if (!leadershipDecision.trim()) return 'Please answer where a decision is needed from leadership.';
     return null;
   };
 
@@ -181,9 +179,8 @@ export default function TeamParticipantPage() {
       department: department.trim(),
       moved_forward: movedForward.trim(),
       not_working: offTrack.trim(),
-      risk: biggestRisk.trim(),
-      needs: leadershipNeed.trim(),
-      next_action: anythingElse.trim() || null,
+      needs: leadershipDecision.trim(),
+      next_action: nextStep.trim() || null,
     });
 
     if (insertError) {
@@ -240,6 +237,13 @@ export default function TeamParticipantPage() {
     fontSize: 13,
     fontWeight: 700,
     marginBottom: 6,
+  };
+
+  const helperStyle: React.CSSProperties = {
+    fontSize: 12,
+    lineHeight: 1.5,
+    opacity: 0.6,
+    marginBottom: 8,
   };
 
   if (loadingSession) {
@@ -308,21 +312,6 @@ export default function TeamParticipantPage() {
               Leadership will receive this later as part of a summarized team review.
             </div>
 
-            <div
-              style={{
-                marginTop: 12,
-                border: '1px solid rgba(0,0,0,0.08)',
-                borderRadius: 12,
-                background: 'rgba(0,0,0,0.02)',
-                padding: '12px 14px',
-                fontSize: 13,
-                lineHeight: 1.55,
-              }}
-            >
-              <strong>Responses received:</strong> {responseCount}
-              {session.expectedParticipants ? ` / ${session.expectedParticipants}` : ''}
-            </div>
-
             {session.status === 'complete' || isDeadlinePassed(session.deadline) ? (
               <div
                 style={{
@@ -385,20 +374,6 @@ export default function TeamParticipantPage() {
             >
               <strong>Deadline:</strong> {formatDeadline(session.deadline)}
             </div>
-
-            <div
-              style={{
-                border: '1px solid rgba(0,0,0,0.08)',
-                borderRadius: 12,
-                background: 'rgba(0,0,0,0.02)',
-                padding: '12px 14px',
-                fontSize: 13,
-                lineHeight: 1.55,
-              }}
-            >
-              <strong>Responses received:</strong> {responseCount}
-              {session.expectedParticipants ? ` / ${session.expectedParticipants}` : ''}
-            </div>
           </div>
 
           {reviewClosed ? (
@@ -443,7 +418,8 @@ export default function TeamParticipantPage() {
                 </div>
 
                 <div>
-                  <div style={labelStyle}>1. What moved forward this week?</div>
+                  <div style={labelStyle}>1. What actually moved the needle this week?</div>
+                  <div style={helperStyle}>Focus on outcomes, not tasks.</div>
                   <textarea
                     value={movedForward}
                     onChange={(e) => setMovedForward(e.target.value)}
@@ -453,7 +429,10 @@ export default function TeamParticipantPage() {
                 </div>
 
                 <div>
-                  <div style={labelStyle}>2. What is not working or off track?</div>
+                  <div style={labelStyle}>2. What is slowing things down or at risk?</div>
+                  <div style={helperStyle}>
+                    Be specific. Where are we losing momentum or clarity?
+                  </div>
                   <textarea
                     value={offTrack}
                     onChange={(e) => setOffTrack(e.target.value)}
@@ -463,30 +442,22 @@ export default function TeamParticipantPage() {
                 </div>
 
                 <div>
-                  <div style={labelStyle}>3. What is the biggest risk or issue right now?</div>
+                  <div style={labelStyle}>3. Where is a decision needed from leadership?</div>
+                  <div style={helperStyle}>If nothing changes, what stays stuck?</div>
                   <textarea
-                    value={biggestRisk}
-                    onChange={(e) => setBiggestRisk(e.target.value)}
+                    value={leadershipDecision}
+                    onChange={(e) => setLeadershipDecision(e.target.value)}
                     rows={4}
                     style={{ ...inputStyle, resize: 'vertical' }}
                   />
                 </div>
 
                 <div>
-                  <div style={labelStyle}>4. What do you need from leadership?</div>
+                  <div style={labelStyle}>4. What should happen next?</div>
+                  <div style={helperStyle}>If you owned this, what would you do?</div>
                   <textarea
-                    value={leadershipNeed}
-                    onChange={(e) => setLeadershipNeed(e.target.value)}
-                    rows={4}
-                    style={{ ...inputStyle, resize: 'vertical' }}
-                  />
-                </div>
-
-                <div>
-                  <div style={labelStyle}>5. Anything else you’d like to share? (optional)</div>
-                  <textarea
-                    value={anythingElse}
-                    onChange={(e) => setAnythingElse(e.target.value)}
+                    value={nextStep}
+                    onChange={(e) => setNextStep(e.target.value)}
                     rows={4}
                     style={{ ...inputStyle, resize: 'vertical' }}
                   />

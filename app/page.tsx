@@ -24,6 +24,19 @@ type ReadySummarySession = {
   archived_at: string | null;
 };
 
+type OpenTeamSession = {
+  id: string;
+  title: string;
+  prompt: string;
+  deadline: string | null;
+  status: string | null;
+  expected_participants: number | null;
+  created_at: string | null;
+  summary_generated_at: string | null;
+  archived_at: string | null;
+  dismissed_at: string | null;
+};
+
 function parseLocalDateTimeParts(value: string) {
   if (!value) return null;
 
@@ -68,6 +81,11 @@ export default function HomePage() {
 
   const [readySummaries, setReadySummaries] = useState<ReadySummarySession[]>([]);
   const [loadingReadySummaries, setLoadingReadySummaries] = useState(false);
+
+  const [openTeamSessions, setOpenTeamSessions] = useState<OpenTeamSession[]>([]);
+  const [loadingOpenTeamSessions, setLoadingOpenTeamSessions] = useState(false);
+  const [closingSessionId, setClosingSessionId] = useState<string | null>(null);
+  const [openSessionsError, setOpenSessionsError] = useState<string | null>(null);
 
   const [decision, setDecision] = useState('');
   const [context, setContext] = useState('');
@@ -207,6 +225,57 @@ export default function HomePage() {
     };
   }, [user?.id]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadOpenTeamSessions = async () => {
+      if (!user?.id) {
+        if (!cancelled) {
+          setOpenTeamSessions([]);
+          setLoadingOpenTeamSessions(false);
+          setOpenSessionsError(null);
+        }
+        return;
+      }
+
+      if (!cancelled) {
+        setLoadingOpenTeamSessions(true);
+        setOpenSessionsError(null);
+      }
+
+      const { data, error } = await supabase
+        .from('team_sessions')
+        .select(
+          'id, title, prompt, deadline, status, expected_participants, created_at, summary_generated_at, archived_at, dismissed_at'
+        )
+        .eq('created_by', user.id)
+        .is('archived_at', null)
+        .is('summary_generated_at', null)
+        .order('created_at', { ascending: false });
+
+      if (!cancelled) {
+        if (error) {
+          setOpenTeamSessions([]);
+          setOpenSessionsError(error.message || 'Failed to load open team reviews.');
+        } else {
+          const openOnly = ((data || []) as OpenTeamSession[]).filter(
+            (item) => item.status !== 'complete'
+          );
+          setOpenTeamSessions(openOnly);
+          setOpenSessionsError(null);
+        }
+
+        setLoadingOpenTeamSessions(false);
+      }
+    };
+
+    void loadOpenTeamSessions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
+
   const handleSignIn = async () => {
     setAuthError(null);
 
@@ -257,6 +326,53 @@ export default function HomePage() {
       setReadySummaries((prev) => prev.filter((s) => s.id !== sessionId));
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleCloseAndGenerateFromHome = async (sessionId: string) => {
+    try {
+      setClosingSessionId(sessionId);
+      setOpenSessionsError(null);
+
+      const res = await fetch('/api/team/finalize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ sessionId }),
+      });
+
+      const rawText = await res.text();
+
+      let json: any = null;
+      try {
+        json = JSON.parse(rawText);
+      } catch {
+        json = null;
+      }
+
+      if (!res.ok) {
+        throw new Error(json?.error || rawText || 'Failed to generate summary.');
+      }
+
+      setOpenTeamSessions((prev) => prev.filter((s) => s.id !== sessionId));
+
+      const summaryTitle =
+        openTeamSessions.find((s) => s.id === sessionId)?.title || 'Untitled review';
+
+      const newReadyItem: ReadySummarySession = {
+        id: sessionId,
+        title: summaryTitle,
+        summary_generated_at: new Date().toISOString(),
+        dismissed_at: null,
+        archived_at: null,
+      };
+
+      setReadySummaries((prev) => [newReadyItem, ...prev]);
+    } catch (err: any) {
+      setOpenSessionsError(err?.message || 'Failed to generate summary.');
+    } finally {
+      setClosingSessionId(null);
     }
   };
 
@@ -582,6 +698,21 @@ export default function HomePage() {
 
       setTeamSessionPreview(preview);
 
+      const newOpenSession: OpenTeamSession = {
+        id: preview.id,
+        title: preview.title,
+        prompt: preview.prompt,
+        deadline: preview.deadline,
+        status: 'open',
+        expected_participants: preview.expectedParticipants,
+        created_at: preview.createdAt,
+        summary_generated_at: null,
+        archived_at: null,
+        dismissed_at: null,
+      };
+
+      setOpenTeamSessions((prev) => [newOpenSession, ...prev]);
+
       setTimeout(() => {
         teamPreviewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 50);
@@ -683,6 +814,18 @@ export default function HomePage() {
     textDecoration: 'none',
   };
 
+  const actionPillStyle: React.CSSProperties = {
+    borderRadius: 999,
+    border: '1px solid rgba(0,0,0,0.12)',
+    padding: '8px 12px',
+    background: '#fff',
+    color: '#111',
+    fontSize: 12,
+    fontWeight: 800,
+    cursor: 'pointer',
+    textDecoration: 'none',
+  };
+
   const lastUsedLabel = formatShort(lastUsedAt);
   const ctaBg = '#0b0b0b';
 
@@ -752,7 +895,216 @@ export default function HomePage() {
         </header>
 
         {user && (
-          <section style={{ maxWidth: 720, margin: '18px auto 0' }}>
+          <section style={{ maxWidth: 720, margin: '18px auto 0', display: 'grid', gap: 14 }}>
+            <div
+              style={{
+                border: '1px solid rgba(59,130,246,0.22)',
+                borderRadius: 16,
+                background: 'rgba(59,130,246,0.06)',
+                padding: 16,
+              }}
+            >
+              <div style={{ fontSize: 13, fontWeight: 900, marginBottom: 8 }}>
+                Open team reviews
+              </div>
+
+              {loadingOpenTeamSessions ? (
+                <div style={{ fontSize: 13.5, opacity: 0.72 }}>Loading open reviews...</div>
+              ) : openTeamSessions.length === 0 ? (
+                <div
+                  style={{
+                    borderRadius: 14,
+                    border: '1px dashed rgba(0,0,0,0.14)',
+                    background: 'rgba(255,255,255,0.72)',
+                    padding: 16,
+                  }}
+                >
+                  <div style={{ fontSize: 13.5, fontWeight: 800, marginBottom: 4 }}>
+                    No open reviews right now
+                  </div>
+                  <div style={{ fontSize: 12.5, lineHeight: 1.6, opacity: 0.68 }}>
+                    Create a team review below when you want structured input before a meeting.
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gap: 12 }}>
+                  {openTeamSessions.map((item) => {
+                    const isClosing = closingSessionId === item.id;
+
+                    return (
+                      <div
+                        key={item.id}
+                        style={{
+                          borderRadius: 16,
+                          border: '1px solid rgba(0,0,0,0.10)',
+                          background: '#fff',
+                          padding: 16,
+                          boxShadow: '0 12px 24px rgba(0,0,0,0.04)',
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            borderRadius: 999,
+                            border: '1px solid rgba(59,130,246,0.18)',
+                            background: 'rgba(59,130,246,0.08)',
+                            color: '#1d4ed8',
+                            padding: '6px 10px',
+                            fontSize: 11,
+                            fontWeight: 900,
+                            letterSpacing: '0.08em',
+                          }}
+                        >
+                          OPEN
+                        </div>
+
+                        <div style={{ marginTop: 12 }}>
+                          <div
+                            style={{
+                              fontSize: 17,
+                              fontWeight: 900,
+                              letterSpacing: -0.02,
+                              lineHeight: 1.25,
+                            }}
+                          >
+                            {item.title}
+                          </div>
+
+                          <div
+                            style={{
+                              marginTop: 8,
+                              fontSize: 13,
+                              lineHeight: 1.55,
+                              opacity: 0.72,
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                            }}
+                          >
+                            {item.prompt}
+                          </div>
+                        </div>
+
+                        <div
+                          style={{
+                            marginTop: 14,
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                            gap: 10,
+                          }}
+                        >
+                          <div
+                            style={{
+                              borderRadius: 12,
+                              background: 'rgba(0,0,0,0.03)',
+                              padding: '10px 12px',
+                            }}
+                          >
+                            <div
+                              style={{ fontSize: 11, fontWeight: 800, opacity: 0.5, marginBottom: 4 }}
+                            >
+                              DEADLINE
+                            </div>
+                            <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.4 }}>
+                              {formatDeadline(item.deadline)}
+                            </div>
+                          </div>
+
+                          <div
+                            style={{
+                              borderRadius: 12,
+                              background: 'rgba(0,0,0,0.03)',
+                              padding: '10px 12px',
+                            }}
+                          >
+                            <div
+                              style={{ fontSize: 11, fontWeight: 800, opacity: 0.5, marginBottom: 4 }}
+                            >
+                              PARTICIPANTS
+                            </div>
+                            <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.4 }}>
+                              {item.expected_participants ?? 'Not set'}
+                            </div>
+                          </div>
+
+                          <div
+                            style={{
+                              borderRadius: 12,
+                              background: 'rgba(0,0,0,0.03)',
+                              padding: '10px 12px',
+                            }}
+                          >
+                            <div
+                              style={{ fontSize: 11, fontWeight: 800, opacity: 0.5, marginBottom: 4 }}
+                            >
+                              CREATED
+                            </div>
+                            <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.4 }}>
+                              {formatShort(item.created_at)}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div
+                          style={{
+                            marginTop: 14,
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: 8,
+                          }}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => handleCloseAndGenerateFromHome(item.id)}
+                            disabled={isClosing}
+                            style={{
+                              borderRadius: 999,
+                              border: 'none',
+                              padding: '10px 14px',
+                              background: '#111',
+                              color: '#fff',
+                              fontSize: 12.5,
+                              fontWeight: 900,
+                              cursor: isClosing ? 'default' : 'pointer',
+                              opacity: isClosing ? 0.72 : 1,
+                              boxShadow: '0 8px 18px rgba(0,0,0,0.10)',
+                            }}
+                          >
+                            {isClosing ? 'Closing...' : 'Close & Generate Summary'}
+                          </button>
+
+                          <a
+                            href={`/team/${item.id}/summary`}
+                            style={{
+                              borderRadius: 999,
+                              border: '1px solid rgba(0,0,0,0.12)',
+                              padding: '10px 14px',
+                              background: '#fff',
+                              color: '#111',
+                              fontSize: 12.5,
+                              fontWeight: 800,
+                              textDecoration: 'none',
+                            }}
+                          >
+                            View Summary Page
+                          </a>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {openSessionsError && (
+                <div style={{ marginTop: 10, fontSize: 12.5, color: '#dc2626', fontWeight: 700 }}>
+                  {openSessionsError}
+                </div>
+              )}
+            </div>
+
             <div
               style={{
                 border: '1px solid rgba(16,185,129,0.25)',
@@ -770,8 +1122,20 @@ export default function HomePage() {
                   Checking for ready summaries...
                 </div>
               ) : readySummaries.length === 0 ? (
-                <div style={{ fontSize: 13.5, opacity: 0.72 }}>
-                  No summaries ready yet.
+                <div
+                  style={{
+                    borderRadius: 14,
+                    border: '1px dashed rgba(0,0,0,0.14)',
+                    background: 'rgba(255,255,255,0.72)',
+                    padding: 16,
+                  }}
+                >
+                  <div style={{ fontSize: 13.5, fontWeight: 800, marginBottom: 4 }}>
+                    No summaries ready yet
+                  </div>
+                  <div style={{ fontSize: 12.5, lineHeight: 1.6, opacity: 0.68 }}>
+                    Once a review is closed and generated, it will show up here.
+                  </div>
                 </div>
               ) : (
                 <>
@@ -779,51 +1143,133 @@ export default function HomePage() {
                     {readySummaries.length} ready
                   </div>
 
-                  <div style={{ display: 'grid', gap: 10 }}>
+                  <div style={{ display: 'grid', gap: 12 }}>
                     {readySummaries.map((item) => (
                       <div
                         key={item.id}
                         style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: 10,
-                          borderRadius: 12,
-                          border: '1px solid rgba(0,0,0,0.08)',
+                          borderRadius: 16,
+                          border: '1px solid rgba(0,0,0,0.10)',
                           background: '#fff',
-                          padding: '12px 14px',
+                          padding: 16,
+                          boxShadow: '0 12px 24px rgba(0,0,0,0.04)',
                         }}
                       >
-                        <a
-                          href={`/team/${item.id}/summary`}
+                        <div
                           style={{
-                            flex: 1,
-                            color: '#111',
-                            textDecoration: 'none',
-                          }}
-                        >
-                          <div style={{ fontSize: 14, fontWeight: 900 }}>{item.title}</div>
-
-                          <div style={{ marginTop: 4, fontSize: 12.5, opacity: 0.65 }}>
-                            Summary ready • Open
-                          </div>
-                        </a>
-
-                        <button
-                          onClick={() => handleDismiss(item.id)}
-                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 6,
                             borderRadius: 999,
-                            border: '1px solid rgba(0,0,0,0.12)',
+                            border: '1px solid rgba(16,185,129,0.20)',
+                            background: 'rgba(16,185,129,0.10)',
+                            color: '#047857',
                             padding: '6px 10px',
-                            fontSize: 11.5,
-                            fontWeight: 700,
-                            background: '#fff',
-                            cursor: 'pointer',
-                            opacity: 0.7,
+                            fontSize: 11,
+                            fontWeight: 900,
+                            letterSpacing: '0.08em',
                           }}
                         >
-                          Dismiss
-                        </button>
+                          READY
+                        </div>
+
+                        <div style={{ marginTop: 12 }}>
+                          <div
+                            style={{
+                              fontSize: 17,
+                              fontWeight: 900,
+                              letterSpacing: -0.02,
+                              lineHeight: 1.25,
+                            }}
+                          >
+                            {item.title}
+                          </div>
+                        </div>
+
+                        <div
+                          style={{
+                            marginTop: 14,
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                            gap: 10,
+                          }}
+                        >
+                          <div
+                            style={{
+                              borderRadius: 12,
+                              background: 'rgba(0,0,0,0.03)',
+                              padding: '10px 12px',
+                            }}
+                          >
+                            <div
+                              style={{ fontSize: 11, fontWeight: 800, opacity: 0.5, marginBottom: 4 }}
+                            >
+                              GENERATED
+                            </div>
+                            <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.4 }}>
+                              {formatShort(item.summary_generated_at)}
+                            </div>
+                          </div>
+
+                          <div
+                            style={{
+                              borderRadius: 12,
+                              background: 'rgba(0,0,0,0.03)',
+                              padding: '10px 12px',
+                            }}
+                          >
+                            <div
+                              style={{ fontSize: 11, fontWeight: 800, opacity: 0.5, marginBottom: 4 }}
+                            >
+                              STATUS
+                            </div>
+                            <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.4 }}>
+                              Ready to review
+                            </div>
+                          </div>
+                        </div>
+
+                        <div
+                          style={{
+                            marginTop: 14,
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: 8,
+                          }}
+                        >
+                          <a
+                            href={`/team/${item.id}/summary`}
+                            style={{
+                              borderRadius: 999,
+                              border: 'none',
+                              padding: '10px 14px',
+                              background: '#111',
+                              color: '#fff',
+                              fontSize: 12.5,
+                              fontWeight: 900,
+                              textDecoration: 'none',
+                              boxShadow: '0 8px 18px rgba(0,0,0,0.10)',
+                            }}
+                          >
+                            Open Summary
+                          </a>
+
+                          <button
+                            onClick={() => handleDismiss(item.id)}
+                            style={{
+                              borderRadius: 999,
+                              border: '1px solid rgba(0,0,0,0.12)',
+                              padding: '10px 14px',
+                              background: '#fff',
+                              color: '#111',
+                              fontSize: 12.5,
+                              fontWeight: 800,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Dismiss
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>

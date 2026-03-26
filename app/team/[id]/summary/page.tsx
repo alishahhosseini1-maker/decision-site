@@ -10,7 +10,6 @@ type Input = {
   department: string;
   moved_forward: string;
   not_working: string;
-  risk: string;
   needs: string;
   next_action: string | null;
 };
@@ -57,15 +56,52 @@ function SectionList({
   if (!items || items.length === 0) return null;
 
   return (
-    <div className="rounded-2xl border border-black/10 bg-white p-4">
-      <h3 className="text-sm font-semibold text-black">{title}</h3>
-      <ul className="mt-3 space-y-2 text-sm text-black/70">
+    <div className="rounded-3xl border border-black/10 bg-white p-5 shadow-[0_10px_24px_rgba(0,0,0,0.04)]">
+      <div className="text-[11px] font-black uppercase tracking-[0.18em] text-black/40">
+        {title}
+      </div>
+      <ul className="mt-4 space-y-3 text-sm leading-6 text-black/75">
         {items.map((item, idx) => (
-          <li key={`${title}-${idx}`} className="leading-6">
-            • {item}
+          <li key={`${title}-${idx}`} className="flex gap-2">
+            <span className="mt-[2px] text-black/35">•</span>
+            <span>{item}</span>
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+function MetaChip({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-black/[0.03] px-4 py-3">
+      <div className="text-[10px] font-black uppercase tracking-[0.18em] text-black/40">
+        {label}
+      </div>
+      <div className="mt-1 text-sm font-semibold leading-5 text-black/75">{value}</div>
+    </div>
+  );
+}
+
+function InsightCard({
+  label,
+  value,
+}: {
+  label: string;
+  value?: string;
+}) {
+  return (
+    <div className="rounded-3xl border border-black/10 bg-white p-5 shadow-[0_10px_24px_rgba(0,0,0,0.04)]">
+      <div className="text-[11px] font-black uppercase tracking-[0.18em] text-black/40">
+        {label}
+      </div>
+      <p className="mt-3 text-sm leading-7 text-black/80">{value || '—'}</p>
     </div>
   );
 }
@@ -75,7 +111,6 @@ export default function SummaryPage() {
 
   const [loading, setLoading] = useState(true);
   const [finalizing, setFinalizing] = useState(false);
-  const [closing, setClosing] = useState(false);
   const [archiving, setArchiving] = useState(false);
   const [dismissing, setDismissing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -84,40 +119,6 @@ export default function SummaryPage() {
   const [summary, setSummary] = useState<TeamSummary | null>(null);
   const [inputs, setInputs] = useState<Input[]>([]);
   const [showRawInputs, setShowRawInputs] = useState(false);
-
-  async function handleCloseAndGenerate() {
-    try {
-      setClosing(true);
-      setError(null);
-
-      const res = await fetch('/api/team/finalize', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ sessionId: id }),
-      });
-
-      const rawText = await res.text();
-
-      let json: any = null;
-      try {
-        json = JSON.parse(rawText);
-      } catch {
-        json = null;
-      }
-
-      if (!res.ok) {
-        throw new Error(json?.error || rawText || 'Failed to close and generate summary.');
-      }
-
-      window.location.reload();
-    } catch (err: any) {
-      setError(err?.message || 'Failed to close and generate summary.');
-    } finally {
-      setClosing(false);
-    }
-  }
 
   async function handleArchiveSummary() {
     try {
@@ -283,7 +284,6 @@ export default function SummaryPage() {
             department,
             moved_forward,
             not_working,
-            risk,
             needs,
             next_action
           `
@@ -334,7 +334,7 @@ export default function SummaryPage() {
   if (error) {
     return (
       <main className="min-h-screen bg-[#f7f7f2] px-6 py-10 text-black">
-        <div className="mx-auto max-w-5xl rounded-2xl border border-red-200 bg-red-50 p-6">
+        <div className="mx-auto max-w-5xl rounded-3xl border border-red-200 bg-red-50 p-6">
           <p className="text-sm font-medium text-red-700">{error}</p>
         </div>
       </main>
@@ -354,120 +354,95 @@ export default function SummaryPage() {
   return (
     <main className="min-h-screen bg-[#f7f7f2] px-6 py-10 text-black">
       <div className="mx-auto max-w-5xl space-y-6">
-        <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-sm">
-          <div className="flex flex-col gap-3">
-            <div>
-              <p className="text-xs uppercase tracking-[0.18em] text-black/45">
-                Team Summary
-              </p>
-              <h1 className="mt-2 text-3xl font-semibold tracking-tight text-black">
-                {session.title}
-              </h1>
+        <div className="rounded-[28px] border border-black/10 bg-white p-7 shadow-[0_16px_40px_rgba(0,0,0,0.05)]">
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div className="max-w-3xl">
+                <p className="text-[11px] font-black uppercase tracking-[0.22em] text-black/40">
+                  Team Summary
+                </p>
+                <h1 className="mt-3 text-4xl font-semibold tracking-tight text-black">
+                  {session.title}
+                </h1>
+                <p className="mt-4 max-w-3xl text-sm leading-7 text-black/70">
+                  {session.prompt}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3 lg:justify-end">
+                <button
+                  onClick={handleDismissFromHome}
+                  disabled={dismissing}
+                  className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-black transition hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {dismissing ? 'Dismissing...' : 'Dismiss from Home'}
+                </button>
+
+                <button
+                  onClick={handleArchiveSummary}
+                  disabled={archiving}
+                  className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-black transition hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {archiving ? 'Archiving...' : 'Archive Summary'}
+                </button>
+              </div>
             </div>
 
-            <p className="text-sm leading-6 text-black/70">{session.prompt}</p>
-
-            <div className="flex flex-wrap gap-3 text-xs text-black/55">
-              <span>Status: {session.status || 'unknown'}</span>
-              <span>
-                Deadline: {session.deadline ? new Date(session.deadline).toLocaleString() : 'None'}
-              </span>
-              <span>
-                Closed: {session.closed_at ? new Date(session.closed_at).toLocaleString() : 'Not yet'}
-              </span>
-              <span>
-                Summary generated:{' '}
-                {session.summary_generated_at
-                  ? new Date(session.summary_generated_at).toLocaleString()
-                  : 'Not yet'}
-              </span>
-              <span>
-                Email:{' '}
-                {session.summary_emailed_at
-                  ? `Sent ${new Date(session.summary_emailed_at).toLocaleString()}`
-                  : 'Not sent yet'}
-              </span>
-            </div>
-
-            <div className="flex flex-wrap gap-3 pt-2">
-              <button
-                onClick={handleCloseAndGenerate}
-                disabled={closing}
-                className="rounded-full border border-black/10 px-4 py-2 text-sm text-black transition hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {closing ? 'Closing...' : 'Close & Generate Summary'}
-              </button>
-
-              <button
-                onClick={handleDismissFromHome}
-                disabled={dismissing}
-                className="rounded-full border border-black/10 px-4 py-2 text-sm text-black transition hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {dismissing ? 'Dismissing...' : 'Dismiss from Home'}
-              </button>
-
-              <button
-                onClick={handleArchiveSummary}
-                disabled={archiving}
-                className="rounded-full border border-black/10 px-4 py-2 text-sm text-black transition hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {archiving ? 'Archiving...' : 'Archive Summary'}
-              </button>
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+              <MetaChip label="Status" value={session.status || 'unknown'} />
+              <MetaChip
+                label="Deadline"
+                value={
+                  session.deadline ? new Date(session.deadline).toLocaleString() : 'None'
+                }
+              />
+              <MetaChip
+                label="Closed"
+                value={
+                  session.closed_at ? new Date(session.closed_at).toLocaleString() : 'Not yet'
+                }
+              />
+              <MetaChip
+                label="Generated"
+                value={
+                  session.summary_generated_at
+                    ? new Date(session.summary_generated_at).toLocaleString()
+                    : 'Not yet'
+                }
+              />
+              <MetaChip
+                label="Email"
+                value={
+                  session.summary_emailed_at
+                    ? `Sent ${new Date(session.summary_emailed_at).toLocaleString()}`
+                    : 'Not sent yet'
+                }
+              />
             </div>
           </div>
         </div>
 
         {!summary ? (
-          <div className="rounded-2xl border border-black/10 bg-white p-6">
+          <div className="rounded-3xl border border-black/10 bg-white p-6 shadow-[0_10px_24px_rgba(0,0,0,0.04)]">
             <p className="text-sm text-black/65">No summary is available yet.</p>
           </div>
         ) : (
           <>
             <div className="grid gap-4 md:grid-cols-2">
-              <div className="rounded-2xl border border-black/10 bg-white p-5">
-                <p className="text-xs uppercase tracking-[0.18em] text-black/45">
-                  Top Signal
-                </p>
-                <p className="mt-2 text-sm leading-6 text-black/80">
-                  {summary.topSignal || '—'}
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-black/10 bg-white p-5">
-                <p className="text-xs uppercase tracking-[0.18em] text-black/45">
-                  Recommendation
-                </p>
-                <p className="mt-2 text-sm leading-6 text-black/80">
-                  {summary.recommendation || '—'}
-                </p>
-              </div>
+              <InsightCard label="Top Signal" value={summary.topSignal} />
+              <InsightCard label="Recommendation" value={summary.recommendation} />
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <div className="rounded-2xl border border-black/10 bg-white p-5">
-                <p className="text-xs uppercase tracking-[0.18em] text-black/45">
-                  Decision
-                </p>
-                <p className="mt-2 text-sm leading-6 text-black/80">
-                  {summary.decision || '—'}
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-black/10 bg-white p-5">
-                <p className="text-xs uppercase tracking-[0.18em] text-black/45">
-                  Tradeoff
-                </p>
-                <p className="mt-2 text-sm leading-6 text-black/80">
-                  {summary.tradeoff || '—'}
-                </p>
-              </div>
+              <InsightCard label="Decision" value={summary.decision} />
+              <InsightCard label="Tradeoff" value={summary.tradeoff} />
             </div>
 
-            <div className="rounded-2xl border border-black/10 bg-white p-5">
-              <p className="text-xs uppercase tracking-[0.18em] text-black/45">
+            <div className="rounded-[28px] border border-black/10 bg-white p-6 shadow-[0_14px_30px_rgba(0,0,0,0.05)]">
+              <div className="text-[11px] font-black uppercase tracking-[0.18em] text-black/40">
                 Overall Summary
-              </p>
-              <p className="mt-2 text-sm leading-7 text-black/80">
+              </div>
+              <p className="mt-4 max-w-4xl text-[15px] leading-8 text-black/82">
                 {summary.overallSummary || '—'}
               </p>
             </div>
@@ -483,33 +458,18 @@ export default function SummaryPage() {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <div className="rounded-2xl border border-black/10 bg-white p-5">
-                <p className="text-xs uppercase tracking-[0.18em] text-black/45">
-                  Contradiction
-                </p>
-                <p className="mt-2 text-sm leading-6 text-black/80">
-                  {summary.contradiction || '—'}
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-black/10 bg-white p-5">
-                <p className="text-xs uppercase tracking-[0.18em] text-black/45">
-                  Hidden Risk
-                </p>
-                <p className="mt-2 text-sm leading-6 text-black/80">
-                  {summary.hiddenRisk || '—'}
-                </p>
-              </div>
+              <InsightCard label="Contradiction" value={summary.contradiction} />
+              <InsightCard label="Hidden Risk" value={summary.hiddenRisk} />
             </div>
           </>
         )}
 
-        <div className="rounded-2xl border border-black/10 bg-white p-5">
-          <div className="flex items-center justify-between gap-3">
+        <div className="rounded-[28px] border border-black/10 bg-white p-5 shadow-[0_10px_24px_rgba(0,0,0,0.04)]">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm font-medium text-black">Raw Inputs</p>
-              <p className="text-xs text-black/55">
-                View the original participant responses behind this summary.
+              <p className="text-sm font-semibold text-black">Raw Inputs</p>
+              <p className="mt-1 text-xs leading-5 text-black/55">
+                Supporting evidence behind the summary. Use this when you want to inspect the original participant responses.
               </p>
             </div>
 
@@ -522,62 +482,53 @@ export default function SummaryPage() {
           </div>
 
           {showRawInputs ? (
-            <div className="mt-5 space-y-4">
+            <div className="mt-6 space-y-4">
               {inputs.length === 0 ? (
                 <p className="text-sm text-black/60">No inputs found.</p>
               ) : (
                 inputs.map((input) => (
                   <div
                     key={input.id}
-                    className="rounded-2xl border border-black/10 bg-[#fcfcf8] p-4"
+                    className="rounded-3xl border border-black/10 bg-[#fcfcf8] p-5"
                   >
-                    <div className="mb-3 flex flex-wrap gap-3 text-xs text-black/55">
+                    <div className="mb-4 flex flex-wrap gap-3 text-xs text-black/55">
                       <span>Name: {input.name || 'Anonymous'}</span>
                       <span>Department: {input.department || '—'}</span>
                     </div>
 
-                    <div className="grid gap-3 md:grid-cols-2">
+                    <div className="grid gap-4 md:grid-cols-2">
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-black/45">
-                          Moved Forward
+                        <p className="text-[11px] font-black uppercase tracking-[0.14em] text-black/45">
+                          What Moved the Needle
                         </p>
-                        <p className="mt-1 text-sm leading-6 text-black/75">
+                        <p className="mt-2 text-sm leading-6 text-black/75">
                           {input.moved_forward || '—'}
                         </p>
                       </div>
 
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-black/45">
-                          Not Working
+                        <p className="text-[11px] font-black uppercase tracking-[0.14em] text-black/45">
+                          What Is Slowing Things Down
                         </p>
-                        <p className="mt-1 text-sm leading-6 text-black/75">
+                        <p className="mt-2 text-sm leading-6 text-black/75">
                           {input.not_working || '—'}
                         </p>
                       </div>
 
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-black/45">
-                          Risk
+                        <p className="text-[11px] font-black uppercase tracking-[0.14em] text-black/45">
+                          Decision Needed From Leadership
                         </p>
-                        <p className="mt-1 text-sm leading-6 text-black/75">
-                          {input.risk || '—'}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-black/45">
-                          Needs
-                        </p>
-                        <p className="mt-1 text-sm leading-6 text-black/75">
+                        <p className="mt-2 text-sm leading-6 text-black/75">
                           {input.needs || '—'}
                         </p>
                       </div>
 
-                      <div className="md:col-span-2">
-                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-black/45">
-                          Next Action
+                      <div>
+                        <p className="text-[11px] font-black uppercase tracking-[0.14em] text-black/45">
+                          What Should Happen Next
                         </p>
-                        <p className="mt-1 text-sm leading-6 text-black/75">
+                        <p className="mt-2 text-sm leading-6 text-black/75">
                           {input.next_action || '—'}
                         </p>
                       </div>
