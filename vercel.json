@@ -1,8 +1,8 @@
 {
-    "crons": [
-      {
-        "path": "/api/team/finalize/auto-finalize?secret=dl_auto_finalize_982374982374_secure",
-        "schedule": "*/5 * * * *"
-      }
-    ]
-  }
+  "crons": [
+    {
+      "path": "/api/team/finalize/auto-finalize?secret=dl_auto_finalize_982374982374_secure",
+      "schedule": "0 9 * * *"
+    }
+  ]
+}
