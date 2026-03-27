@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/app/lib/supabase';
 
@@ -179,6 +179,11 @@ export default function SummaryPage() {
   const [comparisonSessions, setComparisonSessions] = useState<ComparisonSession[]>([]);
   const [showRawInputs, setShowRawInputs] = useState(false);
 
+  const [shareMenuOpen, setShareMenuOpen] = useState(false);
+  const [shareToast, setShareToast] = useState<string | null>(null);
+
+  const shareMenuRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -349,6 +354,33 @@ export default function SummaryPage() {
     };
   }, [id]);
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (!shareMenuRef.current) return;
+      if (!shareMenuRef.current.contains(event.target as Node)) {
+        setShareMenuOpen(false);
+      }
+    }
+
+    if (shareMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [shareMenuOpen]);
+
+  useEffect(() => {
+    if (!shareToast) return;
+
+    const timer = window.setTimeout(() => {
+      setShareToast(null);
+    }, 3000);
+
+    return () => window.clearTimeout(timer);
+  }, [shareToast]);
+
   const confidenceMeta = useMemo(
     () => getConfidenceMeta(summary?.confidence_score),
     [summary?.confidence_score]
@@ -390,6 +422,28 @@ export default function SummaryPage() {
     Boolean(session?.closed_at) &&
     Boolean(session?.summary_generated_at) &&
     Boolean(summary?.recommended_move);
+
+  async function handleCopyShareLink() {
+    try {
+      const shareUrl = `${window.location.origin}/share/summary/${id}`;
+      await navigator.clipboard.writeText(shareUrl);
+      setShareMenuOpen(false);
+      setShareToast('Link copied. This version excludes internal history and raw inputs.');
+    } catch {
+      setShareToast('Could not copy link.');
+    }
+  }
+
+  function handleEmailShareLink() {
+    const shareUrl = `${window.location.origin}/share/summary/${id}`;
+    const subject = encodeURIComponent(`Decision Layer Summary: ${session?.title || 'Summary'}`);
+    const body = encodeURIComponent(
+      `Sharing the summary from today’s review.\n\nView summary:\n${shareUrl}`
+    );
+
+    setShareMenuOpen(false);
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  }
 
   if (loading) {
     return (
@@ -446,14 +500,57 @@ export default function SummaryPage() {
               ) : null}
             </div>
 
-            {decisionLocked ? (
-              <div className="inline-flex items-center gap-2 self-start rounded-full border border-black/10 bg-white px-3 py-2 text-xs font-medium text-black/70 shadow-sm">
-                <span className="h-2 w-2 rounded-full bg-black" />
-                Decision locked
+            <div className="flex items-center gap-3">
+              {decisionLocked ? (
+                <div className="inline-flex items-center gap-2 self-start rounded-full border border-black/10 bg-white px-3 py-2 text-xs font-medium text-black/70 shadow-sm">
+                  <span className="h-2 w-2 rounded-full bg-black" />
+                  Decision locked
+                </div>
+              ) : null}
+
+              <div className="relative" ref={shareMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setShareMenuOpen((prev) => !prev)}
+                  className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-black shadow-sm transition hover:bg-black hover:text-white"
+                >
+                  <span>Share Summary</span>
+                  <span className="text-xs">▾</span>
+                </button>
+
+                {shareMenuOpen ? (
+                  <div className="absolute right-0 top-[calc(100%+10px)] z-20 w-[220px] overflow-hidden rounded-2xl border border-black/10 bg-white shadow-[0_16px_40px_rgba(0,0,0,0.10)]">
+                    <div className="border-b border-black/6 px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-black/45">
+                      Share Summary
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleCopyShareLink}
+                      className="block w-full px-4 py-3 text-left text-sm text-black/82 transition hover:bg-black/[0.03]"
+                    >
+                      Copy share link
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleEmailShareLink}
+                      className="block w-full px-4 py-3 text-left text-sm text-black/82 transition hover:bg-black/[0.03]"
+                    >
+                      Email share link
+                    </button>
+                  </div>
+                ) : null}
               </div>
-            ) : null}
+            </div>
           </div>
         </header>
+
+        {shareToast ? (
+          <div className="rounded-2xl border border-black/8 bg-white px-4 py-3 text-sm text-black/72 shadow-sm">
+            {shareToast}
+          </div>
+        ) : null}
 
         <section className="rounded-[28px] border border-black/5 border-l-4 border-l-black bg-[#f1f1ec] p-8 shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
           <p className="text-[11px] uppercase tracking-[0.22em] text-black/38">
@@ -465,7 +562,8 @@ export default function SummaryPage() {
           </h2>
 
           <p className="mt-4 text-sm leading-7 text-black/63">
-            {summary.tension || 'This is already affecting execution and needs a clear leadership response.'}
+            {summary.tension ||
+              'This is already affecting execution and needs a clear leadership response.'}
           </p>
         </section>
 
@@ -475,9 +573,7 @@ export default function SummaryPage() {
         </section>
 
         <section className="grid gap-6 md:grid-cols-2">
-          <section
-            className={`rounded-[24px] border p-6 shadow-sm ${confidenceMeta.cardClass}`}
-          >
+          <section className={`rounded-[24px] border p-6 shadow-sm ${confidenceMeta.cardClass}`}>
             <div className="flex items-center justify-between gap-4">
               <p className={`text-[11px] uppercase tracking-[0.18em] ${confidenceMeta.mutedClass}`}>
                 Confidence
@@ -505,11 +601,11 @@ export default function SummaryPage() {
             </p>
 
             {delta !== null ? (
-              <div className={`mt-4 border-t border-black/8 pt-4 text-sm ${confidenceMeta.mutedClass}`}>
+              <div
+                className={`mt-4 border-t border-black/8 pt-4 text-sm ${confidenceMeta.mutedClass}`}
+              >
                 <span>Compared with last comparable review: </span>
-                <span className="font-semibold">
-                  {delta > 0 ? `+${delta}` : delta}
-                </span>
+                <span className="font-semibold">{delta > 0 ? `+${delta}` : delta}</span>
               </div>
             ) : null}
           </section>
@@ -539,9 +635,7 @@ export default function SummaryPage() {
             <p className="text-[11px] uppercase tracking-[0.18em] text-amber-700">
               Misalignment
             </p>
-            <p className="mt-3 text-sm leading-7 text-amber-900">
-              {summary.contradictions}
-            </p>
+            <p className="mt-3 text-sm leading-7 text-amber-900">{summary.contradictions}</p>
           </section>
         ) : null}
 
@@ -614,9 +708,7 @@ export default function SummaryPage() {
             className="flex w-full items-center justify-between text-left"
           >
             <div>
-              <p className="text-[11px] uppercase tracking-[0.18em] text-black/38">
-                Raw inputs
-              </p>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-black/38">Raw inputs</p>
               <p className="mt-2 text-sm leading-6 text-black/55">
                 Supporting evidence behind the summary.
               </p>
