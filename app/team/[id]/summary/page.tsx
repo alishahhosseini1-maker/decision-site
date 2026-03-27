@@ -180,7 +180,7 @@ export default function SummaryPage() {
   const [showRawInputs, setShowRawInputs] = useState(false);
 
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
-  const [shareToast, setShareToast] = useState<string | null>(null);
+  const [shareToast, setShareToast] = useState(false);
 
   const shareMenuRef = useRef<HTMLDivElement | null>(null);
 
@@ -375,7 +375,7 @@ export default function SummaryPage() {
     if (!shareToast) return;
 
     const timer = window.setTimeout(() => {
-      setShareToast(null);
+      setShareToast(false);
     }, 3000);
 
     return () => window.clearTimeout(timer);
@@ -428,9 +428,10 @@ export default function SummaryPage() {
       const shareUrl = `${window.location.origin}/share/summary/${id}`;
       await navigator.clipboard.writeText(shareUrl);
       setShareMenuOpen(false);
-      setShareToast('Link copied. This version excludes internal history and raw inputs.');
+      setShareToast(true);
     } catch {
-      setShareToast('Could not copy link.');
+      setShareMenuOpen(false);
+      setShareToast(false);
     }
   }
 
@@ -477,6 +478,25 @@ export default function SummaryPage() {
 
   return (
     <main className="min-h-screen bg-[#f7f7f2] px-6 py-12 text-black">
+      {shareToast ? (
+        <div
+          className="fixed right-6 top-6 z-50"
+          style={{
+            animation: 'fadeInUp 0.25s ease',
+          }}
+        >
+          <div className="rounded-xl bg-black px-5 py-3 text-sm text-white shadow-lg">
+            <div className="flex items-center gap-2 font-medium">
+              <span>✓</span>
+              <span>Link copied</span>
+            </div>
+            <div className="mt-1 text-xs text-white/70">
+              This version excludes internal history and raw inputs.
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <div
         className={`mx-auto max-w-5xl space-y-8 transition-all duration-700 ${
           animateIn ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'
@@ -545,12 +565,6 @@ export default function SummaryPage() {
             </div>
           </div>
         </header>
-
-        {shareToast ? (
-          <div className="rounded-2xl border border-black/8 bg-white px-4 py-3 text-sm text-black/72 shadow-sm">
-            {shareToast}
-          </div>
-        ) : null}
 
         <section className="rounded-[28px] border border-black/5 border-l-4 border-l-black bg-[#f1f1ec] p-8 shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
           <p className="text-[11px] uppercase tracking-[0.22em] text-black/38">
