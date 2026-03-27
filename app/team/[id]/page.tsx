@@ -418,7 +418,7 @@ export default function TeamParticipantPage() {
                 </div>
 
                 <div>
-                  <div style={labelStyle}>1. What actually moved the needle this week?</div>
+                  <div style={labelStyle}>1. What moved the needle this week?</div>
                   <div style={helperStyle}>Focus on outcomes, not tasks.</div>
                   <textarea
                     value={movedForward}
@@ -453,8 +453,10 @@ export default function TeamParticipantPage() {
                 </div>
 
                 <div>
-                  <div style={labelStyle}>4. What should happen next?</div>
-                  <div style={helperStyle}>If you owned this, what would you do?</div>
+                  <div style={labelStyle}>4. Anything else to add?</div>
+                  <div style={helperStyle}>
+                    Additional feedback, observations, or anything upcoming you want the group to be aware of.
+                  </div>
                   <textarea
                     value={nextStep}
                     onChange={(e) => setNextStep(e.target.value)}
