@@ -27,13 +27,24 @@ export async function POST(req: Request) {
     }
 
     const systemPrompt = `
-You are a disciplined executive decision analyst.
+You are a disciplined executive decision reviewer.
 
-You are given a decision and optional context.
-
-Your job is to assess decision quality and produce a fast, structured executive snapshot.
+Your job is NOT to give generic advice.
+Your job is to assess whether a decision is ready for commitment.
 
 Write in plain English so a smart 15-year-old can understand it.
+
+Optimize for:
+- commitment readiness
+- survivability
+- reversibility
+- clarity
+- downside awareness
+
+Do not be dramatic.
+Do not be motivational.
+Do not be vague.
+Do not sound like a consultant.
 
 Return ONLY valid JSON.
 Do not wrap the JSON in markdown.
@@ -42,14 +53,20 @@ Do not include any text before or after the JSON.
 Return this exact shape:
 
 {
-  "score": {
+  "readiness": {
     "clarity": number,
     "assumptions": number,
     "reversibility": number,
     "risk": number,
     "exitLogic": number,
     "total": number,
+    "label": string,
     "summary": string
+  },
+  "topline": {
+    "primaryRisk": string,
+    "mustBeTrue": string,
+    "recommendedMove": string
   },
   "snapshot": {
     "door": string,
@@ -58,25 +75,30 @@ Return this exact shape:
     "trap": string,
     "exit": string,
     "step": string
-  },
-  "keyThing": string
+  }
 }
 
 Rules:
 - Each score category must be an integer from 0 to 20.
 - total must equal the sum of the 5 category scores.
-- summary should be one short sentence.
-- snapshot language should be clear, concise, and specific.
-- Each snapshot field should be easy to understand and short enough to scan quickly.
-- keyThing should be ONE short insight sentence.
-- keyThing should feel helpful, calm, and thoughtful — not scary or dramatic.
-- keyThing should highlight the one thing the person should think about most after reading Door / Hinge / Locks / Trap / Exit / Step.
-- Optimize for clarity and survivability, not certainty.
+- label must be exactly one of:
+  - "Not ready to commit"
+  - "Proceed smaller"
+  - "Ready to commit"
+- summary must be one short sentence explaining the overall readiness.
+- primaryRisk must name the single biggest thing being underestimated.
+- mustBeTrue must state the one thing that most needs to be true for this decision to work.
+- recommendedMove must be a direct next stance, not a vague suggestion.
+- snapshot language should be concise, specific, and easy to scan.
+- door should classify the type of decision in plain English.
+- hinge should name the main assumption carrying the decision.
+- lock should name what becomes harder to undo after committing.
+- trap should name the hidden way this could go wrong.
+- exit should name an observable signal that should cause pause or reconsideration.
+- step should name the smartest next move from here.
+- Optimize for clarity and survivability, not confidence.
 - Be concise.
 - No fluff.
-- No motivational language.
-- No consultant-style filler.
-- Identify the most important pattern or contradiction in the decision.
 `;
 
     const userPrompt = `
@@ -95,7 +117,7 @@ ${context || 'None provided'}
       },
       body: JSON.stringify({
         model: 'gpt-4o',
-        temperature: 0.3,
+        temperature: 0.25,
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
@@ -135,19 +157,43 @@ ${context || 'None provided'}
     }
 
     const safeResult = {
-      score: {
-        clarity: Number.isInteger(parsed?.score?.clarity) ? parsed.score.clarity : 0,
-        assumptions: Number.isInteger(parsed?.score?.assumptions) ? parsed.score.assumptions : 0,
-        reversibility: Number.isInteger(parsed?.score?.reversibility)
-          ? parsed.score.reversibility
+      readiness: {
+        clarity: Number.isInteger(parsed?.readiness?.clarity) ? parsed.readiness.clarity : 0,
+        assumptions: Number.isInteger(parsed?.readiness?.assumptions)
+          ? parsed.readiness.assumptions
           : 0,
-        risk: Number.isInteger(parsed?.score?.risk) ? parsed.score.risk : 0,
-        exitLogic: Number.isInteger(parsed?.score?.exitLogic) ? parsed.score.exitLogic : 0,
-        total: Number.isInteger(parsed?.score?.total) ? parsed.score.total : 0,
+        reversibility: Number.isInteger(parsed?.readiness?.reversibility)
+          ? parsed.readiness.reversibility
+          : 0,
+        risk: Number.isInteger(parsed?.readiness?.risk) ? parsed.readiness.risk : 0,
+        exitLogic: Number.isInteger(parsed?.readiness?.exitLogic)
+          ? parsed.readiness.exitLogic
+          : 0,
+        total: Number.isInteger(parsed?.readiness?.total) ? parsed.readiness.total : 0,
+        label:
+          parsed?.readiness?.label === 'Not ready to commit' ||
+          parsed?.readiness?.label === 'Proceed smaller' ||
+          parsed?.readiness?.label === 'Ready to commit'
+            ? parsed.readiness.label
+            : 'Proceed smaller',
         summary:
-          typeof parsed?.score?.summary === 'string'
-            ? parsed.score.summary
-            : 'Decision reviewed.',
+          typeof parsed?.readiness?.summary === 'string'
+            ? parsed.readiness.summary
+            : 'This decision is not fully ready yet.',
+      },
+      topline: {
+        primaryRisk:
+          typeof parsed?.topline?.primaryRisk === 'string'
+            ? parsed.topline.primaryRisk
+            : 'The downside is not fully understood yet.',
+        mustBeTrue:
+          typeof parsed?.topline?.mustBeTrue === 'string'
+            ? parsed.topline.mustBeTrue
+            : 'A key assumption still needs to be tested.',
+        recommendedMove:
+          typeof parsed?.topline?.recommendedMove === 'string'
+            ? parsed.topline.recommendedMove
+            : 'Proceed smaller until the main assumption is clearer.',
       },
       snapshot: {
         door: typeof parsed?.snapshot?.door === 'string' ? parsed.snapshot.door : '',
@@ -157,20 +203,24 @@ ${context || 'None provided'}
         exit: typeof parsed?.snapshot?.exit === 'string' ? parsed.snapshot.exit : '',
         step: typeof parsed?.snapshot?.step === 'string' ? parsed.snapshot.step : '',
       },
-      keyThing:
-        typeof parsed?.keyThing === 'string'
-          ? parsed.keyThing
-          : 'The main thing to think about is whether the downside is small enough if this goes wrong.',
     };
 
     const calculatedTotal =
-      safeResult.score.clarity +
-      safeResult.score.assumptions +
-      safeResult.score.reversibility +
-      safeResult.score.risk +
-      safeResult.score.exitLogic;
+      safeResult.readiness.clarity +
+      safeResult.readiness.assumptions +
+      safeResult.readiness.reversibility +
+      safeResult.readiness.risk +
+      safeResult.readiness.exitLogic;
 
-    safeResult.score.total = calculatedTotal;
+    safeResult.readiness.total = calculatedTotal;
+
+    if (calculatedTotal < 60) {
+      safeResult.readiness.label = 'Not ready to commit';
+    } else if (calculatedTotal < 76) {
+      safeResult.readiness.label = 'Proceed smaller';
+    } else {
+      safeResult.readiness.label = 'Ready to commit';
+    }
 
     return NextResponse.json(safeResult);
   } catch (error) {

@@ -1,14 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server';
 
-export const runtime = "nodejs";
+export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
   try {
-    const { decision, context = "" } = await req.json();
+    const { decision, context = '' } = await req.json();
 
     if (!decision || decision.trim().length < 8) {
       return NextResponse.json(
-        { error: "Decision is too short." },
+        { error: 'Decision is too short.' },
         { status: 400 }
       );
     }
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
 
     if (!apiKey) {
       return NextResponse.json(
-        { error: "Missing OPENAI_API_KEY in .env" },
+        { error: 'Missing OPENAI_API_KEY in .env' },
         { status: 500 }
       );
     }
@@ -48,17 +48,17 @@ Style:
 Core standard:
 Think like a senior engineer doing a design review.
 Explain it simply.
+Optimize for survivability, not confidence.
 
 Decision:
 ${decision}
 
 Context:
-${context || "None provided"}
+${context || 'None provided'}
 
 Return the answer using the EXACT structure below.
 
 Do not add extra sections.
-
 Use clean spacing between sections.
 Do NOT use em dashes, horizontal dividers, or separator lines like ---.
 Leave one blank line between sections so it feels easy to read.
@@ -70,6 +70,16 @@ Rewrite the decision in ONE clear sentence.
 🧠 What must go right
 
 List exactly 3 bullets.
+These should be the 3 most load-bearing conditions.
+
+•
+•
+•
+
+❓ What is still unknown
+
+List exactly 3 bullets.
+These should be real unknowns or unsupported assumptions.
 
 •
 •
@@ -78,6 +88,7 @@ List exactly 3 bullets.
 ⚠️ What could go wrong
 
 List exactly 3 real failure modes.
+These should be concrete, not generic.
 
 •
 •
@@ -92,22 +103,18 @@ List 2–3 red flags or disconfirming signals.
 
 💸 Opportunity cost
 
-Explain what you are giving up by doing this.
-
+Explain what is being given up by doing this.
 Limit to 1–2 short sentences.
 
 🚪 Hard to undo
 
 Explain what becomes difficult to reverse after committing.
-
 Focus on time, money, reputation, stress, or flexibility.
-
-Limit to 1–2 sentences.
+Limit to 1–2 short sentences.
 
 📏 Sizing rule
 
 Give a simple rule-of-thumb for how big or small this decision should be sized.
-
 Use 1–2 bullets.
 
 •
@@ -119,6 +126,11 @@ List 2–3 triggers that should cause someone to stop, exit, or reconsider.
 
 •
 •
+
+🧭 Bottom line
+
+Write 1–2 short sentences.
+State whether this looks ready, not ready, or only worth doing smaller.
 
 Formatting rules:
 - Keep sentences short
@@ -133,23 +145,23 @@ Formatting rules:
 - Keep the output clean and easy to scan
 `;
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: 'gpt-4o-mini',
         messages: [
           {
-            role: "system",
+            role: 'system',
             content:
-              "You analyze decisions like a calm senior engineer doing a design review, but you explain them in very simple language.",
+              'You analyze decisions like a calm senior engineer doing a design review, but you explain them in very simple language.',
           },
-          { role: "user", content: prompt },
+          { role: 'user', content: prompt },
         ],
-        temperature: 0.4,
+        temperature: 0.35,
       }),
     });
 
@@ -157,19 +169,19 @@ Formatting rules:
 
     if (!response.ok) {
       return NextResponse.json(
-        { error: data?.error?.message || "OpenAI request failed." },
+        { error: data?.error?.message || 'OpenAI request failed.' },
         { status: 500 }
       );
     }
 
-    const text = data?.choices?.[0]?.message?.content ?? "";
+    const text = data?.choices?.[0]?.message?.content ?? '';
 
     return NextResponse.json({
       analysis: text,
     });
   } catch (err) {
     return NextResponse.json(
-      { error: "Deep review failed." },
+      { error: 'Deep review failed.' },
       { status: 500 }
     );
   }
