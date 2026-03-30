@@ -285,29 +285,23 @@ export default function HomePage() {
         .from('decisions')
         .select('id, decision, outcome_status, needs_follow_up, created_at')
         .eq('user_id', user.id)
-        .or('outcome_status.eq.awaiting_outcome,outcome_status.eq.in_progress,needs_follow_up.eq.true')
+        .or('outcome_status.eq.awaiting_outcome,needs_follow_up.eq.true')
         .order('created_at', { ascending: false })
-        .limit(12);
+        .limit(3);
 
       if (!cancelled) {
         if (error) {
           setOpenDecisions([]);
           setOpenDecisionsError(error.message || 'Failed to load open decisions.');
         } else {
-          const sorted = (((data || []) as OpenDecisionPreview[]) ?? [])
-            .sort((a, b) => {
-              const aPriority = a.needs_follow_up ? 0 : a.outcome_status === 'awaiting_outcome' ? 1 : 2;
-              const bPriority = b.needs_follow_up ? 0 : b.outcome_status === 'awaiting_outcome' ? 1 : 2;
+          const sorted = (((data || []) as OpenDecisionPreview[]) ?? []).sort((a, b) => {
+            const aPriority = a.needs_follow_up ? 0 : a.outcome_status === 'awaiting_outcome' ? 1 : 2;
+            const bPriority = b.needs_follow_up ? 0 : b.outcome_status === 'awaiting_outcome' ? 1 : 2;
 
-              if (aPriority !== bPriority) return aPriority - bPriority;
+            return aPriority - bPriority;
+          });
 
-              const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
-              const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
-              return bTime - aTime;
-            })
-            .slice(0, 3);
-
-          setOpenDecisions(sorted);
+          setOpenDecisions(sorted.slice(0, 3));
           setOpenDecisionsError(null);
         }
 
@@ -966,109 +960,85 @@ export default function HomePage() {
           </div>
         )}
 
-        {user && (loadingOpenDecisions || openDecisions.length > 0 || openDecisionsError) && (
-          <section style={{ maxWidth: 680, margin: '18px auto 0' }}>
+        {user && (loadingOpenDecisions || openDecisions.length > 0 || openDecisionsError || latestTeamSession || loadingLatestTeamSession || latestTeamSessionError) && (
+          <section style={{ maxWidth: 760, margin: '18px auto 0' }}>
             <div
               style={{
                 border: '1px solid rgba(0,0,0,0.10)',
                 borderRadius: 14,
                 background: '#fff',
-                padding: 14,
+                padding: 12,
                 boxShadow: '0 8px 18px rgba(0,0,0,0.035)',
               }}
             >
-              <div style={{ fontSize: 12, fontWeight: 900, marginBottom: 6, opacity: 0.72 }}>
-                Open loops
-              </div>
-
-              {loadingOpenDecisions ? (
-                <div style={{ fontSize: 13, opacity: 0.72 }}>Loading open decisions...</div>
-              ) : openDecisionsError ? (
-                <div style={{ fontSize: 12.5, color: '#b91c1c', fontWeight: 700 }}>
-                  {openDecisionsError}
-                </div>
-              ) : (
-                <>
-                  <div
-                    style={{
-                      fontSize: 16,
-                      fontWeight: 900,
-                      letterSpacing: -0.02,
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    {openLoopLabel}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+                  gap: 12,
+                }}
+              >
+                <div
+                  style={{
+                    borderRadius: 12,
+                    background: 'rgba(0,0,0,0.025)',
+                    padding: '12px 14px',
+                    minWidth: 0,
+                  }}
+                >
+                  <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', opacity: 0.58 }}>
+                    OPEN LOOPS
                   </div>
 
-                  <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
-                    {openDecisions.map((item) => {
-                      const statusLabel = item.needs_follow_up
-                        ? 'Needs follow-up'
-                        : item.outcome_status === 'in_progress'
-                          ? 'In progress'
-                          : 'Awaiting outcome';
+                  {loadingOpenDecisions ? (
+                    <div style={{ marginTop: 6, fontSize: 12.5, opacity: 0.72 }}>Loading...</div>
+                  ) : openDecisionsError ? (
+                    <div style={{ marginTop: 6, fontSize: 12.5, color: '#b91c1c', fontWeight: 700 }}>
+                      {openDecisionsError}
+                    </div>
+                  ) : openDecisions.length === 0 ? (
+                    <div style={{ marginTop: 6, fontSize: 12.5, opacity: 0.68 }}>No unresolved decisions.</div>
+                  ) : (
+                    <>
+                      <div
+                        style={{
+                          marginTop: 6,
+                          fontSize: 15,
+                          fontWeight: 900,
+                          letterSpacing: -0.02,
+                          lineHeight: 1.2,
+                        }}
+                      >
+                        {openLoopLabel}
+                      </div>
 
-                      return (
-                        <div
-                          key={item.id}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            gap: 10,
-                            borderRadius: 12,
-                            background: 'rgba(0,0,0,0.03)',
-                            padding: '10px 12px',
-                          }}
-                        >
-                          <div
-                            style={{
-                              fontSize: 13,
-                              fontWeight: 700,
-                              lineHeight: 1.4,
-                              minWidth: 0,
-                              flex: 1,
-                            }}
-                          >
-                            <div
-                              style={{
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                              }}
-                            >
-                              {item.decision}
-                            </div>
-                          </div>
+                      <div
+                        style={{
+                          marginTop: 6,
+                          fontSize: 12.5,
+                          lineHeight: 1.45,
+                          opacity: 0.72,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {openDecisions[0]?.decision}
+                      </div>
+                    </>
+                  )}
 
-                          <div
-                            style={{
-                              flexShrink: 0,
-                              borderRadius: 999,
-                              border: '1px solid rgba(0,0,0,0.10)',
-                              background: '#fff',
-                              padding: '5px 9px',
-                              fontSize: 10,
-                              fontWeight: 900,
-                              letterSpacing: '0.08em',
-                              opacity: 0.7,
-                            }}
-                          >
-                            {statusLabel}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     <a
                       href="/decisions"
                       style={{
-                        ...lightButtonStyle,
+                        borderRadius: 999,
+                        border: 'none',
+                        padding: '9px 12px',
                         background: '#111',
                         color: '#fff',
-                        border: 'none',
+                        fontSize: 12,
+                        fontWeight: 900,
                         textDecoration: 'none',
                       }}
                     >
@@ -1078,180 +1048,111 @@ export default function HomePage() {
                     <a
                       href="/decisions"
                       style={{
-                        ...lightButtonStyle,
+                        borderRadius: 999,
+                        border: '1px solid rgba(0,0,0,0.12)',
+                        padding: '9px 12px',
+                        background: '#fff',
+                        color: '#111',
+                        fontSize: 12,
+                        fontWeight: 800,
                         textDecoration: 'none',
                       }}
                     >
-                      View all decisions
+                      View all
                     </a>
                   </div>
-                </>
-              )}
-            </div>
-          </section>
-        )}
+                </div>
 
-        {user && (
-          <section style={{ maxWidth: 680, margin: '18px auto 0' }}>
-            <div
-              style={{
-                border: '1px solid rgba(0,0,0,0.10)',
-                borderRadius: 14,
-                background: '#fff',
-                padding: 14,
-                boxShadow: '0 8px 18px rgba(0,0,0,0.035)',
-              }}
-            >
-              <div style={{ fontSize: 12, fontWeight: 900, marginBottom: 8, opacity: 0.72 }}>
-                Latest Team Review
-              </div>
-
-              {loadingLatestTeamSession ? (
-                <div style={{ fontSize: 13, opacity: 0.72 }}>Loading latest review...</div>
-              ) : !latestTeamSession ? (
                 <div
                   style={{
                     borderRadius: 12,
-                    border: '1px dashed rgba(0,0,0,0.14)',
-                    background: 'rgba(0,0,0,0.02)',
-                    padding: 14,
+                    background: 'rgba(0,0,0,0.025)',
+                    padding: '12px 14px',
+                    minWidth: 0,
                   }}
                 >
-                  <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 4 }}>
-                    No active team review
-                  </div>
-                  <div style={{ fontSize: 12, lineHeight: 1.55, opacity: 0.68 }}>
-                    Create a team review below and it will appear here as your latest review.
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      borderRadius: 999,
-                      border: hasSummaryReady
-                        ? '1px solid rgba(16,185,129,0.20)'
-                        : '1px solid rgba(59,130,246,0.18)',
-                      background: hasSummaryReady
-                        ? 'rgba(16,185,129,0.10)'
-                        : 'rgba(59,130,246,0.08)',
-                      color: hasSummaryReady ? '#047857' : '#1d4ed8',
-                      padding: '5px 9px',
-                      fontSize: 10,
-                      fontWeight: 900,
-                      letterSpacing: '0.08em',
-                    }}
-                  >
-                    {hasSummaryReady ? 'SUMMARY READY' : 'OPEN'}
+                  <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', opacity: 0.58 }}>
+                    LATEST TEAM REVIEW
                   </div>
 
-                  <div style={{ marginTop: 10 }}>
-                    <div
-                      style={{
-                        fontSize: 16,
-                        fontWeight: 900,
-                        letterSpacing: -0.02,
-                        lineHeight: 1.2,
-                      }}
-                    >
-                      {latestTeamSession.title}
+                  {loadingLatestTeamSession ? (
+                    <div style={{ marginTop: 6, fontSize: 12.5, opacity: 0.72 }}>Loading...</div>
+                  ) : latestTeamSessionError ? (
+                    <div style={{ marginTop: 6, fontSize: 12.5, color: '#b91c1c', fontWeight: 700 }}>
+                      {latestTeamSessionError}
                     </div>
-
-                    <div
-                      style={{
-                        marginTop: 6,
-                        fontSize: 12.5,
-                        lineHeight: 1.45,
-                        opacity: 0.72,
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      {latestTeamSession.prompt}
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      marginTop: 12,
-                      display: 'grid',
-                      gridTemplateColumns: hasSummaryReady
-                        ? 'repeat(2, minmax(0, 1fr))'
-                        : 'repeat(3, minmax(0, 1fr))',
-                      gap: 8,
-                    }}
-                  >
-                    <div
-                      style={{
-                        borderRadius: 10,
-                        background: 'rgba(0,0,0,0.03)',
-                        padding: '8px 10px',
-                      }}
-                    >
-                      <div
-                        style={{ fontSize: 10, fontWeight: 800, opacity: 0.5, marginBottom: 4 }}
-                      >
-                        DEADLINE
-                      </div>
-                      <div style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.35 }}>
-                        {formatDeadline(latestTeamSession.deadline)}
-                      </div>
-                    </div>
-
-                    {!hasSummaryReady && (
+                  ) : !latestTeamSession ? (
+                    <div style={{ marginTop: 6, fontSize: 12.5, opacity: 0.68 }}>No active team review.</div>
+                  ) : (
+                    <>
                       <div
                         style={{
-                          borderRadius: 10,
-                          background: 'rgba(0,0,0,0.03)',
-                          padding: '8px 10px',
+                          marginTop: 6,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          flexWrap: 'wrap',
                         }}
                       >
                         <div
-                          style={{ fontSize: 10, fontWeight: 800, opacity: 0.5, marginBottom: 4 }}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            borderRadius: 999,
+                            border: hasSummaryReady
+                              ? '1px solid rgba(16,185,129,0.20)'
+                              : '1px solid rgba(59,130,246,0.18)',
+                            background: hasSummaryReady
+                              ? 'rgba(16,185,129,0.10)'
+                              : 'rgba(59,130,246,0.08)',
+                            color: hasSummaryReady ? '#047857' : '#1d4ed8',
+                            padding: '5px 8px',
+                            fontSize: 10,
+                            fontWeight: 900,
+                            letterSpacing: '0.08em',
+                          }}
                         >
-                          PARTICIPANTS
+                          {hasSummaryReady ? 'SUMMARY READY' : 'OPEN'}
                         </div>
-                        <div style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.35 }}>
-                          {latestTeamSession.expected_participants ?? 'Not set'}
+
+                        <div
+                          style={{
+                            fontSize: 15,
+                            fontWeight: 900,
+                            letterSpacing: -0.02,
+                            lineHeight: 1.2,
+                            minWidth: 0,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {latestTeamSession.title}
                         </div>
                       </div>
-                    )}
 
-                    <div
-                      style={{
-                        borderRadius: 10,
-                        background: 'rgba(0,0,0,0.03)',
-                        padding: '8px 10px',
-                      }}
-                    >
                       <div
-                        style={{ fontSize: 10, fontWeight: 800, opacity: 0.5, marginBottom: 4 }}
+                        style={{
+                          marginTop: 6,
+                          fontSize: 12.5,
+                          lineHeight: 1.45,
+                          opacity: 0.72,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
                       >
-                        {hasSummaryReady ? 'GENERATED' : 'CREATED'}
-                      </div>
-                      <div style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.35 }}>
                         {hasSummaryReady
-                          ? formatShort(latestTeamSession.summary_generated_at)
-                          : formatShort(latestTeamSession.created_at)}
+                          ? `Generated ${formatShort(latestTeamSession.summary_generated_at)}`
+                          : `Deadline ${formatDeadline(latestTeamSession.deadline)}`}
                       </div>
-                    </div>
-                  </div>
+                    </>
+                  )}
 
-                  <div
-                    style={{
-                      marginTop: 12,
-                      display: 'flex',
-                      flexWrap: 'wrap',
-                      gap: 8,
-                    }}
-                  >
-                    {isOpenLatest ? (
-                      <>
+                  {latestTeamSession && !loadingLatestTeamSession && !latestTeamSessionError ? (
+                    <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      {isOpenLatest ? (
                         <button
                           type="button"
                           onClick={() => handleCloseAndGenerateFromHome(latestTeamSession.id)}
@@ -1264,41 +1165,13 @@ export default function HomePage() {
                             color: '#fff',
                             fontSize: 12,
                             fontWeight: 900,
-                            cursor:
-                              closingSessionId === latestTeamSession.id ? 'default' : 'pointer',
+                            cursor: closingSessionId === latestTeamSession.id ? 'default' : 'pointer',
                             opacity: closingSessionId === latestTeamSession.id ? 0.72 : 1,
-                            boxShadow: '0 8px 18px rgba(0,0,0,0.10)',
                           }}
                         >
-                          {closingSessionId === latestTeamSession.id
-                            ? 'Closing...'
-                            : 'Close & Generate Summary'}
+                          {closingSessionId === latestTeamSession.id ? 'Closing...' : 'Close & generate'}
                         </button>
-
-                        <button
-                          type="button"
-                          onClick={() => handleDismissFromHome(latestTeamSession.id)}
-                          disabled={dismissingSessionId === latestTeamSession.id}
-                          style={{
-                            borderRadius: 999,
-                            border: '1px solid rgba(0,0,0,0.12)',
-                            padding: '9px 12px',
-                            background: '#fff',
-                            color: '#111',
-                            fontSize: 12,
-                            fontWeight: 800,
-                            cursor:
-                              dismissingSessionId === latestTeamSession.id ? 'default' : 'pointer',
-                            opacity: dismissingSessionId === latestTeamSession.id ? 0.72 : 1,
-                          }}
-                        >
-                          {dismissingSessionId === latestTeamSession.id
-                            ? 'Dismissing...'
-                            : 'Dismiss from Home'}
-                        </button>
-                      </>
-                    ) : (
-                      <>
+                      ) : (
                         <a
                           href={`/team/${latestTeamSession.id}/summary`}
                           style={{
@@ -1310,51 +1183,34 @@ export default function HomePage() {
                             fontSize: 12,
                             fontWeight: 900,
                             textDecoration: 'none',
-                            boxShadow: '0 8px 18px rgba(0,0,0,0.10)',
                           }}
                         >
-                          Open Summary
+                          Open summary
                         </a>
+                      )}
 
-                        <button
-                          type="button"
-                          onClick={() => handleDismissFromHome(latestTeamSession.id)}
-                          disabled={dismissingSessionId === latestTeamSession.id}
-                          style={{
-                            borderRadius: 999,
-                            border: '1px solid rgba(0,0,0,0.12)',
-                            padding: '9px 12px',
-                            background: '#fff',
-                            color: '#111',
-                            fontSize: 12,
-                            fontWeight: 800,
-                            cursor:
-                              dismissingSessionId === latestTeamSession.id ? 'default' : 'pointer',
-                            opacity: dismissingSessionId === latestTeamSession.id ? 0.72 : 1,
-                          }}
-                        >
-                          {dismissingSessionId === latestTeamSession.id
-                            ? 'Dismissing...'
-                            : 'Dismiss from Home'}
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </>
-              )}
-
-              {latestTeamSessionError && (
-                <div
-                  style={{
-                    marginTop: 10,
-                    fontSize: 12,
-                    color: '#dc2626',
-                    fontWeight: 700,
-                  }}
-                >
-                  {latestTeamSessionError}
+                      <button
+                        type="button"
+                        onClick={() => handleDismissFromHome(latestTeamSession.id)}
+                        disabled={dismissingSessionId === latestTeamSession.id}
+                        style={{
+                          borderRadius: 999,
+                          border: '1px solid rgba(0,0,0,0.12)',
+                          padding: '9px 12px',
+                          background: '#fff',
+                          color: '#111',
+                          fontSize: 12,
+                          fontWeight: 800,
+                          cursor: dismissingSessionId === latestTeamSession.id ? 'default' : 'pointer',
+                          opacity: dismissingSessionId === latestTeamSession.id ? 0.72 : 1,
+                        }}
+                      >
+                        {dismissingSessionId === latestTeamSession.id ? 'Dismissing...' : 'Dismiss'}
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
-              )}
+              </div>
             </div>
           </section>
         )}
@@ -2028,4 +1884,5 @@ export default function HomePage() {
     </div>
   );
 }
+
 
