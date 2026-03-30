@@ -131,8 +131,6 @@ export default function HomePage() {
   const [verdict, setVerdict] = useState<string | null>(null);
   const [verdictLoading, setVerdictLoading] = useState(false);
 
-  const [outcome, setOutcome] = useState<string | null>(null);
-  const [savingOutcome, setSavingOutcome] = useState(false);
   const [decisionId, setDecisionId] = useState<string | null>(null);
 
   const snapshotRef = useRef<HTMLDivElement | null>(null);
@@ -395,8 +393,6 @@ export default function HomePage() {
     setVerdictRequested(false);
     setVerdict(null);
     setVerdictLoading(false);
-    setOutcome(null);
-    setSavingOutcome(false);
     setDecisionId(null);
   };
 
@@ -443,8 +439,6 @@ export default function HomePage() {
     setVerdictRequested(false);
     setVerdict(null);
     setVerdictLoading(false);
-    setOutcome(null);
-    setSavingOutcome(false);
     setDecisionId(null);
 
     try {
@@ -543,7 +537,7 @@ export default function HomePage() {
           context,
           score: reviewResult?.readiness?.total ?? null,
           verdict: nextVerdict,
-          outcome: outcome,
+          outcome_status: 'awaiting_outcome',
           userId: user?.id ?? null,
         }),
       });
@@ -1600,89 +1594,52 @@ export default function HomePage() {
                       )}
                     </div>
 
-                    {verdict && !verdictLoading && (
+                    {verdict && !verdictLoading && decisionId && (
                       <div style={{ ...cardStyle, marginTop: 14 }}>
                         <div style={{ fontSize: 13, fontWeight: 900, opacity: 0.6, marginBottom: 10 }}>
-                          What happened?
+                          Decision saved
                         </div>
 
                         <div style={{ fontSize: 13.5, lineHeight: 1.55, opacity: 0.76, marginBottom: 12 }}>
-                          This turns the review into a real decision record instead of a one-time output.
+                          This review is now part of your decision record.
+                          Log the outcome later once the decision plays out.
                         </div>
 
                         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                          {['Still in progress', 'Worked', 'Failed', 'Changed direction'].map((option) => (
-                            <button
-                              key={option}
-                              type="button"
-                              onClick={async () => {
-                                setOutcome(option);
+                          <button
+                            type="button"
+                            onClick={resetReviewState}
+                            style={{
+                              borderRadius: 999,
+                              border: '1px solid rgba(0,0,0,0.12)',
+                              padding: '8px 12px',
+                              background: '#fff',
+                              color: '#111',
+                              fontSize: 12,
+                              fontWeight: 800,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Done
+                          </button>
 
-                                if (!decisionId) return;
-
-                                try {
-                                  setSavingOutcome(true);
-
-                                  await fetch('/api/decision/update', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                      id: decisionId,
-                                      outcome: option,
-                                    }),
-                                  });
-                                } catch {
-                                  // silent fail
-                                } finally {
-                                  setSavingOutcome(false);
-                                }
-                              }}
-                              style={{
-                                borderRadius: 999,
-                                border:
-                                  outcome === option
-                                    ? '1px solid #111'
-                                    : '1px solid rgba(0,0,0,0.12)',
-                                background: outcome === option ? '#111' : '#fff',
-                                color: outcome === option ? '#fff' : '#111',
-                                padding: '8px 12px',
-                                fontSize: 12,
-                                fontWeight: 800,
-                                cursor: 'pointer',
-                              }}
-                            >
-                              {option}
-                            </button>
-                          ))}
+                          <a
+                            href="/decisions"
+                            style={{
+                              borderRadius: 999,
+                              border: 'none',
+                              padding: '8px 12px',
+                              background: '#111',
+                              color: '#fff',
+                              fontSize: 12,
+                              fontWeight: 900,
+                              textDecoration: 'none',
+                              boxShadow: '0 8px 18px rgba(0,0,0,0.10)',
+                            }}
+                          >
+                            View decision history
+                          </a>
                         </div>
-
-                        {outcome && (
-                          <>
-                            <div
-                              style={{
-                                marginTop: 12,
-                                fontSize: 12.5,
-                                fontWeight: 700,
-                                color: 'rgba(0,0,0,0.72)',
-                              }}
-                            >
-                              Selected: {outcome}
-                            </div>
-
-                            {savingOutcome && (
-                              <div
-                                style={{
-                                  marginTop: 8,
-                                  fontSize: 12,
-                                  color: 'rgba(0,0,0,0.56)',
-                                  fontWeight: 700,
-                                }}
-                              >
-                                Saving outcome...
-                              </div>
-                            )}
-                          </>
-                        )}
                       </div>
                     )}
                   </>
