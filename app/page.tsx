@@ -29,6 +29,15 @@ type LatestTeamSession = {
   archived_at: string | null;
 };
 
+
+type OpenDecisionPreview = {
+  id: string;
+  decision: string;
+  outcome_status: string | null;
+  needs_follow_up: boolean | null;
+  created_at: string | null;
+};
+
 type ReviewResult = {
   readiness: {
     clarity: number;
@@ -102,6 +111,10 @@ export default function HomePage() {
   const [latestTeamSessionError, setLatestTeamSessionError] = useState<string | null>(null);
   const [closingSessionId, setClosingSessionId] = useState<string | null>(null);
   const [dismissingSessionId, setDismissingSessionId] = useState<string | null>(null);
+
+  const [openDecisions, setOpenDecisions] = useState<OpenDecisionPreview[]>([]);
+  const [loadingOpenDecisions, setLoadingOpenDecisions] = useState(false);
+  const [openDecisionsError, setOpenDecisionsError] = useState<string | null>(null);
 
   const [decision, setDecision] = useState('');
   const [context, setContext] = useState('');
@@ -249,6 +262,65 @@ export default function HomePage() {
       cancelled = true;
     };
   }, [user?.id]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadOpenDecisions = async () => {
+      if (!user?.id) {
+        if (!cancelled) {
+          setOpenDecisions([]);
+          setLoadingOpenDecisions(false);
+          setOpenDecisionsError(null);
+        }
+        return;
+      }
+
+      if (!cancelled) {
+        setLoadingOpenDecisions(true);
+        setOpenDecisionsError(null);
+      }
+
+      const { data, error } = await supabase
+        .from('decisions')
+        .select('id, decision, outcome_status, needs_follow_up, created_at')
+        .eq('user_id', user.id)
+        .or('outcome_status.eq.awaiting_outcome,outcome_status.eq.in_progress,needs_follow_up.eq.true')
+        .order('created_at', { ascending: false })
+        .limit(12);
+
+      if (!cancelled) {
+        if (error) {
+          setOpenDecisions([]);
+          setOpenDecisionsError(error.message || 'Failed to load open decisions.');
+        } else {
+          const sorted = (((data || []) as OpenDecisionPreview[]) ?? [])
+            .sort((a, b) => {
+              const aPriority = a.needs_follow_up ? 0 : a.outcome_status === 'awaiting_outcome' ? 1 : 2;
+              const bPriority = b.needs_follow_up ? 0 : b.outcome_status === 'awaiting_outcome' ? 1 : 2;
+
+              if (aPriority !== bPriority) return aPriority - bPriority;
+
+              const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+              const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+              return bTime - aTime;
+            })
+            .slice(0, 3);
+
+          setOpenDecisions(sorted);
+          setOpenDecisionsError(null);
+        }
+
+        setLoadingOpenDecisions(false);
+      }
+    };
+
+    void loadOpenDecisions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, decisionId]);
 
   const handleSignIn = async () => {
     setAuthError(null);
@@ -818,6 +890,12 @@ export default function HomePage() {
     Boolean(latestTeamSession) &&
     !Boolean(latestTeamSession?.summary_generated_at);
 
+  const openLoopCount = openDecisions.length;
+  const openLoopLabel =
+    openLoopCount === 1
+      ? '1 decision still unresolved'
+      : `${openLoopCount} decisions still unresolved`;
+
   return (
     <div style={{ minHeight: '100vh', background: '#f4f5f6', color: '#111' }}>
       <main style={{ maxWidth: 980, margin: '28px auto 60px', padding: '0 20px' }}>
@@ -886,6 +964,131 @@ export default function HomePage() {
           >
             {authError}
           </div>
+        )}
+
+        {user && (loadingOpenDecisions || openDecisions.length > 0 || openDecisionsError) && (
+          <section style={{ maxWidth: 680, margin: '18px auto 0' }}>
+            <div
+              style={{
+                border: '1px solid rgba(0,0,0,0.10)',
+                borderRadius: 14,
+                background: '#fff',
+                padding: 14,
+                boxShadow: '0 8px 18px rgba(0,0,0,0.035)',
+              }}
+            >
+              <div style={{ fontSize: 12, fontWeight: 900, marginBottom: 6, opacity: 0.72 }}>
+                Open loops
+              </div>
+
+              {loadingOpenDecisions ? (
+                <div style={{ fontSize: 13, opacity: 0.72 }}>Loading open decisions...</div>
+              ) : openDecisionsError ? (
+                <div style={{ fontSize: 12.5, color: '#b91c1c', fontWeight: 700 }}>
+                  {openDecisionsError}
+                </div>
+              ) : (
+                <>
+                  <div
+                    style={{
+                      fontSize: 16,
+                      fontWeight: 900,
+                      letterSpacing: -0.02,
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {openLoopLabel}
+                  </div>
+
+                  <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+                    {openDecisions.map((item) => {
+                      const statusLabel = item.needs_follow_up
+                        ? 'Needs follow-up'
+                        : item.outcome_status === 'in_progress'
+                          ? 'In progress'
+                          : 'Awaiting outcome';
+
+                      return (
+                        <div
+                          key={item.id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: 10,
+                            borderRadius: 12,
+                            background: 'rgba(0,0,0,0.03)',
+                            padding: '10px 12px',
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontSize: 13,
+                              fontWeight: 700,
+                              lineHeight: 1.4,
+                              minWidth: 0,
+                              flex: 1,
+                            }}
+                          >
+                            <div
+                              style={{
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              {item.decision}
+                            </div>
+                          </div>
+
+                          <div
+                            style={{
+                              flexShrink: 0,
+                              borderRadius: 999,
+                              border: '1px solid rgba(0,0,0,0.10)',
+                              background: '#fff',
+                              padding: '5px 9px',
+                              fontSize: 10,
+                              fontWeight: 900,
+                              letterSpacing: '0.08em',
+                              opacity: 0.7,
+                            }}
+                          >
+                            {statusLabel}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    <a
+                      href="/decisions"
+                      style={{
+                        ...lightButtonStyle,
+                        background: '#111',
+                        color: '#fff',
+                        border: 'none',
+                        textDecoration: 'none',
+                      }}
+                    >
+                      Update outcomes
+                    </a>
+
+                    <a
+                      href="/decisions"
+                      style={{
+                        ...lightButtonStyle,
+                        textDecoration: 'none',
+                      }}
+                    >
+                      View all decisions
+                    </a>
+                  </div>
+                </>
+              )}
+            </div>
+          </section>
         )}
 
         {user && (
@@ -1825,3 +2028,4 @@ export default function HomePage() {
     </div>
   );
 }
+
