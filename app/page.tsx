@@ -886,7 +886,16 @@ export default function HomePage() {
 
   const openLoopCount = openDecisions.length;
   const openLoopLabel =
-    openLoopCount === 1 ? '1 unresolved decision' : `${openLoopCount} unresolved decisions`;
+    openLoopCount === 1 ? '1 unresolved' : `${openLoopCount} unresolved`;
+
+  const primaryOpenDecision = openDecisions[0] ?? null;
+  const primaryOpenDecisionStatus = primaryOpenDecision
+    ? primaryOpenDecision.needs_follow_up
+      ? 'Needs follow-up'
+      : primaryOpenDecision.outcome_status === 'in_progress'
+        ? 'In progress'
+        : 'Awaiting outcome'
+    : null;
 
   return (
     <div style={{ minHeight: '100vh', background: '#f4f5f6', color: '#111' }}>
@@ -958,295 +967,258 @@ export default function HomePage() {
           </div>
         )}
 
-        {user && (loadingOpenDecisions || openDecisions.length > 0 || openDecisionsError) && (
-          <section style={{ maxWidth: 680, margin: '18px auto 0' }}>
+        {user && (loadingOpenDecisions || openDecisions.length > 0 || openDecisionsError || loadingLatestTeamSession || latestTeamSession || latestTeamSessionError) && (
+          <section style={{ maxWidth: 760, margin: '16px auto 0' }}>
             <div
               style={{
-                border: '1px solid rgba(0,0,0,0.10)',
+                border: '1px solid rgba(0,0,0,0.08)',
                 borderRadius: 14,
-                background: '#fff',
-                padding: 14,
-                boxShadow: '0 8px 18px rgba(0,0,0,0.035)',
+                background: 'rgba(255,255,255,0.78)',
+                padding: '12px 14px',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.02)',
               }}
             >
-              <div style={{ fontSize: 12, fontWeight: 900, marginBottom: 6, opacity: 0.72 }}>
-                Open loops
-              </div>
-
-              {loadingOpenDecisions ? (
-                <div style={{ fontSize: 13, opacity: 0.72 }}>Loading open decisions...</div>
-              ) : openDecisionsError ? (
-                <div style={{ fontSize: 12.5, color: '#b91c1c', fontWeight: 700 }}>
-                  {openDecisionsError}
-                </div>
-              ) : (
-                <>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'minmax(0, 1fr) 1px minmax(0, 1fr)',
+                  gap: 14,
+                  alignItems: 'center',
+                }}
+              >
+                <div style={{ minWidth: 0 }}>
                   <div
                     style={{
-                      fontSize: 16,
-                      fontWeight: 900,
-                      letterSpacing: -0.02,
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    {openLoopLabel}
-                  </div>
-
-                  <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
-                    {openDecisions.map((item) => {
-                      const statusLabel = item.needs_follow_up
-                        ? 'Needs follow-up'
-                        : item.outcome_status === 'in_progress'
-                          ? 'In progress'
-                          : 'Awaiting outcome';
-
-                      return (
-                        <div
-                          key={item.id}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            gap: 10,
-                            borderRadius: 12,
-                            background: 'rgba(0,0,0,0.03)',
-                            padding: '10px 12px',
-                          }}
-                        >
-                          <div
-                            style={{
-                              fontSize: 13,
-                              fontWeight: 700,
-                              lineHeight: 1.4,
-                              minWidth: 0,
-                              flex: 1,
-                            }}
-                          >
-                            <div
-                              style={{
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                              }}
-                            >
-                              {item.decision}
-                            </div>
-                          </div>
-
-                          <div
-                            style={{
-                              flexShrink: 0,
-                              borderRadius: 999,
-                              border: '1px solid rgba(0,0,0,0.10)',
-                              background: '#fff',
-                              padding: '5px 9px',
-                              fontSize: 10,
-                              fontWeight: 900,
-                              letterSpacing: '0.08em',
-                              opacity: 0.7,
-                            }}
-                          >
-                            {statusLabel}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div style={{ marginTop: 12 }}>
-                    <a href="/decisions" style={lightButtonStyle}>
-                      View all decisions
-                    </a>
-                  </div>
-                </>
-              )}
-            </div>
-          </section>
-        )}
-
-        {user && (
-          <section style={{ maxWidth: 680, margin: '18px auto 0' }}>
-            <div
-              style={{
-                border: '1px solid rgba(0,0,0,0.10)',
-                borderRadius: 14,
-                background: '#fff',
-                padding: 14,
-                boxShadow: '0 8px 18px rgba(0,0,0,0.035)',
-              }}
-            >
-              <div style={{ fontSize: 12, fontWeight: 900, marginBottom: 8, opacity: 0.72 }}>
-                Latest Team Review
-              </div>
-
-              {loadingLatestTeamSession ? (
-                <div style={{ fontSize: 13, opacity: 0.72 }}>Loading latest review...</div>
-              ) : !latestTeamSession ? (
-                <div
-                  style={{
-                    borderRadius: 12,
-                    border: '1px dashed rgba(0,0,0,0.14)',
-                    background: 'rgba(0,0,0,0.02)',
-                    padding: 14,
-                  }}
-                >
-                  <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 4 }}>
-                    No active team review
-                  </div>
-                  <div style={{ fontSize: 12, lineHeight: 1.55, opacity: 0.68 }}>
-                    Create a team review below and it will appear here as your latest review.
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      borderRadius: 999,
-                      border: hasSummaryReady
-                        ? '1px solid rgba(16,185,129,0.20)'
-                        : '1px solid rgba(59,130,246,0.18)',
-                      background: hasSummaryReady
-                        ? 'rgba(16,185,129,0.10)'
-                        : 'rgba(59,130,246,0.08)',
-                      color: hasSummaryReady ? '#047857' : '#1d4ed8',
-                      padding: '5px 9px',
                       fontSize: 10,
                       fontWeight: 900,
-                      letterSpacing: '0.08em',
+                      letterSpacing: '0.10em',
+                      opacity: 0.48,
                     }}
                   >
-                    {hasSummaryReady ? 'SUMMARY READY' : 'OPEN'}
+                    OPEN LOOPS
                   </div>
 
-                  <div style={{ marginTop: 10 }}>
-                    <div
-                      style={{
-                        fontSize: 16,
-                        fontWeight: 900,
-                        letterSpacing: -0.02,
-                        lineHeight: 1.2,
-                      }}
-                    >
-                      {latestTeamSession.title}
+                  {loadingOpenDecisions ? (
+                    <div style={{ marginTop: 4, fontSize: 12.5, opacity: 0.68 }}>Loading...</div>
+                  ) : openDecisionsError ? (
+                    <div style={{ marginTop: 4, fontSize: 12.5, color: '#b91c1c', fontWeight: 700 }}>
+                      {openDecisionsError}
                     </div>
-
-                    <div
-                      style={{
-                        marginTop: 6,
-                        fontSize: 12.5,
-                        lineHeight: 1.45,
-                        opacity: 0.72,
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      {latestTeamSession.prompt}
+                  ) : openDecisions.length === 0 ? (
+                    <div style={{ marginTop: 4, fontSize: 15, fontWeight: 800, letterSpacing: -0.02 }}>
+                      No unresolved
                     </div>
-                  </div>
-
-                  <div
-                    style={{
-                      marginTop: 12,
-                      display: 'grid',
-                      gridTemplateColumns: hasSummaryReady
-                        ? 'repeat(2, minmax(0, 1fr))'
-                        : 'repeat(3, minmax(0, 1fr))',
-                      gap: 8,
-                    }}
-                  >
-                    <div
-                      style={{
-                        borderRadius: 10,
-                        background: 'rgba(0,0,0,0.03)',
-                        padding: '8px 10px',
-                      }}
-                    >
-                      <div
-                        style={{ fontSize: 10, fontWeight: 800, opacity: 0.5, marginBottom: 4 }}
-                      >
-                        DEADLINE
-                      </div>
-                      <div style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.35 }}>
-                        {formatDeadline(latestTeamSession.deadline)}
-                      </div>
-                    </div>
-
-                    {!hasSummaryReady && (
+                  ) : (
+                    <>
                       <div
                         style={{
-                          borderRadius: 10,
-                          background: 'rgba(0,0,0,0.03)',
-                          padding: '8px 10px',
+                          marginTop: 4,
+                          fontSize: 22,
+                          fontWeight: 900,
+                          letterSpacing: -0.04,
+                          lineHeight: 1,
+                        }}
+                      >
+                        {openLoopLabel}
+                      </div>
+
+                      {primaryOpenDecision ? (
+                        <div
+                          style={{
+                            marginTop: 5,
+                            fontSize: 12.5,
+                            lineHeight: 1.4,
+                            opacity: 0.66,
+                            display: 'flex',
+                            gap: 8,
+                            alignItems: 'center',
+                            minWidth: 0,
+                          }}
+                        >
+                          <span
+                            style={{
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              minWidth: 0,
+                            }}
+                          >
+                            {primaryOpenDecision.decision}
+                          </span>
+                          {primaryOpenDecisionStatus ? (
+                            <span
+                              style={{
+                                flexShrink: 0,
+                                borderRadius: 999,
+                                border: '1px solid rgba(0,0,0,0.08)',
+                                background: '#fff',
+                                padding: '4px 7px',
+                                fontSize: 9.5,
+                                fontWeight: 900,
+                                letterSpacing: '0.08em',
+                                opacity: 0.7,
+                              }}
+                            >
+                              {primaryOpenDecisionStatus}
+                            </span>
+                          ) : null}
+                        </div>
+                      ) : null}
+
+                      <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        <a
+                          href="/decisions"
+                          style={{
+                            borderRadius: 999,
+                            border: 'none',
+                            padding: '8px 11px',
+                            background: '#111',
+                            color: '#fff',
+                            fontSize: 11.5,
+                            fontWeight: 900,
+                            textDecoration: 'none',
+                            boxShadow: '0 6px 14px rgba(0,0,0,0.08)',
+                          }}
+                        >
+                          Update
+                        </a>
+
+                        <a
+                          href="/decisions"
+                          style={{
+                            borderRadius: 999,
+                            border: '1px solid rgba(0,0,0,0.10)',
+                            padding: '8px 11px',
+                            background: '#fff',
+                            color: '#111',
+                            fontSize: 11.5,
+                            fontWeight: 800,
+                            textDecoration: 'none',
+                          }}
+                        >
+                          View all
+                        </a>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <div style={{ background: 'rgba(0,0,0,0.08)', alignSelf: 'stretch' }} />
+
+                <div style={{ minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 900,
+                      letterSpacing: '0.10em',
+                      opacity: 0.48,
+                    }}
+                  >
+                    LATEST TEAM REVIEW
+                  </div>
+
+                  {loadingLatestTeamSession ? (
+                    <div style={{ marginTop: 4, fontSize: 12.5, opacity: 0.68 }}>Loading...</div>
+                  ) : latestTeamSessionError ? (
+                    <div style={{ marginTop: 4, fontSize: 12.5, color: '#b91c1c', fontWeight: 700 }}>
+                      {latestTeamSessionError}
+                    </div>
+                  ) : !latestTeamSession ? (
+                    <div style={{ marginTop: 4, fontSize: 15, fontWeight: 800, letterSpacing: -0.02 }}>
+                      No active review
+                    </div>
+                  ) : (
+                    <>
+                      <div
+                        style={{
+                          marginTop: 4,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          flexWrap: 'wrap',
+                          minWidth: 0,
                         }}
                       >
                         <div
-                          style={{ fontSize: 10, fontWeight: 800, opacity: 0.5, marginBottom: 4 }}
-                        >
-                          PARTICIPANTS
-                        </div>
-                        <div style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.35 }}>
-                          {latestTeamSession.expected_participants ?? 'Not set'}
-                        </div>
-                      </div>
-                    )}
-
-                    <div
-                      style={{
-                        borderRadius: 10,
-                        background: 'rgba(0,0,0,0.03)',
-                        padding: '8px 10px',
-                      }}
-                    >
-                      <div
-                        style={{ fontSize: 10, fontWeight: 800, opacity: 0.5, marginBottom: 4 }}
-                      >
-                        {hasSummaryReady ? 'GENERATED' : 'CREATED'}
-                      </div>
-                      <div style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.35 }}>
-                        {hasSummaryReady
-                          ? formatShort(latestTeamSession.summary_generated_at)
-                          : formatShort(latestTeamSession.created_at)}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      marginTop: 12,
-                      display: 'flex',
-                      flexWrap: 'wrap',
-                      gap: 8,
-                    }}
-                  >
-                    {isOpenLatest ? (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => handleCloseAndGenerateFromHome(latestTeamSession.id)}
-                          disabled={closingSessionId === latestTeamSession.id}
                           style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
                             borderRadius: 999,
-                            border: 'none',
-                            padding: '9px 12px',
-                            background: '#111',
-                            color: '#fff',
-                            fontSize: 12,
+                            border: hasSummaryReady
+                              ? '1px solid rgba(16,185,129,0.16)'
+                              : '1px solid rgba(59,130,246,0.16)',
+                            background: hasSummaryReady
+                              ? 'rgba(16,185,129,0.08)'
+                              : 'rgba(59,130,246,0.07)',
+                            color: hasSummaryReady ? '#047857' : '#1d4ed8',
+                            padding: '4px 7px',
+                            fontSize: 9.5,
                             fontWeight: 900,
-                            cursor:
-                              closingSessionId === latestTeamSession.id ? 'default' : 'pointer',
-                            opacity: closingSessionId === latestTeamSession.id ? 0.72 : 1,
-                            boxShadow: '0 8px 18px rgba(0,0,0,0.10)',
+                            letterSpacing: '0.08em',
                           }}
                         >
-                          {closingSessionId === latestTeamSession.id
-                            ? 'Closing...'
-                            : 'Close & Generate Summary'}
-                        </button>
+                          {hasSummaryReady ? 'READY' : 'OPEN'}
+                        </div>
+
+                        <div
+                          style={{
+                            minWidth: 0,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            fontSize: 18,
+                            fontWeight: 900,
+                            letterSpacing: -0.03,
+                            lineHeight: 1.05,
+                          }}
+                        >
+                          {latestTeamSession.title}
+                        </div>
+                      </div>
+
+                      <div style={{ marginTop: 5, fontSize: 12.5, lineHeight: 1.4, opacity: 0.66 }}>
+                        {latestTeamSession.deadline ? formatDeadline(latestTeamSession.deadline) : 'No deadline set'}
+                      </div>
+
+                      <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        {hasSummaryReady ? (
+                          <a
+                            href={`/team/${latestTeamSession.id}/summary`}
+                            style={{
+                              borderRadius: 999,
+                              border: 'none',
+                              padding: '8px 11px',
+                              background: '#111',
+                              color: '#fff',
+                              fontSize: 11.5,
+                              fontWeight: 900,
+                              textDecoration: 'none',
+                              boxShadow: '0 6px 14px rgba(0,0,0,0.08)',
+                            }}
+                          >
+                            Open
+                          </a>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleCloseAndGenerateFromHome(latestTeamSession.id)}
+                            disabled={closingSessionId === latestTeamSession.id}
+                            style={{
+                              borderRadius: 999,
+                              border: 'none',
+                              padding: '8px 11px',
+                              background: '#111',
+                              color: '#fff',
+                              fontSize: 11.5,
+                              fontWeight: 900,
+                              cursor: closingSessionId === latestTeamSession.id ? 'default' : 'pointer',
+                              opacity: closingSessionId === latestTeamSession.id ? 0.72 : 1,
+                              boxShadow: '0 6px 14px rgba(0,0,0,0.08)',
+                            }}
+                          >
+                            {closingSessionId === latestTeamSession.id ? 'Closing...' : 'Close'}
+                          </button>
+                        )}
 
                         <button
                           type="button"
@@ -1254,85 +1226,28 @@ export default function HomePage() {
                           disabled={dismissingSessionId === latestTeamSession.id}
                           style={{
                             borderRadius: 999,
-                            border: '1px solid rgba(0,0,0,0.12)',
-                            padding: '9px 12px',
+                            border: '1px solid rgba(0,0,0,0.10)',
+                            padding: '8px 11px',
                             background: '#fff',
                             color: '#111',
-                            fontSize: 12,
+                            fontSize: 11.5,
                             fontWeight: 800,
-                            cursor:
-                              dismissingSessionId === latestTeamSession.id ? 'default' : 'pointer',
+                            cursor: dismissingSessionId === latestTeamSession.id ? 'default' : 'pointer',
                             opacity: dismissingSessionId === latestTeamSession.id ? 0.72 : 1,
                           }}
                         >
-                          {dismissingSessionId === latestTeamSession.id
-                            ? 'Dismissing...'
-                            : 'Dismiss from Home'}
+                          {dismissingSessionId === latestTeamSession.id ? 'Dismissing...' : 'Dismiss'}
                         </button>
-                      </>
-                    ) : (
-                      <>
-                        <a
-                          href={`/team/${latestTeamSession.id}/summary`}
-                          style={{
-                            borderRadius: 999,
-                            border: 'none',
-                            padding: '9px 12px',
-                            background: '#111',
-                            color: '#fff',
-                            fontSize: 12,
-                            fontWeight: 900,
-                            textDecoration: 'none',
-                            boxShadow: '0 8px 18px rgba(0,0,0,0.10)',
-                          }}
-                        >
-                          Open Summary
-                        </a>
-
-                        <button
-                          type="button"
-                          onClick={() => handleDismissFromHome(latestTeamSession.id)}
-                          disabled={dismissingSessionId === latestTeamSession.id}
-                          style={{
-                            borderRadius: 999,
-                            border: '1px solid rgba(0,0,0,0.12)',
-                            padding: '9px 12px',
-                            background: '#fff',
-                            color: '#111',
-                            fontSize: 12,
-                            fontWeight: 800,
-                            cursor:
-                              dismissingSessionId === latestTeamSession.id ? 'default' : 'pointer',
-                            opacity: dismissingSessionId === latestTeamSession.id ? 0.72 : 1,
-                          }}
-                        >
-                          {dismissingSessionId === latestTeamSession.id
-                            ? 'Dismissing...'
-                            : 'Dismiss from Home'}
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </>
-              )}
-
-              {latestTeamSessionError && (
-                <div
-                  style={{
-                    marginTop: 10,
-                    fontSize: 12,
-                    color: '#dc2626',
-                    fontWeight: 700,
-                  }}
-                >
-                  {latestTeamSessionError}
+                      </div>
+                    </>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           </section>
         )}
 
-        <section style={{ textAlign: 'center', marginTop: 44 }}>
+        <section style={{ textAlign: 'center', marginTop: 38 }}>
           <h1 style={{ fontSize: 64, margin: 0, letterSpacing: -1.1 }}>Decision Layer</h1>
           <div
             style={{
@@ -1357,7 +1272,7 @@ export default function HomePage() {
           />
         </section>
 
-        <section style={{ maxWidth: 720, margin: '24px auto 0' }}>
+        <section style={{ maxWidth: 720, margin: '28px auto 0' }}>
           <div style={{ display: 'flex', gap: 12 }}>
             <button
               type="button"
@@ -1417,7 +1332,7 @@ export default function HomePage() {
         </section>
 
         {mode === 'solo' ? (
-          <section style={{ maxWidth: 720, margin: '18px auto 0' }}>
+          <section style={{ maxWidth: 720, margin: '20px auto 0' }}>
             <div
               style={{
                 border,
