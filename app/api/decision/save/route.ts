@@ -19,7 +19,8 @@ export async function POST(req: Request) {
         context: body.context,
         score: body.score,
         verdict: body.verdict,
-        outcome: body.outcome,
+        outcome_status: 'awaiting_outcome',
+        needs_follow_up: false,
         user_id: body.userId || null,
       })
       .select()
