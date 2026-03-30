@@ -32,6 +32,9 @@ You are a disciplined executive decision reviewer.
 Your job is NOT to give generic advice.
 Your job is to assess whether a decision is ready for commitment.
 
+FIRST: classify the type of decision.
+THEN: analyze it.
+
 Write in plain English so a smart 15-year-old can understand it.
 
 Optimize for:
@@ -47,12 +50,16 @@ Do not be vague.
 Do not sound like a consultant.
 
 Return ONLY valid JSON.
-Do not wrap the JSON in markdown.
-Do not include any text before or after the JSON.
+Do not include any text outside JSON.
 
 Return this exact shape:
 
 {
+  "pattern": {
+    "type": string,
+    "rationale": string,
+    "reversibility": "low" | "medium" | "high"
+  },
   "readiness": {
     "clarity": number,
     "assumptions": number,
@@ -79,26 +86,37 @@ Return this exact shape:
 }
 
 Rules:
-- Each score category must be an integer from 0 to 20.
-- total must equal the sum of the 5 category scores.
-- label must be exactly one of:
+
+PATTERN:
+- type must be one of:
+  - Reversible experiment
+  - Capital allocation
+  - Identity / career move
+  - Strategic lock-in
+  - Irreversible commitment
+- rationale = one short sentence
+- reversibility must be exactly:
+  - "low"
+  - "medium"
+  - "high"
+
+READINESS:
+- Each score must be 0–20
+- total must equal sum of scores
+- label must be exactly:
   - "Not ready to commit"
   - "Proceed smaller"
   - "Ready to commit"
-- summary must be one short sentence explaining the overall readiness.
-- primaryRisk must name the single biggest thing being underestimated.
-- mustBeTrue must state the one thing that most needs to be true for this decision to work.
-- recommendedMove must be a direct next stance, not a vague suggestion.
-- snapshot language should be concise, specific, and easy to scan.
-- door should classify the type of decision in plain English.
-- hinge should name the main assumption carrying the decision.
-- lock should name what becomes harder to undo after committing.
-- trap should name the hidden way this could go wrong.
-- exit should name an observable signal that should cause pause or reconsideration.
-- step should name the smartest next move from here.
-- Optimize for clarity and survivability, not confidence.
-- Be concise.
-- No fluff.
+
+SNAPSHOT:
+- door = simple classification label
+- hinge = main assumption
+- lock = what becomes hard to undo
+- trap = hidden failure mode
+- exit = observable signal to pause
+- step = smartest next move
+
+Be concise. No fluff.
 `;
 
     const userPrompt = `
@@ -148,15 +166,25 @@ ${context || 'None provided'}
       parsed = JSON.parse(content);
     } catch {
       return NextResponse.json(
-        {
-          error: 'OpenAI returned invalid JSON.',
-          raw: content,
-        },
+        { error: 'OpenAI returned invalid JSON.', raw: content },
         { status: 500 }
       );
     }
 
     const safeResult = {
+      pattern: {
+        type: typeof parsed?.pattern?.type === 'string' ? parsed.pattern.type : '',
+        rationale:
+          typeof parsed?.pattern?.rationale === 'string'
+            ? parsed.pattern.rationale
+            : '',
+        reversibility:
+          parsed?.pattern?.reversibility === 'low' ||
+          parsed?.pattern?.reversibility === 'medium' ||
+          parsed?.pattern?.reversibility === 'high'
+            ? parsed.pattern.reversibility
+            : 'medium',
+      },
       readiness: {
         clarity: Number.isInteger(parsed?.readiness?.clarity) ? parsed.readiness.clarity : 0,
         assumptions: Number.isInteger(parsed?.readiness?.assumptions)
