@@ -505,11 +505,11 @@ export default function HomePage() {
 
   const handleGenerateVerdict = async () => {
     if (!finalThoughts.trim()) return;
-
+  
     setVerdictRequested(true);
     setVerdictLoading(true);
     setVerdict(null);
-
+  
     try {
       const res = await fetch('/api/review/verdict', {
         method: 'POST',
@@ -520,15 +520,30 @@ export default function HomePage() {
           thoughts: finalThoughts,
         }),
       });
-
+  
       const data = await res.json();
-
+  
       if (!res.ok) {
         throw new Error(data?.error || 'Verdict failed.');
       }
-
-      setVerdict(data?.verdict ?? '');
-
+  
+      const nextVerdict = data?.verdict ?? '';
+      setVerdict(nextVerdict);
+  
+      // 🔥 NEW: SAVE DECISION TO DATABASE
+      await fetch('/api/decision/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          decision,
+          context,
+          score: reviewResult?.readiness?.total ?? null,
+          verdict: nextVerdict,
+          outcome: outcome,
+          userId: user?.id ?? null,
+        }),
+      });
+  
       setTimeout(() => {
         verdictRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 50);
