@@ -130,6 +130,9 @@ export default function HomePage() {
   const [verdictRequested, setVerdictRequested] = useState(false);
   const [verdict, setVerdict] = useState<string | null>(null);
   const [verdictLoading, setVerdictLoading] = useState(false);
+  
+  const [outcome, setOutcome] = useState<string | null>(null);
+  const [savingOutcome, setSavingOutcome] = useState(false);
 
   const snapshotRef = useRef<HTMLDivElement | null>(null);
   const decisionInputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -391,6 +394,8 @@ export default function HomePage() {
     setVerdictRequested(false);
     setVerdict(null);
     setVerdictLoading(false);
+    setOutcome(null);
+    setSavingOutcome(false);
   };
 
   const validateDecision = () => {
@@ -1530,45 +1535,97 @@ export default function HomePage() {
                 </div>
 
                 {verdictRequested && (
-                  <div ref={verdictRef} style={cardStyle}>
-                    <div style={{ fontSize: 13, fontWeight: 900, opacity: 0.6, marginBottom: 10 }}>
-                      Final Verdict
-                    </div>
+  <>
+    <div ref={verdictRef} style={cardStyle}>
+      <div style={{ fontSize: 13, fontWeight: 900, opacity: 0.6, marginBottom: 10 }}>
+        Final Verdict
+      </div>
 
-                    {verdictLoading ? (
-                      <div style={{ fontSize: 13.5, lineHeight: 1.55, opacity: 0.72 }}>
-                        Generating final verdict...
-                      </div>
-                    ) : (
-                      <>
-                        <div
-                          style={{
-                            fontSize: 24,
-                            fontWeight: 900,
-                            letterSpacing: -0.03,
-                            lineHeight: 1.1,
-                            marginBottom: 8,
-                          }}
-                        >
-                          {verdictTitle}
-                        </div>
+      {verdictLoading ? (
+        <div style={{ fontSize: 13.5, lineHeight: 1.55, opacity: 0.72 }}>
+          Generating final verdict...
+        </div>
+      ) : (
+        <>
+          <div
+            style={{
+              fontSize: 24,
+              fontWeight: 900,
+              letterSpacing: -0.03,
+              lineHeight: 1.1,
+              marginBottom: 8,
+            }}
+          >
+            {verdictTitle}
+          </div>
 
-                        {verdictReason && (
-                          <div
-                            style={{
-                              whiteSpace: 'pre-wrap',
-                              fontSize: 13.5,
-                              lineHeight: 1.6,
-                              opacity: 0.84,
-                            }}
-                          >
-                            {verdictReason}
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                )}
+          {verdictReason && (
+            <div
+              style={{
+                whiteSpace: 'pre-wrap',
+                fontSize: 13.5,
+                lineHeight: 1.6,
+                opacity: 0.84,
+              }}
+            >
+              {verdictReason}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+
+    {verdict && !verdictLoading && (
+      <div style={{ ...cardStyle, marginTop: 14 }}>
+        <div style={{ fontSize: 13, fontWeight: 900, opacity: 0.6, marginBottom: 10 }}>
+          What happened?
+        </div>
+
+        <div style={{ fontSize: 13.5, lineHeight: 1.55, opacity: 0.76, marginBottom: 12 }}>
+          This turns the review into a real decision record instead of a one-time output.
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {['Still in progress', 'Worked', 'Failed', 'Changed direction'].map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => setOutcome(option)}
+              style={{
+                borderRadius: 999,
+                border:
+                  outcome === option
+                    ? '1px solid #111'
+                    : '1px solid rgba(0,0,0,0.12)',
+                background: outcome === option ? '#111' : '#fff',
+                color: outcome === option ? '#fff' : '#111',
+                padding: '8px 12px',
+                fontSize: 12,
+                fontWeight: 800,
+                cursor: 'pointer',
+              }}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+
+        {outcome && (
+          <div
+            style={{
+              marginTop: 12,
+              fontSize: 12.5,
+              fontWeight: 700,
+              color: 'rgba(0,0,0,0.72)',
+            }}
+          >
+            Selected: {outcome}
+          </div>
+        )}
+      </div>
+    )}
+  </>
+)}
               </div>
             )}
           </section>
