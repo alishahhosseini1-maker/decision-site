@@ -1,3 +1,4 @@
+// Fresh rebuilt file from latest uploaded app/page.tsx
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -965,7 +966,7 @@ export default function HomePage() {
                 border: '1px solid rgba(0,0,0,0.08)',
                 borderRadius: 14,
                 background: 'rgba(255,255,255,0.78)',
-                padding: '12px 14px',
+                padding: '10px 14px',
                 boxShadow: '0 4px 10px rgba(0,0,0,0.02)',
               }}
             >
@@ -973,7 +974,7 @@ export default function HomePage() {
                 style={{
                   display: 'grid',
                   gridTemplateColumns: 'minmax(0, 1fr) 1px minmax(0, 1fr)',
-                  gap: 14,
+                  gap: 12,
                   alignItems: 'center',
                 }}
               >
@@ -983,37 +984,37 @@ export default function HomePage() {
                       fontSize: 10,
                       fontWeight: 900,
                       letterSpacing: '0.10em',
-                      opacity: 0.48,
+                      opacity: 0.46,
                     }}
                   >
                     OPEN LOOPS
                   </div>
 
                   {loadingOpenDecisions ? (
-                    <div style={{ marginTop: 4, fontSize: 12.5, opacity: 0.68 }}>Loading...</div>
+                    <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68 }}>Loading...</div>
                   ) : openDecisionsError ? (
                     <div style={{ marginTop: 4, fontSize: 12.5, color: '#b91c1c', fontWeight: 700 }}>
                       {openDecisionsError}
                     </div>
                   ) : openDecisions.length === 0 ? (
-                    <div style={{ marginTop: 4, fontSize: 15, fontWeight: 800, letterSpacing: -0.02 }}>
+                    <div style={{ marginTop: 3, fontSize: 15, fontWeight: 800, letterSpacing: -0.03 }}>
                       No unresolved
                     </div>
                   ) : (
                     <>
                       <div
                         style={{
-                          marginTop: 3,
+                          marginTop: 2,
                           fontSize: 22,
                           fontWeight: 900,
                           letterSpacing: -0.04,
-                          lineHeight: 1,
+                          lineHeight: 0.98,
                         }}
                       >
                         {openLoopLabel}
                       </div>
 
-                      <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      <div style={{ marginTop: 6, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                         <a
                           href="/decisions"
                           style={{
@@ -1028,7 +1029,7 @@ export default function HomePage() {
                             boxShadow: '0 6px 14px rgba(0,0,0,0.08)',
                           }}
                         >
-                          Update
+                          Update outcomes
                         </a>
 
                         <a
@@ -1051,7 +1052,7 @@ export default function HomePage() {
                   )}
                 </div>
 
-                <div style={{ background: 'rgba(0,0,0,0.06)', alignSelf: 'stretch' }} />
+                <div style={{ background: 'rgba(0,0,0,0.06)', opacity: 0.85, alignSelf: 'stretch' }} />
 
                 <div style={{ minWidth: 0 }}>
                   <div
@@ -1059,27 +1060,27 @@ export default function HomePage() {
                       fontSize: 10,
                       fontWeight: 900,
                       letterSpacing: '0.10em',
-                      opacity: 0.48,
+                      opacity: 0.46,
                     }}
                   >
                     LATEST TEAM REVIEW
                   </div>
 
                   {loadingLatestTeamSession ? (
-                    <div style={{ marginTop: 4, fontSize: 12.5, opacity: 0.68 }}>Loading...</div>
+                    <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68 }}>Loading...</div>
                   ) : latestTeamSessionError ? (
                     <div style={{ marginTop: 4, fontSize: 12.5, color: '#b91c1c', fontWeight: 700 }}>
                       {latestTeamSessionError}
                     </div>
                   ) : !latestTeamSession ? (
-                    <div style={{ marginTop: 4, fontSize: 15, fontWeight: 800, letterSpacing: -0.02 }}>
+                    <div style={{ marginTop: 3, fontSize: 15, fontWeight: 800, letterSpacing: -0.03 }}>
                       No active review
                     </div>
                   ) : (
                     <>
                       <div
                         style={{
-                          marginTop: 4,
+                          marginTop: 3,
                           display: 'flex',
                           alignItems: 'center',
                           gap: 8,
@@ -1116,7 +1117,7 @@ export default function HomePage() {
                             whiteSpace: 'nowrap',
                             fontSize: 18,
                             fontWeight: 900,
-                            letterSpacing: -0.03,
+                            letterSpacing: -0.035,
                             lineHeight: 1.05,
                           }}
                         >
@@ -1124,11 +1125,11 @@ export default function HomePage() {
                         </div>
                       </div>
 
-                      <div style={{ marginTop: 5, fontSize: 12.5, lineHeight: 1.4, opacity: 0.66 }}>
+                      <div style={{ marginTop: 4, fontSize: 12.5, lineHeight: 1.35, opacity: 0.62 }}>
                         {latestTeamSession.deadline ? formatDeadline(latestTeamSession.deadline) : 'No deadline set'}
                       </div>
 
-                      <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      <div style={{ marginTop: 6, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                         {hasSummaryReady ? (
                           <a
                             href={`/team/${latestTeamSession.id}/summary`}
@@ -1246,7 +1247,7 @@ export default function HomePage() {
             >
               <div style={{ fontSize: 18, marginBottom: 6 }}>👤</div>
               <div style={{ fontSize: 14, fontWeight: 800 }}>Solo Decision</div>
-              <div style={{ marginTop: 4, fontSize: 12.5, opacity: 0.68, lineHeight: 1.45 }}>
+              <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68, lineHeight: 1.45 }}>
                 Pressure-test a decision on your own
               </div>
             </button>
@@ -1272,7 +1273,7 @@ export default function HomePage() {
             >
               <div style={{ fontSize: 18, marginBottom: 6 }}>👥</div>
               <div style={{ fontSize: 14, fontWeight: 800 }}>Team Review</div>
-              <div style={{ marginTop: 4, fontSize: 12.5, opacity: 0.68, lineHeight: 1.45 }}>
+              <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68, lineHeight: 1.45 }}>
                 Collect input before a decision gets locked
               </div>
             </button>
@@ -1864,5 +1865,7 @@ export default function HomePage() {
     </div>
   );
 }
+
+
 
 
