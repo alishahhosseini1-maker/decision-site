@@ -12,19 +12,29 @@ export async function POST(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    const { error } = await supabase.from('decisions').insert({
-      decision: body.decision,
-      context: body.context,
-      score: body.score,
-      verdict: body.verdict,
-      outcome: body.outcome,
-      user_id: body.userId || null,
-    });
+    const { data, error } = await supabase
+      .from('decisions')
+      .insert({
+        decision: body.decision,
+        context: body.context,
+        score: body.score,
+        verdict: body.verdict,
+        outcome: body.outcome,
+        user_id: body.userId || null,
+      })
+      .select()
+      .single();
 
     if (error) throw error;
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      id: data.id,
+    });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json(
+      { error: err.message || 'Save failed.' },
+      { status: 500 }
+    );
   }
 }
