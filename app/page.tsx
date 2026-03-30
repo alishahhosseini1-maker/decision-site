@@ -888,15 +888,6 @@ export default function HomePage() {
   const openLoopLabel =
     openLoopCount === 1 ? '1 unresolved' : `${openLoopCount} unresolved`;
 
-  const primaryOpenDecision = openDecisions[0] ?? null;
-  const primaryOpenDecisionStatus = primaryOpenDecision
-    ? primaryOpenDecision.needs_follow_up
-      ? 'Needs follow-up'
-      : primaryOpenDecision.outcome_status === 'in_progress'
-        ? 'In progress'
-        : 'Awaiting outcome'
-    : null;
-
   return (
     <div style={{ minHeight: '100vh', background: '#f4f5f6', color: '#111' }}>
       <main style={{ maxWidth: 980, margin: '28px auto 60px', padding: '0 20px' }}>
@@ -1012,7 +1003,7 @@ export default function HomePage() {
                     <>
                       <div
                         style={{
-                          marginTop: 4,
+                          marginTop: 3,
                           fontSize: 22,
                           fontWeight: 900,
                           letterSpacing: -0.04,
@@ -1021,49 +1012,6 @@ export default function HomePage() {
                       >
                         {openLoopLabel}
                       </div>
-
-                      {primaryOpenDecision ? (
-                        <div
-                          style={{
-                            marginTop: 5,
-                            fontSize: 12.5,
-                            lineHeight: 1.4,
-                            opacity: 0.66,
-                            display: 'flex',
-                            gap: 8,
-                            alignItems: 'center',
-                            minWidth: 0,
-                          }}
-                        >
-                          <span
-                            style={{
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                              minWidth: 0,
-                            }}
-                          >
-                            {primaryOpenDecision.decision}
-                          </span>
-                          {primaryOpenDecisionStatus ? (
-                            <span
-                              style={{
-                                flexShrink: 0,
-                                borderRadius: 999,
-                                border: '1px solid rgba(0,0,0,0.08)',
-                                background: '#fff',
-                                padding: '4px 7px',
-                                fontSize: 9.5,
-                                fontWeight: 900,
-                                letterSpacing: '0.08em',
-                                opacity: 0.7,
-                              }}
-                            >
-                              {primaryOpenDecisionStatus}
-                            </span>
-                          ) : null}
-                        </div>
-                      ) : null}
 
                       <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                         <a
@@ -1103,7 +1051,7 @@ export default function HomePage() {
                   )}
                 </div>
 
-                <div style={{ background: 'rgba(0,0,0,0.08)', alignSelf: 'stretch' }} />
+                <div style={{ background: 'rgba(0,0,0,0.06)', alignSelf: 'stretch' }} />
 
                 <div style={{ minWidth: 0 }}>
                   <div
@@ -1216,7 +1164,7 @@ export default function HomePage() {
                               boxShadow: '0 6px 14px rgba(0,0,0,0.08)',
                             }}
                           >
-                            {closingSessionId === latestTeamSession.id ? 'Closing...' : 'Close'}
+                            {closingSessionId === latestTeamSession.id ? 'Closing...' : 'Close review'}
                           </button>
                         )}
 
