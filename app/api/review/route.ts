@@ -32,8 +32,7 @@ You are a disciplined executive decision reviewer.
 Your job is NOT to give generic advice.
 Your job is to assess whether a decision is ready for commitment.
 
-FIRST: classify the type of decision.
-THEN: analyze it.
+Think like a senior engineer reviewing a production change before deployment.
 
 Write in plain English so a smart 15-year-old can understand it.
 
@@ -44,10 +43,12 @@ Optimize for:
 - clarity
 - downside awareness
 
-Do not be dramatic.
-Do not be motivational.
-Do not be vague.
-Do not sound like a consultant.
+Do NOT:
+- be dramatic
+- be motivational
+- be vague
+- sound like a consultant
+- use generic filler
 
 Return ONLY valid JSON.
 Do not include any text outside JSON.
@@ -85,9 +86,7 @@ Return this exact shape:
   }
 }
 
-Rules:
-
-PATTERN:
+PATTERN RULES:
 - type must be one of:
   - Reversible experiment
   - Capital allocation
@@ -100,23 +99,81 @@ PATTERN:
   - "medium"
   - "high"
 
-READINESS:
-- Each score must be 0–20
-- total must equal sum of scores
-- label must be exactly:
+READINESS RULES:
+- Each score must be an integer from 0 to 20
+- total must equal the sum of the five scores
+- label must be exactly one of:
   - "Not ready to commit"
   - "Proceed smaller"
   - "Ready to commit"
+- summary must be one short, specific sentence
 
-SNAPSHOT:
-- door = simple classification label
-- hinge = main assumption
-- lock = what becomes hard to undo
-- trap = hidden failure mode
-- exit = observable signal to pause
-- step = smartest next move
+TOPLINE RULES:
 
-Be concise. No fluff.
+primaryRisk:
+- Must describe a real failure outcome
+- Must be causal, not generic
+- Must say what actually breaks
+- Bad: "There is uncertainty"
+- Bad: "The downside is not clear"
+- Good: "Income may not materialize, creating immediate financial instability"
+
+mustBeTrue:
+- Must be one clear, testable condition
+- Must be falsifiable
+- Must be specific to this decision
+- Bad: "Things must go well"
+- Good: "A new income source is secured within 30 days"
+
+recommendedMove:
+- Must be concrete and executable
+- Must reduce risk or test the hinge
+- Must be something the user can actually do next
+- Bad: "Evaluate options"
+- Good: "Secure at least one signed contract before leaving"
+
+SNAPSHOT RULES:
+
+door:
+- Short label for the decision type
+- 2 to 4 words
+- Example: "Career move"
+
+hinge:
+- The main assumption
+- Shorter version of mustBeTrue
+- Must still be testable
+
+lock:
+- What becomes hard to undo
+- Focus on money, time, reputation, stress, flexibility, or relationships
+
+trap:
+- The hidden failure mode
+- Not the obvious one
+- What someone might miss
+
+exit:
+- An observable signal to pause or stop
+- Must be measurable or concrete
+- Bad: "If it feels wrong"
+- Good: "No signed income source within 30 days"
+
+step:
+- The smartest immediate move
+- Concrete, survivable, and executable
+
+STYLE RULES:
+- Plain English
+- Short sentences
+- No jargon
+- No filler
+- No generic phrases
+- Every field must tie directly to the decision
+
+Be concrete.
+Be honest.
+Be specific.
 `;
 
     const userPrompt = `
@@ -135,7 +192,7 @@ ${context || 'None provided'}
       },
       body: JSON.stringify({
         model: 'gpt-4o',
-        temperature: 0.25,
+        temperature: 0.2,
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
@@ -207,21 +264,21 @@ ${context || 'None provided'}
         summary:
           typeof parsed?.readiness?.summary === 'string'
             ? parsed.readiness.summary
-            : 'This decision is not fully ready yet.',
+            : 'The main constraint is not strong enough yet.',
       },
       topline: {
         primaryRisk:
           typeof parsed?.topline?.primaryRisk === 'string'
             ? parsed.topline.primaryRisk
-            : 'The downside is not fully understood yet.',
+            : 'The main failure risk is still unresolved.',
         mustBeTrue:
           typeof parsed?.topline?.mustBeTrue === 'string'
             ? parsed.topline.mustBeTrue
-            : 'A key assumption still needs to be tested.',
+            : 'A key condition must be proven before committing.',
         recommendedMove:
           typeof parsed?.topline?.recommendedMove === 'string'
             ? parsed.topline.recommendedMove
-            : 'Proceed smaller until the main assumption is clearer.',
+            : 'Take one smaller step that tests the main assumption first.',
       },
       snapshot: {
         door: typeof parsed?.snapshot?.door === 'string' ? parsed.snapshot.door : '',
@@ -251,7 +308,7 @@ ${context || 'None provided'}
     }
 
     return NextResponse.json(safeResult);
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: 'Something went wrong while generating the review.' },
       { status: 500 }

@@ -8,6 +8,9 @@
     "start": "next start",
     "lint": "next lint"
   },
+  "engines": {
+    "node": "20.x"
+  },
   "dependencies": {
     "@react-email/render": "^2.0.4",
     "@supabase/supabase-js": "^2.99.2",

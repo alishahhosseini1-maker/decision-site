@@ -100,6 +100,67 @@ function localDateTimeToIso(value: string): string | null {
   return localDate.toISOString();
 }
 
+
+function buildBreakLine(hinge?: string | null) {
+  if (!hinge || !hinge.trim()) {
+    return 'If this assumption is wrong, this decision breaks.';
+  }
+
+  const clean = hinge.trim().replace(/\.$/, '');
+  const normalized = clean.charAt(0).toLowerCase() + clean.slice(1);
+  return `If ${normalized} fails, this decision breaks.`;
+}
+
+type DeepReviewSection = {
+  heading: string;
+  lines: string[];
+};
+
+const DEEP_REVIEW_HEADINGS = new Set([
+  'what must go right',
+  'what could go wrong',
+  'hard to undo',
+  'bottom line',
+]);
+
+function cleanDeepReviewHeading(line: string) {
+  return line.replace(/^[^A-Za-z0-9]+/, '').trim();
+}
+
+function parseDeepReviewSections(text?: string | null): DeepReviewSection[] {
+  if (!text) return [];
+
+  const rawLines = text
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const sections: DeepReviewSection[] = [];
+  let current: DeepReviewSection | null = null;
+
+  for (const rawLine of rawLines) {
+    const cleaned = cleanDeepReviewHeading(rawLine);
+    const key = cleaned.toLowerCase();
+
+    if (DEEP_REVIEW_HEADINGS.has(key)) {
+      current = {
+        heading: cleaned,
+        lines: [],
+      };
+      sections.push(current);
+      continue;
+    }
+
+    if (!current) {
+      continue;
+    }
+
+    current.lines.push(rawLine.replace(/^[•\-]\s*/, '').trim());
+  }
+
+  return sections.filter((section) => section.lines.length > 0);
+}
+
 export default function HomePage() {
   const [mode, setMode] = useState<Mode>('solo');
 
@@ -146,6 +207,7 @@ export default function HomePage() {
   const [verdictLoading, setVerdictLoading] = useState(false);
 
   const [decisionId, setDecisionId] = useState<string | null>(null);
+  const [openBreakdownSections, setOpenBreakdownSections] = useState<Record<string, boolean>>({});
 
   const snapshotRef = useRef<HTMLDivElement | null>(null);
   const decisionInputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -758,6 +820,13 @@ export default function HomePage() {
   const scoreTotal =
     typeof reviewResult?.readiness?.total === 'number' ? reviewResult.readiness.total : null;
 
+  const verdictDisplay =
+    reviewResult?.readiness?.label === 'Not ready to commit'
+      ? 'Do not commit'
+      : reviewResult?.readiness?.label === 'Proceed smaller'
+        ? 'Proceed smaller'
+        : 'Proceed';
+
   const scoreMeta =
     reviewResult?.readiness?.label === 'Not ready to commit'
       ? {
@@ -798,7 +867,7 @@ export default function HomePage() {
     border,
     borderRadius: 12,
     background: 'rgba(255,255,255,0.55)',
-    padding: '12px 14px',
+    padding: '10px 12px',
   };
 
   const summaryStyle: React.CSSProperties = {
@@ -827,7 +896,7 @@ export default function HomePage() {
     border: '1px solid rgba(0,0,0,0.10)',
     borderRadius: 14,
     background: '#fff',
-    padding: 14,
+    padding: 12,
     boxShadow: '0 10px 20px rgba(0,0,0,0.04)',
   };
 
@@ -866,6 +935,19 @@ export default function HomePage() {
     cursor: 'pointer',
   };
 
+  const finalCtaButtonStyle: React.CSSProperties = {
+    borderRadius: 999,
+    border: 'none',
+    padding: '14px 20px',
+    background: '#7f1d1d',
+    color: '#fff',
+    fontSize: 13.5,
+    fontWeight: 900,
+    letterSpacing: '0.03em',
+    cursor: 'pointer',
+    boxShadow: '0 14px 28px rgba(127,29,29,0.35)',
+  };
+
   const decisionPlaceholder =
     'Examples: leave or stay · hire or wait · launch or delay · invest or hold · commit or pivot';
 
@@ -876,6 +958,14 @@ export default function HomePage() {
 
   const lastUsedLabel = formatShort(lastUsedAt);
   const visibleDeepReview = cleanDeepReview(deepReview);
+  const deepReviewSections = parseDeepReviewSections(visibleDeepReview);
+  const toggleBreakdownSection = (heading: string) => {
+    const key = heading.toLowerCase();
+    setOpenBreakdownSections((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
   const verdictParts = verdict ? verdict.split('\n\n') : [];
   const verdictTitle = verdictParts[0] ?? '';
   const verdictReason = verdictParts.slice(1).join('\n\n');
@@ -1410,29 +1500,29 @@ export default function HomePage() {
                     {scoreMeta.badge}
                   </div>
 
-                  <div style={{ marginTop: 12, fontSize: 13, fontWeight: 900, opacity: 0.6 }}>
-                    Decision Readiness
-                  </div>
-
                   <div
                     style={{
-                      marginTop: 6,
+                      marginTop: 12,
                       display: 'flex',
                       alignItems: 'baseline',
                       gap: 10,
                       flexWrap: 'wrap',
                     }}
                   >
-                    <div style={{ fontSize: 42, fontWeight: 900, letterSpacing: -0.04 }}>
+                    <div style={{ fontSize: 34, fontWeight: 900, letterSpacing: -0.04, opacity: 0.88 }}>
                       {scoreTotal ?? '—'}
                     </div>
                     <div style={{ fontSize: 18, fontWeight: 900, color: scoreMeta.color }}>
-                      {reviewResult.readiness.label}
+                      {verdictDisplay}
                     </div>
                   </div>
 
-                  <div style={{ marginTop: 8, fontSize: 13.5, lineHeight: 1.55, opacity: 0.76 }}>
-                    {reviewResult.readiness.summary}
+                  <div style={{ marginTop: 4, fontSize: 12.5, fontWeight: 800, opacity: 0.58 }}>
+                    Confidence: {scoreTotal ?? '—'} / 100
+                  </div>
+
+                  <div style={{ marginTop: 10, fontSize: 12.5, lineHeight: 1.4, fontWeight: 700, opacity: 0.58 }}>
+                    {buildBreakLine(reviewResult.snapshot.hinge)}
                   </div>
 
                   <div
@@ -1445,7 +1535,7 @@ export default function HomePage() {
                   >
                     <div style={{ ...detailStyle, background: '#fff' }}>
                       <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 6 }}>
-                        PRIMARY RISK
+                        FAILURE POINT
                       </div>
                       <div style={{ fontSize: 13.5, lineHeight: 1.45, fontWeight: 700 }}>
                         {reviewResult.topline.primaryRisk}
@@ -1454,7 +1544,7 @@ export default function HomePage() {
 
                     <div style={{ ...detailStyle, background: '#fff' }}>
                       <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 6 }}>
-                        WHAT MUST BE TRUE
+                        CRITICAL ASSUMPTION
                       </div>
                       <div style={{ fontSize: 13.5, lineHeight: 1.45, fontWeight: 700 }}>
                         {reviewResult.topline.mustBeTrue}
@@ -1463,19 +1553,15 @@ export default function HomePage() {
 
                     <div style={{ ...detailStyle, background: '#fff' }}>
                       <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 6 }}>
-                        RECOMMENDED MOVE
+                        NEXT MOVE
                       </div>
                       <div style={{ fontSize: 13.5, lineHeight: 1.45, fontWeight: 700 }}>
                         {reviewResult.topline.recommendedMove}
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <div style={cardStyle}>
-                  <div style={{ fontSize: 13, fontWeight: 900, opacity: 0.6, marginBottom: 12 }}>
-                    Instant Snapshot
-                  </div>
+                  <div style={{ height: 1, background: 'rgba(0,0,0,0.08)', margin: '14px 0 10px' }} />
 
                   <div
                     style={{
@@ -1485,44 +1571,50 @@ export default function HomePage() {
                     }}
                   >
                     <div style={detailStyle}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 6 }}>
+                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>
                         DOOR
                       </div>
+                      <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>(type of decision)</div>
                       <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>{reviewResult.snapshot.door}</div>
                     </div>
 
                     <div style={detailStyle}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 6 }}>
+                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>
                         HINGE
                       </div>
+                      <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>(what must be true)</div>
                       <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>{reviewResult.snapshot.hinge}</div>
                     </div>
 
                     <div style={detailStyle}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 6 }}>
+                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>
                         LOCKS
                       </div>
+                      <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>(what gets hard to undo)</div>
                       <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>{reviewResult.snapshot.lock}</div>
                     </div>
 
                     <div style={detailStyle}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 6 }}>
+                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>
                         TRAP
                       </div>
+                      <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>(hidden failure risk)</div>
                       <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>{reviewResult.snapshot.trap}</div>
                     </div>
 
                     <div style={detailStyle}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 6 }}>
+                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>
                         EXIT
                       </div>
+                      <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>(when to stop)</div>
                       <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>{reviewResult.snapshot.exit}</div>
                     </div>
 
                     <div style={detailStyle}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 6 }}>
+                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>
                         STEP
                       </div>
+                      <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>(next survivable move)</div>
                       <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>{reviewResult.snapshot.step}</div>
                     </div>
                   </div>
@@ -1537,23 +1629,89 @@ export default function HomePage() {
                       }
                     }}
                   >
-                    <summary style={summaryStyle}>▶ See the deeper review</summary>
+                    <summary style={summaryStyle}>▶ See reasoning</summary>
 
                     <div style={{ paddingTop: 12 }}>
                       {deepLoading ? (
                         <div style={{ fontSize: 13.5, lineHeight: 1.6, opacity: 0.72 }}>
                           Loading deeper review...
                         </div>
-                      ) : visibleDeepReview ? (
-                        <div
-                          style={{
-                            whiteSpace: 'pre-wrap',
-                            fontSize: 13.5,
-                            lineHeight: 1.65,
-                            opacity: 0.92,
-                          }}
-                        >
-                          {visibleDeepReview}
+                      ) : deepReviewSections.length > 0 ? (
+                        <div style={{ display: 'grid', gap: 10 }}>
+                          {deepReviewSections.map((section) => {
+                            const key = section.heading.toLowerCase();
+                            const isDecisionSection = key === 'decision';
+                            const isOpen = isDecisionSection || Boolean(openBreakdownSections[key]);
+
+                            return (
+                              <div
+                                key={section.heading}
+                                style={{
+                                  border: '1px solid rgba(0,0,0,0.08)',
+                                  borderRadius: 12,
+                                  background: 'rgba(255,255,255,0.72)',
+                                  overflow: 'hidden',
+                                }}
+                              >
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (!isDecisionSection) {
+                                      toggleBreakdownSection(section.heading);
+                                    }
+                                  }}
+                                  style={{
+                                    width: '100%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    gap: 12,
+                                    padding: '12px 14px',
+                                    background: 'transparent',
+                                    border: 'none',
+                                    cursor: isDecisionSection ? 'default' : 'pointer',
+                                    textAlign: 'left',
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      fontSize: 13.5,
+                                      fontWeight: 800,
+                                      letterSpacing: '0.02em',
+                                      opacity: 0.82,
+                                    }}
+                                  >
+                                    {section.heading}
+                                  </div>
+
+                                  {!isDecisionSection && (
+                                    <div style={{ fontSize: 12, fontWeight: 900, opacity: 0.42 }}>
+                                      {isOpen ? '−' : '+'}
+                                    </div>
+                                  )}
+                                </button>
+
+                                {isOpen && (
+                                  <div style={{ padding: '0 14px 14px' }}>
+                                    <div style={{ display: 'grid', gap: 8 }}>
+                                      {section.lines.map((line, index) => (
+                                        <div
+                                          key={`${section.heading}-${index}`}
+                                          style={{
+                                            fontSize: 13.5,
+                                            lineHeight: 1.6,
+                                            opacity: 0.9,
+                                          }}
+                                        >
+                                          {line}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       ) : (
                         <div style={{ fontSize: 13.5, lineHeight: 1.6, opacity: 0.72 }}>
@@ -1578,17 +1736,21 @@ export default function HomePage() {
                   />
 
                   <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                    <div style={{ width: '100%', fontSize: 12, opacity: 0.6, marginBottom: -2 }}>
+                      This will lock in your verdict.
+                    </div>
+
                     <button
                       type="button"
                       onClick={handleGenerateVerdict}
                       disabled={verdictLoading || !finalThoughts.trim()}
                       style={{
-                        ...ctaButtonStyle,
+                        ...finalCtaButtonStyle,
                         opacity: verdictLoading || !finalThoughts.trim() ? 0.72 : 1,
                         cursor: verdictLoading || !finalThoughts.trim() ? 'default' : 'pointer',
                       }}
                     >
-                      {verdictLoading ? 'Generating...' : 'Generate Final Verdict'}
+                      {verdictLoading ? 'Locking...' : 'Lock In Verdict'}
                     </button>
                   </div>
                 </div>
@@ -1865,6 +2027,11 @@ export default function HomePage() {
     </div>
   );
 }
+
+
+
+
+
 
 
 
