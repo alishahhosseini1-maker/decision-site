@@ -19,8 +19,16 @@ export async function POST(req: Request) {
         context: body.context,
         score: body.score,
         verdict: body.verdict,
+
+        // structured decision fields
+        door: body.door ?? null,
+        hinge: body.hinge ?? null,
+        trap: body.trap ?? null,
+        step: body.step ?? null,
+
         outcome_status: 'awaiting_outcome',
         needs_follow_up: false,
+        exclude_from_patterns: false,
         user_id: body.userId || null,
       })
       .select()

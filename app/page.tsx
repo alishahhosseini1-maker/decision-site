@@ -37,6 +37,7 @@ type OpenDecisionPreview = {
   outcome_status: string | null;
   needs_follow_up: boolean | null;
   created_at: string | null;
+  dismissed_at: string | null;
 };
 
 type ReviewResult = {
@@ -346,8 +347,9 @@ export default function HomePage() {
 
       const { data, error } = await supabase
         .from('decisions')
-        .select('id, decision, outcome_status, needs_follow_up, created_at')
+        .select('id, decision, outcome_status, needs_follow_up, created_at, dismissed_at')
         .eq('user_id', user.id)
+        .is('dismissed_at', null)
         .or('outcome_status.eq.awaiting_outcome,outcome_status.eq.in_progress,needs_follow_up.eq.true')
         .order('created_at', { ascending: false });
 
@@ -433,6 +435,26 @@ export default function HomePage() {
       setLatestTeamSessionError(err?.message || 'Failed to dismiss from home.');
     } finally {
       setDismissingSessionId(null);
+    }
+  };
+
+
+  const handleDismissDecisionFromHome = async (id: string) => {
+    try {
+      setOpenDecisionsError(null);
+
+      const { error } = await supabase
+        .from('decisions')
+        .update({ dismissed_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      setOpenDecisions((prev) => prev.filter((item) => item.id !== id));
+    } catch (err: any) {
+      setOpenDecisionsError(err?.message || 'Failed to dismiss decision from home.');
     }
   };
 
@@ -677,6 +699,13 @@ export default function HomePage() {
           context,
           score: reviewResult?.readiness?.total ?? null,
           verdict: nextVerdict,
+      
+          // 🔥 THIS IS THE IMPORTANT PART
+          door: reviewResult?.snapshot?.door ?? null,
+          hinge: reviewResult?.snapshot?.hinge ?? null,
+          trap: reviewResult?.snapshot?.trap ?? null,
+          step: reviewResult?.snapshot?.step ?? null,
+      
           outcome_status: 'awaiting_outcome',
           userId: user?.id ?? null,
         }),
@@ -1149,6 +1178,58 @@ export default function HomePage() {
                           View all
                         </a>
                       </div>
+
+                      {openDecisions.length > 0 ? (
+                        <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          {openDecisions.map((item) => (
+                            <div
+                              key={item.id}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: 8,
+                                borderRadius: 10,
+                                background: 'rgba(0,0,0,0.03)',
+                                padding: '7px 8px',
+                              }}
+                            >
+                              <div
+                                style={{
+                                  minWidth: 0,
+                                  fontSize: 12,
+                                  fontWeight: 700,
+                                  lineHeight: 1.35,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                }}
+                                title={item.decision}
+                              >
+                                {item.decision}
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => handleDismissDecisionFromHome(item.id)}
+                                style={{
+                                  borderRadius: 999,
+                                  border: '1px solid rgba(0,0,0,0.10)',
+                                  background: '#fff',
+                                  padding: '6px 9px',
+                                  fontSize: 11,
+                                  fontWeight: 800,
+                                  color: '#111',
+                                  cursor: 'pointer',
+                                  flexShrink: 0,
+                                }}
+                              >
+                                Dismiss
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
                     </>
                   )}
                 </div>

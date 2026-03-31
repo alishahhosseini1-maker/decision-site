@@ -21,6 +21,12 @@ type DecisionRow = {
   created_at: string | null;
   updated_at: string | null;
   user_id: string | null;
+  door: string | null;
+  hinge: string | null;
+  trap: string | null;
+  step: string | null;
+  exclude_from_patterns: boolean | null;
+  dismissed_at: string | null;
 };
 
 const OUTCOME_OPTIONS: { value: OutcomeStatus; label: string }[] = [
@@ -121,6 +127,61 @@ function getOutcomeMeta(value?: OutcomeStatus | null) {
   }
 }
 
+function normalizeDecisionText(value?: string | null) {
+  if (!value) return '';
+  return value
+    .toLowerCase()
+    .replace(/[^\w\s]/g, ' ')
+    .replace(/\b(i am|i'm|im|should i|thinking about|what if|whether to)\b/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function toDecisionPatternKey(value?: string | null) {
+  const text = normalizeDecisionText(value);
+
+  if (!text) return 'general';
+
+  if (
+    text.includes('quit') &&
+    text.includes('job') &&
+    (text.includes('decision layer') || text.includes('business') || text.includes('company'))
+  ) {
+    return text.includes('decision layer')
+      ? 'quit-job-build-decision-layer'
+      : 'quit-job-start-company';
+  }
+
+  if (text.includes('hire') && text.includes('engineer')) {
+    return 'hire-engineer';
+  }
+
+  if (text.includes('hire') && text.includes('employee')) {
+    return 'hire-employee';
+  }
+
+  if (text.includes('raise') && (text.includes('capital') || text.includes('funding'))) {
+    return 'raise-capital';
+  }
+
+  if (text.includes('move') && (text.includes('family') || text.includes('city') || text.includes('austin'))) {
+    return 'move-location';
+  }
+
+  if (text.includes('partnership') || text.includes('agreement')) {
+    return 'sign-partnership';
+  }
+
+  return text.slice(0, 80) || 'general';
+}
+
+function toBlockerLabel(item: DecisionRow) {
+  const raw = item.hinge || item.trap || item.step || '';
+  const clean = raw.trim().replace(/\.$/, '');
+  if (!clean) return 'unclear constraint';
+  return clean.charAt(0).toLowerCase() + clean.slice(1);
+}
+
 export default function DecisionsPage() {
   const [user, setUser] = useState<{ id: string; email?: string | null } | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -199,7 +260,7 @@ export default function DecisionsPage() {
       const { data, error: queryError } = await supabase
         .from('decisions')
         .select(
-          'id, decision, context, score, verdict, outcome_status, needs_follow_up, created_at, updated_at, user_id'
+          'id, decision, context, score, verdict, outcome_status, needs_follow_up, created_at, updated_at, user_id, door, hinge, trap, step, exclude_from_patterns, dismissed_at'
         )
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
@@ -245,9 +306,82 @@ export default function DecisionsPage() {
     return decisions.filter((item) => (item.outcome_status ?? 'awaiting_outcome') === filter);
   }, [decisions, filter]);
 
+  const patternSummary = useMemo(() => {
+    const eligible = decisions.filter((item) => !item.exclude_from_patterns);
+
+    if (eligible.length < 3) return null;
+
+    const groups = new Map<
+      string,
+      {
+        items: DecisionRow[];
+      }
+    >();
+
+    for (const item of eligible) {
+      const key = toDecisionPatternKey(item.decision);
+      const existing = groups.get(key);
+
+      if (existing) {
+        existing.items.push(item);
+      } else {
+        groups.set(key, { items: [item] });
+      }
+    }
+
+    const candidates = Array.from(groups.entries())
+      .map(([key, group]) => {
+        const scores = group.items
+          .map((item) => item.score)
+          .filter((score): score is number => typeof score === 'number');
+
+        const avgScore = scores.length
+          ? Math.round(scores.reduce((sum, value) => sum + value, 0) / scores.length)
+          : null;
+
+        const blockerCounts = new Map<string, number>();
+
+        for (const item of group.items) {
+          const blocker = toBlockerLabel(item);
+          blockerCounts.set(blocker, (blockerCounts.get(blocker) || 0) + 1);
+        }
+
+        const topBlocker =
+          Array.from(blockerCounts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ??
+          'unclear constraint';
+
+        const latestCreatedAt = group.items[0]?.created_at
+          ? new Date(group.items[0].created_at).getTime()
+          : 0;
+
+        return {
+          key,
+          items: group.items,
+          count: group.items.length,
+          avgScore,
+          topBlocker,
+          latestCreatedAt,
+        };
+      })
+      .filter((group) => group.count >= 3)
+      .sort((a, b) => {
+        if (b.count !== a.count) return b.count - a.count;
+        const aScore = typeof a.avgScore === 'number' ? a.avgScore : 999;
+        const bScore = typeof b.avgScore === 'number' ? b.avgScore : 999;
+        if (aScore !== bScore) return aScore - bScore;
+        return b.latestCreatedAt - a.latestCreatedAt;
+      });
+
+    if (!candidates.length) return null;
+
+    return candidates[0];
+  }, [decisions]);
+
   const updateDecision = async (
     id: string,
-    updates: Partial<Pick<DecisionRow, 'outcome_status' | 'needs_follow_up'>>
+    updates: Partial<
+      Pick<DecisionRow, 'outcome_status' | 'needs_follow_up' | 'exclude_from_patterns'>
+    >
   ) => {
     try {
       setSavingId(id);
@@ -383,7 +517,15 @@ export default function DecisionsPage() {
             <div style={{ fontSize: 28, fontWeight: 900, letterSpacing: -0.04 }}>
               Decision history
             </div>
-            <div style={{ marginTop: 6, fontSize: 14, lineHeight: 1.55, opacity: 0.68 }}>
+            <div
+              style={{
+                marginTop: 8,
+                fontSize: 15,
+                lineHeight: 1.55,
+                opacity: 0.82,
+                fontWeight: 600,
+              }}
+            >
               Review now. Record it. Revisit reality later.
             </div>
           </div>
@@ -411,6 +553,37 @@ export default function DecisionsPage() {
             {error}
           </div>
         )}
+
+        {patternSummary ? (
+          <section
+            style={{
+              ...card,
+              marginBottom: 16,
+              border: '1px solid rgba(0,0,0,0.09)',
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(248,248,248,0.98) 100%)',
+            }}
+          >
+            <div style={{ ...smallLabel, marginBottom: 8 }}>PATTERN FLAG</div>
+
+            <div
+              style={{
+                fontSize: 18,
+                fontWeight: 900,
+                letterSpacing: -0.03,
+                lineHeight: 1.25,
+                marginBottom: 8,
+              }}
+            >
+              You’ve reviewed a similar decision {patternSummary.count} times.
+            </div>
+
+            <div style={{ fontSize: 14, lineHeight: 1.65, opacity: 0.78 }}>
+              Average score: <strong>{patternSummary.avgScore ?? '—'}</strong>
+              {' · '}
+              Most common blocker: <strong>{patternSummary.topBlocker}</strong>
+            </div>
+          </section>
+        ) : null}
 
         <section
           style={{
@@ -562,6 +735,25 @@ export default function DecisionsPage() {
                             NEEDS FOLLOW-UP
                           </div>
                         ) : null}
+
+                        {item.exclude_from_patterns ? (
+                          <div
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              borderRadius: 999,
+                              padding: '5px 9px',
+                              fontSize: 10,
+                              fontWeight: 900,
+                              letterSpacing: '0.08em',
+                              color: '#6b7280',
+                              border: '1px solid rgba(107,114,128,0.18)',
+                              background: 'rgba(107,114,128,0.06)',
+                            }}
+                          >
+                            EXCLUDED FROM PATTERNS
+                          </div>
+                        ) : null}
                       </div>
 
                       <div
@@ -623,6 +815,77 @@ export default function DecisionsPage() {
                           </div>
                         </div>
                       </div>
+
+                      {(item.door || item.hinge || item.trap || item.step) && (
+                        <div
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                            gap: 8,
+                            marginBottom: 12,
+                          }}
+                        >
+                          {item.door ? (
+                            <div
+                              style={{
+                                borderRadius: 12,
+                                background: 'rgba(0,0,0,0.03)',
+                                padding: '10px 12px',
+                              }}
+                            >
+                              <div style={smallLabel}>DOOR</div>
+                              <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.45 }}>
+                                {item.door}
+                              </div>
+                            </div>
+                          ) : null}
+
+                          {item.hinge ? (
+                            <div
+                              style={{
+                                borderRadius: 12,
+                                background: 'rgba(0,0,0,0.03)',
+                                padding: '10px 12px',
+                              }}
+                            >
+                              <div style={smallLabel}>HINGE</div>
+                              <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.45 }}>
+                                {item.hinge}
+                              </div>
+                            </div>
+                          ) : null}
+
+                          {item.trap ? (
+                            <div
+                              style={{
+                                borderRadius: 12,
+                                background: 'rgba(0,0,0,0.03)',
+                                padding: '10px 12px',
+                              }}
+                            >
+                              <div style={smallLabel}>TRAP</div>
+                              <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.45 }}>
+                                {item.trap}
+                              </div>
+                            </div>
+                          ) : null}
+
+                          {item.step ? (
+                            <div
+                              style={{
+                                borderRadius: 12,
+                                background: 'rgba(0,0,0,0.03)',
+                                padding: '10px 12px',
+                              }}
+                            >
+                              <div style={smallLabel}>STEP</div>
+                              <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.45 }}>
+                                {item.step}
+                              </div>
+                            </div>
+                          ) : null}
+                        </div>
+                      )}
 
                       <div
                         style={{
@@ -738,9 +1001,40 @@ export default function DecisionsPage() {
                             fontWeight: 800,
                             cursor: savingId === item.id ? 'default' : 'pointer',
                             opacity: savingId === item.id ? 0.7 : 1,
+                            marginBottom: 10,
                           }}
                         >
                           {item.needs_follow_up ? 'Remove follow-up flag' : 'Mark needs follow-up'}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateDecision(item.id, {
+                              exclude_from_patterns: !(item.exclude_from_patterns ?? false),
+                            })
+                          }
+                          disabled={savingId === item.id}
+                          style={{
+                            width: '100%',
+                            borderRadius: 999,
+                            border: item.exclude_from_patterns
+                              ? '1px solid rgba(107,114,128,0.18)'
+                              : '1px solid rgba(0,0,0,0.12)',
+                            padding: '10px 12px',
+                            background: item.exclude_from_patterns
+                              ? 'rgba(107,114,128,0.06)'
+                              : '#fff',
+                            color: '#111',
+                            fontSize: 12,
+                            fontWeight: 800,
+                            cursor: savingId === item.id ? 'default' : 'pointer',
+                            opacity: savingId === item.id ? 0.7 : 1,
+                          }}
+                        >
+                          {item.exclude_from_patterns
+                            ? 'Include in patterns'
+                            : 'Exclude from patterns'}
                         </button>
 
                         {savingId === item.id ? (
