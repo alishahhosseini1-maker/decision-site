@@ -1248,7 +1248,7 @@ export default function HomePage() {
               <div style={{ fontSize: 18, marginBottom: 6 }}>👤</div>
               <div style={{ fontSize: 14, fontWeight: 800 }}>Solo Decision</div>
               <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68, lineHeight: 1.45 }}>
-                Pressure-test a decision on your own
+              Get a verdict before you decide alone.
               </div>
             </button>
 
@@ -1274,7 +1274,7 @@ export default function HomePage() {
               <div style={{ fontSize: 18, marginBottom: 6 }}>👥</div>
               <div style={{ fontSize: 14, fontWeight: 800 }}>Team Review</div>
               <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68, lineHeight: 1.45 }}>
-                Collect input before a decision gets locked
+              Get alignment before the call gets made.
               </div>
             </button>
           </div>
@@ -1304,10 +1304,10 @@ export default function HomePage() {
                   SOLO DECISION
                 </div>
                 <div style={{ marginTop: 6, fontSize: 22, fontWeight: 900, lineHeight: 1.15 }}>
-                  Pressure-test this before you commit
+                  What decision are you about to make?
                 </div>
                 <div style={{ marginTop: 6, fontSize: 13.5, lineHeight: 1.55, opacity: 0.68 }}>
-                  Get a readiness check, key risks, and a next move.
+                  Get a readiness check, key risks, and a verdict.
                 </div>
               </div>
 
@@ -1711,10 +1711,10 @@ export default function HomePage() {
                   TEAM REVIEW
                 </div>
                 <div style={{ marginTop: 6, fontSize: 22, fontWeight: 900, lineHeight: 1.15 }}>
-                  Collect input before the decision gets locked
+                Hear from your team before you decide.
                 </div>
                 <div style={{ marginTop: 6, fontSize: 13.5, lineHeight: 1.55, opacity: 0.68 }}>
-                  Collect team input, surface risks, and generate a summary before the decision gets locked.
+                
                 </div>
               </div>
 
@@ -1726,20 +1726,20 @@ export default function HomePage() {
                   <input
                     value={teamTitle}
                     onChange={(e) => setTeamTitle(e.target.value)}
-                    placeholder="Examples: Weekly Director Meeting"
+                    placeholder="new hire · raise prices · expand overseas · let someone go "
                     style={inputStyle}
                   />
                 </div>
 
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 800, marginBottom: 6, opacity: 0.66 }}>
-                    What do you want input on?
+                  What decision needs to be made?
                   </div>
                   <textarea
                     value={teamPrompt}
                     onChange={(e) => setTeamPrompt(e.target.value)}
                     rows={5}
-                    placeholder="Examples: What moved forward this week? What is off track? Where is a decision needed?"
+                    placeholder="what's at stake · what's blocking it · what you need from the team"
                     style={{ ...inputStyle, minHeight: 132, resize: 'vertical' }}
                   />
                 </div>
@@ -1803,7 +1803,7 @@ export default function HomePage() {
                       cursor: creatingTeamSession ? 'default' : 'pointer',
                     }}
                   >
-                    {creatingTeamSession ? 'Creating...' : 'Create Team Review'}
+                    {creatingTeamSession ? 'Creating...' : 'Start Team Review'}
                   </button>
                 </div>
               </div>
