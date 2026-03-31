@@ -638,6 +638,15 @@ export default function HomePage() {
     setVerdictLoading(true);
     setVerdict(null);
 
+    const hinge = reviewResult?.snapshot?.hinge || '';
+    const next_move = reviewResult?.snapshot?.step || '';
+
+    console.log('VERDICT INPUT:', {
+      decision,
+      hinge,
+      next_move,
+    });
+
     try {
       const res = await fetch('/api/review/verdict', {
         method: 'POST',
@@ -646,6 +655,8 @@ export default function HomePage() {
           decision,
           context,
           thoughts: finalThoughts,
+          hinge,
+          next_move,
         }),
       });
 
@@ -2027,6 +2038,7 @@ export default function HomePage() {
     </div>
   );
 }
+
 
 
 
