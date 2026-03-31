@@ -39,6 +39,7 @@ const OUTCOME_OPTIONS: { value: OutcomeStatus; label: string }[] = [
 
 function formatDate(value?: string | null) {
   if (!value) return '—';
+
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return '—';
 
@@ -129,6 +130,7 @@ function getOutcomeMeta(value?: OutcomeStatus | null) {
 
 function normalizeDecisionText(value?: string | null) {
   if (!value) return '';
+
   return value
     .toLowerCase()
     .replace(/[^\w\s]/g, ' ')
@@ -164,7 +166,10 @@ function toDecisionPatternKey(value?: string | null) {
     return 'raise-capital';
   }
 
-  if (text.includes('move') && (text.includes('family') || text.includes('city') || text.includes('austin'))) {
+  if (
+    text.includes('move') &&
+    (text.includes('family') || text.includes('city') || text.includes('austin'))
+  ) {
     return 'move-location';
   }
 
@@ -176,9 +181,11 @@ function toDecisionPatternKey(value?: string | null) {
 }
 
 function toBlockerLabel(item: DecisionRow) {
-  const raw = item.hinge || item.trap || item.step || '';
-  const clean = raw.trim().replace(/\.$/, '');
-  if (!clean) return 'unclear constraint';
+  if (!item.hinge) return null;
+
+  const clean = item.hinge.trim().replace(/\.$/, '');
+  if (!clean) return null;
+
   return clean.charAt(0).toLowerCase() + clean.slice(1);
 }
 
@@ -311,12 +318,7 @@ export default function DecisionsPage() {
 
     if (eligible.length < 3) return null;
 
-    const groups = new Map<
-      string,
-      {
-        items: DecisionRow[];
-      }
-    >();
+    const groups = new Map<string, { items: DecisionRow[] }>();
 
     for (const item of eligible) {
       const key = toDecisionPatternKey(item.decision);
@@ -343,12 +345,12 @@ export default function DecisionsPage() {
 
         for (const item of group.items) {
           const blocker = toBlockerLabel(item);
+          if (!blocker) continue;
           blockerCounts.set(blocker, (blockerCounts.get(blocker) || 0) + 1);
         }
 
         const topBlocker =
-          Array.from(blockerCounts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ??
-          'unclear constraint';
+          Array.from(blockerCounts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
 
         const latestCreatedAt = group.items[0]?.created_at
           ? new Date(group.items[0].created_at).getTime()
@@ -363,12 +365,15 @@ export default function DecisionsPage() {
           latestCreatedAt,
         };
       })
-      .filter((group) => group.count >= 3)
+      .filter((group) => group.count >= 3 && group.topBlocker)
       .sort((a, b) => {
         if (b.count !== a.count) return b.count - a.count;
+
         const aScore = typeof a.avgScore === 'number' ? a.avgScore : 999;
         const bScore = typeof b.avgScore === 'number' ? b.avgScore : 999;
+
         if (aScore !== bScore) return aScore - bScore;
+
         return b.latestCreatedAt - a.latestCreatedAt;
       });
 
@@ -560,7 +565,8 @@ export default function DecisionsPage() {
               ...card,
               marginBottom: 16,
               border: '1px solid rgba(0,0,0,0.09)',
-              background: 'linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(248,248,248,0.98) 100%)',
+              background:
+                'linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(248,248,248,0.98) 100%)',
             }}
           >
             <div style={{ ...smallLabel, marginBottom: 8 }}>PATTERN FLAG</div>
@@ -574,13 +580,17 @@ export default function DecisionsPage() {
                 marginBottom: 8,
               }}
             >
-              You’ve reviewed a similar decision {patternSummary.count} times.
+              You’ve reviewed this decision {patternSummary.count} times.
             </div>
 
             <div style={{ fontSize: 14, lineHeight: 1.65, opacity: 0.78 }}>
               Average score: <strong>{patternSummary.avgScore ?? '—'}</strong>
               {' · '}
-              Most common blocker: <strong>{patternSummary.topBlocker}</strong>
+              Consistently blocked by: <strong>{patternSummary.topBlocker}</strong>
+            </div>
+
+            <div style={{ marginTop: 6, fontSize: 12.5, lineHeight: 1.55, opacity: 0.58 }}>
+              Repeated low-readiness decisions usually signal an unresolved constraint.
             </div>
           </section>
         ) : null}
@@ -982,54 +992,19 @@ export default function DecisionsPage() {
                           type="button"
                           onClick={() =>
                             updateDecision(item.id, {
-                              needs_follow_up: !(item.needs_follow_up ?? false),
-                            })
-                          }
-                          disabled={savingId === item.id}
-                          style={{
-                            width: '100%',
-                            borderRadius: 999,
-                            border: item.needs_follow_up
-                              ? '1px solid rgba(146,64,14,0.18)'
-                              : '1px solid rgba(0,0,0,0.12)',
-                            padding: '10px 12px',
-                            background: item.needs_follow_up
-                              ? 'rgba(146,64,14,0.06)'
-                              : '#fff',
-                            color: '#111',
-                            fontSize: 12,
-                            fontWeight: 800,
-                            cursor: savingId === item.id ? 'default' : 'pointer',
-                            opacity: savingId === item.id ? 0.7 : 1,
-                            marginBottom: 10,
-                          }}
-                        >
-                          {item.needs_follow_up ? 'Remove follow-up flag' : 'Mark needs follow-up'}
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            updateDecision(item.id, {
                               exclude_from_patterns: !(item.exclude_from_patterns ?? false),
                             })
                           }
                           disabled={savingId === item.id}
                           style={{
                             width: '100%',
-                            borderRadius: 999,
-                            border: item.exclude_from_patterns
-                              ? '1px solid rgba(107,114,128,0.18)'
-                              : '1px solid rgba(0,0,0,0.12)',
-                            padding: '10px 12px',
-                            background: item.exclude_from_patterns
-                              ? 'rgba(107,114,128,0.06)'
-                              : '#fff',
-                            color: '#111',
-                            fontSize: 12,
-                            fontWeight: 800,
+                            border: 'none',
+                            backgroundColor: 'transparent',
+                            fontSize: 11,
+                            opacity: 0.6,
                             cursor: savingId === item.id ? 'default' : 'pointer',
-                            opacity: savingId === item.id ? 0.7 : 1,
+                            textAlign: 'left',
+                            padding: 0,
                           }}
                         >
                           {item.exclude_from_patterns
