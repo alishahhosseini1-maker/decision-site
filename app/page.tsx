@@ -159,9 +159,7 @@ function parseDeepReviewSections(text?: string | null): DeepReviewSection[] {
       continue;
     }
 
-    if (!current) {
-      continue;
-    }
+    if (!current) continue;
 
     current.lines.push(rawLine.replace(/^[•\-]\s*/, '').trim());
   }
@@ -1188,34 +1186,34 @@ export default function HomePage() {
             Last used: <span style={{ opacity: 0.65 }}>{lastUsedLabel}</span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             {!authLoading && user && (
               <div style={{ fontSize: 12.5, opacity: 0.62 }}>{user.email || 'Signed in'}</div>
             )}
 
-            {authLoading ? null : user ? (
-              <>
-                <a
-                  href="/archive"
-                  style={{
-                    borderRadius: 999,
-                    border: '1px solid rgba(0,0,0,0.12)',
-                    padding: '10px 14px',
-                    background: '#fff',
-                    color: '#111',
-                    fontSize: 12.5,
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    textDecoration: 'none',
-                  }}
-                >
-                  Archive
-                </a>
+            {!authLoading && (
+              <a
+                href="/history"
+                style={{
+                  borderRadius: 999,
+                  border: '1px solid rgba(0,0,0,0.12)',
+                  padding: '10px 14px',
+                  background: '#fff',
+                  color: '#111',
+                  fontSize: 12.5,
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  textDecoration: 'none',
+                }}
+              >
+                Decision History
+              </a>
+            )}
 
-                <button type="button" onClick={handleSignOut} style={topActionButtonStyle}>
-                  Sign Out
-                </button>
-              </>
+            {authLoading ? null : user ? (
+              <button type="button" onClick={handleSignOut} style={topActionButtonStyle}>
+                Sign Out
+              </button>
             ) : (
               <button type="button" onClick={handleSignIn} style={topActionButtonStyle}>
                 Sign In
@@ -1323,7 +1321,7 @@ export default function HomePage() {
 
                         <div style={{ marginTop: 6, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                           <a
-                            href="/decisions"
+                            href="/history"
                             style={{
                               borderRadius: 999,
                               border: 'none',
@@ -1336,11 +1334,11 @@ export default function HomePage() {
                               boxShadow: '0 6px 14px rgba(0,0,0,0.08)',
                             }}
                           >
-                            Update outcomes
+                            View history
                           </a>
 
                           <a
-                            href="/decisions"
+                            href="/history"
                             style={{
                               borderRadius: 999,
                               border: '1px solid rgba(0,0,0,0.10)',
@@ -1352,7 +1350,7 @@ export default function HomePage() {
                               textDecoration: 'none',
                             }}
                           >
-                            View all
+                            Update outcomes
                           </a>
                         </div>
 
@@ -1548,9 +1546,7 @@ export default function HomePage() {
                               opacity: dismissingSessionId === latestTeamSession.id ? 0.72 : 1,
                             }}
                           >
-                            {dismissingSessionId === latestTeamSession.id
-                              ? 'Dismissing...'
-                              : 'Dismiss'}
+                            {dismissingSessionId === latestTeamSession.id ? 'Dismissing...' : 'Dismiss'}
                           </button>
                         </div>
                       </>
@@ -1575,18 +1571,11 @@ export default function HomePage() {
           >
             Before you commit.
           </div>
-          <div
-            style={{
-              maxWidth: 560,
-              margin: '14px auto 0',
-              fontSize: 15,
-              lineHeight: 1.6,
-              opacity: 0.68,
-            }}
-          />
         </section>
 
-        <section style={{ maxWidth: 720, margin: '28px auto 0' }}>
+
+
+        <section style={{ maxWidth: 720, margin: '20px auto 0' }}>
           <div style={{ display: 'flex', gap: 12 }}>
             <button
               type="button"
@@ -1912,9 +1901,7 @@ export default function HomePage() {
                   <details
                     onToggle={(e) => {
                       const el = e.currentTarget;
-                      if (el.open) {
-                        void loadDeepReview();
-                      }
+                      if (el.open) void loadDeepReview();
                     }}
                   >
                     <summary style={summaryStyle}>▶ See reasoning</summary>
@@ -1928,8 +1915,7 @@ export default function HomePage() {
                         <div style={{ display: 'grid', gap: 10 }}>
                           {deepReviewSections.map((section) => {
                             const key = section.heading.toLowerCase();
-                            const isDecisionSection = key === 'decision';
-                            const isOpen = isDecisionSection || Boolean(openBreakdownSections[key]);
+                            const isOpen = Boolean(openBreakdownSections[key]);
 
                             return (
                               <div
@@ -1943,11 +1929,7 @@ export default function HomePage() {
                               >
                                 <button
                                   type="button"
-                                  onClick={() => {
-                                    if (!isDecisionSection) {
-                                      toggleBreakdownSection(section.heading);
-                                    }
-                                  }}
+                                  onClick={() => toggleBreakdownSection(section.heading)}
                                   style={{
                                     width: '100%',
                                     display: 'flex',
@@ -1957,7 +1939,7 @@ export default function HomePage() {
                                     padding: '12px 14px',
                                     background: 'transparent',
                                     border: 'none',
-                                    cursor: isDecisionSection ? 'default' : 'pointer',
+                                    cursor: 'pointer',
                                     textAlign: 'left',
                                   }}
                                 >
@@ -1972,11 +1954,9 @@ export default function HomePage() {
                                     {section.heading}
                                   </div>
 
-                                  {!isDecisionSection && (
-                                    <div style={{ fontSize: 12, fontWeight: 900, opacity: 0.42 }}>
-                                      {isOpen ? '−' : '+'}
-                                    </div>
-                                  )}
+                                  <div style={{ fontSize: 12, fontWeight: 900, opacity: 0.42 }}>
+                                    {isOpen ? '−' : '+'}
+                                  </div>
                                 </button>
 
                                 {isOpen && (
@@ -2025,7 +2005,7 @@ export default function HomePage() {
 
                   <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                     <div style={{ width: '100%', fontSize: 12, opacity: 0.6, marginBottom: -2 }}>
-                     
+                      Generate the verdict first. Save comes after.
                     </div>
 
                     <button
@@ -2068,7 +2048,7 @@ export default function HomePage() {
                             {verdictTitle}
                           </div>
 
-                          {verdictReason && (
+                          {verdictReason ? (
                             <div
                               style={{
                                 whiteSpace: 'pre-wrap',
@@ -2079,26 +2059,27 @@ export default function HomePage() {
                             >
                               {verdictReason}
                             </div>
-                          )}
+                          ) : null}
                         </>
                       )}
                     </div>
 
                     {verdict && !verdictLoading && (
                       <div style={{ ...cardStyle, marginTop: 14 }}>
-                        <div style={{ fontSize: 13, fontWeight: 900, opacity: 0.6, marginBottom: 10 }}>
-                          {decisionId ? 'Decision saved' : 'Decision ready to save'}
-                        </div>
-
                         {!decisionId ? (
                           <>
+                            <div style={{ fontSize: 13, fontWeight: 900, opacity: 0.6, marginBottom: 10 }}>
+                              Lock your decision
+                            </div>
+
                             {!user ? (
                               <div style={{ fontSize: 13.5, lineHeight: 1.55, opacity: 0.76, marginBottom: 12 }}>
-                                Sign in to lock your verdict and save this to your decision record.
+                                Save this verdict and track what happens next. Sign in to add it to your
+                                decision record.
                               </div>
                             ) : (
                               <div style={{ fontSize: 13.5, lineHeight: 1.55, opacity: 0.76, marginBottom: 12 }}>
-                                Signed in. Your review is ready to save.
+                                Signed in. Your decision is ready to lock.
                               </div>
                             )}
 
@@ -2123,31 +2104,17 @@ export default function HomePage() {
                           </>
                         ) : (
                           <>
+                            <div style={{ fontSize: 13, fontWeight: 900, opacity: 0.6, marginBottom: 10 }}>
+                              Decision locked
+                            </div>
+
                             <div style={{ fontSize: 13.5, lineHeight: 1.55, opacity: 0.76, marginBottom: 12 }}>
-                              This review is now part of your decision record. Log the outcome later once the
-                              decision plays out.
+                              You can now track how this decision plays out over time.
                             </div>
 
                             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                              <button
-                                type="button"
-                                onClick={resetReviewState}
-                                style={{
-                                  borderRadius: 999,
-                                  border: '1px solid rgba(0,0,0,0.12)',
-                                  padding: '8px 12px',
-                                  background: '#fff',
-                                  color: '#111',
-                                  fontSize: 12,
-                                  fontWeight: 800,
-                                  cursor: 'pointer',
-                                }}
-                              >
-                                Done
-                              </button>
-
                               <a
-                                href="/decision-summary"
+                                href={`/decision-summary?id=${decisionId}`}
                                 style={{
                                   borderRadius: 999,
                                   border: '1px solid rgba(0,0,0,0.12)',
@@ -2164,7 +2131,7 @@ export default function HomePage() {
                               </a>
 
                               <a
-                                href="/decisions"
+                                href="/history"
                                 style={{
                                   borderRadius: 999,
                                   border: 'none',
@@ -2179,6 +2146,23 @@ export default function HomePage() {
                               >
                                 View Decision History
                               </a>
+
+                              <button
+                                type="button"
+                                onClick={resetReviewState}
+                                style={{
+                                  borderRadius: 999,
+                                  border: '1px solid rgba(0,0,0,0.12)',
+                                  padding: '8px 12px',
+                                  background: '#fff',
+                                  color: '#111',
+                                  fontSize: 12,
+                                  fontWeight: 800,
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                Done
+                              </button>
                             </div>
                           </>
                         )}
@@ -2215,7 +2199,6 @@ export default function HomePage() {
                 <div style={{ marginTop: 6, fontSize: 22, fontWeight: 900, lineHeight: 1.15 }}>
                   Hear from your team before you decide.
                 </div>
-                <div style={{ marginTop: 6, fontSize: 13.5, lineHeight: 1.55, opacity: 0.68 }} />
               </div>
 
               <div style={{ display: 'grid', gap: 14 }}>
