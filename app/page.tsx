@@ -1,4 +1,3 @@
-// Fresh rebuilt file from latest uploaded app/page.tsx
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -29,7 +28,6 @@ type LatestTeamSession = {
   dismissed_at: string | null;
   archived_at: string | null;
 };
-
 
 type OpenDecisionPreview = {
   id: string;
@@ -100,7 +98,6 @@ function localDateTimeToIso(value: string): string | null {
 
   return localDate.toISOString();
 }
-
 
 function buildBreakLine(hinge?: string | null) {
   if (!hinge || !hinge.trim()) {
@@ -438,7 +435,6 @@ export default function HomePage() {
     }
   };
 
-
   const handleDismissDecisionFromHome = async (id: string) => {
     try {
       setOpenDecisionsError(null);
@@ -699,13 +695,10 @@ export default function HomePage() {
           context,
           score: reviewResult?.readiness?.total ?? null,
           verdict: nextVerdict,
-      
-          // 🔥 THIS IS THE IMPORTANT PART
           door: reviewResult?.snapshot?.door ?? null,
           hinge: reviewResult?.snapshot?.hinge ?? null,
           trap: reviewResult?.snapshot?.trap ?? null,
           step: reviewResult?.snapshot?.step ?? null,
-      
           outcome_status: 'awaiting_outcome',
           userId: user?.id ?? null,
         }),
@@ -988,9 +981,7 @@ export default function HomePage() {
     boxShadow: '0 14px 28px rgba(127,29,29,0.35)',
   };
 
-  const decisionPlaceholder =
-    'launch · invest · hire · pivot · exit';
-
+  const decisionPlaceholder = 'launch · invest · hire · pivot · exit';
   const contextPlaceholder = 'stakes · deadline · who’s affected · what you’re risking';
   const optionalDetailsLabel = '▶ Any details I should know (optional)';
   const finalThoughtsPlaceholder =
@@ -999,6 +990,7 @@ export default function HomePage() {
   const lastUsedLabel = formatShort(lastUsedAt);
   const visibleDeepReview = cleanDeepReview(deepReview);
   const deepReviewSections = parseDeepReviewSections(visibleDeepReview);
+
   const toggleBreakdownSection = (heading: string) => {
     const key = heading.toLowerCase();
     setOpenBreakdownSections((prev) => ({
@@ -1006,14 +998,12 @@ export default function HomePage() {
       [key]: !prev[key],
     }));
   };
+
   const verdictParts = verdict ? verdict.split('\n\n') : [];
   const verdictTitle = verdictParts[0] ?? '';
   const verdictReason = verdictParts.slice(1).join('\n\n');
 
   const hasSummaryReady = Boolean(latestTeamSession?.summary_generated_at);
-  const isOpenLatest =
-    Boolean(latestTeamSession) &&
-    !Boolean(latestTeamSession?.summary_generated_at);
 
   const openLoopCount = openDecisions.length;
   const openLoopLabel =
@@ -1089,232 +1079,70 @@ export default function HomePage() {
           </div>
         )}
 
-        {user && (loadingOpenDecisions || openDecisions.length > 0 || openDecisionsError || loadingLatestTeamSession || latestTeamSession || latestTeamSessionError) && (
-          <section style={{ maxWidth: 760, margin: '16px auto 0' }}>
-            <div
-              style={{
-                border: '1px solid rgba(0,0,0,0.08)',
-                borderRadius: 14,
-                background: 'rgba(255,255,255,0.78)',
-                padding: '10px 14px',
-                boxShadow: '0 4px 10px rgba(0,0,0,0.02)',
-              }}
-            >
+        {user &&
+          (loadingOpenDecisions ||
+            openDecisions.length > 0 ||
+            openDecisionsError ||
+            loadingLatestTeamSession ||
+            latestTeamSession ||
+            latestTeamSessionError) && (
+            <section style={{ maxWidth: 760, margin: '16px auto 0' }}>
               <div
                 style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'minmax(0, 1fr) 1px minmax(0, 1fr)',
-                  gap: 12,
-                  alignItems: 'center',
+                  border: '1px solid rgba(0,0,0,0.08)',
+                  borderRadius: 14,
+                  background: 'rgba(255,255,255,0.78)',
+                  padding: '10px 14px',
+                  boxShadow: '0 4px 10px rgba(0,0,0,0.02)',
                 }}
               >
-                <div style={{ minWidth: 0 }}>
-                  <div
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 900,
-                      letterSpacing: '0.10em',
-                      opacity: 0.46,
-                    }}
-                  >
-                    OPEN LOOPS
-                  </div>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'minmax(0, 1fr) 1px minmax(0, 1fr)',
+                    gap: 12,
+                    alignItems: 'center',
+                  }}
+                >
+                  <div style={{ minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 900,
+                        letterSpacing: '0.10em',
+                        opacity: 0.46,
+                      }}
+                    >
+                      OPEN LOOPS
+                    </div>
 
-                  {loadingOpenDecisions ? (
-                    <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68 }}>Loading...</div>
-                  ) : openDecisionsError ? (
-                    <div style={{ marginTop: 4, fontSize: 12.5, color: '#b91c1c', fontWeight: 700 }}>
-                      {openDecisionsError}
-                    </div>
-                  ) : openDecisions.length === 0 ? (
-                    <div style={{ marginTop: 3, fontSize: 15, fontWeight: 800, letterSpacing: -0.03 }}>
-                      No unresolved
-                    </div>
-                  ) : (
-                    <>
-                      <div
-                        style={{
-                          marginTop: 2,
-                          fontSize: 22,
-                          fontWeight: 900,
-                          letterSpacing: -0.04,
-                          lineHeight: 0.98,
-                        }}
-                      >
-                        {openLoopLabel}
+                    {loadingOpenDecisions ? (
+                      <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68 }}>Loading...</div>
+                    ) : openDecisionsError ? (
+                      <div style={{ marginTop: 4, fontSize: 12.5, color: '#b91c1c', fontWeight: 700 }}>
+                        {openDecisionsError}
                       </div>
-
-                      <div style={{ marginTop: 6, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                        <a
-                          href="/decisions"
-                          style={{
-                            borderRadius: 999,
-                            border: 'none',
-                            padding: '8px 11px',
-                            background: '#111',
-                            color: '#fff',
-                            fontSize: 11.5,
-                            fontWeight: 900,
-                            textDecoration: 'none',
-                            boxShadow: '0 6px 14px rgba(0,0,0,0.08)',
-                          }}
-                        >
-                          Update outcomes
-                        </a>
-
-                        <a
-                          href="/decisions"
-                          style={{
-                            borderRadius: 999,
-                            border: '1px solid rgba(0,0,0,0.10)',
-                            padding: '8px 11px',
-                            background: '#fff',
-                            color: '#111',
-                            fontSize: 11.5,
-                            fontWeight: 800,
-                            textDecoration: 'none',
-                          }}
-                        >
-                          View all
-                        </a>
+                    ) : openDecisions.length === 0 ? (
+                      <div style={{ marginTop: 3, fontSize: 15, fontWeight: 800, letterSpacing: -0.03 }}>
+                        No unresolved
                       </div>
-
-                      {openDecisions.length > 0 ? (
-                        <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                          {openDecisions.map((item) => (
-                            <div
-                              key={item.id}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                gap: 8,
-                                borderRadius: 10,
-                                background: 'rgba(0,0,0,0.03)',
-                                padding: '7px 8px',
-                              }}
-                            >
-                              <div
-                                style={{
-                                  minWidth: 0,
-                                  fontSize: 12,
-                                  fontWeight: 700,
-                                  lineHeight: 1.35,
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  whiteSpace: 'nowrap',
-                                }}
-                                title={item.decision}
-                              >
-                                {item.decision}
-                              </div>
-
-                              <button
-                                type="button"
-                                onClick={() => handleDismissDecisionFromHome(item.id)}
-                                style={{
-                                  borderRadius: 999,
-                                  border: '1px solid rgba(0,0,0,0.10)',
-                                  background: '#fff',
-                                  padding: '6px 9px',
-                                  fontSize: 11,
-                                  fontWeight: 800,
-                                  color: '#111',
-                                  cursor: 'pointer',
-                                  flexShrink: 0,
-                                }}
-                              >
-                                Dismiss
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      ) : null}
-                    </>
-                  )}
-                </div>
-
-                <div style={{ background: 'rgba(0,0,0,0.06)', opacity: 0.85, alignSelf: 'stretch' }} />
-
-                <div style={{ minWidth: 0 }}>
-                  <div
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 900,
-                      letterSpacing: '0.10em',
-                      opacity: 0.46,
-                    }}
-                  >
-                    LATEST TEAM REVIEW
-                  </div>
-
-                  {loadingLatestTeamSession ? (
-                    <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68 }}>Loading...</div>
-                  ) : latestTeamSessionError ? (
-                    <div style={{ marginTop: 4, fontSize: 12.5, color: '#b91c1c', fontWeight: 700 }}>
-                      {latestTeamSessionError}
-                    </div>
-                  ) : !latestTeamSession ? (
-                    <div style={{ marginTop: 3, fontSize: 15, fontWeight: 800, letterSpacing: -0.03 }}>
-                      No active review
-                    </div>
-                  ) : (
-                    <>
-                      <div
-                        style={{
-                          marginTop: 3,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 8,
-                          flexWrap: 'wrap',
-                          minWidth: 0,
-                        }}
-                      >
+                    ) : (
+                      <>
                         <div
                           style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            borderRadius: 999,
-                            border: hasSummaryReady
-                              ? '1px solid rgba(16,185,129,0.16)'
-                              : '1px solid rgba(59,130,246,0.16)',
-                            background: hasSummaryReady
-                              ? 'rgba(16,185,129,0.08)'
-                              : 'rgba(59,130,246,0.07)',
-                            color: hasSummaryReady ? '#047857' : '#1d4ed8',
-                            padding: '4px 7px',
-                            fontSize: 9.5,
+                            marginTop: 2,
+                            fontSize: 22,
                             fontWeight: 900,
-                            letterSpacing: '0.08em',
+                            letterSpacing: -0.04,
+                            lineHeight: 0.98,
                           }}
                         >
-                          {hasSummaryReady ? 'READY' : 'OPEN'}
+                          {openLoopLabel}
                         </div>
 
-                        <div
-                          style={{
-                            minWidth: 0,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                            fontSize: 18,
-                            fontWeight: 900,
-                            letterSpacing: -0.035,
-                            lineHeight: 1.05,
-                          }}
-                        >
-                          {latestTeamSession.title}
-                        </div>
-                      </div>
-
-                      <div style={{ marginTop: 4, fontSize: 12.5, lineHeight: 1.35, opacity: 0.62 }}>
-                        {latestTeamSession.deadline ? formatDeadline(latestTeamSession.deadline) : 'No deadline set'}
-                      </div>
-
-                      <div style={{ marginTop: 6, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                        {hasSummaryReady ? (
+                        <div style={{ marginTop: 6, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                           <a
-                            href={`/team/${latestTeamSession.id}/summary`}
+                            href="/decisions"
                             style={{
                               borderRadius: 999,
                               border: 'none',
@@ -1327,56 +1155,224 @@ export default function HomePage() {
                               boxShadow: '0 6px 14px rgba(0,0,0,0.08)',
                             }}
                           >
-                            Open
+                            Update outcomes
                           </a>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleCloseAndGenerateFromHome(latestTeamSession.id)}
-                            disabled={closingSessionId === latestTeamSession.id}
+
+                          <a
+                            href="/decisions"
                             style={{
                               borderRadius: 999,
-                              border: 'none',
+                              border: '1px solid rgba(0,0,0,0.10)',
                               padding: '8px 11px',
-                              background: '#111',
-                              color: '#fff',
+                              background: '#fff',
+                              color: '#111',
                               fontSize: 11.5,
-                              fontWeight: 900,
-                              cursor: closingSessionId === latestTeamSession.id ? 'default' : 'pointer',
-                              opacity: closingSessionId === latestTeamSession.id ? 0.72 : 1,
-                              boxShadow: '0 6px 14px rgba(0,0,0,0.08)',
+                              fontWeight: 800,
+                              textDecoration: 'none',
                             }}
                           >
-                            {closingSessionId === latestTeamSession.id ? 'Closing...' : 'Close review'}
-                          </button>
-                        )}
+                            View all
+                          </a>
+                        </div>
 
-                        <button
-                          type="button"
-                          onClick={() => handleDismissFromHome(latestTeamSession.id)}
-                          disabled={dismissingSessionId === latestTeamSession.id}
+                        {openDecisions.length > 0 ? (
+                          <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            {openDecisions.map((item) => (
+                              <div
+                                key={item.id}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  gap: 8,
+                                  borderRadius: 10,
+                                  background: 'rgba(0,0,0,0.03)',
+                                  padding: '7px 8px',
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    minWidth: 0,
+                                    fontSize: 12,
+                                    fontWeight: 700,
+                                    lineHeight: 1.35,
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                  }}
+                                  title={item.decision}
+                                >
+                                  {item.decision}
+                                </div>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleDismissDecisionFromHome(item.id)}
+                                  style={{
+                                    borderRadius: 999,
+                                    border: '1px solid rgba(0,0,0,0.10)',
+                                    background: '#fff',
+                                    padding: '6px 9px',
+                                    fontSize: 11,
+                                    fontWeight: 800,
+                                    color: '#111',
+                                    cursor: 'pointer',
+                                    flexShrink: 0,
+                                  }}
+                                >
+                                  Dismiss
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        ) : null}
+                      </>
+                    )}
+                  </div>
+
+                  <div style={{ background: 'rgba(0,0,0,0.06)', opacity: 0.85, alignSelf: 'stretch' }} />
+
+                  <div style={{ minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 900,
+                        letterSpacing: '0.10em',
+                        opacity: 0.46,
+                      }}
+                    >
+                      LATEST TEAM REVIEW
+                    </div>
+
+                    {loadingLatestTeamSession ? (
+                      <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68 }}>Loading...</div>
+                    ) : latestTeamSessionError ? (
+                      <div style={{ marginTop: 4, fontSize: 12.5, color: '#b91c1c', fontWeight: 700 }}>
+                        {latestTeamSessionError}
+                      </div>
+                    ) : !latestTeamSession ? (
+                      <div style={{ marginTop: 3, fontSize: 15, fontWeight: 800, letterSpacing: -0.03 }}>
+                        No active review
+                      </div>
+                    ) : (
+                      <>
+                        <div
                           style={{
-                            borderRadius: 999,
-                            border: '1px solid rgba(0,0,0,0.10)',
-                            padding: '8px 11px',
-                            background: '#fff',
-                            color: '#111',
-                            fontSize: 11.5,
-                            fontWeight: 800,
-                            cursor: dismissingSessionId === latestTeamSession.id ? 'default' : 'pointer',
-                            opacity: dismissingSessionId === latestTeamSession.id ? 0.72 : 1,
+                            marginTop: 3,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            flexWrap: 'wrap',
+                            minWidth: 0,
                           }}
                         >
-                          {dismissingSessionId === latestTeamSession.id ? 'Dismissing...' : 'Dismiss'}
-                        </button>
-                      </div>
-                    </>
-                  )}
+                          <div
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              borderRadius: 999,
+                              border: hasSummaryReady
+                                ? '1px solid rgba(16,185,129,0.16)'
+                                : '1px solid rgba(59,130,246,0.16)',
+                              background: hasSummaryReady
+                                ? 'rgba(16,185,129,0.08)'
+                                : 'rgba(59,130,246,0.07)',
+                              color: hasSummaryReady ? '#047857' : '#1d4ed8',
+                              padding: '4px 7px',
+                              fontSize: 9.5,
+                              fontWeight: 900,
+                              letterSpacing: '0.08em',
+                            }}
+                          >
+                            {hasSummaryReady ? 'READY' : 'OPEN'}
+                          </div>
+
+                          <div
+                            style={{
+                              minWidth: 0,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              fontSize: 18,
+                              fontWeight: 900,
+                              letterSpacing: -0.035,
+                              lineHeight: 1.05,
+                            }}
+                          >
+                            {latestTeamSession.title}
+                          </div>
+                        </div>
+
+                        <div style={{ marginTop: 4, fontSize: 12.5, lineHeight: 1.35, opacity: 0.62 }}>
+                          {latestTeamSession.deadline ? formatDeadline(latestTeamSession.deadline) : 'No deadline set'}
+                        </div>
+
+                        <div style={{ marginTop: 6, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                          {hasSummaryReady ? (
+                            <a
+                              href={`/team/${latestTeamSession.id}/summary`}
+                              style={{
+                                borderRadius: 999,
+                                border: 'none',
+                                padding: '8px 11px',
+                                background: '#111',
+                                color: '#fff',
+                                fontSize: 11.5,
+                                fontWeight: 900,
+                                textDecoration: 'none',
+                                boxShadow: '0 6px 14px rgba(0,0,0,0.08)',
+                              }}
+                            >
+                              Open
+                            </a>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleCloseAndGenerateFromHome(latestTeamSession.id)}
+                              disabled={closingSessionId === latestTeamSession.id}
+                              style={{
+                                borderRadius: 999,
+                                border: 'none',
+                                padding: '8px 11px',
+                                background: '#111',
+                                color: '#fff',
+                                fontSize: 11.5,
+                                fontWeight: 900,
+                                cursor: closingSessionId === latestTeamSession.id ? 'default' : 'pointer',
+                                opacity: closingSessionId === latestTeamSession.id ? 0.72 : 1,
+                                boxShadow: '0 6px 14px rgba(0,0,0,0.08)',
+                              }}
+                            >
+                              {closingSessionId === latestTeamSession.id ? 'Closing...' : 'Close review'}
+                            </button>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() => handleDismissFromHome(latestTeamSession.id)}
+                            disabled={dismissingSessionId === latestTeamSession.id}
+                            style={{
+                              borderRadius: 999,
+                              border: '1px solid rgba(0,0,0,0.10)',
+                              padding: '8px 11px',
+                              background: '#fff',
+                              color: '#111',
+                              fontSize: 11.5,
+                              fontWeight: 800,
+                              cursor: dismissingSessionId === latestTeamSession.id ? 'default' : 'pointer',
+                              opacity: dismissingSessionId === latestTeamSession.id ? 0.72 : 1,
+                            }}
+                          >
+                            {dismissingSessionId === latestTeamSession.id ? 'Dismissing...' : 'Dismiss'}
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          </section>
-        )}
+            </section>
+          )}
 
         <section style={{ textAlign: 'center', marginTop: 38 }}>
           <h1 style={{ fontSize: 64, margin: 0, letterSpacing: -1.1 }}>Decision Layer</h1>
@@ -1416,21 +1412,16 @@ export default function HomePage() {
               }}
               style={{
                 ...modeCardBase,
-                border:
-                  mode === 'solo'
-                    ? '1px solid rgba(0,0,0,0.22)'
-                    : '1px solid rgba(0,0,0,0.10)',
+                border: mode === 'solo' ? '1px solid rgba(0,0,0,0.22)' : '1px solid rgba(0,0,0,0.10)',
                 background: mode === 'solo' ? '#ffffff' : 'rgba(255,255,255,0.55)',
                 boxShadow:
-                  mode === 'solo'
-                    ? '0 10px 24px rgba(0,0,0,0.06)'
-                    : '0 4px 12px rgba(0,0,0,0.02)',
+                  mode === 'solo' ? '0 10px 24px rgba(0,0,0,0.06)' : '0 4px 12px rgba(0,0,0,0.02)',
               }}
             >
               <div style={{ fontSize: 18, marginBottom: 6 }}>👤</div>
               <div style={{ fontSize: 14, fontWeight: 800 }}>Solo Decision</div>
               <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68, lineHeight: 1.45 }}>
-              Get a verdict before you decide alone.
+                Get a verdict before you decide alone.
               </div>
             </button>
 
@@ -1442,21 +1433,16 @@ export default function HomePage() {
               }}
               style={{
                 ...modeCardBase,
-                border:
-                  mode === 'team'
-                    ? '1px solid rgba(0,0,0,0.22)'
-                    : '1px solid rgba(0,0,0,0.10)',
+                border: mode === 'team' ? '1px solid rgba(0,0,0,0.22)' : '1px solid rgba(0,0,0,0.10)',
                 background: mode === 'team' ? '#ffffff' : 'rgba(255,255,255,0.55)',
                 boxShadow:
-                  mode === 'team'
-                    ? '0 10px 24px rgba(0,0,0,0.06)'
-                    : '0 4px 12px rgba(0,0,0,0.02)',
+                  mode === 'team' ? '0 10px 24px rgba(0,0,0,0.06)' : '0 4px 12px rgba(0,0,0,0.02)',
               }}
             >
               <div style={{ fontSize: 18, marginBottom: 6 }}>👥</div>
               <div style={{ fontSize: 14, fontWeight: 800 }}>Team Review</div>
               <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68, lineHeight: 1.45 }}>
-              Get alignment before the call gets made.
+                Get alignment before the call gets made.
               </div>
             </button>
           </div>
@@ -1560,7 +1546,8 @@ export default function HomePage() {
               <div style={{ marginTop: 16, ...cardStyle }}>
                 <div style={{ fontSize: 14, fontWeight: 800 }}>Review in progress...</div>
                 <div style={{ marginTop: 6, fontSize: 13, lineHeight: 1.55, opacity: 0.68 }}>
-                  Structuring the decision, testing the main assumption, and checking whether this looks ready to commit.
+                  Structuring the decision, testing the main assumption, and checking whether this looks ready to
+                  commit.
                 </div>
               </div>
             )}
@@ -1604,9 +1591,7 @@ export default function HomePage() {
                     <div style={{ fontSize: 34, fontWeight: 900, letterSpacing: -0.04, opacity: 0.88 }}>
                       {scoreTotal ?? '—'}
                     </div>
-                    <div style={{ fontSize: 18, fontWeight: 900, color: scoreMeta.color }}>
-                      {verdictDisplay}
-                    </div>
+                    <div style={{ fontSize: 18, fontWeight: 900, color: scoreMeta.color }}>{verdictDisplay}</div>
                   </div>
 
                   <div style={{ marginTop: 4, fontSize: 12.5, fontWeight: 800, opacity: 0.58 }}>
@@ -1644,9 +1629,7 @@ export default function HomePage() {
                     </div>
 
                     <div style={{ ...detailStyle, background: '#fff' }}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 6 }}>
-                        NEXT MOVE
-                      </div>
+                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 6 }}>NEXT MOVE</div>
                       <div style={{ fontSize: 13.5, lineHeight: 1.45, fontWeight: 700 }}>
                         {reviewResult.topline.recommendedMove}
                       </div>
@@ -1663,50 +1646,50 @@ export default function HomePage() {
                     }}
                   >
                     <div style={detailStyle}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>
-                        DOOR
+                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>DOOR</div>
+                      <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>
+                        (type of decision)
                       </div>
-                      <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>(type of decision)</div>
                       <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>{reviewResult.snapshot.door}</div>
                     </div>
 
                     <div style={detailStyle}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>
-                        HINGE
+                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>HINGE</div>
+                      <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>
+                        (what must be true)
                       </div>
-                      <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>(what must be true)</div>
                       <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>{reviewResult.snapshot.hinge}</div>
                     </div>
 
                     <div style={detailStyle}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>
-                        LOCKS
+                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>LOCKS</div>
+                      <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>
+                        (what gets hard to undo)
                       </div>
-                      <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>(what gets hard to undo)</div>
                       <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>{reviewResult.snapshot.lock}</div>
                     </div>
 
                     <div style={detailStyle}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>
-                        TRAP
+                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>TRAP</div>
+                      <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>
+                        (hidden failure risk)
                       </div>
-                      <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>(hidden failure risk)</div>
                       <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>{reviewResult.snapshot.trap}</div>
                     </div>
 
                     <div style={detailStyle}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>
-                        EXIT
+                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>EXIT</div>
+                      <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>
+                        (when to stop)
                       </div>
-                      <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>(when to stop)</div>
                       <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>{reviewResult.snapshot.exit}</div>
                     </div>
 
                     <div style={detailStyle}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>
-                        STEP
+                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>STEP</div>
+                      <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>
+                        (next survivable move)
                       </div>
-                      <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>(next survivable move)</div>
                       <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>{reviewResult.snapshot.step}</div>
                     </div>
                   </div>
@@ -1895,8 +1878,8 @@ export default function HomePage() {
                         </div>
 
                         <div style={{ fontSize: 13.5, lineHeight: 1.55, opacity: 0.76, marginBottom: 12 }}>
-                          This review is now part of your decision record.
-                          Log the outcome later once the decision plays out.
+                          This review is now part of your decision record. Log the outcome later once the decision
+                          plays out.
                         </div>
 
                         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -1965,29 +1948,25 @@ export default function HomePage() {
                   TEAM REVIEW
                 </div>
                 <div style={{ marginTop: 6, fontSize: 22, fontWeight: 900, lineHeight: 1.15 }}>
-                Hear from your team before you decide.
+                  Hear from your team before you decide.
                 </div>
-                <div style={{ marginTop: 6, fontSize: 13.5, lineHeight: 1.55, opacity: 0.68 }}>
-                
-                </div>
+                <div style={{ marginTop: 6, fontSize: 13.5, lineHeight: 1.55, opacity: 0.68 }} />
               </div>
 
-              <div style={{ display: 'grid', gap: 12 }}>
+              <div style={{ display: 'grid', gap: 14 }}>
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 800, marginBottom: 6, opacity: 0.66 }}>
-                    Title
-                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 800, marginBottom: 6, opacity: 0.66 }}>Title</div>
                   <input
                     value={teamTitle}
                     onChange={(e) => setTeamTitle(e.target.value)}
-                    placeholder="new hire · raise prices · expand overseas · let someone go "
+                    placeholder="new hire · raise prices · expand overseas · let someone go"
                     style={inputStyle}
                   />
                 </div>
 
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 800, marginBottom: 6, opacity: 0.66 }}>
-                  What decision needs to be made?
+                    What decision needs to be made?
                   </div>
                   <textarea
                     value={teamPrompt}
@@ -2001,13 +1980,15 @@ export default function HomePage() {
                 <div
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
                     gap: 12,
+                    alignItems: 'end',
                   }}
                 >
-                  <div>
+                  <div style={{ minWidth: 0 }}>
                     <div style={{ fontSize: 12, fontWeight: 800, marginBottom: 6, opacity: 0.66 }}>
-                      Deadline (optional)
+                      Deadline
+                      <span style={{ opacity: 0.42, marginLeft: 6, fontWeight: 600 }}>optional</span>
                     </div>
                     <input
                       type="datetime-local"
@@ -2017,14 +1998,19 @@ export default function HomePage() {
                     />
                   </div>
 
-                  <div>
+                  <div style={{ minWidth: 0 }}>
                     <div style={{ fontSize: 12, fontWeight: 800, marginBottom: 6, opacity: 0.66 }}>
-                      Expected participants (optional)
+                      Participants
+                      <span style={{ opacity: 0.42, marginLeft: 6, fontWeight: 600 }}>optional</span>
                     </div>
                     <input
+                      type="number"
+                      inputMode="numeric"
+                      min={1}
+                      step={1}
                       value={expectedParticipants}
                       onChange={(e) => setExpectedParticipants(e.target.value)}
-                      placeholder="Example: 6"
+                      placeholder="6"
                       style={inputStyle}
                     />
                   </div>
@@ -2046,7 +2032,7 @@ export default function HomePage() {
                   </div>
                 )}
 
-                <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: 4 }}>
                   <button
                     type="button"
                     onClick={handleTeamCreateButtonClick}
@@ -2071,16 +2057,12 @@ export default function HomePage() {
 
                 <div style={{ display: 'grid', gap: 10 }}>
                   <div style={detailStyle}>
-                    <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 6 }}>
-                      TITLE
-                    </div>
+                    <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 6 }}>TITLE</div>
                     <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>{teamSessionPreview.title}</div>
                   </div>
 
                   <div style={detailStyle}>
-                    <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 6 }}>
-                      SHARE LINK
-                    </div>
+                    <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 6 }}>SHARE LINK</div>
                     <div
                       style={{
                         fontSize: 13,
@@ -2127,9 +2109,7 @@ export default function HomePage() {
             color: '#777',
           }}
         >
-          <div style={{ marginBottom: 8, color: '#111', fontWeight: 500 }}>
-            Before you commit.
-          </div>
+          <div style={{ marginBottom: 8, color: '#111', fontWeight: 500 }}>Before you commit.</div>
 
           © 2026 Decision Layer ·{' '}
           <a href="/privacy" style={{ color: '#777', textDecoration: 'none' }}>
@@ -2144,12 +2124,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
