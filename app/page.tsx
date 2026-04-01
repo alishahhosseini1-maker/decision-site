@@ -64,6 +64,16 @@ type ReviewResult = {
   };
 };
 
+type PendingSoloReview = {
+  decision: string;
+  context: string;
+  reviewResult: ReviewResult | null;
+  deepReview: string | null;
+  finalThoughts: string;
+  verdictRequested: boolean;
+  verdict: string | null;
+};
+
 function parseLocalDateTimeParts(value: string) {
   if (!value) return null;
 
@@ -203,6 +213,8 @@ export default function HomePage() {
   const [verdictRequested, setVerdictRequested] = useState(false);
   const [verdict, setVerdict] = useState<string | null>(null);
   const [verdictLoading, setVerdictLoading] = useState(false);
+  const [savingVerdict, setSavingVerdict] = useState(false);
+  const [savedToast, setSavedToast] = useState<string | null>(null);
 
   const [decisionId, setDecisionId] = useState<string | null>(null);
   const [openBreakdownSections, setOpenBreakdownSections] = useState<Record<string, boolean>>({});
@@ -214,6 +226,35 @@ export default function HomePage() {
 
   const STORAGE = {
     lastUsed: 'dl:last_used_at',
+    pendingSoloReview: 'dl:pending_solo_review',
+    pendingLockVerdict: 'dl:pending_lock_verdict',
+  };
+
+  const persistSoloReviewLocally = (payload?: Partial<PendingSoloReview>) => {
+    try {
+      const nextPayload: PendingSoloReview = {
+        decision: payload?.decision ?? decision,
+        context: payload?.context ?? context,
+        reviewResult: payload?.reviewResult ?? reviewResult,
+        deepReview: payload?.deepReview ?? deepReview,
+        finalThoughts: payload?.finalThoughts ?? finalThoughts,
+        verdictRequested: payload?.verdictRequested ?? verdictRequested,
+        verdict: payload?.verdict ?? verdict,
+      };
+
+      localStorage.setItem(STORAGE.pendingSoloReview, JSON.stringify(nextPayload));
+    } catch {
+      // ignore
+    }
+  };
+
+  const clearPendingSoloReview = () => {
+    try {
+      localStorage.removeItem(STORAGE.pendingSoloReview);
+      localStorage.removeItem(STORAGE.pendingLockVerdict);
+    } catch {
+      // ignore
+    }
   };
 
   useEffect(() => {
@@ -230,6 +271,26 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
+    const hydratePendingSoloReview = () => {
+      try {
+        const raw = localStorage.getItem(STORAGE.pendingSoloReview);
+        if (!raw) return;
+
+        const saved = JSON.parse(raw) as PendingSoloReview;
+
+        setDecision(saved.decision ?? '');
+        setContext(saved.context ?? '');
+        setReviewResult(saved.reviewResult ?? null);
+        setDeepReview(saved.deepReview ?? null);
+        setFinalThoughts(saved.finalThoughts ?? '');
+        setVerdictRequested(Boolean(saved.verdictRequested));
+        setVerdict(saved.verdict ?? null);
+        setHasStarted(Boolean(saved.reviewResult || saved.verdict || saved.deepReview));
+      } catch {
+        // ignore
+      }
+    };
+
     const getSession = async () => {
       const {
         data: { session },
@@ -246,6 +307,7 @@ export default function HomePage() {
           : null
       );
 
+      hydratePendingSoloReview();
       setAuthLoading(false);
     };
 
@@ -265,6 +327,24 @@ export default function HomePage() {
           : null
       );
 
+      try {
+        const raw = localStorage.getItem(STORAGE.pendingSoloReview);
+        if (raw) {
+          const saved = JSON.parse(raw) as PendingSoloReview;
+
+          setDecision(saved.decision ?? '');
+          setContext(saved.context ?? '');
+          setReviewResult(saved.reviewResult ?? null);
+          setDeepReview(saved.deepReview ?? null);
+          setFinalThoughts(saved.finalThoughts ?? '');
+          setVerdictRequested(Boolean(saved.verdictRequested));
+          setVerdict(saved.verdict ?? null);
+          setHasStarted(Boolean(saved.reviewResult || saved.verdict || saved.deepReview));
+        }
+      } catch {
+        // ignore
+      }
+
       setAuthLoading(false);
       setAuthError(null);
     });
@@ -273,6 +353,22 @@ export default function HomePage() {
       subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (!mode || mode !== 'solo') return;
+    persistSoloReviewLocally();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [decision, context, reviewResult, deepReview, finalThoughts, verdictRequested, verdict, mode]);
+
+  useEffect(() => {
+    if (!savedToast) return;
+
+    const timer = window.setTimeout(() => {
+      setSavedToast(null);
+    }, 2500);
+
+    return () => window.clearTimeout(timer);
+  }, [savedToast]);
 
   useEffect(() => {
     let cancelled = false;
@@ -357,8 +453,10 @@ export default function HomePage() {
         } else {
           const sorted = (((data || []) as OpenDecisionPreview[]) ?? [])
             .sort((a, b) => {
-              const aPriority = a.needs_follow_up ? 0 : a.outcome_status === 'awaiting_outcome' ? 1 : 2;
-              const bPriority = b.needs_follow_up ? 0 : b.outcome_status === 'awaiting_outcome' ? 1 : 2;
+              const aPriority =
+                a.needs_follow_up ? 0 : a.outcome_status === 'awaiting_outcome' ? 1 : 2;
+              const bPriority =
+                b.needs_follow_up ? 0 : b.outcome_status === 'awaiting_outcome' ? 1 : 2;
               return aPriority - bPriority;
             })
             .slice(0, 3);
@@ -382,7 +480,7 @@ export default function HomePage() {
     setAuthError(null);
 
     const email = window.prompt('Enter your email to sign in:');
-    if (!email) return;
+    if (!email) return false;
 
     const { error } = await supabase.auth.signInWithOtp({
       email,
@@ -397,10 +495,11 @@ export default function HomePage() {
       } else {
         setAuthError(error.message);
       }
-      return;
+      return false;
     }
 
     window.alert('Check your email for the sign-in link.');
+    return true;
   };
 
   const handleSignOut = async () => {
@@ -540,7 +639,9 @@ export default function HomePage() {
     setVerdictRequested(false);
     setVerdict(null);
     setVerdictLoading(false);
+    setSavingVerdict(false);
     setDecisionId(null);
+    clearPendingSoloReview();
   };
 
   const validateDecision = () => {
@@ -586,6 +687,7 @@ export default function HomePage() {
     setVerdictRequested(false);
     setVerdict(null);
     setVerdictLoading(false);
+    setSavingVerdict(false);
     setDecisionId(null);
 
     try {
@@ -611,6 +713,16 @@ export default function HomePage() {
       } catch {
         // ignore
       }
+
+      persistSoloReviewLocally({
+        decision,
+        context,
+        reviewResult: data,
+        deepReview: null,
+        finalThoughts: '',
+        verdictRequested: false,
+        verdict: null,
+      });
 
       setTimeout(() => {
         snapshotRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -641,9 +753,13 @@ export default function HomePage() {
         throw new Error(data?.error || 'Deep review request failed');
       }
 
-      setDeepReview(data?.analysis ?? 'No deep review returned.');
+      const analysis = data?.analysis ?? 'No deep review returned.';
+      setDeepReview(analysis);
+      persistSoloReviewLocally({ deepReview: analysis });
     } catch (err: any) {
-      setDeepReview(err?.message || 'Failed to load deep review.');
+      const failureMessage = err?.message || 'Failed to load deep review.';
+      setDeepReview(failureMessage);
+      persistSoloReviewLocally({ deepReview: failureMessage });
     } finally {
       setDeepLoading(false);
     }
@@ -658,12 +774,6 @@ export default function HomePage() {
 
     const hinge = reviewResult?.snapshot?.hinge || '';
     const next_move = reviewResult?.snapshot?.step || '';
-
-    console.log('VERDICT INPUT:', {
-      decision,
-      hinge,
-      next_move,
-    });
 
     try {
       const res = await fetch('/api/review/verdict', {
@@ -687,6 +797,57 @@ export default function HomePage() {
       const nextVerdict = data?.verdict ?? '';
       setVerdict(nextVerdict);
 
+      persistSoloReviewLocally({
+        finalThoughts,
+        verdictRequested: true,
+        verdict: nextVerdict,
+      });
+
+      setTimeout(() => {
+        verdictRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    } catch {
+      const fallbackVerdict = 'Not ready yet\n\nSomething went wrong. Try again.';
+      setVerdict(fallbackVerdict);
+      persistSoloReviewLocally({
+        finalThoughts,
+        verdictRequested: true,
+        verdict: fallbackVerdict,
+      });
+    } finally {
+      setVerdictLoading(false);
+    }
+  };
+
+  const handleLockVerdict = async () => {
+    if (!reviewResult || !verdict || savingVerdict) return;
+
+    setApiError(null);
+
+    if (!user) {
+      persistSoloReviewLocally({
+        decision,
+        context,
+        reviewResult,
+        deepReview,
+        finalThoughts,
+        verdictRequested,
+        verdict,
+      });
+
+      try {
+        localStorage.setItem(STORAGE.pendingLockVerdict, 'true');
+      } catch {
+        // ignore
+      }
+
+      await handleSignIn();
+      return;
+    }
+
+    try {
+      setSavingVerdict(true);
+
       const saveRes = await fetch('/api/decision/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -694,7 +855,7 @@ export default function HomePage() {
           decision,
           context,
           score: reviewResult?.readiness?.total ?? null,
-          verdict: nextVerdict,
+          verdict,
           door: reviewResult?.snapshot?.door ?? null,
           hinge: reviewResult?.snapshot?.hinge ?? null,
           trap: reviewResult?.snapshot?.trap ?? null,
@@ -706,17 +867,20 @@ export default function HomePage() {
 
       const saveData = await saveRes.json();
 
+      if (!saveRes.ok) {
+        throw new Error(saveData?.error || 'Failed to save decision.');
+      }
+
       if (saveData?.id) {
         setDecisionId(saveData.id);
       }
 
-      setTimeout(() => {
-        verdictRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 50);
-    } catch {
-      setVerdict('Not ready yet\n\nSomething went wrong. Try again.');
+      clearPendingSoloReview();
+      setSavedToast('Decision saved');
+    } catch (err: any) {
+      setApiError(err?.message || 'Failed to save decision.');
     } finally {
-      setVerdictLoading(false);
+      setSavingVerdict(false);
     }
   };
 
@@ -1006,8 +1170,7 @@ export default function HomePage() {
   const hasSummaryReady = Boolean(latestTeamSession?.summary_generated_at);
 
   const openLoopCount = openDecisions.length;
-  const openLoopLabel =
-    openLoopCount === 1 ? '1 unresolved' : `${openLoopCount} unresolved`;
+  const openLoopLabel = openLoopCount === 1 ? '1 unresolved' : `${openLoopCount} unresolved`;
 
   return (
     <div style={{ minHeight: '100vh', background: '#f4f5f6', color: '#111' }}>
@@ -1076,6 +1239,24 @@ export default function HomePage() {
             }}
           >
             {authError}
+          </div>
+        )}
+
+        {savedToast && (
+          <div
+            style={{
+              maxWidth: 720,
+              margin: '14px auto 0',
+              borderRadius: 12,
+              border: '1px solid rgba(22,101,52,0.18)',
+              background: 'rgba(22,101,52,0.05)',
+              padding: '10px 12px',
+              color: '#166534',
+              fontSize: 12.5,
+              fontWeight: 800,
+            }}
+          >
+            {savedToast}
           </div>
         )}
 
@@ -1304,7 +1485,9 @@ export default function HomePage() {
                         </div>
 
                         <div style={{ marginTop: 4, fontSize: 12.5, lineHeight: 1.35, opacity: 0.62 }}>
-                          {latestTeamSession.deadline ? formatDeadline(latestTeamSession.deadline) : 'No deadline set'}
+                          {latestTeamSession.deadline
+                            ? formatDeadline(latestTeamSession.deadline)
+                            : 'No deadline set'}
                         </div>
 
                         <div style={{ marginTop: 6, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -1338,7 +1521,8 @@ export default function HomePage() {
                                 color: '#fff',
                                 fontSize: 11.5,
                                 fontWeight: 900,
-                                cursor: closingSessionId === latestTeamSession.id ? 'default' : 'pointer',
+                                cursor:
+                                  closingSessionId === latestTeamSession.id ? 'default' : 'pointer',
                                 opacity: closingSessionId === latestTeamSession.id ? 0.72 : 1,
                                 boxShadow: '0 6px 14px rgba(0,0,0,0.08)',
                               }}
@@ -1359,11 +1543,14 @@ export default function HomePage() {
                               color: '#111',
                               fontSize: 11.5,
                               fontWeight: 800,
-                              cursor: dismissingSessionId === latestTeamSession.id ? 'default' : 'pointer',
+                              cursor:
+                                dismissingSessionId === latestTeamSession.id ? 'default' : 'pointer',
                               opacity: dismissingSessionId === latestTeamSession.id ? 0.72 : 1,
                             }}
                           >
-                            {dismissingSessionId === latestTeamSession.id ? 'Dismissing...' : 'Dismiss'}
+                            {dismissingSessionId === latestTeamSession.id
+                              ? 'Dismissing...'
+                              : 'Dismiss'}
                           </button>
                         </div>
                       </>
@@ -1412,10 +1599,15 @@ export default function HomePage() {
               }}
               style={{
                 ...modeCardBase,
-                border: mode === 'solo' ? '1px solid rgba(0,0,0,0.22)' : '1px solid rgba(0,0,0,0.10)',
+                border:
+                  mode === 'solo'
+                    ? '1px solid rgba(0,0,0,0.22)'
+                    : '1px solid rgba(0,0,0,0.10)',
                 background: mode === 'solo' ? '#ffffff' : 'rgba(255,255,255,0.55)',
                 boxShadow:
-                  mode === 'solo' ? '0 10px 24px rgba(0,0,0,0.06)' : '0 4px 12px rgba(0,0,0,0.02)',
+                  mode === 'solo'
+                    ? '0 10px 24px rgba(0,0,0,0.06)'
+                    : '0 4px 12px rgba(0,0,0,0.02)',
               }}
             >
               <div style={{ fontSize: 18, marginBottom: 6 }}>👤</div>
@@ -1433,10 +1625,15 @@ export default function HomePage() {
               }}
               style={{
                 ...modeCardBase,
-                border: mode === 'team' ? '1px solid rgba(0,0,0,0.22)' : '1px solid rgba(0,0,0,0.10)',
+                border:
+                  mode === 'team'
+                    ? '1px solid rgba(0,0,0,0.22)'
+                    : '1px solid rgba(0,0,0,0.10)',
                 background: mode === 'team' ? '#ffffff' : 'rgba(255,255,255,0.55)',
                 boxShadow:
-                  mode === 'team' ? '0 10px 24px rgba(0,0,0,0.06)' : '0 4px 12px rgba(0,0,0,0.02)',
+                  mode === 'team'
+                    ? '0 10px 24px rgba(0,0,0,0.06)'
+                    : '0 4px 12px rgba(0,0,0,0.02)',
               }}
             >
               <div style={{ fontSize: 18, marginBottom: 6 }}>👥</div>
@@ -1546,8 +1743,8 @@ export default function HomePage() {
               <div style={{ marginTop: 16, ...cardStyle }}>
                 <div style={{ fontSize: 14, fontWeight: 800 }}>Review in progress...</div>
                 <div style={{ marginTop: 6, fontSize: 13, lineHeight: 1.55, opacity: 0.68 }}>
-                  Structuring the decision, testing the main assumption, and checking whether this looks ready to
-                  commit.
+                  Structuring the decision, testing the main assumption, and checking whether this
+                  looks ready to commit.
                 </div>
               </div>
             )}
@@ -1591,7 +1788,9 @@ export default function HomePage() {
                     <div style={{ fontSize: 34, fontWeight: 900, letterSpacing: -0.04, opacity: 0.88 }}>
                       {scoreTotal ?? '—'}
                     </div>
-                    <div style={{ fontSize: 18, fontWeight: 900, color: scoreMeta.color }}>{verdictDisplay}</div>
+                    <div style={{ fontSize: 18, fontWeight: 900, color: scoreMeta.color }}>
+                      {verdictDisplay}
+                    </div>
                   </div>
 
                   <div style={{ marginTop: 4, fontSize: 12.5, fontWeight: 800, opacity: 0.58 }}>
@@ -1629,7 +1828,9 @@ export default function HomePage() {
                     </div>
 
                     <div style={{ ...detailStyle, background: '#fff' }}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 6 }}>NEXT MOVE</div>
+                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 6 }}>
+                        NEXT MOVE
+                      </div>
                       <div style={{ fontSize: 13.5, lineHeight: 1.45, fontWeight: 700 }}>
                         {reviewResult.topline.recommendedMove}
                       </div>
@@ -1646,7 +1847,9 @@ export default function HomePage() {
                     }}
                   >
                     <div style={detailStyle}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>DOOR</div>
+                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>
+                        DOOR
+                      </div>
                       <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>
                         (type of decision)
                       </div>
@@ -1654,7 +1857,9 @@ export default function HomePage() {
                     </div>
 
                     <div style={detailStyle}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>HINGE</div>
+                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>
+                        HINGE
+                      </div>
                       <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>
                         (what must be true)
                       </div>
@@ -1662,7 +1867,9 @@ export default function HomePage() {
                     </div>
 
                     <div style={detailStyle}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>LOCKS</div>
+                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>
+                        LOCKS
+                      </div>
                       <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>
                         (what gets hard to undo)
                       </div>
@@ -1670,7 +1877,9 @@ export default function HomePage() {
                     </div>
 
                     <div style={detailStyle}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>TRAP</div>
+                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>
+                        TRAP
+                      </div>
                       <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>
                         (hidden failure risk)
                       </div>
@@ -1678,7 +1887,9 @@ export default function HomePage() {
                     </div>
 
                     <div style={detailStyle}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>EXIT</div>
+                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>
+                        EXIT
+                      </div>
                       <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>
                         (when to stop)
                       </div>
@@ -1686,7 +1897,9 @@ export default function HomePage() {
                     </div>
 
                     <div style={detailStyle}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>STEP</div>
+                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>
+                        STEP
+                      </div>
                       <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>
                         (next survivable move)
                       </div>
@@ -1812,7 +2025,7 @@ export default function HomePage() {
 
                   <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                     <div style={{ width: '100%', fontSize: 12, opacity: 0.6, marginBottom: -2 }}>
-                      This will lock in your verdict.
+                      Generate the verdict first. Save comes after.
                     </div>
 
                     <button
@@ -1825,7 +2038,7 @@ export default function HomePage() {
                         cursor: verdictLoading || !finalThoughts.trim() ? 'default' : 'pointer',
                       }}
                     >
-                      {verdictLoading ? 'Locking...' : 'Lock In Verdict'}
+                      {verdictLoading ? 'Generating...' : 'Generate Final Verdict'}
                     </button>
                   </div>
                 </div>
@@ -1871,52 +2084,104 @@ export default function HomePage() {
                       )}
                     </div>
 
-                    {verdict && !verdictLoading && decisionId && (
+                    {verdict && !verdictLoading && (
                       <div style={{ ...cardStyle, marginTop: 14 }}>
                         <div style={{ fontSize: 13, fontWeight: 900, opacity: 0.6, marginBottom: 10 }}>
-                          Decision saved
+                          {decisionId ? 'Decision saved' : 'Save this decision'}
                         </div>
 
-                        <div style={{ fontSize: 13.5, lineHeight: 1.55, opacity: 0.76, marginBottom: 12 }}>
-                          This review is now part of your decision record. Log the outcome later once the decision
-                          plays out.
-                        </div>
+                        {!decisionId ? (
+                          <>
+                            {!user ? (
+                              <div style={{ fontSize: 13.5, lineHeight: 1.55, opacity: 0.76, marginBottom: 12 }}>
+                                Sign in to lock your verdict and save this to your decision record.
+                              </div>
+                            ) : (
+                              <div style={{ fontSize: 13.5, lineHeight: 1.55, opacity: 0.76, marginBottom: 12 }}>
+                                Signed in. Your review is ready to save.
+                              </div>
+                            )}
 
-                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                          <button
-                            type="button"
-                            onClick={resetReviewState}
-                            style={{
-                              borderRadius: 999,
-                              border: '1px solid rgba(0,0,0,0.12)',
-                              padding: '8px 12px',
-                              background: '#fff',
-                              color: '#111',
-                              fontSize: 12,
-                              fontWeight: 800,
-                              cursor: 'pointer',
-                            }}
-                          >
-                            Done
-                          </button>
+                            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                              <button
+                                type="button"
+                                onClick={handleLockVerdict}
+                                disabled={savingVerdict}
+                                style={{
+                                  ...finalCtaButtonStyle,
+                                  opacity: savingVerdict ? 0.72 : 1,
+                                  cursor: savingVerdict ? 'default' : 'pointer',
+                                }}
+                              >
+                                {savingVerdict
+                                  ? 'Saving...'
+                                  : user
+                                    ? 'Lock In Verdict'
+                                    : 'Sign In to Save'}
+                              </button>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div style={{ fontSize: 13.5, lineHeight: 1.55, opacity: 0.76, marginBottom: 12 }}>
+                              This review is now part of your decision record. Log the outcome later once the
+                              decision plays out.
+                            </div>
 
-                          <a
-                            href="/decisions"
-                            style={{
-                              borderRadius: 999,
-                              border: 'none',
-                              padding: '8px 12px',
-                              background: '#111',
-                              color: '#fff',
-                              fontSize: 12,
-                              fontWeight: 900,
-                              textDecoration: 'none',
-                              boxShadow: '0 8px 18px rgba(0,0,0,0.10)',
-                            }}
-                          >
-                            View decision history
-                          </a>
-                        </div>
+                            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                              <button
+                                type="button"
+                                onClick={resetReviewState}
+                                style={{
+                                  borderRadius: 999,
+                                  border: '1px solid rgba(0,0,0,0.12)',
+                                  padding: '8px 12px',
+                                  background: '#fff',
+                                  color: '#111',
+                                  fontSize: 12,
+                                  fontWeight: 800,
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                Done
+                              </button>
+
+                              <a
+                                href="/decision-summary"
+                                style={{
+                                  borderRadius: 999,
+                                  border: '1px solid rgba(0,0,0,0.12)',
+                                  padding: '8px 12px',
+                                  background: '#fff',
+                                  color: '#111',
+                                  fontSize: 12,
+                                  fontWeight: 800,
+                                  cursor: 'pointer',
+                                  textDecoration: 'none',
+                                }}
+                              >
+                                View Decision Brief
+                              </a>
+
+                              <a
+                                href="/decisions"
+                                style={{
+                                  borderRadius: 999,
+                                  border: 'none',
+                                  padding: '8px 12px',
+                                  background: '#111',
+                                  color: '#fff',
+                                  fontSize: 12,
+                                  fontWeight: 900,
+                                  textDecoration: 'none',
+                                  boxShadow: '0 8px 18px rgba(0,0,0,0.10)',
+                                }}
+                              >
+                                View Decision History
+                              </a>
+                            </div>
+                          </>
+                        )}
                       </div>
                     )}
                   </>
@@ -1955,7 +2220,9 @@ export default function HomePage() {
 
               <div style={{ display: 'grid', gap: 14 }}>
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 800, marginBottom: 6, opacity: 0.66 }}>Title</div>
+                  <div style={{ fontSize: 12, fontWeight: 800, marginBottom: 6, opacity: 0.66 }}>
+                    Title
+                  </div>
                   <input
                     value={teamTitle}
                     onChange={(e) => setTeamTitle(e.target.value)}
@@ -2057,12 +2324,16 @@ export default function HomePage() {
 
                 <div style={{ display: 'grid', gap: 10 }}>
                   <div style={detailStyle}>
-                    <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 6 }}>TITLE</div>
+                    <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 6 }}>
+                      TITLE
+                    </div>
                     <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>{teamSessionPreview.title}</div>
                   </div>
 
                   <div style={detailStyle}>
-                    <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 6 }}>SHARE LINK</div>
+                    <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 6 }}>
+                      SHARE LINK
+                    </div>
                     <div
                       style={{
                         fontSize: 13,
