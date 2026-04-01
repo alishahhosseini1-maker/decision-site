@@ -2025,7 +2025,7 @@ export default function HomePage() {
 
                   <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                     <div style={{ width: '100%', fontSize: 12, opacity: 0.6, marginBottom: -2 }}>
-                      Generate the verdict first. Save comes after.
+                     
                     </div>
 
                     <button
@@ -2087,7 +2087,7 @@ export default function HomePage() {
                     {verdict && !verdictLoading && (
                       <div style={{ ...cardStyle, marginTop: 14 }}>
                         <div style={{ fontSize: 13, fontWeight: 900, opacity: 0.6, marginBottom: 10 }}>
-                          {decisionId ? 'Decision saved' : 'Save this decision'}
+                          {decisionId ? 'Decision saved' : 'Decision ready to save'}
                         </div>
 
                         {!decisionId ? (

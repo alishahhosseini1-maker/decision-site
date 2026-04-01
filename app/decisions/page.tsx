@@ -444,6 +444,12 @@ export default function DecisionsPage() {
     boxShadow: '0 10px 20px rgba(0,0,0,0.04)',
   };
 
+  const metaBox: React.CSSProperties = {
+    borderRadius: 12,
+    background: 'rgba(0,0,0,0.03)',
+    padding: '10px 12px',
+  };
+
   const smallLabel: React.CSSProperties = {
     fontSize: 10,
     fontWeight: 900,
@@ -678,20 +684,24 @@ export default function DecisionsPage() {
               const outcomeMeta = getOutcomeMeta(item.outcome_status ?? 'awaiting_outcome');
               const verdictParts = item.verdict ? item.verdict.split('\n\n') : [];
               const verdictTitle = verdictParts[0] ?? item.verdict ?? 'No verdict';
-              const verdictBody = verdictParts.slice(1).join('\n\n');
 
               return (
-                <article key={item.id} style={card}>
+                <article
+                  key={item.id}
+                  style={{
+                    ...card,
+                    padding: 18,
+                  }}
+                >
                   <div
                     style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      justifyContent: 'space-between',
-                      gap: 12,
-                      flexWrap: 'wrap',
+                      display: 'grid',
+                      gridTemplateColumns: 'minmax(0, 1fr) 240px',
+                      gap: 16,
+                      alignItems: 'start',
                     }}
                   >
-                    <div style={{ flex: 1, minWidth: 280 }}>
+                    <div style={{ minWidth: 0 }}>
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
                         <div
                           style={{
@@ -730,8 +740,6 @@ export default function DecisionsPage() {
                         {item.needs_follow_up ? (
                           <div
                             style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
                               borderRadius: 999,
                               padding: '5px 9px',
                               fontSize: 10,
@@ -742,15 +750,13 @@ export default function DecisionsPage() {
                               background: 'rgba(146,64,14,0.06)',
                             }}
                           >
-                            NEEDS FOLLOW-UP
+                            FOLLOW-UP
                           </div>
                         ) : null}
 
                         {item.exclude_from_patterns ? (
                           <div
                             style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
                               borderRadius: 999,
                               padding: '5px 9px',
                               fontSize: 10,
@@ -761,18 +767,18 @@ export default function DecisionsPage() {
                               background: 'rgba(107,114,128,0.06)',
                             }}
                           >
-                            EXCLUDED FROM PATTERNS
+                            EXCLUDED
                           </div>
                         ) : null}
                       </div>
 
                       <div
                         style={{
-                          fontSize: 19,
+                          fontSize: 20,
                           fontWeight: 900,
                           letterSpacing: -0.03,
                           lineHeight: 1.2,
-                          marginBottom: 8,
+                          marginBottom: 10,
                         }}
                       >
                         {item.decision}
@@ -786,116 +792,27 @@ export default function DecisionsPage() {
                           marginBottom: 12,
                         }}
                       >
-                        <div
-                          style={{
-                            borderRadius: 12,
-                            background: 'rgba(0,0,0,0.03)',
-                            padding: '10px 12px',
-                          }}
-                        >
+                        <div style={metaBox}>
                           <div style={smallLabel}>DATE</div>
                           <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.4 }}>
                             {formatDate(item.created_at)}
                           </div>
                         </div>
 
-                        <div
-                          style={{
-                            borderRadius: 12,
-                            background: 'rgba(0,0,0,0.03)',
-                            padding: '10px 12px',
-                          }}
-                        >
+                        <div style={metaBox}>
                           <div style={smallLabel}>SCORE</div>
                           <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.4 }}>
                             {typeof item.score === 'number' ? item.score : '—'}
                           </div>
                         </div>
 
-                        <div
-                          style={{
-                            borderRadius: 12,
-                            background: 'rgba(0,0,0,0.03)',
-                            padding: '10px 12px',
-                          }}
-                        >
+                        <div style={metaBox}>
                           <div style={smallLabel}>LAST UPDATED</div>
                           <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.4 }}>
                             {formatDate(item.updated_at ?? item.created_at)}
                           </div>
                         </div>
                       </div>
-
-                      {(item.door || item.hinge || item.trap || item.step) && (
-                        <div
-                          style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-                            gap: 8,
-                            marginBottom: 12,
-                          }}
-                        >
-                          {item.door ? (
-                            <div
-                              style={{
-                                borderRadius: 12,
-                                background: 'rgba(0,0,0,0.03)',
-                                padding: '10px 12px',
-                              }}
-                            >
-                              <div style={smallLabel}>DOOR</div>
-                              <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.45 }}>
-                                {item.door}
-                              </div>
-                            </div>
-                          ) : null}
-
-                          {item.hinge ? (
-                            <div
-                              style={{
-                                borderRadius: 12,
-                                background: 'rgba(0,0,0,0.03)',
-                                padding: '10px 12px',
-                              }}
-                            >
-                              <div style={smallLabel}>HINGE</div>
-                              <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.45 }}>
-                                {item.hinge}
-                              </div>
-                            </div>
-                          ) : null}
-
-                          {item.trap ? (
-                            <div
-                              style={{
-                                borderRadius: 12,
-                                background: 'rgba(0,0,0,0.03)',
-                                padding: '10px 12px',
-                              }}
-                            >
-                              <div style={smallLabel}>TRAP</div>
-                              <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.45 }}>
-                                {item.trap}
-                              </div>
-                            </div>
-                          ) : null}
-
-                          {item.step ? (
-                            <div
-                              style={{
-                                borderRadius: 12,
-                                background: 'rgba(0,0,0,0.03)',
-                                padding: '10px 12px',
-                              }}
-                            >
-                              <div style={smallLabel}>STEP</div>
-                              <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.45 }}>
-                                {item.step}
-                              </div>
-                            </div>
-                          ) : null}
-                        </div>
-                      )}
 
                       <div
                         style={{
@@ -905,35 +822,10 @@ export default function DecisionsPage() {
                           padding: 12,
                         }}
                       >
-                        <div
-                          style={{
-                            fontSize: 10,
-                            fontWeight: 900,
-                            letterSpacing: '0.08em',
-                            opacity: 0.52,
-                            marginBottom: 6,
-                          }}
-                        >
-                          VERDICT
-                        </div>
-
+                        <div style={smallLabel}>VERDICT</div>
                         <div style={{ fontSize: 13.5, fontWeight: 800, lineHeight: 1.45 }}>
                           {verdictTitle}
                         </div>
-
-                        {verdictBody ? (
-                          <div
-                            style={{
-                              marginTop: 6,
-                              fontSize: 13,
-                              lineHeight: 1.6,
-                              opacity: 0.74,
-                              whiteSpace: 'pre-wrap',
-                            }}
-                          >
-                            {verdictBody}
-                          </div>
-                        ) : null}
                       </div>
                     </div>
 
@@ -946,9 +838,27 @@ export default function DecisionsPage() {
                           padding: 12,
                         }}
                       >
-                        <div style={{ fontSize: 12.5, fontWeight: 900, marginBottom: 10 }}>
-                          Update outcome
-                        </div>
+                        <a
+                          href={`/decision-summary?id=${item.id}`}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '100%',
+                            borderRadius: 999,
+                            border: 'none',
+                            padding: '11px 14px',
+                            background: '#111',
+                            color: '#fff',
+                            fontSize: 12.5,
+                            fontWeight: 900,
+                            textDecoration: 'none',
+                            boxShadow: '0 8px 18px rgba(0,0,0,0.10)',
+                            marginBottom: 12,
+                          }}
+                        >
+                          Open Brief
+                        </a>
 
                         <label
                           style={{
@@ -977,7 +887,7 @@ export default function DecisionsPage() {
                             padding: '11px 12px',
                             fontSize: 13,
                             background: '#fff',
-                            marginBottom: 12,
+                            marginBottom: 10,
                             outline: 'none',
                           }}
                         >
@@ -1006,7 +916,7 @@ export default function DecisionsPage() {
                             textAlign: 'left',
                             padding: 0,
                           }}
-                          >
+                        >
                           {item.exclude_from_patterns
                             ? 'Include in patterns'
                             : 'Exclude from patterns'}
