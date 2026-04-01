@@ -989,9 +989,9 @@ export default function HomePage() {
   };
 
   const decisionPlaceholder =
-    'Examples: leave or stay · hire or wait · launch or delay · invest or hold · commit or pivot';
+    'launch · invest · hire · pivot · exit';
 
-  const contextPlaceholder = 'deadlines · who’s affected · cost · downside · unknowns';
+  const contextPlaceholder = 'stakes · deadline · who’s affected · what you’re risking';
   const optionalDetailsLabel = '▶ Any details I should know (optional)';
   const finalThoughtsPlaceholder =
     'What still feels off? What is the main thing giving you pause? What are you leaning toward before you commit?';
@@ -2115,11 +2115,35 @@ export default function HomePage() {
             )}
           </section>
         )}
+
+        <footer
+          style={{
+            marginTop: 60,
+            paddingTop: 20,
+            paddingBottom: 40,
+            borderTop: '1px solid rgba(0,0,0,0.06)',
+            textAlign: 'center',
+            fontSize: 12,
+            color: '#777',
+          }}
+        >
+          <div style={{ marginBottom: 8, color: '#111', fontWeight: 500 }}>
+            Before you commit.
+          </div>
+
+          © 2026 Decision Layer ·{' '}
+          <a href="/privacy" style={{ color: '#777', textDecoration: 'none' }}>
+            Privacy
+          </a>{' '}
+          ·{' '}
+          <a href="/about" style={{ color: '#777', textDecoration: 'none' }}>
+            About
+          </a>
+        </footer>
       </main>
     </div>
   );
 }
-
 
 
 
