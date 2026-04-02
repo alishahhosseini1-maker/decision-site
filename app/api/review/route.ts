@@ -1,9 +1,64 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 
+type ReviewResult = {
+  pattern: {
+    type: string;
+    rationale: string;
+    reversibility: 'low' | 'medium' | 'high';
+  };
+  readiness: {
+    clarity: number;
+    assumptions: number;
+    reversibility: number;
+    risk: number;
+    exitLogic: number;
+    total: number;
+    label: 'Not ready to commit' | 'Proceed smaller' | 'Ready to commit';
+    summary: string;
+  };
+  topline: {
+    primaryRisk: string;
+    mustBeTrue: string;
+    recommendedMove: string;
+  };
+  snapshot: {
+    door: string;
+    hinge: string;
+    lock: string;
+    trap: string;
+    exit: string;
+    step: string;
+  };
+};
+
+const allowedPatternTypes = new Set([
+  'Reversible experiment',
+  'Capital allocation',
+  'Identity / career move',
+  'Strategic lock-in',
+  'Irreversible commitment',
+]);
+
+function clampScore(value: unknown): number {
+  if (!Number.isInteger(value)) return 0;
+  return Math.max(0, Math.min(20, value as number));
+}
+
+function asString(value: unknown, fallback = ''): string {
+  return typeof value === 'string' ? value : fallback;
+}
+
+function asReversibility(value: unknown): 'low' | 'medium' | 'high' {
+  return value === 'low' || value === 'medium' || value === 'high'
+    ? value
+    : 'medium';
+}
+
 export async function GET() {
   return NextResponse.json({
     message: 'review route is working',
+    hasAnthropicKey: Boolean(process.env.ANTHROPIC_API_KEY),
   });
 }
 
@@ -20,9 +75,14 @@ export async function POST(req: Request) {
 
     const apiKey = process.env.ANTHROPIC_API_KEY;
 
+    console.log('[review] ANTHROPIC_API_KEY present:', Boolean(apiKey));
+
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'Missing ANTHROPIC_API_KEY in .env.local' },
+        {
+          error:
+            'Missing ANTHROPIC_API_KEY. Add it to your StackBlitz env file, save it, then fully restart the dev server.',
+        },
         { status: 500 }
       );
     }
@@ -54,6 +114,8 @@ Do NOT:
 - use generic filler
 
 Return ONLY valid JSON.
+Do not include markdown.
+Do not wrap the JSON in code fences.
 Do not include any text outside JSON.
 
 Return this exact shape:
@@ -203,13 +265,14 @@ ${context || 'None provided'}
     const textBlock = response.content.find((item) => item.type === 'text');
 
     if (!textBlock || textBlock.type !== 'text') {
+      console.error('[review] No valid text block returned from Claude.', response);
       return NextResponse.json(
         { error: 'No valid response returned from Claude.' },
         { status: 500 }
       );
     }
 
-    const content = textBlock.text;
+    const content = textBlock.text?.trim();
 
     if (!content) {
       return NextResponse.json(
@@ -219,74 +282,62 @@ ${context || 'None provided'}
     }
 
     let parsed: any;
+
     try {
       parsed = JSON.parse(content);
-    } catch {
+    } catch (error) {
+      console.error('[review] Claude returned invalid JSON:', content);
       return NextResponse.json(
-        { error: 'Claude returned invalid JSON.', raw: content },
+        {
+          error: 'Claude returned invalid JSON.',
+          raw: content,
+        },
         { status: 500 }
       );
     }
 
-    const safeResult = {
+    const safeResult: ReviewResult = {
       pattern: {
-        type: typeof parsed?.pattern?.type === 'string' ? parsed.pattern.type : '',
-        rationale:
-          typeof parsed?.pattern?.rationale === 'string'
-            ? parsed.pattern.rationale
-            : '',
-        reversibility:
-          parsed?.pattern?.reversibility === 'low' ||
-          parsed?.pattern?.reversibility === 'medium' ||
-          parsed?.pattern?.reversibility === 'high'
-            ? parsed.pattern.reversibility
-            : 'medium',
+        type: allowedPatternTypes.has(parsed?.pattern?.type)
+          ? parsed.pattern.type
+          : 'Reversible experiment',
+        rationale: asString(parsed?.pattern?.rationale),
+        reversibility: asReversibility(parsed?.pattern?.reversibility),
       },
       readiness: {
-        clarity: Number.isInteger(parsed?.readiness?.clarity) ? parsed.readiness.clarity : 0,
-        assumptions: Number.isInteger(parsed?.readiness?.assumptions)
-          ? parsed.readiness.assumptions
-          : 0,
-        reversibility: Number.isInteger(parsed?.readiness?.reversibility)
-          ? parsed.readiness.reversibility
-          : 0,
-        risk: Number.isInteger(parsed?.readiness?.risk) ? parsed.readiness.risk : 0,
-        exitLogic: Number.isInteger(parsed?.readiness?.exitLogic)
-          ? parsed.readiness.exitLogic
-          : 0,
-        total: Number.isInteger(parsed?.readiness?.total) ? parsed.readiness.total : 0,
-        label:
-          parsed?.readiness?.label === 'Not ready to commit' ||
-          parsed?.readiness?.label === 'Proceed smaller' ||
-          parsed?.readiness?.label === 'Ready to commit'
-            ? parsed.readiness.label
-            : 'Proceed smaller',
-        summary:
-          typeof parsed?.readiness?.summary === 'string'
-            ? parsed.readiness.summary
-            : 'The main constraint is not strong enough yet.',
+        clarity: clampScore(parsed?.readiness?.clarity),
+        assumptions: clampScore(parsed?.readiness?.assumptions),
+        reversibility: clampScore(parsed?.readiness?.reversibility),
+        risk: clampScore(parsed?.readiness?.risk),
+        exitLogic: clampScore(parsed?.readiness?.exitLogic),
+        total: 0,
+        label: 'Proceed smaller',
+        summary: asString(
+          parsed?.readiness?.summary,
+          'The main constraint is not strong enough yet.'
+        ) as ReviewResult['readiness']['summary'],
       },
       topline: {
-        primaryRisk:
-          typeof parsed?.topline?.primaryRisk === 'string'
-            ? parsed.topline.primaryRisk
-            : 'The main failure risk is still unresolved.',
-        mustBeTrue:
-          typeof parsed?.topline?.mustBeTrue === 'string'
-            ? parsed.topline.mustBeTrue
-            : 'A key condition must be proven before committing.',
-        recommendedMove:
-          typeof parsed?.topline?.recommendedMove === 'string'
-            ? parsed.topline.recommendedMove
-            : 'Take one smaller step that tests the main assumption first.',
+        primaryRisk: asString(
+          parsed?.topline?.primaryRisk,
+          'The main failure risk is still unresolved.'
+        ),
+        mustBeTrue: asString(
+          parsed?.topline?.mustBeTrue,
+          'A key condition must be proven before committing.'
+        ),
+        recommendedMove: asString(
+          parsed?.topline?.recommendedMove,
+          'Take one smaller step that tests the main assumption first.'
+        ),
       },
       snapshot: {
-        door: typeof parsed?.snapshot?.door === 'string' ? parsed.snapshot.door : '',
-        hinge: typeof parsed?.snapshot?.hinge === 'string' ? parsed.snapshot.hinge : '',
-        lock: typeof parsed?.snapshot?.lock === 'string' ? parsed.snapshot.lock : '',
-        trap: typeof parsed?.snapshot?.trap === 'string' ? parsed.snapshot.trap : '',
-        exit: typeof parsed?.snapshot?.exit === 'string' ? parsed.snapshot.exit : '',
-        step: typeof parsed?.snapshot?.step === 'string' ? parsed.snapshot.step : '',
+        door: asString(parsed?.snapshot?.door),
+        hinge: asString(parsed?.snapshot?.hinge),
+        lock: asString(parsed?.snapshot?.lock),
+        trap: asString(parsed?.snapshot?.trap),
+        exit: asString(parsed?.snapshot?.exit),
+        step: asString(parsed?.snapshot?.step),
       },
     };
 
@@ -308,9 +359,14 @@ ${context || 'None provided'}
     }
 
     return NextResponse.json(safeResult);
-  } catch (_error) {
+  } catch (error) {
+    console.error('[review] Route error:', error);
+
+    const message =
+      error instanceof Error ? error.message : 'Something went wrong while generating the review.';
+
     return NextResponse.json(
-      { error: 'Something went wrong while generating the review.' },
+      { error: message },
       { status: 500 }
     );
   }
