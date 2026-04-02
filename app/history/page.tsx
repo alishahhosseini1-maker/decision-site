@@ -196,8 +196,9 @@ function toDecisionPatternKey(value?: string | null) {
 
   if (text.includes('hire') && text.includes('engineer')) return 'hire-engineer';
   if (text.includes('hire') && text.includes('employee')) return 'hire-employee';
-  if (text.includes('raise') && (text.includes('capital') || text.includes('funding')))
+  if (text.includes('raise') && (text.includes('capital') || text.includes('funding'))) {
     return 'raise-capital';
+  }
   if (
     text.includes('move') &&
     (text.includes('family') || text.includes('city') || text.includes('austin'))
@@ -211,19 +212,29 @@ function toDecisionPatternKey(value?: string | null) {
 
 function toBlockerLabel(item: DecisionRow) {
   if (!item.context) return null;
+
+  const raw = item.context.toLowerCase();
+
+  if (raw.includes('business plan')) return 'no business plan';
+  if (raw.includes('initial clients') || raw.includes('signed contract')) return 'no initial clients';
+  if (raw.includes('financial cushion') || raw.includes('little money') || raw.includes('money right now')) {
+    return 'weak financial cushion';
+  }
+  if (raw.includes('track record')) return 'no proven track record';
+  if (raw.includes('trend') || raw.includes('market trend')) return 'no confirmed trend';
+  if (raw.includes('validation')) return 'no validation';
+  if (raw.includes('viewers') || raw.includes('traction')) return 'no early traction';
+  if (raw.includes('resource')) return 'resource constraints';
+
   const clean = item.context.trim().replace(/\.$/, '');
   if (!clean) return null;
-  return clean.charAt(0).toLowerCase() + clean.slice(1);
+
+  const firstPhrase = clean.split(',')[0]?.trim() || clean;
+  return firstPhrase.charAt(0).toLowerCase() + firstPhrase.slice(1);
 }
 
 function cleanWhitespace(value?: string | null) {
   return (value || '').replace(/\s+/g, ' ').trim();
-}
-
-function sentenceCase(value?: string | null) {
-  const text = cleanWhitespace(value);
-  if (!text) return '';
-  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 function truncate(text: string, max = 110) {
@@ -244,8 +255,14 @@ function toSingleSentenceVerdict(value?: string | null) {
 
 function getPatternSummaryText(avgScore: number | null, blocker: string | null) {
   const avg = typeof avgScore === 'number' ? `Avg score ${avgScore}.` : '';
-  const blockerLine = blocker ? `Main blocker: ${blocker}.` : '';
+  const blockerLine = blocker ? `Blocker: ${blocker}.` : '';
   return [avg, blockerLine].filter(Boolean).join(' ');
+}
+
+function short(text?: string | null, max = 96) {
+  const clean = cleanWhitespace(text);
+  if (!clean) return '';
+  return clean.length <= max ? clean : `${clean.slice(0, max).trim()}…`;
 }
 
 function toTeamCardTitle(item: TeamHistoryRow) {
@@ -253,17 +270,52 @@ function toTeamCardTitle(item: TeamHistoryRow) {
 
   if (item.summary_generated_at && summary) {
     return (
-      cleanWhitespace(summary.decision) ||
-      cleanWhitespace(summary.recommended_move) ||
-      cleanWhitespace(summary.executive_signal) ||
+      short(summary.decision, 90) ||
+      short(summary.recommended_move, 90) ||
+      short(summary.executive_signal, 90) ||
       'Decision ready'
     );
   }
 
-  const cleanTitle = cleanWhitespace(item.title);
-  if (cleanTitle) return `Pending alignment on ${cleanTitle.toLowerCase()}`;
+  const prompt = (item.prompt || '').toLowerCase();
+  const title = (item.title || '').toLowerCase();
 
-  return 'Decision in progress';
+  if (
+    prompt.includes('budget') ||
+    title.includes('budget') ||
+    prompt.includes('spend') ||
+    title.includes('spend') ||
+    prompt.includes('resource allocation') ||
+    title.includes('resource allocation')
+  ) {
+    return 'Budget decision still unresolved';
+  }
+
+  if (
+    prompt.includes('approval') ||
+    title.includes('approval') ||
+    prompt.includes('align') ||
+    title.includes('align') ||
+    prompt.includes('leadership') ||
+    title.includes('leadership')
+  ) {
+    return 'Leadership alignment still needed';
+  }
+
+  if (
+    prompt.includes('cross') ||
+    title.includes('cross') ||
+    prompt.includes('review') ||
+    title.includes('review') ||
+    prompt.includes('team') ||
+    title.includes('team') ||
+    prompt.includes('department') ||
+    title.includes('department')
+  ) {
+    return 'Cross-functional review still open';
+  }
+
+  return 'Alignment still in progress';
 }
 
 function toTeamCardSummary(item: TeamHistoryRow) {
@@ -271,15 +323,110 @@ function toTeamCardSummary(item: TeamHistoryRow) {
 
   if (item.summary_generated_at && summary) {
     return (
-      cleanWhitespace(summary.executive_signal) ||
-      cleanWhitespace(summary.tension) ||
-      cleanWhitespace(summary.tradeoff) ||
-      cleanWhitespace(summary.leadership_edge) ||
-      'Summary generated. Open to review details.'
+      short(summary.executive_signal, 140) ||
+      short(summary.tension, 140) ||
+      short(summary.tradeoff, 140) ||
+      short(summary.leadership_edge, 140) ||
+      'Decision ready. Open to review details.'
     );
   }
 
-  return 'Review still in progress. Waiting on alignment.';
+  return 'Waiting on alignment before decision can be finalized.';
+}
+
+function toOrgSignalKey(item: TeamHistoryRow) {
+  const summary = item.summary_json;
+  const signal = [
+    cleanWhitespace(summary?.executive_signal),
+    cleanWhitespace(summary?.tension),
+    cleanWhitespace(summary?.tradeoff),
+    cleanWhitespace(summary?.leadership_edge),
+    cleanWhitespace(summary?.operating?.top_risk),
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  if (!signal) return null;
+
+  if (
+    signal.includes('approval') ||
+    signal.includes('approvals') ||
+    signal.includes('slow approval') ||
+    signal.includes('approval process')
+  ) {
+    return 'approval_bottlenecks';
+  }
+
+  if (
+    signal.includes('budget') ||
+    signal.includes('spend') ||
+    signal.includes('resource') ||
+    signal.includes('allocation')
+  ) {
+    return 'budget_constraints';
+  }
+
+  if (
+    signal.includes('underwriting') ||
+    signal.includes('capacity') ||
+    signal.includes('resource constraint') ||
+    signal.includes('resourcing')
+  ) {
+    return 'operating_capacity';
+  }
+
+  if (
+    signal.includes('alignment') ||
+    signal.includes('misalignment') ||
+    signal.includes('contradiction') ||
+    signal.includes('leadership')
+  ) {
+    return 'leadership_alignment';
+  }
+
+  if (
+    signal.includes('content approval') ||
+    signal.includes('workflow') ||
+    signal.includes('execution drag') ||
+    signal.includes('slow execution')
+  ) {
+    return 'execution_drag';
+  }
+
+  return null;
+}
+
+function toOrgSignalCopy(key: string) {
+  switch (key) {
+    case 'approval_bottlenecks':
+      return {
+        title: 'Approval bottlenecks are recurring across completed reviews.',
+        summary: 'This is slowing execution beyond one team or one meeting.',
+      };
+    case 'budget_constraints':
+      return {
+        title: 'Budget pressure is recurring across completed reviews.',
+        summary: 'Resource allocation is becoming a repeated decision drag.',
+      };
+    case 'operating_capacity':
+      return {
+        title: 'Capacity constraints are recurring across completed reviews.',
+        summary: 'Execution is being limited by operational bottlenecks, not just strategy.',
+      };
+    case 'leadership_alignment':
+      return {
+        title: 'Leadership alignment issues are recurring across completed reviews.',
+        summary: 'The friction is structural now, not isolated.',
+      };
+    case 'execution_drag':
+      return {
+        title: 'Execution drag is recurring across completed reviews.',
+        summary: 'The org keeps losing momentum after the decision point.',
+      };
+    default:
+      return null;
+  }
 }
 
 export default function HistoryPage() {
@@ -520,6 +667,35 @@ export default function HistoryPage() {
     return candidates[0];
   }, [decisions]);
 
+  const orgSignal = useMemo(() => {
+    const completed = teamHistory.filter((item) => item.summary_generated_at && item.summary_json);
+
+    if (completed.length < 3) return null;
+
+    const counts = new Map<string, number>();
+
+    for (const item of completed) {
+      const key = toOrgSignalKey(item);
+      if (!key) continue;
+      counts.set(key, (counts.get(key) || 0) + 1);
+    }
+
+    const top = Array.from(counts.entries()).sort((a, b) => b[1] - a[1])[0];
+    if (!top) return null;
+
+    const [key, count] = top;
+    if (count < 2) return null;
+
+    const copy = toOrgSignalCopy(key);
+    if (!copy) return null;
+
+    return {
+      key,
+      count,
+      ...copy,
+    };
+  }, [teamHistory]);
+
   const updateDecision = async (
     id: string,
     updates: Partial<Pick<DecisionRow, 'outcome_status' | 'exclude_from_patterns'>>
@@ -533,7 +709,10 @@ export default function HistoryPage() {
         updated_at: new Date().toISOString(),
       };
 
-      const { error: updateError } = await supabase.from('decisions').update(payload).eq('id', id);
+      const { error: updateError } = await supabase
+        .from('decisions')
+        .update(payload)
+        .eq('id', id);
 
       if (updateError) {
         throw new Error(updateError.message);
@@ -703,7 +882,7 @@ export default function HistoryPage() {
           </a>
         </header>
 
-        {error && (
+        {error ? (
           <div
             style={{
               marginBottom: 14,
@@ -718,14 +897,22 @@ export default function HistoryPage() {
           >
             {error}
           </div>
-        )}
+        ) : null}
 
         <section style={{ ...card, marginBottom: 14 }}>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <button type="button" onClick={() => setTab('solo')} style={activeTabButton(tab === 'solo')}>
+            <button
+              type="button"
+              onClick={() => setTab('solo')}
+              style={activeTabButton(tab === 'solo')}
+            >
               Solo Decisions
             </button>
-            <button type="button" onClick={() => setTab('team')} style={activeTabButton(tab === 'team')}>
+            <button
+              type="button"
+              onClick={() => setTab('team')}
+              style={activeTabButton(tab === 'team')}
+            >
               Team Reviews
             </button>
           </div>
@@ -776,6 +963,55 @@ export default function HistoryPage() {
               }}
             >
               Still unresolved. {getPatternSummaryText(patternSummary.avgScore, patternSummary.topBlocker)}
+            </div>
+          </section>
+        ) : null}
+
+        {tab === 'team' && orgSignal ? (
+          <section
+            style={{
+              marginBottom: 14,
+              borderRadius: 18,
+              border: '1px solid rgba(0,0,0,0.10)',
+              background: '#111',
+              color: '#fff',
+              padding: 16,
+              boxShadow: '0 14px 28px rgba(0,0,0,0.12)',
+            }}
+          >
+            <div
+              style={{
+                fontSize: 10,
+                fontWeight: 900,
+                letterSpacing: '0.10em',
+                opacity: 0.72,
+                marginBottom: 8,
+              }}
+            >
+              ORG SIGNAL
+            </div>
+
+            <div
+              style={{
+                fontSize: 19,
+                fontWeight: 900,
+                letterSpacing: -0.03,
+                lineHeight: 1.15,
+                marginBottom: 6,
+              }}
+            >
+              {orgSignal.title}
+            </div>
+
+            <div
+              style={{
+                fontSize: 13,
+                lineHeight: 1.45,
+                opacity: 0.82,
+                maxWidth: 760,
+              }}
+            >
+              {orgSignal.summary} Seen across {orgSignal.count} completed reviews.
             </div>
           </section>
         ) : null}
@@ -849,25 +1085,33 @@ export default function HistoryPage() {
                     <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', opacity: 0.5 }}>
                       TOTAL
                     </div>
-                    <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900 }}>{soloCounts.total}</div>
+                    <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900 }}>
+                      {soloCounts.total}
+                    </div>
                   </div>
                   <div style={card}>
                     <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', opacity: 0.5 }}>
                       AWAITING OUTCOME
                     </div>
-                    <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900 }}>{soloCounts.awaiting}</div>
+                    <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900 }}>
+                      {soloCounts.awaiting}
+                    </div>
                   </div>
                   <div style={card}>
                     <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', opacity: 0.5 }}>
                       NEEDS FOLLOW-UP
                     </div>
-                    <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900 }}>{soloCounts.followUp}</div>
+                    <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900 }}>
+                      {soloCounts.followUp}
+                    </div>
                   </div>
                   <div style={card}>
                     <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', opacity: 0.5 }}>
                       WORKED
                     </div>
-                    <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900 }}>{soloCounts.worked}</div>
+                    <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900 }}>
+                      {soloCounts.worked}
+                    </div>
                   </div>
                 </>
               ) : (
@@ -876,25 +1120,33 @@ export default function HistoryPage() {
                     <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', opacity: 0.5 }}>
                       TOTAL
                     </div>
-                    <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900 }}>{teamCounts.total}</div>
+                    <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900 }}>
+                      {teamCounts.total}
+                    </div>
                   </div>
                   <div style={card}>
                     <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', opacity: 0.5 }}>
                       DECISION READY
                     </div>
-                    <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900 }}>{teamCounts.ready}</div>
+                    <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900 }}>
+                      {teamCounts.ready}
+                    </div>
                   </div>
                   <div style={card}>
                     <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', opacity: 0.5 }}>
                       IN PROGRESS
                     </div>
-                    <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900 }}>{teamCounts.inProgress}</div>
+                    <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900 }}>
+                      {teamCounts.inProgress}
+                    </div>
                   </div>
                   <div style={card}>
                     <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', opacity: 0.5 }}>
                       ARCHIVED
                     </div>
-                    <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900 }}>{teamCounts.archived}</div>
+                    <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900 }}>
+                      {teamCounts.archived}
+                    </div>
                   </div>
                 </>
               )}
@@ -1066,7 +1318,9 @@ export default function HistoryPage() {
                               padding: 0,
                             }}
                           >
-                            {item.exclude_from_patterns ? 'Include in patterns' : 'Exclude from patterns'}
+                            {item.exclude_from_patterns
+                              ? 'Include in patterns'
+                              : 'Exclude from patterns'}
                           </button>
 
                           {savingId === item.id ? (
@@ -1099,7 +1353,9 @@ export default function HistoryPage() {
               <div style={{ display: 'grid', gap: 12 }}>
                 {teamHistory.map((item) => {
                   const statusMeta = getTeamStatusMeta(item);
-                  const actionHref = item.summary_generated_at ? `/team/${item.id}/summary` : `/team/${item.id}`;
+                  const actionHref = item.summary_generated_at
+                    ? `/team/${item.id}/summary`
+                    : `/team/${item.id}`;
                   const actionLabel = item.summary_generated_at ? 'Open Summary' : 'Open Review';
                   const teamTitle = toTeamCardTitle(item);
                   const teamSummary = toTeamCardSummary(item);
@@ -1125,18 +1381,6 @@ export default function HistoryPage() {
                             <div style={pillStyle(statusMeta.color, statusMeta.border, statusMeta.background)}>
                               {statusMeta.label}
                             </div>
-
-                            {item.archived_at || item.dismissed_at ? (
-                              <div
-                                style={pillStyle(
-                                  '#6b7280',
-                                  'rgba(107,114,128,0.18)',
-                                  'rgba(107,114,128,0.06)'
-                                )}
-                              >
-                                Archived
-                              </div>
-                            ) : null}
                           </div>
 
                           <div
@@ -1189,25 +1433,10 @@ export default function HistoryPage() {
                               fontWeight: 900,
                               textDecoration: 'none',
                               boxShadow: '0 8px 18px rgba(0,0,0,0.10)',
-                              marginBottom: 10,
                             }}
                           >
                             {actionLabel}
                           </a>
-
-                          <div
-                            style={{
-                              borderRadius: 12,
-                              border: '1px solid rgba(0,0,0,0.10)',
-                              padding: '10px 12px',
-                              fontSize: 12,
-                              fontWeight: 800,
-                              opacity: 0.8,
-                              background: '#fff',
-                            }}
-                          >
-                            {statusMeta.label}
-                          </div>
                         </div>
                       </div>
                     </article>
