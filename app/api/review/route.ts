@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import Anthropic from '@anthropic-ai/sdk';
 
 export async function GET() {
   return NextResponse.json({
@@ -17,14 +18,16 @@ export async function POST(req: Request) {
       );
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.ANTHROPIC_API_KEY;
 
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'Missing OPENAI_API_KEY in .env.local' },
+        { error: 'Missing ANTHROPIC_API_KEY in .env.local' },
         { status: 500 }
       );
     }
+
+    const anthropic = new Anthropic({ apiKey });
 
     const systemPrompt = `
 You are a disciplined executive decision reviewer.
@@ -184,36 +187,33 @@ Context:
 ${context || 'None provided'}
 `;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        temperature: 0.2,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-      }),
+    const response = await anthropic.messages.create({
+      model: 'claude-3-5-sonnet-20241022',
+      max_tokens: 1200,
+      temperature: 0.2,
+      system: systemPrompt,
+      messages: [
+        {
+          role: 'user',
+          content: userPrompt,
+        },
+      ],
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
+    const textBlock = response.content.find((item) => item.type === 'text');
+
+    if (!textBlock || textBlock.type !== 'text') {
       return NextResponse.json(
-        { error: `OpenAI request failed: ${errorText}` },
+        { error: 'No valid response returned from Claude.' },
         { status: 500 }
       );
     }
 
-    const data = await response.json();
-    const content = data?.choices?.[0]?.message?.content;
+    const content = textBlock.text;
 
     if (!content) {
       return NextResponse.json(
-        { error: 'No content returned from OpenAI.' },
+        { error: 'No content returned from Claude.' },
         { status: 500 }
       );
     }
@@ -223,7 +223,7 @@ ${context || 'None provided'}
       parsed = JSON.parse(content);
     } catch {
       return NextResponse.json(
-        { error: 'OpenAI returned invalid JSON.', raw: content },
+        { error: 'Claude returned invalid JSON.', raw: content },
         { status: 500 }
       );
     }
