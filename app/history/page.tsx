@@ -26,6 +26,24 @@ type DecisionRow = {
   exclude_from_patterns: boolean | null;
 };
 
+type TeamSummary = {
+  executive_signal?: string;
+  decision?: string;
+  tension?: string;
+  recommended_move?: string;
+  tradeoff?: string;
+  confidence_score?: number;
+  confidence_reason?: string;
+  projection_14d?: string;
+  contradictions?: string | null;
+  operating?: {
+    working?: string[];
+    breaking?: string[];
+    top_risk?: string;
+  };
+  leadership_edge?: string;
+};
+
 type TeamHistoryRow = {
   id: string;
   title: string;
@@ -36,6 +54,7 @@ type TeamHistoryRow = {
   summary_generated_at: string | null;
   dismissed_at: string | null;
   archived_at: string | null;
+  summary_json: TeamSummary | null;
 };
 
 const OUTCOME_OPTIONS: { value: OutcomeStatus; label: string }[] = [
@@ -45,21 +64,6 @@ const OUTCOME_OPTIONS: { value: OutcomeStatus; label: string }[] = [
   { value: 'failed', label: 'Failed' },
   { value: 'changed_direction', label: 'Changed direction' },
 ];
-
-function formatDate(value?: string | null) {
-  if (!value) return '—';
-
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return '—';
-
-  return d.toLocaleString(undefined, {
-    month: 'short',
-    day: '2-digit',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-}
 
 function toOutcomeLabel(value?: OutcomeStatus | null) {
   return OUTCOME_OPTIONS.find((option) => option.value === value)?.label ?? 'Awaiting outcome';
@@ -71,7 +75,7 @@ function getScoreMeta(score?: number | null) {
       label: 'No score',
       color: '#374151',
       border: 'rgba(55,65,81,0.16)',
-      background: 'rgba(55,65,81,0.05)',
+      background: 'rgba(55,65,81,0.06)',
     };
   }
 
@@ -80,7 +84,7 @@ function getScoreMeta(score?: number | null) {
       label: 'Not ready',
       color: '#b91c1c',
       border: 'rgba(185,28,28,0.18)',
-      background: 'rgba(185,28,28,0.05)',
+      background: 'rgba(185,28,28,0.07)',
     };
   }
 
@@ -89,7 +93,7 @@ function getScoreMeta(score?: number | null) {
       label: 'Proceed smaller',
       color: '#a16207',
       border: 'rgba(161,98,7,0.20)',
-      background: 'rgba(161,98,7,0.06)',
+      background: 'rgba(161,98,7,0.07)',
     };
   }
 
@@ -97,7 +101,7 @@ function getScoreMeta(score?: number | null) {
     label: 'Ready',
     color: '#166534',
     border: 'rgba(22,101,52,0.18)',
-    background: 'rgba(22,101,52,0.05)',
+    background: 'rgba(22,101,52,0.07)',
   };
 }
 
@@ -107,32 +111,32 @@ function getOutcomeMeta(value?: OutcomeStatus | null) {
       return {
         color: '#166534',
         border: 'rgba(22,101,52,0.18)',
-        background: 'rgba(22,101,52,0.06)',
+        background: 'rgba(22,101,52,0.07)',
       };
     case 'failed':
       return {
         color: '#b91c1c',
         border: 'rgba(185,28,28,0.18)',
-        background: 'rgba(185,28,28,0.06)',
+        background: 'rgba(185,28,28,0.07)',
       };
     case 'in_progress':
       return {
         color: '#1d4ed8',
         border: 'rgba(29,78,216,0.18)',
-        background: 'rgba(29,78,216,0.06)',
+        background: 'rgba(29,78,216,0.07)',
       };
     case 'changed_direction':
       return {
         color: '#7c3aed',
         border: 'rgba(124,58,237,0.18)',
-        background: 'rgba(124,58,237,0.06)',
+        background: 'rgba(124,58,237,0.07)',
       };
     case 'awaiting_outcome':
     default:
       return {
         color: '#374151',
         border: 'rgba(55,65,81,0.16)',
-        background: 'rgba(55,65,81,0.05)',
+        background: 'rgba(55,65,81,0.06)',
       };
   }
 }
@@ -160,7 +164,7 @@ function getTeamStatusMeta(item: TeamHistoryRow) {
     label: 'Closed',
     color: '#374151',
     border: 'rgba(55,65,81,0.16)',
-    background: 'rgba(55,65,81,0.05)',
+    background: 'rgba(55,65,81,0.06)',
   };
 }
 
@@ -212,6 +216,72 @@ function toBlockerLabel(item: DecisionRow) {
   return clean.charAt(0).toLowerCase() + clean.slice(1);
 }
 
+function cleanWhitespace(value?: string | null) {
+  return (value || '').replace(/\s+/g, ' ').trim();
+}
+
+function sentenceCase(value?: string | null) {
+  const text = cleanWhitespace(value);
+  if (!text) return '';
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+function truncate(text: string, max = 110) {
+  if (text.length <= max) return text;
+  return `${text.slice(0, max).trim()}…`;
+}
+
+function toSingleSentenceVerdict(value?: string | null) {
+  const raw = cleanWhitespace(value);
+  if (!raw) return 'No verdict saved yet.';
+
+  const firstParagraph = raw.split('\n\n')[0] || raw;
+  const firstSentence =
+    firstParagraph.match(/.*?[.!?](?:\s|$)/)?.[0]?.trim() || firstParagraph.trim();
+
+  return truncate(firstSentence, 165);
+}
+
+function getPatternSummaryText(avgScore: number | null, blocker: string | null) {
+  const avg = typeof avgScore === 'number' ? `Avg score ${avgScore}.` : '';
+  const blockerLine = blocker ? `Main blocker: ${blocker}.` : '';
+  return [avg, blockerLine].filter(Boolean).join(' ');
+}
+
+function toTeamCardTitle(item: TeamHistoryRow) {
+  const summary = item.summary_json;
+
+  if (item.summary_generated_at && summary) {
+    return (
+      cleanWhitespace(summary.decision) ||
+      cleanWhitespace(summary.recommended_move) ||
+      cleanWhitespace(summary.executive_signal) ||
+      'Decision ready'
+    );
+  }
+
+  const cleanTitle = cleanWhitespace(item.title);
+  if (cleanTitle) return `Pending alignment on ${cleanTitle.toLowerCase()}`;
+
+  return 'Decision in progress';
+}
+
+function toTeamCardSummary(item: TeamHistoryRow) {
+  const summary = item.summary_json;
+
+  if (item.summary_generated_at && summary) {
+    return (
+      cleanWhitespace(summary.executive_signal) ||
+      cleanWhitespace(summary.tension) ||
+      cleanWhitespace(summary.tradeoff) ||
+      cleanWhitespace(summary.leadership_edge) ||
+      'Summary generated. Open to review details.'
+    );
+  }
+
+  return 'Review still in progress. Waiting on alignment.';
+}
+
 export default function HistoryPage() {
   const [user, setUser] = useState<{ id: string; email?: string | null } | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -227,6 +297,7 @@ export default function HistoryPage() {
 
   const [savingId, setSavingId] = useState<string | null>(null);
   const [soloFilter, setSoloFilter] = useState<'all' | OutcomeStatus>('all');
+  const [showStats, setShowStats] = useState(false);
 
   useEffect(() => {
     const getSession = async () => {
@@ -307,7 +378,7 @@ export default function HistoryPage() {
         supabase
           .from('team_sessions')
           .select(
-            'id, title, prompt, status, created_at, deadline, summary_generated_at, dismissed_at, archived_at'
+            'id, title, prompt, status, created_at, deadline, summary_generated_at, dismissed_at, archived_at, summary_json'
           )
           .eq('created_by', user.id)
           .is('deleted_at', null)
@@ -432,7 +503,7 @@ export default function HistoryPage() {
           latestCreatedAt,
         };
       })
-      .filter((group) => group.count >= 3 && group.topBlocker)
+      .filter((group) => group.count >= 3)
       .sort((a, b) => {
         if (b.count !== a.count) return b.count - a.count;
 
@@ -462,10 +533,7 @@ export default function HistoryPage() {
         updated_at: new Date().toISOString(),
       };
 
-      const { error: updateError } = await supabase
-        .from('decisions')
-        .update(payload)
-        .eq('id', id);
+      const { error: updateError } = await supabase.from('decisions').update(payload).eq('id', id);
 
       if (updateError) {
         throw new Error(updateError.message);
@@ -502,25 +570,11 @@ export default function HistoryPage() {
   };
 
   const card: React.CSSProperties = {
-    border: '1px solid rgba(0,0,0,0.10)',
+    border: '1px solid rgba(0,0,0,0.08)',
     borderRadius: 16,
     background: '#fff',
     padding: 16,
-    boxShadow: '0 10px 20px rgba(0,0,0,0.04)',
-  };
-
-  const metaBox: React.CSSProperties = {
-    borderRadius: 12,
-    background: 'rgba(0,0,0,0.03)',
-    padding: '10px 12px',
-  };
-
-  const smallLabel: React.CSSProperties = {
-    fontSize: 10,
-    fontWeight: 900,
-    letterSpacing: '0.08em',
-    opacity: 0.52,
-    marginBottom: 6,
+    boxShadow: '0 10px 20px rgba(0,0,0,0.03)',
   };
 
   const ghostButton: React.CSSProperties = {
@@ -546,16 +600,43 @@ export default function HistoryPage() {
     cursor: 'pointer',
   });
 
-  const activeFilterButton = (active: boolean): React.CSSProperties => ({
+  const pillStyle = (
+    color: string,
+    border: string,
+    background: string
+  ): React.CSSProperties => ({
+    display: 'inline-flex',
+    alignItems: 'center',
     borderRadius: 999,
-    border: active ? '1px solid rgba(0,0,0,0.14)' : '1px solid rgba(0,0,0,0.10)',
+    padding: '5px 9px',
+    fontSize: 10,
+    fontWeight: 900,
+    letterSpacing: '0.06em',
+    color,
+    border: `1px solid ${border}`,
+    background,
+    whiteSpace: 'nowrap',
+  });
+
+  const subtleButton: React.CSSProperties = {
+    border: '1px solid rgba(0,0,0,0.10)',
+    background: '#fff',
+    borderRadius: 999,
     padding: '9px 12px',
-    background: active ? '#111' : '#fff',
-    color: active ? '#fff' : '#111',
     fontSize: 12,
     fontWeight: 800,
     cursor: 'pointer',
-  });
+  };
+
+  const selectStyle: React.CSSProperties = {
+    width: '100%',
+    borderRadius: 12,
+    border: '1px solid rgba(0,0,0,0.12)',
+    padding: '10px 12px',
+    fontSize: 12.5,
+    background: '#fff',
+    outline: 'none',
+  };
 
   if (authLoading) {
     return (
@@ -606,10 +687,10 @@ export default function HistoryPage() {
             </div>
             <div
               style={{
-                marginTop: 8,
-                fontSize: 15,
-                lineHeight: 1.55,
-                opacity: 0.82,
+                marginTop: 6,
+                fontSize: 14,
+                lineHeight: 1.5,
+                opacity: 0.72,
                 fontWeight: 600,
               }}
             >
@@ -617,11 +698,9 @@ export default function HistoryPage() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <a href="/" style={ghostButton}>
-              Back to home
-            </a>
-          </div>
+          <a href="/" style={ghostButton}>
+            Back to home
+          </a>
         </header>
 
         {error && (
@@ -641,7 +720,7 @@ export default function HistoryPage() {
           </div>
         )}
 
-        <section style={{ ...card, marginBottom: 16 }}>
+        <section style={{ ...card, marginBottom: 14 }}>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button type="button" onClick={() => setTab('solo')} style={activeTabButton(tab === 'solo')}>
               Solo Decisions
@@ -652,108 +731,179 @@ export default function HistoryPage() {
           </div>
         </section>
 
-        {tab === 'solo' ? (
-          <>
-            {patternSummary ? (
-              <section
-                style={{
-                  ...card,
-                  marginBottom: 16,
-                  border: '1px solid rgba(0,0,0,0.09)',
-                  background:
-                    'linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(248,248,248,0.98) 100%)',
-                }}
-              >
-                <div style={{ ...smallLabel, marginBottom: 8 }}>PATTERN FLAG</div>
-
-                <div
-                  style={{
-                    fontSize: 18,
-                    fontWeight: 900,
-                    letterSpacing: -0.03,
-                    lineHeight: 1.25,
-                    marginBottom: 8,
-                  }}
-                >
-                  You&apos;ve reviewed this decision {patternSummary.count} times.
-                </div>
-
-                <div style={{ fontSize: 14, lineHeight: 1.65, opacity: 0.78 }}>
-                  Average score: <strong>{patternSummary.avgScore ?? '—'}</strong>
-                  {' · '}
-                  Consistently blocked by: <strong>{patternSummary.topBlocker}</strong>
-                </div>
-
-                <div style={{ marginTop: 6, fontSize: 12.5, lineHeight: 1.55, opacity: 0.58 }}>
-                  Repeated low-readiness decisions usually signal an unresolved constraint.
-                </div>
-              </section>
-            ) : null}
-
-            <section
+        {tab === 'solo' && patternSummary ? (
+          <section
+            style={{
+              marginBottom: 14,
+              borderRadius: 18,
+              border: '1px solid rgba(0,0,0,0.10)',
+              background: '#111',
+              color: '#fff',
+              padding: 16,
+              boxShadow: '0 14px 28px rgba(0,0,0,0.12)',
+            }}
+          >
+            <div
               style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-                gap: 10,
-                marginBottom: 16,
+                fontSize: 10,
+                fontWeight: 900,
+                letterSpacing: '0.10em',
+                opacity: 0.72,
+                marginBottom: 8,
               }}
             >
-              <div style={card}>
-                <div style={smallLabel}>TOTAL</div>
-                <div style={{ fontSize: 24, fontWeight: 900 }}>{soloCounts.total}</div>
-              </div>
+              PATTERN DETECTED
+            </div>
 
-              <div style={card}>
-                <div style={smallLabel}>AWAITING OUTCOME</div>
-                <div style={{ fontSize: 24, fontWeight: 900 }}>{soloCounts.awaiting}</div>
-              </div>
+            <div
+              style={{
+                fontSize: 19,
+                fontWeight: 900,
+                letterSpacing: -0.03,
+                lineHeight: 1.15,
+                marginBottom: 6,
+              }}
+            >
+              You&apos;ve reviewed this decision {patternSummary.count} times.
+            </div>
 
-              <div style={card}>
-                <div style={smallLabel}>NEEDS FOLLOW-UP</div>
-                <div style={{ fontSize: 24, fontWeight: 900 }}>{soloCounts.followUp}</div>
-              </div>
+            <div
+              style={{
+                fontSize: 13,
+                lineHeight: 1.45,
+                opacity: 0.82,
+                maxWidth: 760,
+              }}
+            >
+              Still unresolved. {getPatternSummaryText(patternSummary.avgScore, patternSummary.topBlocker)}
+            </div>
+          </section>
+        ) : null}
 
-              <div style={card}>
-                <div style={smallLabel}>WORKED</div>
-                <div style={{ fontSize: 24, fontWeight: 900 }}>{soloCounts.worked}</div>
-              </div>
-            </section>
+        <section
+          style={{
+            ...card,
+            marginBottom: 14,
+            padding: 14,
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12,
+              flexWrap: 'wrap',
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setShowStats((prev) => !prev)}
+              style={{
+                ...subtleButton,
+                padding: '8px 12px',
+              }}
+            >
+              {showStats ? 'Hide stats ▴' : 'Show stats ▾'}
+            </button>
 
-            <section style={{ ...card, marginBottom: 16 }}>
-              <div
-                style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: 8,
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                }}
-              >
-                <div style={{ fontSize: 13, fontWeight: 800 }}>Filter by outcome</div>
-
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  <button
-                    type="button"
-                    onClick={() => setSoloFilter('all')}
-                    style={activeFilterButton(soloFilter === 'all')}
-                  >
-                    All
-                  </button>
-
+            {tab === 'solo' ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 800, opacity: 0.6 }}>Outcome</div>
+                <select
+                  value={soloFilter}
+                  onChange={(e) => setSoloFilter(e.target.value as 'all' | OutcomeStatus)}
+                  style={{
+                    borderRadius: 999,
+                    border: '1px solid rgba(0,0,0,0.12)',
+                    padding: '8px 12px',
+                    background: '#fff',
+                    fontSize: 12,
+                    fontWeight: 800,
+                    outline: 'none',
+                  }}
+                >
+                  <option value="all">All</option>
                   {OUTCOME_OPTIONS.map((option) => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => setSoloFilter(option.value)}
-                      style={activeFilterButton(soloFilter === option.value)}
-                    >
+                    <option key={option.value} value={option.value}>
                       {option.label}
-                    </button>
+                    </option>
                   ))}
-                </div>
+                </select>
               </div>
-            </section>
+            ) : null}
+          </div>
 
+          {showStats ? (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                gap: 10,
+                marginTop: 12,
+              }}
+            >
+              {tab === 'solo' ? (
+                <>
+                  <div style={card}>
+                    <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', opacity: 0.5 }}>
+                      TOTAL
+                    </div>
+                    <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900 }}>{soloCounts.total}</div>
+                  </div>
+                  <div style={card}>
+                    <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', opacity: 0.5 }}>
+                      AWAITING OUTCOME
+                    </div>
+                    <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900 }}>{soloCounts.awaiting}</div>
+                  </div>
+                  <div style={card}>
+                    <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', opacity: 0.5 }}>
+                      NEEDS FOLLOW-UP
+                    </div>
+                    <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900 }}>{soloCounts.followUp}</div>
+                  </div>
+                  <div style={card}>
+                    <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', opacity: 0.5 }}>
+                      WORKED
+                    </div>
+                    <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900 }}>{soloCounts.worked}</div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={card}>
+                    <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', opacity: 0.5 }}>
+                      TOTAL
+                    </div>
+                    <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900 }}>{teamCounts.total}</div>
+                  </div>
+                  <div style={card}>
+                    <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', opacity: 0.5 }}>
+                      DECISION READY
+                    </div>
+                    <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900 }}>{teamCounts.ready}</div>
+                  </div>
+                  <div style={card}>
+                    <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', opacity: 0.5 }}>
+                      IN PROGRESS
+                    </div>
+                    <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900 }}>{teamCounts.inProgress}</div>
+                  </div>
+                  <div style={card}>
+                    <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', opacity: 0.5 }}>
+                      ARCHIVED
+                    </div>
+                    <div style={{ marginTop: 6, fontSize: 24, fontWeight: 900 }}>{teamCounts.archived}</div>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : null}
+        </section>
+
+        {tab === 'solo' ? (
+          <>
             {loadingSolo ? (
               <div style={card}>Loading saved decisions...</div>
             ) : visibleDecisions.length === 0 ? (
@@ -762,8 +912,7 @@ export default function HistoryPage() {
                   No decisions yet
                 </div>
                 <div style={{ fontSize: 13, lineHeight: 1.6, opacity: 0.7 }}>
-                  Run a solo review first. Once a verdict is saved, it will appear here as part of
-                  your decision record.
+                  Run a solo review first. Once a verdict is saved, it will appear here.
                 </div>
               </div>
             ) : (
@@ -771,103 +920,66 @@ export default function HistoryPage() {
                 {visibleDecisions.map((item) => {
                   const scoreMeta = getScoreMeta(item.score);
                   const outcomeMeta = getOutcomeMeta(item.outcome_status ?? 'awaiting_outcome');
-                  const verdictParts = item.verdict ? item.verdict.split('\n\n') : [];
-                  const verdictTitle = verdictParts[0] ?? item.verdict ?? 'No verdict';
+                  const verdictLine = toSingleSentenceVerdict(item.verdict);
 
                   return (
                     <article
                       key={item.id}
                       style={{
                         ...card,
-                        padding: 18,
+                        padding: 16,
                       }}
                     >
                       <div
                         style={{
                           display: 'grid',
-                          gridTemplateColumns: 'minmax(0, 1fr) 240px',
+                          gridTemplateColumns: 'minmax(0, 1fr) 220px',
                           gap: 16,
                           alignItems: 'start',
                         }}
                       >
                         <div style={{ minWidth: 0 }}>
-                          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
-                            <div
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                borderRadius: 999,
-                                padding: '5px 9px',
-                                fontSize: 10,
-                                fontWeight: 900,
-                                letterSpacing: '0.08em',
-                                color: scoreMeta.color,
-                                border: `1px solid ${scoreMeta.border}`,
-                                background: scoreMeta.background,
-                              }}
-                            >
+                          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 9 }}>
+                            <div style={pillStyle(scoreMeta.color, scoreMeta.border, scoreMeta.background)}>
                               {scoreMeta.label}
                             </div>
 
-                            <div
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                borderRadius: 999,
-                                padding: '5px 9px',
-                                fontSize: 10,
-                                fontWeight: 900,
-                                letterSpacing: '0.08em',
-                                color: outcomeMeta.color,
-                                border: `1px solid ${outcomeMeta.border}`,
-                                background: outcomeMeta.background,
-                              }}
-                            >
+                            <div style={pillStyle(outcomeMeta.color, outcomeMeta.border, outcomeMeta.background)}>
                               {toOutcomeLabel(item.outcome_status)}
                             </div>
 
                             {item.needs_follow_up ? (
                               <div
-                                style={{
-                                  borderRadius: 999,
-                                  padding: '5px 9px',
-                                  fontSize: 10,
-                                  fontWeight: 900,
-                                  letterSpacing: '0.08em',
-                                  color: '#92400e',
-                                  border: '1px solid rgba(146,64,14,0.18)',
-                                  background: 'rgba(146,64,14,0.06)',
-                                }}
+                                style={pillStyle(
+                                  '#92400e',
+                                  'rgba(146,64,14,0.18)',
+                                  'rgba(146,64,14,0.07)'
+                                )}
                               >
-                                FOLLOW-UP
+                                Needs follow-up
                               </div>
                             ) : null}
 
                             {item.exclude_from_patterns ? (
                               <div
-                                style={{
-                                  borderRadius: 999,
-                                  padding: '5px 9px',
-                                  fontSize: 10,
-                                  fontWeight: 900,
-                                  letterSpacing: '0.08em',
-                                  color: '#6b7280',
-                                  border: '1px solid rgba(107,114,128,0.18)',
-                                  background: 'rgba(107,114,128,0.06)',
-                                }}
+                                style={pillStyle(
+                                  '#6b7280',
+                                  'rgba(107,114,128,0.18)',
+                                  'rgba(107,114,128,0.06)'
+                                )}
                               >
-                                EXCLUDED
+                                Excluded
                               </div>
                             ) : null}
                           </div>
 
                           <div
                             style={{
-                              fontSize: 20,
+                              fontSize: 22,
                               fontWeight: 900,
                               letterSpacing: -0.03,
-                              lineHeight: 1.2,
-                              marginBottom: 10,
+                              lineHeight: 1.15,
+                              marginBottom: 8,
                             }}
                           >
                             {item.decision}
@@ -875,148 +987,93 @@ export default function HistoryPage() {
 
                           <div
                             style={{
-                              display: 'grid',
-                              gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-                              gap: 8,
-                              marginBottom: 12,
+                              fontSize: 13.5,
+                              lineHeight: 1.5,
+                              opacity: 0.76,
+                              maxWidth: 680,
                             }}
                           >
-                            <div style={metaBox}>
-                              <div style={smallLabel}>DATE</div>
-                              <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.4 }}>
-                                {formatDate(item.created_at)}
-                              </div>
-                            </div>
-
-                            <div style={metaBox}>
-                              <div style={smallLabel}>SCORE</div>
-                              <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.4 }}>
-                                {typeof item.score === 'number' ? item.score : '—'}
-                              </div>
-                            </div>
-
-                            <div style={metaBox}>
-                              <div style={smallLabel}>LAST UPDATED</div>
-                              <div style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.4 }}>
-                                {formatDate(item.updated_at ?? item.created_at)}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div
-                            style={{
-                              borderRadius: 12,
-                              border: '1px solid rgba(0,0,0,0.08)',
-                              background: 'rgba(0,0,0,0.015)',
-                              padding: 12,
-                            }}
-                          >
-                            <div style={smallLabel}>VERDICT</div>
-                            <div style={{ fontSize: 13.5, fontWeight: 800, lineHeight: 1.45 }}>
-                              {verdictTitle}
-                            </div>
+                            {verdictLine}
                           </div>
                         </div>
 
-                        <div style={{ width: 240, maxWidth: '100%' }}>
-                          <div
+                        <div
+                          style={{
+                            width: 220,
+                            maxWidth: '100%',
+                            borderRadius: 14,
+                            border: '1px solid rgba(0,0,0,0.08)',
+                            background: 'rgba(255,255,255,0.80)',
+                            padding: 12,
+                          }}
+                        >
+                          <a
+                            href={`/decision-summary?id=${item.id}`}
                             style={{
-                              borderRadius: 14,
-                              border: '1px solid rgba(0,0,0,0.08)',
-                              background: 'rgba(255,255,255,0.75)',
-                              padding: 12,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '100%',
+                              borderRadius: 999,
+                              border: 'none',
+                              padding: '11px 14px',
+                              background: '#111',
+                              color: '#fff',
+                              fontSize: 12.5,
+                              fontWeight: 900,
+                              textDecoration: 'none',
+                              boxShadow: '0 8px 18px rgba(0,0,0,0.10)',
+                              marginBottom: 10,
                             }}
                           >
-                            <a
-                              href={`/decision-summary?id=${item.id}`}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                width: '100%',
-                                borderRadius: 999,
-                                border: 'none',
-                                padding: '11px 14px',
-                                background: '#111',
-                                color: '#fff',
-                                fontSize: 12.5,
-                                fontWeight: 900,
-                                textDecoration: 'none',
-                                boxShadow: '0 8px 18px rgba(0,0,0,0.10)',
-                                marginBottom: 12,
-                              }}
-                            >
-                              Open Brief
-                            </a>
+                            Open Brief
+                          </a>
 
-                            <label
-                              style={{
-                                display: 'block',
-                                fontSize: 11,
-                                fontWeight: 800,
-                                opacity: 0.58,
-                                marginBottom: 6,
-                              }}
-                            >
-                              OUTCOME STATUS
-                            </label>
+                          <select
+                            value={item.outcome_status ?? 'awaiting_outcome'}
+                            onChange={(e) =>
+                              updateDecision(item.id, {
+                                outcome_status: e.target.value as OutcomeStatus,
+                              })
+                            }
+                            disabled={savingId === item.id}
+                            style={selectStyle}
+                          >
+                            {OUTCOME_OPTIONS.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
 
-                            <select
-                              value={item.outcome_status ?? 'awaiting_outcome'}
-                              onChange={(e) =>
-                                updateDecision(item.id, {
-                                  outcome_status: e.target.value as OutcomeStatus,
-                                })
-                              }
-                              disabled={savingId === item.id}
-                              style={{
-                                width: '100%',
-                                borderRadius: 12,
-                                border: '1px solid rgba(0,0,0,0.14)',
-                                padding: '11px 12px',
-                                fontSize: 13,
-                                background: '#fff',
-                                marginBottom: 10,
-                                outline: 'none',
-                              }}
-                            >
-                              {OUTCOME_OPTIONS.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                  {option.label}
-                                </option>
-                              ))}
-                            </select>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateDecision(item.id, {
+                                exclude_from_patterns: !(item.exclude_from_patterns ?? false),
+                              })
+                            }
+                            disabled={savingId === item.id}
+                            style={{
+                              marginTop: 10,
+                              width: '100%',
+                              border: 'none',
+                              backgroundColor: 'transparent',
+                              fontSize: 11.5,
+                              opacity: 0.58,
+                              cursor: savingId === item.id ? 'default' : 'pointer',
+                              textAlign: 'left',
+                              padding: 0,
+                            }}
+                          >
+                            {item.exclude_from_patterns ? 'Include in patterns' : 'Exclude from patterns'}
+                          </button>
 
-                            <button
-                              type="button"
-                              onClick={() =>
-                                updateDecision(item.id, {
-                                  exclude_from_patterns: !(item.exclude_from_patterns ?? false),
-                                })
-                              }
-                              disabled={savingId === item.id}
-                              style={{
-                                width: '100%',
-                                border: 'none',
-                                backgroundColor: 'transparent',
-                                fontSize: 11,
-                                opacity: 0.6,
-                                cursor: savingId === item.id ? 'default' : 'pointer',
-                                textAlign: 'left',
-                                padding: 0,
-                              }}
-                            >
-                              {item.exclude_from_patterns
-                                ? 'Include in patterns'
-                                : 'Exclude from patterns'}
-                            </button>
-
-                            {savingId === item.id ? (
-                              <div style={{ marginTop: 10, fontSize: 11.5, opacity: 0.58 }}>
-                                Saving...
-                              </div>
-                            ) : null}
-                          </div>
+                          {savingId === item.id ? (
+                            <div style={{ marginTop: 8, fontSize: 11.5, opacity: 0.58 }}>
+                              Saving...
+                            </div>
+                          ) : null}
                         </div>
                       </div>
                     </article>
@@ -1027,35 +1084,6 @@ export default function HistoryPage() {
           </>
         ) : (
           <>
-            <section
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-                gap: 10,
-                marginBottom: 16,
-              }}
-            >
-              <div style={card}>
-                <div style={smallLabel}>TOTAL</div>
-                <div style={{ fontSize: 24, fontWeight: 900 }}>{teamCounts.total}</div>
-              </div>
-
-              <div style={card}>
-                <div style={smallLabel}>DECISION READY</div>
-                <div style={{ fontSize: 24, fontWeight: 900 }}>{teamCounts.ready}</div>
-              </div>
-
-              <div style={card}>
-                <div style={smallLabel}>IN PROGRESS</div>
-                <div style={{ fontSize: 24, fontWeight: 900 }}>{teamCounts.inProgress}</div>
-              </div>
-
-              <div style={card}>
-                <div style={smallLabel}>ARCHIVED</div>
-                <div style={{ fontSize: 24, fontWeight: 900 }}>{teamCounts.archived}</div>
-              </div>
-            </section>
-
             {loadingTeam ? (
               <div style={card}>Loading team reviews...</div>
             ) : teamHistory.length === 0 ? (
@@ -1071,17 +1099,17 @@ export default function HistoryPage() {
               <div style={{ display: 'grid', gap: 12 }}>
                 {teamHistory.map((item) => {
                   const statusMeta = getTeamStatusMeta(item);
-                  const actionHref = item.summary_generated_at
-                    ? `/team/${item.id}/summary`
-                    : `/team/${item.id}`;
+                  const actionHref = item.summary_generated_at ? `/team/${item.id}/summary` : `/team/${item.id}`;
                   const actionLabel = item.summary_generated_at ? 'Open Summary' : 'Open Review';
+                  const teamTitle = toTeamCardTitle(item);
+                  const teamSummary = toTeamCardSummary(item);
 
                   return (
                     <article
                       key={item.id}
                       style={{
                         ...card,
-                        padding: 18,
+                        padding: 16,
                       }}
                     >
                       <div
@@ -1093,97 +1121,92 @@ export default function HistoryPage() {
                         }}
                       >
                         <div style={{ minWidth: 0 }}>
-                          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
-                            <div
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                borderRadius: 999,
-                                padding: '5px 9px',
-                                fontSize: 10,
-                                fontWeight: 900,
-                                letterSpacing: '0.08em',
-                                color: statusMeta.color,
-                                border: `1px solid ${statusMeta.border}`,
-                                background: statusMeta.background,
-                              }}
-                            >
-                              {statusMeta.label.toUpperCase()}
+                          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 9 }}>
+                            <div style={pillStyle(statusMeta.color, statusMeta.border, statusMeta.background)}>
+                              {statusMeta.label}
                             </div>
+
+                            {item.archived_at || item.dismissed_at ? (
+                              <div
+                                style={pillStyle(
+                                  '#6b7280',
+                                  'rgba(107,114,128,0.18)',
+                                  'rgba(107,114,128,0.06)'
+                                )}
+                              >
+                                Archived
+                              </div>
+                            ) : null}
                           </div>
 
                           <div
                             style={{
-                              fontSize: 20,
+                              fontSize: 22,
                               fontWeight: 900,
                               letterSpacing: -0.03,
-                              lineHeight: 1.2,
+                              lineHeight: 1.15,
                               marginBottom: 8,
                             }}
                           >
-                            {item.title}
+                            {teamTitle}
                           </div>
 
                           <div
                             style={{
                               fontSize: 13.5,
-                              lineHeight: 1.55,
-                              opacity: 0.74,
-                              marginBottom: 12,
+                              lineHeight: 1.5,
+                              opacity: 0.76,
+                              maxWidth: 680,
                             }}
                           >
-                            {item.prompt || 'Team review record.'}
+                            {teamSummary}
                           </div>
+                        </div>
+
+                        <div
+                          style={{
+                            width: 220,
+                            maxWidth: '100%',
+                            borderRadius: 14,
+                            border: '1px solid rgba(0,0,0,0.08)',
+                            background: 'rgba(255,255,255,0.80)',
+                            padding: 12,
+                          }}
+                        >
+                          <a
+                            href={actionHref}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '100%',
+                              borderRadius: 999,
+                              border: 'none',
+                              padding: '11px 14px',
+                              background: '#111',
+                              color: '#fff',
+                              fontSize: 12.5,
+                              fontWeight: 900,
+                              textDecoration: 'none',
+                              boxShadow: '0 8px 18px rgba(0,0,0,0.10)',
+                              marginBottom: 10,
+                            }}
+                          >
+                            {actionLabel}
+                          </a>
 
                           <div
                             style={{
                               borderRadius: 12,
-                              border: '1px solid rgba(0,0,0,0.08)',
-                              background: 'rgba(0,0,0,0.015)',
-                              padding: 12,
+                              border: '1px solid rgba(0,0,0,0.10)',
+                              padding: '10px 12px',
+                              fontSize: 12,
+                              fontWeight: 800,
+                              opacity: 0.8,
+                              background: '#fff',
                             }}
                           >
-                            <div style={smallLabel}>TIMELINE</div>
-                            <div style={{ fontSize: 13, lineHeight: 1.55, fontWeight: 700 }}>
-                              Created {formatDate(item.created_at)}
-                              {item.summary_generated_at
-                                ? ` • Generated ${formatDate(item.summary_generated_at)}`
-                                : item.deadline
-                                  ? ` • Deadline ${formatDate(item.deadline)}`
-                                  : ''}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div style={{ width: 220, maxWidth: '100%' }}>
-                          <div
-                            style={{
-                              borderRadius: 14,
-                              border: '1px solid rgba(0,0,0,0.08)',
-                              background: 'rgba(255,255,255,0.75)',
-                              padding: 12,
-                            }}
-                          >
-                            <a
-                              href={actionHref}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                width: '100%',
-                                borderRadius: 999,
-                                border: 'none',
-                                padding: '11px 14px',
-                                background: '#111',
-                                color: '#fff',
-                                fontSize: 12.5,
-                                fontWeight: 900,
-                                textDecoration: 'none',
-                                boxShadow: '0 8px 18px rgba(0,0,0,0.10)',
-                              }}
-                            >
-                              {actionLabel}
-                            </a>
+                            {statusMeta.label}
                           </div>
                         </div>
                       </div>
@@ -1194,31 +1217,6 @@ export default function HistoryPage() {
             )}
           </>
         )}
-
-        <footer
-          style={{
-            marginTop: 60,
-            paddingTop: 20,
-            paddingBottom: 40,
-            borderTop: '1px solid rgba(0,0,0,0.06)',
-            textAlign: 'center',
-            fontSize: 12,
-            color: '#777',
-          }}
-        >
-          <div style={{ marginBottom: 8, color: '#111', fontWeight: 500 }}>
-            Before you commit.
-          </div>
-
-          © 2026 Decision Layer ·{' '}
-          <a href="/privacy" style={{ color: '#777', textDecoration: 'none' }}>
-            Privacy
-          </a>{' '}
-          ·{' '}
-          <a href="/about" style={{ color: '#777', textDecoration: 'none' }}>
-            About
-          </a>
-        </footer>
       </main>
     </div>
   );
