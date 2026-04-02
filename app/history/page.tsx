@@ -216,8 +216,14 @@ function toBlockerLabel(item: DecisionRow) {
   const raw = item.context.toLowerCase();
 
   if (raw.includes('business plan')) return 'no business plan';
-  if (raw.includes('initial clients') || raw.includes('signed contract')) return 'no initial clients';
-  if (raw.includes('financial cushion') || raw.includes('little money') || raw.includes('money right now')) {
+  if (raw.includes('initial clients') || raw.includes('signed contract')) {
+    return 'no initial clients';
+  }
+  if (
+    raw.includes('financial cushion') ||
+    raw.includes('little money') ||
+    raw.includes('money right now')
+  ) {
     return 'weak financial cushion';
   }
   if (raw.includes('track record')) return 'no proven track record';
@@ -265,6 +271,115 @@ function short(text?: string | null, max = 96) {
   return clean.length <= max ? clean : `${clean.slice(0, max).trim()}…`;
 }
 
+function titleFromOpenTeamReview(item: TeamHistoryRow) {
+  const prompt = cleanWhitespace(item.prompt).toLowerCase();
+  const title = cleanWhitespace(item.title).toLowerCase();
+  const source = `${prompt} ${title}`.trim();
+
+  if (!source) return 'Alignment still in progress';
+
+  if (
+    source.includes('budget') ||
+    source.includes('spend') ||
+    source.includes('resource allocation') ||
+    source.includes('resource')
+  ) {
+    return 'Budget decision still unresolved';
+  }
+
+  if (
+    source.includes('approval') ||
+    source.includes('approvals') ||
+    source.includes('approve') ||
+    source.includes('sign-off')
+  ) {
+    return 'Approval path still open';
+  }
+
+  if (
+    source.includes('underwriting') ||
+    source.includes('capacity') ||
+    source.includes('resourcing')
+  ) {
+    return 'Capacity decision still under review';
+  }
+
+  if (
+    source.includes('sales') ||
+    source.includes('pipeline') ||
+    source.includes('seminar') ||
+    source.includes('campaign') ||
+    source.includes('content')
+  ) {
+    return 'Sales review still awaiting alignment';
+  }
+
+  if (
+    source.includes('leadership') ||
+    source.includes('align') ||
+    source.includes('alignment')
+  ) {
+    return 'Leadership alignment still needed';
+  }
+
+  if (
+    source.includes('team') ||
+    source.includes('department') ||
+    source.includes('cross') ||
+    source.includes('review')
+  ) {
+    return 'Cross-functional review still open';
+  }
+
+  if (source.includes('director')) {
+    return 'Director review still awaiting alignment';
+  }
+
+  return 'Alignment still in progress';
+}
+
+function summaryFromOpenTeamReview(item: TeamHistoryRow) {
+  const prompt = cleanWhitespace(item.prompt);
+  const title = cleanWhitespace(item.title);
+  const source = `${prompt} ${title}`.toLowerCase();
+
+  if (
+    source.includes('budget') ||
+    source.includes('spend') ||
+    source.includes('resource allocation')
+  ) {
+    return 'Budget and allocation questions are still being worked through.';
+  }
+
+  if (
+    source.includes('approval') ||
+    source.includes('approve') ||
+    source.includes('sign-off')
+  ) {
+    return 'Approval is still pending before the next step can move forward.';
+  }
+
+  if (
+    source.includes('underwriting') ||
+    source.includes('capacity') ||
+    source.includes('resourcing')
+  ) {
+    return 'Operational capacity questions are still open.';
+  }
+
+  if (
+    source.includes('sales') ||
+    source.includes('pipeline') ||
+    source.includes('seminar') ||
+    source.includes('campaign') ||
+    source.includes('content')
+  ) {
+    return 'Commercial priorities are still being aligned before a final move.';
+  }
+
+  return 'Waiting on alignment before decision can be finalized.';
+}
+
 function toTeamCardTitle(item: TeamHistoryRow) {
   const summary = item.summary_json;
 
@@ -277,45 +392,7 @@ function toTeamCardTitle(item: TeamHistoryRow) {
     );
   }
 
-  const prompt = (item.prompt || '').toLowerCase();
-  const title = (item.title || '').toLowerCase();
-
-  if (
-    prompt.includes('budget') ||
-    title.includes('budget') ||
-    prompt.includes('spend') ||
-    title.includes('spend') ||
-    prompt.includes('resource allocation') ||
-    title.includes('resource allocation')
-  ) {
-    return 'Budget decision still unresolved';
-  }
-
-  if (
-    prompt.includes('approval') ||
-    title.includes('approval') ||
-    prompt.includes('align') ||
-    title.includes('align') ||
-    prompt.includes('leadership') ||
-    title.includes('leadership')
-  ) {
-    return 'Leadership alignment still needed';
-  }
-
-  if (
-    prompt.includes('cross') ||
-    title.includes('cross') ||
-    prompt.includes('review') ||
-    title.includes('review') ||
-    prompt.includes('team') ||
-    title.includes('team') ||
-    prompt.includes('department') ||
-    title.includes('department')
-  ) {
-    return 'Cross-functional review still open';
-  }
-
-  return 'Alignment still in progress';
+  return titleFromOpenTeamReview(item);
 }
 
 function toTeamCardSummary(item: TeamHistoryRow) {
@@ -331,7 +408,7 @@ function toTeamCardSummary(item: TeamHistoryRow) {
     );
   }
 
-  return 'Waiting on alignment before decision can be finalized.';
+  return summaryFromOpenTeamReview(item);
 }
 
 function toOrgSignalKey(item: TeamHistoryRow) {
@@ -972,11 +1049,11 @@ export default function HistoryPage() {
             style={{
               marginBottom: 14,
               borderRadius: 18,
-              border: '1px solid rgba(0,0,0,0.10)',
-              background: '#111',
+              border: '1px solid rgba(16,35,63,0.22)',
+              background: '#10233f',
               color: '#fff',
               padding: 16,
-              boxShadow: '0 14px 28px rgba(0,0,0,0.12)',
+              boxShadow: '0 14px 28px rgba(16,35,63,0.20)',
             }}
           >
             <div
@@ -984,7 +1061,7 @@ export default function HistoryPage() {
                 fontSize: 10,
                 fontWeight: 900,
                 letterSpacing: '0.10em',
-                opacity: 0.72,
+                opacity: 0.76,
                 marginBottom: 8,
               }}
             >
@@ -1007,7 +1084,7 @@ export default function HistoryPage() {
               style={{
                 fontSize: 13,
                 lineHeight: 1.45,
-                opacity: 0.82,
+                opacity: 0.84,
                 maxWidth: 760,
               }}
             >
@@ -1211,18 +1288,6 @@ export default function HistoryPage() {
                                 Needs follow-up
                               </div>
                             ) : null}
-
-                            {item.exclude_from_patterns ? (
-                              <div
-                                style={pillStyle(
-                                  '#6b7280',
-                                  'rgba(107,114,128,0.18)',
-                                  'rgba(107,114,128,0.06)'
-                                )}
-                              >
-                                Excluded
-                              </div>
-                            ) : null}
                           </div>
 
                           <div
@@ -1297,37 +1362,6 @@ export default function HistoryPage() {
                               </option>
                             ))}
                           </select>
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              updateDecision(item.id, {
-                                exclude_from_patterns: !(item.exclude_from_patterns ?? false),
-                              })
-                            }
-                            disabled={savingId === item.id}
-                            style={{
-                              marginTop: 10,
-                              width: '100%',
-                              border: 'none',
-                              backgroundColor: 'transparent',
-                              fontSize: 11.5,
-                              opacity: 0.58,
-                              cursor: savingId === item.id ? 'default' : 'pointer',
-                              textAlign: 'left',
-                              padding: 0,
-                            }}
-                          >
-                            {item.exclude_from_patterns
-                              ? 'Include in patterns'
-                              : 'Exclude from patterns'}
-                          </button>
-
-                          {savingId === item.id ? (
-                            <div style={{ marginTop: 8, fontSize: 11.5, opacity: 0.58 }}>
-                              Saving...
-                            </div>
-                          ) : null}
                         </div>
                       </div>
                     </article>
@@ -1356,7 +1390,6 @@ export default function HistoryPage() {
                   const actionHref = item.summary_generated_at
                     ? `/team/${item.id}/summary`
                     : `/team/${item.id}`;
-                  const actionLabel = item.summary_generated_at ? 'Open Summary' : 'Open Review';
                   const teamTitle = toTeamCardTitle(item);
                   const teamSummary = toTeamCardSummary(item);
 
@@ -1435,7 +1468,7 @@ export default function HistoryPage() {
                               boxShadow: '0 8px 18px rgba(0,0,0,0.10)',
                             }}
                           >
-                            {actionLabel}
+                            Open Brief
                           </a>
                         </div>
                       </div>
