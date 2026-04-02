@@ -345,6 +345,20 @@ export default function HomePage() {
 
       setAuthLoading(false);
       setAuthError(null);
+
+      try {
+        const pendingLock = localStorage.getItem(STORAGE.pendingLockVerdict);
+
+        if (authUser && pendingLock === 'true') {
+          localStorage.removeItem(STORAGE.pendingLockVerdict);
+
+          setTimeout(() => {
+            void handleLockVerdict();
+          }, 100);
+        }
+      } catch {
+        // ignore
+      }
     });
 
     return () => {
@@ -859,7 +873,7 @@ export default function HomePage() {
           trap: reviewResult?.snapshot?.trap ?? null,
           step: reviewResult?.snapshot?.step ?? null,
           outcome_status: 'awaiting_outcome',
-          userId: user?.id ?? null,
+          userId: user.id,
         }),
       });
 
@@ -874,7 +888,7 @@ export default function HomePage() {
       }
 
       clearPendingSoloReview();
-      setSavedToast('Decision saved');
+      setSavedToast('Decision saved to history');
     } catch (err: any) {
       setApiError(err?.message || 'Failed to save decision.');
     } finally {
@@ -1296,13 +1310,29 @@ export default function HomePage() {
                     </div>
 
                     {loadingOpenDecisions ? (
-                      <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68 }}>Loading...</div>
+                      <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68 }}>
+                        Loading...
+                      </div>
                     ) : openDecisionsError ? (
-                      <div style={{ marginTop: 4, fontSize: 12.5, color: '#b91c1c', fontWeight: 700 }}>
+                      <div
+                        style={{
+                          marginTop: 4,
+                          fontSize: 12.5,
+                          color: '#b91c1c',
+                          fontWeight: 700,
+                        }}
+                      >
                         {openDecisionsError}
                       </div>
                     ) : openDecisions.length === 0 ? (
-                      <div style={{ marginTop: 3, fontSize: 15, fontWeight: 800, letterSpacing: -0.03 }}>
+                      <div
+                        style={{
+                          marginTop: 3,
+                          fontSize: 15,
+                          fontWeight: 800,
+                          letterSpacing: -0.03,
+                        }}
+                      >
                         No unresolved
                       </div>
                     ) : (
@@ -1355,7 +1385,14 @@ export default function HomePage() {
                         </div>
 
                         {openDecisions.length > 0 ? (
-                          <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          <div
+                            style={{
+                              marginTop: 10,
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: 6,
+                            }}
+                          >
                             {openDecisions.map((item) => (
                               <div
                                 key={item.id}
@@ -1409,7 +1446,13 @@ export default function HomePage() {
                     )}
                   </div>
 
-                  <div style={{ background: 'rgba(0,0,0,0.06)', opacity: 0.85, alignSelf: 'stretch' }} />
+                  <div
+                    style={{
+                      background: 'rgba(0,0,0,0.06)',
+                      opacity: 0.85,
+                      alignSelf: 'stretch',
+                    }}
+                  />
 
                   <div style={{ minWidth: 0 }}>
                     <div
@@ -1424,13 +1467,29 @@ export default function HomePage() {
                     </div>
 
                     {loadingLatestTeamSession ? (
-                      <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68 }}>Loading...</div>
+                      <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68 }}>
+                        Loading...
+                      </div>
                     ) : latestTeamSessionError ? (
-                      <div style={{ marginTop: 4, fontSize: 12.5, color: '#b91c1c', fontWeight: 700 }}>
+                      <div
+                        style={{
+                          marginTop: 4,
+                          fontSize: 12.5,
+                          color: '#b91c1c',
+                          fontWeight: 700,
+                        }}
+                      >
                         {latestTeamSessionError}
                       </div>
                     ) : !latestTeamSession ? (
-                      <div style={{ marginTop: 3, fontSize: 15, fontWeight: 800, letterSpacing: -0.03 }}>
+                      <div
+                        style={{
+                          marginTop: 3,
+                          fontSize: 15,
+                          fontWeight: 800,
+                          letterSpacing: -0.03,
+                        }}
+                      >
                         No active review
                       </div>
                     ) : (
@@ -1482,7 +1541,14 @@ export default function HomePage() {
                           </div>
                         </div>
 
-                        <div style={{ marginTop: 4, fontSize: 12.5, lineHeight: 1.35, opacity: 0.62 }}>
+                        <div
+                          style={{
+                            marginTop: 4,
+                            fontSize: 12.5,
+                            lineHeight: 1.35,
+                            opacity: 0.62,
+                          }}
+                        >
                           {latestTeamSession.deadline
                             ? formatDeadline(latestTeamSession.deadline)
                             : 'No deadline set'}
@@ -1520,12 +1586,16 @@ export default function HomePage() {
                                 fontSize: 11.5,
                                 fontWeight: 900,
                                 cursor:
-                                  closingSessionId === latestTeamSession.id ? 'default' : 'pointer',
+                                  closingSessionId === latestTeamSession.id
+                                    ? 'default'
+                                    : 'pointer',
                                 opacity: closingSessionId === latestTeamSession.id ? 0.72 : 1,
                                 boxShadow: '0 6px 14px rgba(0,0,0,0.08)',
                               }}
                             >
-                              {closingSessionId === latestTeamSession.id ? 'Closing...' : 'Close review'}
+                              {closingSessionId === latestTeamSession.id
+                                ? 'Closing...'
+                                : 'Close review'}
                             </button>
                           )}
 
@@ -1542,11 +1612,15 @@ export default function HomePage() {
                               fontSize: 11.5,
                               fontWeight: 800,
                               cursor:
-                                dismissingSessionId === latestTeamSession.id ? 'default' : 'pointer',
+                                dismissingSessionId === latestTeamSession.id
+                                  ? 'default'
+                                  : 'pointer',
                               opacity: dismissingSessionId === latestTeamSession.id ? 0.72 : 1,
                             }}
                           >
-                            {dismissingSessionId === latestTeamSession.id ? 'Dismissing...' : 'Dismiss'}
+                            {dismissingSessionId === latestTeamSession.id
+                              ? 'Dismissing...'
+                              : 'Dismiss'}
                           </button>
                         </div>
                       </>
@@ -1572,8 +1646,6 @@ export default function HomePage() {
             Before you commit.
           </div>
         </section>
-
-
 
         <section style={{ maxWidth: 720, margin: '20px auto 0' }}>
           <div style={{ display: 'flex', gap: 12 }}>
@@ -1774,7 +1846,14 @@ export default function HomePage() {
                       flexWrap: 'wrap',
                     }}
                   >
-                    <div style={{ fontSize: 34, fontWeight: 900, letterSpacing: -0.04, opacity: 0.88 }}>
+                    <div
+                      style={{
+                        fontSize: 34,
+                        fontWeight: 900,
+                        letterSpacing: -0.04,
+                        opacity: 0.88,
+                      }}
+                    >
                       {scoreTotal ?? '—'}
                     </div>
                     <div style={{ fontSize: 18, fontWeight: 900, color: scoreMeta.color }}>
@@ -1786,7 +1865,15 @@ export default function HomePage() {
                     Confidence: {scoreTotal ?? '—'} / 100
                   </div>
 
-                  <div style={{ marginTop: 10, fontSize: 12.5, lineHeight: 1.4, fontWeight: 700, opacity: 0.58 }}>
+                  <div
+                    style={{
+                      marginTop: 10,
+                      fontSize: 12.5,
+                      lineHeight: 1.4,
+                      fontWeight: 700,
+                      opacity: 0.58,
+                    }}
+                  >
                     {buildBreakLine(reviewResult.snapshot.hinge)}
                   </div>
 
@@ -1799,7 +1886,14 @@ export default function HomePage() {
                     }}
                   >
                     <div style={{ ...detailStyle, background: '#fff' }}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 6 }}>
+                      <div
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 900,
+                          opacity: 0.5,
+                          marginBottom: 6,
+                        }}
+                      >
                         FAILURE POINT
                       </div>
                       <div style={{ fontSize: 13.5, lineHeight: 1.45, fontWeight: 700 }}>
@@ -1808,7 +1902,14 @@ export default function HomePage() {
                     </div>
 
                     <div style={{ ...detailStyle, background: '#fff' }}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 6 }}>
+                      <div
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 900,
+                          opacity: 0.5,
+                          marginBottom: 6,
+                        }}
+                      >
                         CRITICAL ASSUMPTION
                       </div>
                       <div style={{ fontSize: 13.5, lineHeight: 1.45, fontWeight: 700 }}>
@@ -1817,7 +1918,14 @@ export default function HomePage() {
                     </div>
 
                     <div style={{ ...detailStyle, background: '#fff' }}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 6 }}>
+                      <div
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 900,
+                          opacity: 0.5,
+                          marginBottom: 6,
+                        }}
+                      >
                         NEXT MOVE
                       </div>
                       <div style={{ fontSize: 13.5, lineHeight: 1.45, fontWeight: 700 }}>
@@ -1826,7 +1934,13 @@ export default function HomePage() {
                     </div>
                   </div>
 
-                  <div style={{ height: 1, background: 'rgba(0,0,0,0.08)', margin: '14px 0 10px' }} />
+                  <div
+                    style={{
+                      height: 1,
+                      background: 'rgba(0,0,0,0.08)',
+                      margin: '14px 0 10px',
+                    }}
+                  />
 
                   <div
                     style={{
@@ -1836,63 +1950,159 @@ export default function HomePage() {
                     }}
                   >
                     <div style={detailStyle}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>
+                      <div
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 900,
+                          opacity: 0.5,
+                          marginBottom: 2,
+                        }}
+                      >
                         DOOR
                       </div>
-                      <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>
+                      <div
+                        style={{
+                          fontSize: 10.5,
+                          fontWeight: 600,
+                          opacity: 0.55,
+                          marginBottom: 6,
+                        }}
+                      >
                         (type of decision)
                       </div>
-                      <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>{reviewResult.snapshot.door}</div>
+                      <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>
+                        {reviewResult.snapshot.door}
+                      </div>
                     </div>
 
                     <div style={detailStyle}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>
+                      <div
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 900,
+                          opacity: 0.5,
+                          marginBottom: 2,
+                        }}
+                      >
                         HINGE
                       </div>
-                      <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>
+                      <div
+                        style={{
+                          fontSize: 10.5,
+                          fontWeight: 600,
+                          opacity: 0.55,
+                          marginBottom: 6,
+                        }}
+                      >
                         (what must be true)
                       </div>
-                      <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>{reviewResult.snapshot.hinge}</div>
+                      <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>
+                        {reviewResult.snapshot.hinge}
+                      </div>
                     </div>
 
                     <div style={detailStyle}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>
+                      <div
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 900,
+                          opacity: 0.5,
+                          marginBottom: 2,
+                        }}
+                      >
                         LOCKS
                       </div>
-                      <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>
+                      <div
+                        style={{
+                          fontSize: 10.5,
+                          fontWeight: 600,
+                          opacity: 0.55,
+                          marginBottom: 6,
+                        }}
+                      >
                         (what gets hard to undo)
                       </div>
-                      <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>{reviewResult.snapshot.lock}</div>
+                      <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>
+                        {reviewResult.snapshot.lock}
+                      </div>
                     </div>
 
                     <div style={detailStyle}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>
+                      <div
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 900,
+                          opacity: 0.5,
+                          marginBottom: 2,
+                        }}
+                      >
                         TRAP
                       </div>
-                      <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>
+                      <div
+                        style={{
+                          fontSize: 10.5,
+                          fontWeight: 600,
+                          opacity: 0.55,
+                          marginBottom: 6,
+                        }}
+                      >
                         (hidden failure risk)
                       </div>
-                      <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>{reviewResult.snapshot.trap}</div>
+                      <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>
+                        {reviewResult.snapshot.trap}
+                      </div>
                     </div>
 
                     <div style={detailStyle}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>
+                      <div
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 900,
+                          opacity: 0.5,
+                          marginBottom: 2,
+                        }}
+                      >
                         EXIT
                       </div>
-                      <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>
+                      <div
+                        style={{
+                          fontSize: 10.5,
+                          fontWeight: 600,
+                          opacity: 0.55,
+                          marginBottom: 6,
+                        }}
+                      >
                         (when to stop)
                       </div>
-                      <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>{reviewResult.snapshot.exit}</div>
+                      <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>
+                        {reviewResult.snapshot.exit}
+                      </div>
                     </div>
 
                     <div style={detailStyle}>
-                      <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 2 }}>
+                      <div
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 900,
+                          opacity: 0.5,
+                          marginBottom: 2,
+                        }}
+                      >
                         STEP
                       </div>
-                      <div style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.55, marginBottom: 6 }}>
+                      <div
+                        style={{
+                          fontSize: 10.5,
+                          fontWeight: 600,
+                          opacity: 0.55,
+                          marginBottom: 6,
+                        }}
+                      >
                         (next survivable move)
                       </div>
-                      <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>{reviewResult.snapshot.step}</div>
+                      <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>
+                        {reviewResult.snapshot.step}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1954,7 +2164,13 @@ export default function HomePage() {
                                     {section.heading}
                                   </div>
 
-                                  <div style={{ fontSize: 12, fontWeight: 900, opacity: 0.42 }}>
+                                  <div
+                                    style={{
+                                      fontSize: 12,
+                                      fontWeight: 900,
+                                      opacity: 0.42,
+                                    }}
+                                  >
                                     {isOpen ? '−' : '+'}
                                   </div>
                                 </button>
@@ -1991,7 +2207,14 @@ export default function HomePage() {
                 </div>
 
                 <div style={cardStyle}>
-                  <div style={{ fontSize: 13, fontWeight: 900, opacity: 0.6, marginBottom: 10 }}>
+                  <div
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 900,
+                      opacity: 0.6,
+                      marginBottom: 10,
+                    }}
+                  >
                     Final Thoughts
                   </div>
 
@@ -2015,7 +2238,8 @@ export default function HomePage() {
                       style={{
                         ...finalCtaButtonStyle,
                         opacity: verdictLoading || !finalThoughts.trim() ? 0.72 : 1,
-                        cursor: verdictLoading || !finalThoughts.trim() ? 'default' : 'pointer',
+                        cursor:
+                          verdictLoading || !finalThoughts.trim() ? 'default' : 'pointer',
                       }}
                     >
                       {verdictLoading ? 'Generating...' : 'Generate Final Verdict'}
@@ -2026,7 +2250,14 @@ export default function HomePage() {
                 {verdictRequested && (
                   <>
                     <div ref={verdictRef} style={cardStyle}>
-                      <div style={{ fontSize: 13, fontWeight: 900, opacity: 0.6, marginBottom: 10 }}>
+                      <div
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 900,
+                          opacity: 0.6,
+                          marginBottom: 10,
+                        }}
+                      >
                         Final Verdict
                       </div>
 
@@ -2068,17 +2299,38 @@ export default function HomePage() {
                       <div style={{ ...cardStyle, marginTop: 14 }}>
                         {!decisionId ? (
                           <>
-                            <div style={{ fontSize: 13, fontWeight: 900, opacity: 0.6, marginBottom: 10 }}>
+                            <div
+                              style={{
+                                fontSize: 13,
+                                fontWeight: 900,
+                                opacity: 0.6,
+                                marginBottom: 10,
+                              }}
+                            >
                               Lock your decision
                             </div>
 
                             {!user ? (
-                              <div style={{ fontSize: 13.5, lineHeight: 1.55, opacity: 0.76, marginBottom: 12 }}>
-                                Save this verdict and track what happens next. Sign in to add it to your
-                                decision record.
+                              <div
+                                style={{
+                                  fontSize: 13.5,
+                                  lineHeight: 1.55,
+                                  opacity: 0.76,
+                                  marginBottom: 12,
+                                }}
+                              >
+                                Save this verdict and track what happens next. Sign in to add it to
+                                your decision record.
                               </div>
                             ) : (
-                              <div style={{ fontSize: 13.5, lineHeight: 1.55, opacity: 0.76, marginBottom: 12 }}>
+                              <div
+                                style={{
+                                  fontSize: 13.5,
+                                  lineHeight: 1.55,
+                                  opacity: 0.76,
+                                  marginBottom: 12,
+                                }}
+                              >
                                 Signed in. Your decision is ready to lock.
                               </div>
                             )}
@@ -2104,11 +2356,25 @@ export default function HomePage() {
                           </>
                         ) : (
                           <>
-                            <div style={{ fontSize: 13, fontWeight: 900, opacity: 0.6, marginBottom: 10 }}>
+                            <div
+                              style={{
+                                fontSize: 13,
+                                fontWeight: 900,
+                                opacity: 0.6,
+                                marginBottom: 10,
+                              }}
+                            >
                               Decision locked
                             </div>
 
-                            <div style={{ fontSize: 13.5, lineHeight: 1.55, opacity: 0.76, marginBottom: 12 }}>
+                            <div
+                              style={{
+                                fontSize: 13.5,
+                                lineHeight: 1.55,
+                                opacity: 0.76,
+                                marginBottom: 12,
+                              }}
+                            >
                               You can now track how this decision plays out over time.
                             </div>
 
@@ -2203,7 +2469,14 @@ export default function HomePage() {
 
               <div style={{ display: 'grid', gap: 14 }}>
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 800, marginBottom: 6, opacity: 0.66 }}>
+                  <div
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 800,
+                      marginBottom: 6,
+                      opacity: 0.66,
+                    }}
+                  >
                     Title
                   </div>
                   <input
@@ -2215,7 +2488,14 @@ export default function HomePage() {
                 </div>
 
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 800, marginBottom: 6, opacity: 0.66 }}>
+                  <div
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 800,
+                      marginBottom: 6,
+                      opacity: 0.66,
+                    }}
+                  >
                     What decision needs to be made?
                   </div>
                   <textarea
@@ -2236,9 +2516,18 @@ export default function HomePage() {
                   }}
                 >
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 12, fontWeight: 800, marginBottom: 6, opacity: 0.66 }}>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 800,
+                        marginBottom: 6,
+                        opacity: 0.66,
+                      }}
+                    >
                       Deadline
-                      <span style={{ opacity: 0.42, marginLeft: 6, fontWeight: 600 }}>optional</span>
+                      <span style={{ opacity: 0.42, marginLeft: 6, fontWeight: 600 }}>
+                        optional
+                      </span>
                     </div>
                     <input
                       type="datetime-local"
@@ -2249,9 +2538,18 @@ export default function HomePage() {
                   </div>
 
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 12, fontWeight: 800, marginBottom: 6, opacity: 0.66 }}>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 800,
+                        marginBottom: 6,
+                        opacity: 0.66,
+                      }}
+                    >
                       Participants
-                      <span style={{ opacity: 0.42, marginLeft: 6, fontWeight: 600 }}>optional</span>
+                      <span style={{ opacity: 0.42, marginLeft: 6, fontWeight: 600 }}>
+                        optional
+                      </span>
                     </div>
                     <input
                       type="number"
@@ -2301,20 +2599,43 @@ export default function HomePage() {
 
             {teamSessionPreview && (
               <div ref={teamPreviewRef} style={{ marginTop: 16, ...cardStyle }}>
-                <div style={{ fontSize: 13, fontWeight: 900, opacity: 0.6, marginBottom: 10 }}>
+                <div
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 900,
+                    opacity: 0.6,
+                    marginBottom: 10,
+                  }}
+                >
                   Team Review Created
                 </div>
 
                 <div style={{ display: 'grid', gap: 10 }}>
                   <div style={detailStyle}>
-                    <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 6 }}>
+                    <div
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 900,
+                        opacity: 0.5,
+                        marginBottom: 6,
+                      }}
+                    >
                       TITLE
                     </div>
-                    <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>{teamSessionPreview.title}</div>
+                    <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>
+                      {teamSessionPreview.title}
+                    </div>
                   </div>
 
                   <div style={detailStyle}>
-                    <div style={{ fontSize: 11, fontWeight: 900, opacity: 0.5, marginBottom: 6 }}>
+                    <div
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 900,
+                        opacity: 0.5,
+                        marginBottom: 6,
+                      }}
+                    >
                       SHARE LINK
                     </div>
                     <div
@@ -2363,7 +2684,9 @@ export default function HomePage() {
             color: '#777',
           }}
         >
-          <div style={{ marginBottom: 8, color: '#111', fontWeight: 500 }}>Before you commit.</div>
+          <div style={{ marginBottom: 8, color: '#111', fontWeight: 500 }}>
+            Before you commit.
+          </div>
 
           © 2026 Decision Layer ·{' '}
           <a href="/privacy" style={{ color: '#777', textDecoration: 'none' }}>
