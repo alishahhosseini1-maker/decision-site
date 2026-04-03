@@ -55,6 +55,23 @@ function asReversibility(value: unknown): 'low' | 'medium' | 'high' {
     : 'medium';
 }
 
+function extractJsonObject(text: string): string {
+  let jsonText = text.trim();
+
+  if (jsonText.includes('```')) {
+    jsonText = jsonText.replace(/```json/g, '').replace(/```/g, '').trim();
+  }
+
+  const firstBrace = jsonText.indexOf('{');
+  const lastBrace = jsonText.lastIndexOf('}');
+
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    jsonText = jsonText.slice(firstBrace, lastBrace + 1);
+  }
+
+  return jsonText;
+}
+
 export async function GET() {
   return NextResponse.json({
     message: 'review route is working',
@@ -113,10 +130,11 @@ Do NOT:
 - sound like a consultant
 - use generic filler
 
-Return ONLY valid JSON.
+Return ONLY valid raw JSON.
 Do not include markdown.
 Do not wrap the JSON in code fences.
-Do not include any text outside JSON.
+Do not add explanations before or after the JSON.
+Start with { and end with }.
 
 Return this exact shape:
 
@@ -179,30 +197,22 @@ primaryRisk:
 - Must describe a real failure outcome
 - Must be causal, not generic
 - Must say what actually breaks
-- Bad: "There is uncertainty"
-- Bad: "The downside is not clear"
-- Good: "Income may not materialize, creating immediate financial instability"
 
 mustBeTrue:
 - Must be one clear, testable condition
 - Must be falsifiable
 - Must be specific to this decision
-- Bad: "Things must go well"
-- Good: "A new income source is secured within 30 days"
 
 recommendedMove:
 - Must be concrete and executable
 - Must reduce risk or test the hinge
 - Must be something the user can actually do next
-- Bad: "Evaluate options"
-- Good: "Secure at least one signed contract before leaving"
 
 SNAPSHOT RULES:
 
 door:
 - Short label for the decision type
 - 2 to 4 words
-- Example: "Career move"
 
 hinge:
 - The main assumption
@@ -221,8 +231,6 @@ trap:
 exit:
 - An observable signal to pause or stop
 - Must be measurable or concrete
-- Bad: "If it feels wrong"
-- Good: "No signed income source within 30 days"
 
 step:
 - The smartest immediate move
@@ -235,10 +243,6 @@ STYLE RULES:
 - No filler
 - No generic phrases
 - Every field must tie directly to the decision
-
-Be concrete.
-Be honest.
-Be specific.
 `;
 
     const userPrompt = `
@@ -247,12 +251,14 @@ ${decision}
 
 Context:
 ${context || 'None provided'}
+
+Return raw JSON only.
 `;
 
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-5',
       max_tokens: 1200,
-      temperature: 0.2,
+      temperature: 0.1,
       system: systemPrompt,
       messages: [
         {
@@ -284,12 +290,14 @@ ${context || 'None provided'}
       );
     }
 
+    const jsonText = extractJsonObject(content);
+
     let parsed: any;
 
     try {
-      parsed = JSON.parse(content);
+      parsed = JSON.parse(jsonText);
     } catch {
-      console.error('[review] Claude returned invalid JSON:', content);
+      console.error('[review] Claude raw output:', content);
       return NextResponse.json(
         {
           error: 'Claude returned invalid JSON.',
