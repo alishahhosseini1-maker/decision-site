@@ -32,7 +32,7 @@ type ReviewResult = {
   };
 };
 
-const allowedPatternTypes = new Set([
+const allowedPatternTypes = new Set<string>([
   'Reversible experiment',
   'Capital allocation',
   'Identity / career move',
@@ -45,7 +45,7 @@ function clampScore(value: unknown): number {
   return Math.max(0, Math.min(20, value as number));
 }
 
-function asString(value: unknown, fallback = ''): string {
+function asString(value: unknown, fallback: string = ''): string {
   return typeof value === 'string' ? value : fallback;
 }
 
@@ -81,7 +81,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           error:
-            'Missing ANTHROPIC_API_KEY. Add it to your StackBlitz env file, save it, then fully restart the dev server.',
+            'Missing ANTHROPIC_API_KEY. Add it to StackBlitz Variables, save it, then fully restart the dev server.',
         },
         { status: 500 }
       );
@@ -262,9 +262,12 @@ ${context || 'None provided'}
       ],
     });
 
-    const textBlock = response.content.find((item) => item.type === 'text');
+    const textBlock = response.content.find(
+      (item): item is Extract<(typeof response.content)[number], { type: 'text' }> =>
+        item.type === 'text'
+    );
 
-    if (!textBlock || textBlock.type !== 'text') {
+    if (!textBlock) {
       console.error('[review] No valid text block returned from Claude.', response);
       return NextResponse.json(
         { error: 'No valid response returned from Claude.' },
@@ -285,7 +288,7 @@ ${context || 'None provided'}
 
     try {
       parsed = JSON.parse(content);
-    } catch (error) {
+    } catch {
       console.error('[review] Claude returned invalid JSON:', content);
       return NextResponse.json(
         {
@@ -315,7 +318,7 @@ ${context || 'None provided'}
         summary: asString(
           parsed?.readiness?.summary,
           'The main constraint is not strong enough yet.'
-        ) as ReviewResult['readiness']['summary'],
+        ),
       },
       topline: {
         primaryRisk: asString(
@@ -359,15 +362,14 @@ ${context || 'None provided'}
     }
 
     return NextResponse.json(safeResult);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[review] Route error:', error);
 
     const message =
-      error instanceof Error ? error.message : 'Something went wrong while generating the review.';
+      error instanceof Error
+        ? error.message
+        : 'Something went wrong while generating the review.';
 
-    return NextResponse.json(
-      { error: message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
