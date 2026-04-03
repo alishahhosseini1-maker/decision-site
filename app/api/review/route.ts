@@ -81,7 +81,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           error:
-            'Missing ANTHROPIC_API_KEY. Add it to StackBlitz Variables, save it, then fully restart the dev server.',
+            'Missing ANTHROPIC_API_KEY. Add it to your environment config and fully restart the dev server.',
         },
         { status: 500 }
       );
