@@ -151,10 +151,7 @@ function parseDeepReviewSections(text?: string | null): DeepReviewSection[] {
     const key = cleaned.toLowerCase();
 
     if (DEEP_REVIEW_HEADINGS.has(key)) {
-      current = {
-        heading: cleaned,
-        lines: [],
-      };
+      current = { heading: cleaned, lines: [] };
       sections.push(current);
       continue;
     }
@@ -166,6 +163,236 @@ function parseDeepReviewSections(text?: string | null): DeepReviewSection[] {
 
   return sections.filter((section) => section.lines.length > 0);
 }
+
+// ─── Design tokens ─────────────────────────────────────────────────────────────
+
+const FONT_URL =
+  'https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500&display=swap';
+
+const serif = "'DM Serif Display', serif";
+const sans = "'Outfit', sans-serif";
+const mono = "'DM Mono', monospace";
+
+function getScoreMeta(label?: string) {
+  if (label === 'Not ready to commit')
+    return { color: '#A32D2D', bg: '#FCEBEB', borderColor: 'rgba(163,45,45,0.20)', badge: 'NOT READY' };
+  if (label === 'Proceed smaller')
+    return { color: '#854F0B', bg: '#FAEEDA', borderColor: 'rgba(133,79,11,0.20)', badge: 'PROCEED SMALLER' };
+  return { color: '#0F6E56', bg: '#E1F5EE', borderColor: 'rgba(15,110,86,0.20)', badge: 'READY' };
+}
+
+// ─── Layout sub-components ──────────────────────────────────────────────────────
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        fontFamily: sans,
+        fontSize: 10,
+        fontWeight: 500,
+        letterSpacing: '0.14em',
+        textTransform: 'uppercase' as const,
+        color: 'rgba(0,0,0,0.36)',
+        marginBottom: '0.85rem',
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function RowDivider() {
+  return (
+    <div
+      style={{
+        borderTop: '0.5px solid rgba(0,0,0,0.09)',
+        marginTop: '1.75rem',
+        marginBottom: '1.75rem',
+      }}
+    />
+  );
+}
+
+function InsightCard({
+  label,
+  text,
+  primary = false,
+}: {
+  label: string;
+  text: string;
+  primary?: boolean;
+}) {
+  return (
+    <div
+      style={{
+        borderLeft: `2px solid ${primary ? '#A32D2D' : 'rgba(0,0,0,0.11)'}`,
+        borderRadius: '0 8px 8px 0',
+        background: primary ? '#FCEBEB' : 'rgba(0,0,0,0.025)',
+        padding: '12px 16px',
+        marginBottom: 10,
+      }}
+    >
+      <div
+        style={{
+          fontFamily: sans,
+          fontSize: 10,
+          fontWeight: 500,
+          letterSpacing: '0.12em',
+          textTransform: 'uppercase' as const,
+          color: primary ? '#A32D2D' : 'rgba(0,0,0,0.36)',
+          marginBottom: 5,
+        }}
+      >
+        {label}
+      </div>
+      <div
+        style={{
+          fontFamily: sans,
+          fontSize: 13,
+          lineHeight: 1.65,
+          color: '#111',
+          fontWeight: 400,
+        }}
+      >
+        {text}
+      </div>
+    </div>
+  );
+}
+
+function AnatomyRow({
+  label,
+  sublabel,
+  value,
+}: {
+  label: string;
+  sublabel: string;
+  value: string;
+}) {
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: '110px 1fr',
+        padding: '13px 0',
+        borderBottom: '0.5px solid rgba(0,0,0,0.09)',
+        alignItems: 'baseline',
+        gap: 0,
+      }}
+    >
+      <div>
+        <div
+          style={{
+            fontFamily: sans,
+            fontSize: 10,
+            fontWeight: 500,
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase' as const,
+            color: 'rgba(0,0,0,0.36)',
+          }}
+        >
+          {label}
+        </div>
+        {sublabel && (
+          <div
+            style={{
+              fontFamily: sans,
+              fontSize: 10,
+              color: 'rgba(0,0,0,0.28)',
+              marginTop: 2,
+              fontWeight: 400,
+            }}
+          >
+            {sublabel}
+          </div>
+        )}
+      </div>
+      <div
+        style={{
+          fontFamily: sans,
+          fontSize: 13.5,
+          color: '#111',
+          lineHeight: 1.5,
+          fontWeight: 400,
+        }}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function AccordionRow({
+  heading,
+  lines,
+  isOpen,
+  onToggle,
+}: {
+  heading: string;
+  lines: string[];
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <div style={{ borderBottom: '0.5px solid rgba(0,0,0,0.09)' }}>
+      <button
+        type="button"
+        onClick={onToggle}
+        style={{
+          width: '100%',
+          background: 'none',
+          border: 'none',
+          padding: '15px 0',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          cursor: 'pointer',
+          fontFamily: sans,
+          fontSize: 13.5,
+          fontWeight: 500,
+          color: '#111',
+          textAlign: 'left' as const,
+        }}
+      >
+        {heading}
+        <span
+          style={{
+            fontSize: 20,
+            fontWeight: 300,
+            color: 'rgba(0,0,0,0.28)',
+            lineHeight: 1,
+            flexShrink: 0,
+            display: 'inline-block',
+            transform: isOpen ? 'rotate(45deg)' : 'none',
+            transition: 'transform 0.18s ease',
+          }}
+        >
+          +
+        </span>
+      </button>
+      {isOpen && (
+        <div style={{ paddingBottom: 16 }}>
+          {lines.map((line, i) => (
+            <div
+              key={i}
+              style={{
+                fontFamily: sans,
+                fontSize: 13,
+                lineHeight: 1.7,
+                color: 'rgba(0,0,0,0.60)',
+                marginBottom: i < lines.length - 1 ? 6 : 0,
+              }}
+            >
+              {line}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Main component ─────────────────────────────────────────────────────────────
 
 export default function HomePage() {
   const [mode, setMode] = useState<Mode>('solo');
@@ -1026,6 +1253,16 @@ export default function HomePage() {
     await handleCreateTeamSession();
   };
 
+  const toggleBreakdownSection = (heading: string) => {
+    const key = heading.toLowerCase();
+    setOpenBreakdownSections((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
+  // ─── Derived values ───────────────────────────────────────────────────────────
+
   const scoreTotal =
     typeof reviewResult?.readiness?.total === 'number' ? reviewResult.readiness.total : null;
 
@@ -1036,27 +1273,21 @@ export default function HomePage() {
         ? 'Proceed smaller'
         : 'Proceed';
 
-  const scoreMeta =
-    reviewResult?.readiness?.label === 'Not ready to commit'
-      ? {
-          color: '#b91c1c',
-          border: 'rgba(185,28,28,0.20)',
-          background: 'rgba(185,28,28,0.04)',
-          badge: 'NOT READY',
-        }
-      : reviewResult?.readiness?.label === 'Proceed smaller'
-        ? {
-            color: '#a16207',
-            border: 'rgba(161,98,7,0.22)',
-            background: 'rgba(161,98,7,0.05)',
-            badge: 'PROCEED SMALLER',
-          }
-        : {
-            color: '#166534',
-            border: 'rgba(22,101,52,0.20)',
-            background: 'rgba(22,101,52,0.04)',
-            badge: 'READY',
-          };
+  const meta = getScoreMeta(reviewResult?.readiness?.label);
+
+  const lastUsedLabel = formatShort(lastUsedAt);
+  const visibleDeepReview = cleanDeepReview(deepReview);
+  const deepReviewSections = parseDeepReviewSections(visibleDeepReview);
+
+  const verdictParts = verdict ? verdict.split('\n\n') : [];
+  const verdictTitle = verdictParts[0] ?? '';
+  const verdictReason = verdictParts.slice(1).join('\n\n');
+
+  const hasSummaryReady = Boolean(latestTeamSession?.summary_generated_at);
+  const openLoopCount = openDecisions.length;
+  const openLoopLabel = openLoopCount === 1 ? '1 unresolved' : `${openLoopCount} unresolved`;
+
+  // ─── Shared inline styles ─────────────────────────────────────────────────────
 
   const shellBg = 'rgba(255,255,255,0.65)';
   const border = '1px solid rgba(0,0,0,0.10)';
@@ -1070,6 +1301,9 @@ export default function HomePage() {
     lineHeight: 1.45,
     background: '#fff',
     outline: 'none',
+    fontFamily: sans,
+    color: '#111',
+    boxSizing: 'border-box',
   };
 
   const detailStyle: React.CSSProperties = {
@@ -1089,6 +1323,7 @@ export default function HomePage() {
     fontSize: 14,
     fontWeight: 700,
     opacity: 0.95,
+    fontFamily: sans,
   };
 
   const modeCardBase: React.CSSProperties = {
@@ -1099,14 +1334,7 @@ export default function HomePage() {
     cursor: 'pointer',
     transition: 'all 160ms ease',
     userSelect: 'none',
-  };
-
-  const cardStyle: React.CSSProperties = {
-    border: '1px solid rgba(0,0,0,0.10)',
-    borderRadius: 14,
-    background: '#fff',
-    padding: 12,
-    boxShadow: '0 10px 20px rgba(0,0,0,0.04)',
+    fontFamily: sans,
   };
 
   const topActionButtonStyle: React.CSSProperties = {
@@ -1119,6 +1347,7 @@ export default function HomePage() {
     fontWeight: 800,
     cursor: 'pointer',
     textDecoration: 'none',
+    fontFamily: sans,
   };
 
   const ctaButtonStyle: React.CSSProperties = {
@@ -1131,6 +1360,7 @@ export default function HomePage() {
     fontWeight: 900,
     cursor: 'pointer',
     boxShadow: '0 10px 18px rgba(0,0,0,0.10)',
+    fontFamily: sans,
   };
 
   const lightButtonStyle: React.CSSProperties = {
@@ -1142,422 +1372,192 @@ export default function HomePage() {
     fontSize: 13,
     fontWeight: 800,
     cursor: 'pointer',
-  };
-
-  const finalCtaButtonStyle: React.CSSProperties = {
-    borderRadius: 999,
-    border: 'none',
-    padding: '14px 20px',
-    background: '#7f1d1d',
-    color: '#fff',
-    fontSize: 13.5,
-    fontWeight: 900,
-    letterSpacing: '0.03em',
-    cursor: 'pointer',
-    boxShadow: '0 14px 28px rgba(127,29,29,0.35)',
+    fontFamily: sans,
   };
 
   const decisionPlaceholder = 'launch · invest · hire · pivot · exit';
-  const contextPlaceholder = 'stakes · deadline · who’s affected · what you’re risking';
+  const contextPlaceholder = "stakes · deadline · who's affected · what you're risking";
   const optionalDetailsLabel = '▶ Any details I should know (optional)';
-  const finalThoughtsPlaceholder =
-    'What still feels off? What is the main thing giving you pause? What are you leaning toward before you commit?';
 
-  const lastUsedLabel = formatShort(lastUsedAt);
-  const visibleDeepReview = cleanDeepReview(deepReview);
-  const deepReviewSections = parseDeepReviewSections(visibleDeepReview);
-
-  const toggleBreakdownSection = (heading: string) => {
-    const key = heading.toLowerCase();
-    setOpenBreakdownSections((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
-  };
-
-  const verdictParts = verdict ? verdict.split('\n\n') : [];
-  const verdictTitle = verdictParts[0] ?? '';
-  const verdictReason = verdictParts.slice(1).join('\n\n');
-
-  const hasSummaryReady = Boolean(latestTeamSession?.summary_generated_at);
-
-  const openLoopCount = openDecisions.length;
-  const openLoopLabel = openLoopCount === 1 ? '1 unresolved' : `${openLoopCount} unresolved`;
+  // ─── Render ───────────────────────────────────────────────────────────────────
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f4f5f6', color: '#111' }}>
-      <main style={{ maxWidth: 980, margin: '28px auto 60px', padding: '0 20px' }}>
-        <header
-          style={{
-            paddingTop: 6,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 12,
-          }}
-        >
-          <div style={{ fontSize: 12, opacity: 0.42 }}>
-            Last used: <span style={{ opacity: 0.65 }}>{lastUsedLabel}</span>
-          </div>
+    <>
+      <link rel="stylesheet" href={FONT_URL} />
+      <div style={{ minHeight: '100vh', background: '#f4f5f6', color: '#111', fontFamily: sans }}>
+        <main style={{ maxWidth: 980, margin: '28px auto 60px', padding: '0 20px' }}>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            {!authLoading && user && (
-              <div style={{ fontSize: 12.5, opacity: 0.62 }}>{user.email || 'Signed in'}</div>
-            )}
-
-            {!authLoading && (
-              <a
-                href="/history"
-                style={{
-                  borderRadius: 999,
-                  border: '1px solid rgba(0,0,0,0.12)',
-                  padding: '10px 14px',
-                  background: '#fff',
-                  color: '#111',
-                  fontSize: 12.5,
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  textDecoration: 'none',
-                }}
-              >
-                Decision History
-              </a>
-            )}
-
-            {authLoading ? null : user ? (
-              <button type="button" onClick={handleSignOut} style={topActionButtonStyle}>
-                Sign Out
-              </button>
-            ) : (
-              <button type="button" onClick={handleSignIn} style={topActionButtonStyle}>
-                Sign In
-              </button>
-            )}
-          </div>
-        </header>
-
-        {authError && (
-          <div
+          {/* ── Header ── */}
+          <header
             style={{
-              maxWidth: 720,
-              margin: '14px auto 0',
-              borderRadius: 12,
-              border: '1px solid rgba(220,38,38,0.16)',
-              background: 'rgba(220,38,38,0.04)',
-              padding: '10px 12px',
-              color: '#b91c1c',
-              fontSize: 12.5,
-              fontWeight: 700,
+              paddingTop: 6,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12,
             }}
           >
-            {authError}
-          </div>
-        )}
+            <div style={{ fontSize: 12, opacity: 0.42 }}>
+              Last used: <span style={{ opacity: 0.65 }}>{lastUsedLabel}</span>
+            </div>
 
-        {savedToast && (
-          <div
-            style={{
-              maxWidth: 720,
-              margin: '14px auto 0',
-              borderRadius: 12,
-              border: '1px solid rgba(22,101,52,0.18)',
-              background: 'rgba(22,101,52,0.05)',
-              padding: '10px 12px',
-              color: '#166534',
-              fontSize: 12.5,
-              fontWeight: 800,
-            }}
-          >
-            {savedToast}
-          </div>
-        )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              {!authLoading && user && (
+                <div style={{ fontSize: 12.5, opacity: 0.62 }}>{user.email || 'Signed in'}</div>
+              )}
 
-        {user &&
-          (loadingOpenDecisions ||
-            openDecisions.length > 0 ||
-            openDecisionsError ||
-            loadingLatestTeamSession ||
-            latestTeamSession ||
-            latestTeamSessionError) && (
-            <section style={{ maxWidth: 760, margin: '16px auto 0' }}>
-              <div
-                style={{
-                  border: '1px solid rgba(0,0,0,0.08)',
-                  borderRadius: 14,
-                  background: 'rgba(255,255,255,0.78)',
-                  padding: '10px 14px',
-                  boxShadow: '0 4px 10px rgba(0,0,0,0.02)',
-                }}
-              >
-                <div
+              {!authLoading && (
+                <a
+                  href="/history"
                   style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'minmax(0, 1fr) 1px minmax(0, 1fr)',
-                    gap: 12,
-                    alignItems: 'center',
+                    borderRadius: 999,
+                    border: '1px solid rgba(0,0,0,0.12)',
+                    padding: '10px 14px',
+                    background: '#fff',
+                    color: '#111',
+                    fontSize: 12.5,
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    textDecoration: 'none',
+                    fontFamily: sans,
                   }}
                 >
-                  <div style={{ minWidth: 0 }}>
-                    <div
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 900,
-                        letterSpacing: '0.10em',
-                        opacity: 0.46,
-                      }}
-                    >
-                      OPEN LOOPS
-                    </div>
+                  Decision History
+                </a>
+              )}
 
-                    {loadingOpenDecisions ? (
-                      <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68 }}>
-                        Loading...
-                      </div>
-                    ) : openDecisionsError ? (
-                      <div
-                        style={{
-                          marginTop: 4,
-                          fontSize: 12.5,
-                          color: '#b91c1c',
-                          fontWeight: 700,
-                        }}
-                      >
-                        {openDecisionsError}
-                      </div>
-                    ) : openDecisions.length === 0 ? (
-                      <div
-                        style={{
-                          marginTop: 3,
-                          fontSize: 15,
-                          fontWeight: 800,
-                          letterSpacing: -0.03,
-                        }}
-                      >
-                        No unresolved
-                      </div>
-                    ) : (
-                      <>
-                        <div
-                          style={{
-                            marginTop: 2,
-                            fontSize: 22,
-                            fontWeight: 900,
-                            letterSpacing: -0.04,
-                            lineHeight: 0.98,
-                          }}
-                        >
-                          {openLoopLabel}
-                        </div>
+              {authLoading ? null : user ? (
+                <button type="button" onClick={handleSignOut} style={topActionButtonStyle}>
+                  Sign Out
+                </button>
+              ) : (
+                <button type="button" onClick={handleSignIn} style={topActionButtonStyle}>
+                  Sign In
+                </button>
+              )}
+            </div>
+          </header>
 
-                        <div style={{ marginTop: 6, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                          <a
-                            href="/history"
-                            style={{
-                              borderRadius: 999,
-                              border: 'none',
-                              padding: '8px 11px',
-                              background: '#111',
-                              color: '#fff',
-                              fontSize: 11.5,
-                              fontWeight: 900,
-                              textDecoration: 'none',
-                              boxShadow: '0 6px 14px rgba(0,0,0,0.08)',
-                            }}
-                          >
-                            View history
-                          </a>
+          {/* ── Auth error ── */}
+          {authError && (
+            <div
+              style={{
+                maxWidth: 720,
+                margin: '14px auto 0',
+                borderRadius: 12,
+                border: '1px solid rgba(220,38,38,0.16)',
+                background: 'rgba(220,38,38,0.04)',
+                padding: '10px 12px',
+                color: '#b91c1c',
+                fontSize: 12.5,
+                fontWeight: 700,
+              }}
+            >
+              {authError}
+            </div>
+          )}
 
-                          <a
-                            href="/history"
-                            style={{
-                              borderRadius: 999,
-                              border: '1px solid rgba(0,0,0,0.10)',
-                              padding: '8px 11px',
-                              background: '#fff',
-                              color: '#111',
-                              fontSize: 11.5,
-                              fontWeight: 800,
-                              textDecoration: 'none',
-                            }}
-                          >
-                            Update outcomes
-                          </a>
-                        </div>
+          {/* ── Saved toast ── */}
+          {savedToast && (
+            <div
+              style={{
+                maxWidth: 720,
+                margin: '14px auto 0',
+                borderRadius: 12,
+                border: '1px solid rgba(22,101,52,0.18)',
+                background: 'rgba(22,101,52,0.05)',
+                padding: '10px 12px',
+                color: '#166534',
+                fontSize: 12.5,
+                fontWeight: 800,
+              }}
+            >
+              {savedToast}
+            </div>
+          )}
 
-                        {openDecisions.length > 0 ? (
-                          <div
-                            style={{
-                              marginTop: 10,
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: 6,
-                            }}
-                          >
-                            {openDecisions.map((item) => (
-                              <div
-                                key={item.id}
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'space-between',
-                                  gap: 8,
-                                  borderRadius: 10,
-                                  background: 'rgba(0,0,0,0.03)',
-                                  padding: '7px 8px',
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    minWidth: 0,
-                                    fontSize: 12,
-                                    fontWeight: 700,
-                                    lineHeight: 1.35,
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    whiteSpace: 'nowrap',
-                                  }}
-                                  title={item.decision}
-                                >
-                                  {item.decision}
-                                </div>
-
-                                <button
-                                  type="button"
-                                  onClick={() => handleDismissDecisionFromHome(item.id)}
-                                  style={{
-                                    borderRadius: 999,
-                                    border: '1px solid rgba(0,0,0,0.10)',
-                                    background: '#fff',
-                                    padding: '6px 9px',
-                                    fontSize: 11,
-                                    fontWeight: 800,
-                                    color: '#111',
-                                    cursor: 'pointer',
-                                    flexShrink: 0,
-                                  }}
-                                >
-                                  Dismiss
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        ) : null}
-                      </>
-                    )}
-                  </div>
-
+          {/* ── Open loops + latest team session ── */}
+          {user &&
+            (loadingOpenDecisions ||
+              openDecisions.length > 0 ||
+              openDecisionsError ||
+              loadingLatestTeamSession ||
+              latestTeamSession ||
+              latestTeamSessionError) && (
+              <section style={{ maxWidth: 760, margin: '16px auto 0' }}>
+                <div
+                  style={{
+                    border: '1px solid rgba(0,0,0,0.08)',
+                    borderRadius: 14,
+                    background: 'rgba(255,255,255,0.78)',
+                    padding: '10px 14px',
+                    boxShadow: '0 4px 10px rgba(0,0,0,0.02)',
+                  }}
+                >
                   <div
                     style={{
-                      background: 'rgba(0,0,0,0.06)',
-                      opacity: 0.85,
-                      alignSelf: 'stretch',
+                      display: 'grid',
+                      gridTemplateColumns: 'minmax(0, 1fr) 1px minmax(0, 1fr)',
+                      gap: 12,
+                      alignItems: 'center',
                     }}
-                  />
-
-                  <div style={{ minWidth: 0 }}>
-                    <div
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 900,
-                        letterSpacing: '0.10em',
-                        opacity: 0.46,
-                      }}
-                    >
-                      LATEST TEAM REVIEW
-                    </div>
-
-                    {loadingLatestTeamSession ? (
-                      <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68 }}>
-                        Loading...
-                      </div>
-                    ) : latestTeamSessionError ? (
+                  >
+                    {/* Open loops */}
+                    <div style={{ minWidth: 0 }}>
                       <div
                         style={{
-                          marginTop: 4,
-                          fontSize: 12.5,
-                          color: '#b91c1c',
-                          fontWeight: 700,
+                          fontSize: 10,
+                          fontWeight: 900,
+                          letterSpacing: '0.10em',
+                          opacity: 0.46,
                         }}
                       >
-                        {latestTeamSessionError}
+                        OPEN LOOPS
                       </div>
-                    ) : !latestTeamSession ? (
-                      <div
-                        style={{
-                          marginTop: 3,
-                          fontSize: 15,
-                          fontWeight: 800,
-                          letterSpacing: -0.03,
-                        }}
-                      >
-                        No active review
-                      </div>
-                    ) : (
-                      <>
-                        <div
-                          style={{
-                            marginTop: 3,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 8,
-                            flexWrap: 'wrap',
-                            minWidth: 0,
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              borderRadius: 999,
-                              border: hasSummaryReady
-                                ? '1px solid rgba(16,185,129,0.16)'
-                                : '1px solid rgba(59,130,246,0.16)',
-                              background: hasSummaryReady
-                                ? 'rgba(16,185,129,0.08)'
-                                : 'rgba(59,130,246,0.07)',
-                              color: hasSummaryReady ? '#047857' : '#1d4ed8',
-                              padding: '4px 7px',
-                              fontSize: 9.5,
-                              fontWeight: 900,
-                              letterSpacing: '0.08em',
-                            }}
-                          >
-                            {hasSummaryReady ? 'READY' : 'OPEN'}
-                          </div>
 
-                          <div
-                            style={{
-                              minWidth: 0,
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                              fontSize: 18,
-                              fontWeight: 900,
-                              letterSpacing: -0.035,
-                              lineHeight: 1.05,
-                            }}
-                          >
-                            {latestTeamSession.title}
-                          </div>
+                      {loadingOpenDecisions ? (
+                        <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68 }}>
+                          Loading...
                         </div>
-
+                      ) : openDecisionsError ? (
                         <div
                           style={{
                             marginTop: 4,
                             fontSize: 12.5,
-                            lineHeight: 1.35,
-                            opacity: 0.62,
+                            color: '#b91c1c',
+                            fontWeight: 700,
                           }}
                         >
-                          {latestTeamSession.deadline
-                            ? formatDeadline(latestTeamSession.deadline)
-                            : 'No deadline set'}
+                          {openDecisionsError}
                         </div>
+                      ) : openDecisions.length === 0 ? (
+                        <div
+                          style={{
+                            marginTop: 3,
+                            fontSize: 15,
+                            fontWeight: 800,
+                            letterSpacing: -0.03,
+                          }}
+                        >
+                          No unresolved
+                        </div>
+                      ) : (
+                        <>
+                          <div
+                            style={{
+                              marginTop: 2,
+                              fontSize: 22,
+                              fontWeight: 900,
+                              letterSpacing: -0.04,
+                              lineHeight: 0.98,
+                            }}
+                          >
+                            {openLoopLabel}
+                          </div>
 
-                        <div style={{ marginTop: 6, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                          {hasSummaryReady ? (
+                          <div style={{ marginTop: 6, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                             <a
-                              href={`/team/${latestTeamSession.id}/summary`}
+                              href="/history"
                               style={{
                                 borderRadius: 999,
                                 border: 'none',
@@ -1570,643 +1570,1196 @@ export default function HomePage() {
                                 boxShadow: '0 6px 14px rgba(0,0,0,0.08)',
                               }}
                             >
-                              Open
+                              View history
                             </a>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => handleCloseAndGenerateFromHome(latestTeamSession.id)}
-                              disabled={closingSessionId === latestTeamSession.id}
+
+                            <a
+                              href="/history"
                               style={{
                                 borderRadius: 999,
-                                border: 'none',
+                                border: '1px solid rgba(0,0,0,0.10)',
                                 padding: '8px 11px',
-                                background: '#111',
-                                color: '#fff',
+                                background: '#fff',
+                                color: '#111',
                                 fontSize: 11.5,
-                                fontWeight: 900,
-                                cursor:
-                                  closingSessionId === latestTeamSession.id
-                                    ? 'default'
-                                    : 'pointer',
-                                opacity: closingSessionId === latestTeamSession.id ? 0.72 : 1,
-                                boxShadow: '0 6px 14px rgba(0,0,0,0.08)',
+                                fontWeight: 800,
+                                textDecoration: 'none',
                               }}
                             >
-                              {closingSessionId === latestTeamSession.id
-                                ? 'Closing...'
-                                : 'Close review'}
-                            </button>
-                          )}
+                              Update outcomes
+                            </a>
+                          </div>
 
-                          <button
-                            type="button"
-                            onClick={() => handleDismissFromHome(latestTeamSession.id)}
-                            disabled={dismissingSessionId === latestTeamSession.id}
-                            style={{
-                              borderRadius: 999,
-                              border: '1px solid rgba(0,0,0,0.10)',
-                              padding: '8px 11px',
-                              background: '#fff',
-                              color: '#111',
-                              fontSize: 11.5,
-                              fontWeight: 800,
-                              cursor:
-                                dismissingSessionId === latestTeamSession.id
-                                  ? 'default'
-                                  : 'pointer',
-                              opacity: dismissingSessionId === latestTeamSession.id ? 0.72 : 1,
-                            }}
-                          >
-                            {dismissingSessionId === latestTeamSession.id
-                              ? 'Dismissing...'
-                              : 'Dismiss'}
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </section>
-          )}
-
-        <section style={{ textAlign: 'center', marginTop: 38 }}>
-          <h1 style={{ fontSize: 64, margin: 0, letterSpacing: -1.1 }}>Decision Layer</h1>
-          <div
-            style={{
-              marginTop: 10,
-              fontSize: 26,
-              fontStyle: 'italic',
-              fontWeight: 500,
-              letterSpacing: -0.03,
-              opacity: 0.9,
-            }}
-          >
-            Before you commit.
-          </div>
-        </section>
-
-        <section style={{ maxWidth: 720, margin: '20px auto 0' }}>
-          <div style={{ display: 'flex', gap: 12 }}>
-            <button
-              type="button"
-              onClick={() => {
-                setMode('solo');
-                resetReviewState();
-                setTimeout(() => {
-                  decisionInputRef.current?.focus();
-                }, 50);
-              }}
-              style={{
-                ...modeCardBase,
-                border:
-                  mode === 'solo'
-                    ? '1px solid rgba(0,0,0,0.22)'
-                    : '1px solid rgba(0,0,0,0.10)',
-                background: mode === 'solo' ? '#ffffff' : 'rgba(255,255,255,0.55)',
-                boxShadow:
-                  mode === 'solo'
-                    ? '0 10px 24px rgba(0,0,0,0.06)'
-                    : '0 4px 12px rgba(0,0,0,0.02)',
-              }}
-            >
-              <div style={{ fontSize: 18, marginBottom: 6 }}>👤</div>
-              <div style={{ fontSize: 14, fontWeight: 800 }}>Solo Decision</div>
-              <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68, lineHeight: 1.45 }}>
-                Get a verdict before you decide alone.
-              </div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setMode('team');
-                resetReviewState();
-              }}
-              style={{
-                ...modeCardBase,
-                border:
-                  mode === 'team'
-                    ? '1px solid rgba(0,0,0,0.22)'
-                    : '1px solid rgba(0,0,0,0.10)',
-                background: mode === 'team' ? '#ffffff' : 'rgba(255,255,255,0.55)',
-                boxShadow:
-                  mode === 'team'
-                    ? '0 10px 24px rgba(0,0,0,0.06)'
-                    : '0 4px 12px rgba(0,0,0,0.02)',
-              }}
-            >
-              <div style={{ fontSize: 18, marginBottom: 6 }}>👥</div>
-              <div style={{ fontSize: 14, fontWeight: 800 }}>Team Review</div>
-              <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68, lineHeight: 1.45 }}>
-                Get alignment before the call gets made.
-              </div>
-            </button>
-          </div>
-        </section>
-
-        {mode === 'solo' ? (
-          <section style={{ maxWidth: 720, margin: '20px auto 0' }}>
-            <div
-              style={{
-                border,
-                borderRadius: 16,
-                background: shellBg,
-                boxShadow: '0 18px 40px rgba(0,0,0,0.05)',
-                backdropFilter: 'blur(10px)',
-                padding: 18,
-              }}
-            >
-              <div style={{ marginBottom: 12 }}>
-                <div
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 900,
-                    letterSpacing: '0.06em',
-                    opacity: 0.58,
-                  }}
-                >
-                  SOLO DECISION
-                </div>
-                <div style={{ marginTop: 6, fontSize: 22, fontWeight: 900, lineHeight: 1.15 }}>
-                  What decision are you about to make?
-                </div>
-                <div style={{ marginTop: 6, fontSize: 13.5, lineHeight: 1.55, opacity: 0.68 }}>
-                  Get a readiness check, key risks, and a verdict.
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gap: 12 }}>
-                <div>
-                  <textarea
-                    ref={decisionInputRef}
-                    value={decision}
-                    onChange={(e) => setDecision(e.target.value)}
-                    rows={4}
-                    placeholder={decisionPlaceholder}
-                    style={{ ...inputStyle, minHeight: 124, resize: 'vertical' }}
-                  />
-                  {decisionError && (
-                    <div style={{ marginTop: 8, fontSize: 12, color: '#dc2626', fontWeight: 700 }}>
-                      {decisionError}
-                    </div>
-                  )}
-                </div>
-
-                <details style={detailStyle}>
-                  <summary style={summaryStyle}>{optionalDetailsLabel}</summary>
-                  <div style={{ paddingTop: 12 }}>
-                    <textarea
-                      value={context}
-                      onChange={(e) => setContext(e.target.value)}
-                      rows={4}
-                      placeholder={contextPlaceholder}
-                      style={{ ...inputStyle, minHeight: 112, resize: 'vertical' }}
-                    />
-                  </div>
-                </details>
-
-                {apiError && (
-                  <div
-                    style={{
-                      borderRadius: 12,
-                      border: '1px solid rgba(220,38,38,0.16)',
-                      background: 'rgba(220,38,38,0.04)',
-                      padding: '10px 12px',
-                      color: '#b91c1c',
-                      fontSize: 12.5,
-                      fontWeight: 700,
-                    }}
-                  >
-                    {apiError}
-                  </div>
-                )}
-
-                <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                  <button
-                    type="button"
-                    onClick={beginReview}
-                    disabled={loading}
-                    style={{
-                      ...ctaButtonStyle,
-                      opacity: loading ? 0.72 : 1,
-                      cursor: loading ? 'default' : 'pointer',
-                    }}
-                  >
-                    {loading ? 'Running Review...' : 'Run Decision Review'}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {hasStarted && loading && !reviewResult && (
-              <div style={{ marginTop: 16, ...cardStyle }}>
-                <div style={{ fontSize: 14, fontWeight: 800 }}>Review in progress...</div>
-                <div style={{ marginTop: 6, fontSize: 13, lineHeight: 1.55, opacity: 0.68 }}>
-                  Structuring the decision, testing the main assumption, and checking whether this
-                  looks ready to commit.
-                </div>
-              </div>
-            )}
-
-            {reviewResult && (
-              <div ref={snapshotRef} style={{ marginTop: 16, display: 'grid', gap: 14 }}>
-                <div
-                  style={{
-                    ...cardStyle,
-                    border: `1px solid ${scoreMeta.border}`,
-                    background: scoreMeta.background,
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      borderRadius: 999,
-                      border: `1px solid ${scoreMeta.border}`,
-                      background: '#fff',
-                      color: scoreMeta.color,
-                      padding: '5px 10px',
-                      fontSize: 10,
-                      fontWeight: 900,
-                      letterSpacing: '0.08em',
-                    }}
-                  >
-                    {scoreMeta.badge}
-                  </div>
-
-                  <div
-                    style={{
-                      marginTop: 12,
-                      display: 'flex',
-                      alignItems: 'baseline',
-                      gap: 10,
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: 34,
-                        fontWeight: 900,
-                        letterSpacing: -0.04,
-                        opacity: 0.88,
-                      }}
-                    >
-                      {scoreTotal ?? '—'}
-                    </div>
-                    <div style={{ fontSize: 18, fontWeight: 900, color: scoreMeta.color }}>
-                      {verdictDisplay}
-                    </div>
-                  </div>
-
-                  <div style={{ marginTop: 4, fontSize: 12.5, fontWeight: 800, opacity: 0.58 }}>
-                    Confidence: {scoreTotal ?? '—'} / 100
-                  </div>
-
-                  <div
-                    style={{
-                      marginTop: 10,
-                      fontSize: 12.5,
-                      lineHeight: 1.4,
-                      fontWeight: 700,
-                      opacity: 0.58,
-                    }}
-                  >
-                    {buildBreakLine(reviewResult.snapshot.hinge)}
-                  </div>
-
-                  <div
-                    style={{
-                      marginTop: 14,
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-                      gap: 10,
-                    }}
-                  >
-                    <div style={{ ...detailStyle, background: '#fff' }}>
-                      <div
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 900,
-                          opacity: 0.5,
-                          marginBottom: 6,
-                        }}
-                      >
-                        FAILURE POINT
-                      </div>
-                      <div style={{ fontSize: 13.5, lineHeight: 1.45, fontWeight: 700 }}>
-                        {reviewResult.topline.primaryRisk}
-                      </div>
-                    </div>
-
-                    <div style={{ ...detailStyle, background: '#fff' }}>
-                      <div
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 900,
-                          opacity: 0.5,
-                          marginBottom: 6,
-                        }}
-                      >
-                        CRITICAL ASSUMPTION
-                      </div>
-                      <div style={{ fontSize: 13.5, lineHeight: 1.45, fontWeight: 700 }}>
-                        {reviewResult.topline.mustBeTrue}
-                      </div>
-                    </div>
-
-                    <div style={{ ...detailStyle, background: '#fff' }}>
-                      <div
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 900,
-                          opacity: 0.5,
-                          marginBottom: 6,
-                        }}
-                      >
-                        NEXT MOVE
-                      </div>
-                      <div style={{ fontSize: 13.5, lineHeight: 1.45, fontWeight: 700 }}>
-                        {reviewResult.topline.recommendedMove}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      height: 1,
-                      background: 'rgba(0,0,0,0.08)',
-                      margin: '14px 0 10px',
-                    }}
-                  />
-
-                  <div
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-                      gap: 10,
-                    }}
-                  >
-                    <div style={detailStyle}>
-                      <div
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 900,
-                          opacity: 0.5,
-                          marginBottom: 2,
-                        }}
-                      >
-                        DOOR
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 10.5,
-                          fontWeight: 600,
-                          opacity: 0.55,
-                          marginBottom: 6,
-                        }}
-                      >
-                        (type of decision)
-                      </div>
-                      <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>
-                        {reviewResult.snapshot.door}
-                      </div>
-                    </div>
-
-                    <div style={detailStyle}>
-                      <div
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 900,
-                          opacity: 0.5,
-                          marginBottom: 2,
-                        }}
-                      >
-                        HINGE
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 10.5,
-                          fontWeight: 600,
-                          opacity: 0.55,
-                          marginBottom: 6,
-                        }}
-                      >
-                        (what must be true)
-                      </div>
-                      <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>
-                        {reviewResult.snapshot.hinge}
-                      </div>
-                    </div>
-
-                    <div style={detailStyle}>
-                      <div
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 900,
-                          opacity: 0.5,
-                          marginBottom: 2,
-                        }}
-                      >
-                        LOCKS
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 10.5,
-                          fontWeight: 600,
-                          opacity: 0.55,
-                          marginBottom: 6,
-                        }}
-                      >
-                        (what gets hard to undo)
-                      </div>
-                      <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>
-                        {reviewResult.snapshot.lock}
-                      </div>
-                    </div>
-
-                    <div style={detailStyle}>
-                      <div
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 900,
-                          opacity: 0.5,
-                          marginBottom: 2,
-                        }}
-                      >
-                        TRAP
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 10.5,
-                          fontWeight: 600,
-                          opacity: 0.55,
-                          marginBottom: 6,
-                        }}
-                      >
-                        (hidden failure risk)
-                      </div>
-                      <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>
-                        {reviewResult.snapshot.trap}
-                      </div>
-                    </div>
-
-                    <div style={detailStyle}>
-                      <div
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 900,
-                          opacity: 0.5,
-                          marginBottom: 2,
-                        }}
-                      >
-                        EXIT
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 10.5,
-                          fontWeight: 600,
-                          opacity: 0.55,
-                          marginBottom: 6,
-                        }}
-                      >
-                        (when to stop)
-                      </div>
-                      <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>
-                        {reviewResult.snapshot.exit}
-                      </div>
-                    </div>
-
-                    <div style={detailStyle}>
-                      <div
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 900,
-                          opacity: 0.5,
-                          marginBottom: 2,
-                        }}
-                      >
-                        STEP
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 10.5,
-                          fontWeight: 600,
-                          opacity: 0.55,
-                          marginBottom: 6,
-                        }}
-                      >
-                        (next survivable move)
-                      </div>
-                      <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>
-                        {reviewResult.snapshot.step}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div style={cardStyle}>
-                  <details
-                    onToggle={(e) => {
-                      const el = e.currentTarget;
-                      if (el.open) void loadDeepReview();
-                    }}
-                  >
-                    <summary style={summaryStyle}>▶ See reasoning</summary>
-
-                    <div style={{ paddingTop: 12 }}>
-                      {deepLoading ? (
-                        <div style={{ fontSize: 13.5, lineHeight: 1.6, opacity: 0.72 }}>
-                          Loading deeper review...
-                        </div>
-                      ) : deepReviewSections.length > 0 ? (
-                        <div style={{ display: 'grid', gap: 10 }}>
-                          {deepReviewSections.map((section) => {
-                            const key = section.heading.toLowerCase();
-                            const isOpen = Boolean(openBreakdownSections[key]);
-
-                            return (
-                              <div
-                                key={section.heading}
-                                style={{
-                                  border: '1px solid rgba(0,0,0,0.08)',
-                                  borderRadius: 12,
-                                  background: 'rgba(255,255,255,0.72)',
-                                  overflow: 'hidden',
-                                }}
-                              >
-                                <button
-                                  type="button"
-                                  onClick={() => toggleBreakdownSection(section.heading)}
+                          {openDecisions.length > 0 && (
+                            <div
+                              style={{
+                                marginTop: 10,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 6,
+                              }}
+                            >
+                              {openDecisions.map((item) => (
+                                <div
+                                  key={item.id}
                                   style={{
-                                    width: '100%',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'space-between',
-                                    gap: 12,
-                                    padding: '12px 14px',
-                                    background: 'transparent',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    textAlign: 'left',
+                                    gap: 8,
+                                    borderRadius: 10,
+                                    background: 'rgba(0,0,0,0.03)',
+                                    padding: '7px 8px',
                                   }}
                                 >
                                   <div
                                     style={{
-                                      fontSize: 13.5,
-                                      fontWeight: 800,
-                                      letterSpacing: '0.02em',
-                                      opacity: 0.82,
-                                    }}
-                                  >
-                                    {section.heading}
-                                  </div>
-
-                                  <div
-                                    style={{
+                                      minWidth: 0,
                                       fontSize: 12,
-                                      fontWeight: 900,
-                                      opacity: 0.42,
+                                      fontWeight: 700,
+                                      lineHeight: 1.35,
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                      whiteSpace: 'nowrap',
+                                    }}
+                                    title={item.decision}
+                                  >
+                                    {item.decision}
+                                  </div>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDismissDecisionFromHome(item.id)}
+                                    style={{
+                                      borderRadius: 999,
+                                      border: '1px solid rgba(0,0,0,0.10)',
+                                      background: '#fff',
+                                      padding: '6px 9px',
+                                      fontSize: 11,
+                                      fontWeight: 800,
+                                      color: '#111',
+                                      cursor: 'pointer',
+                                      flexShrink: 0,
                                     }}
                                   >
-                                    {isOpen ? '−' : '+'}
-                                  </div>
-                                </button>
-
-                                {isOpen && (
-                                  <div style={{ padding: '0 14px 14px' }}>
-                                    <div style={{ display: 'grid', gap: 8 }}>
-                                      {section.lines.map((line, index) => (
-                                        <div
-                                          key={`${section.heading}-${index}`}
-                                          style={{
-                                            fontSize: 13.5,
-                                            lineHeight: 1.6,
-                                            opacity: 0.9,
-                                          }}
-                                        >
-                                          {line}
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <div style={{ fontSize: 13.5, lineHeight: 1.6, opacity: 0.72 }}>
-                          Open this section to load the deeper review.
-                        </div>
+                                    Dismiss
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
-                  </details>
+
+                    {/* Column divider */}
+                    <div
+                      style={{
+                        background: 'rgba(0,0,0,0.06)',
+                        opacity: 0.85,
+                        alignSelf: 'stretch',
+                      }}
+                    />
+
+                    {/* Latest team session */}
+                    <div style={{ minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 900,
+                          letterSpacing: '0.10em',
+                          opacity: 0.46,
+                        }}
+                      >
+                        LATEST TEAM REVIEW
+                      </div>
+
+                      {loadingLatestTeamSession ? (
+                        <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68 }}>
+                          Loading...
+                        </div>
+                      ) : latestTeamSessionError ? (
+                        <div
+                          style={{
+                            marginTop: 4,
+                            fontSize: 12.5,
+                            color: '#b91c1c',
+                            fontWeight: 700,
+                          }}
+                        >
+                          {latestTeamSessionError}
+                        </div>
+                      ) : !latestTeamSession ? (
+                        <div
+                          style={{
+                            marginTop: 3,
+                            fontSize: 15,
+                            fontWeight: 800,
+                            letterSpacing: -0.03,
+                          }}
+                        >
+                          No active review
+                        </div>
+                      ) : (
+                        <>
+                          <div
+                            style={{
+                              marginTop: 3,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 8,
+                              flexWrap: 'wrap',
+                              minWidth: 0,
+                            }}
+                          >
+                            <div
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                borderRadius: 999,
+                                border: hasSummaryReady
+                                  ? '1px solid rgba(16,185,129,0.16)'
+                                  : '1px solid rgba(59,130,246,0.16)',
+                                background: hasSummaryReady
+                                  ? 'rgba(16,185,129,0.08)'
+                                  : 'rgba(59,130,246,0.07)',
+                                color: hasSummaryReady ? '#047857' : '#1d4ed8',
+                                padding: '4px 7px',
+                                fontSize: 9.5,
+                                fontWeight: 900,
+                                letterSpacing: '0.08em',
+                              }}
+                            >
+                              {hasSummaryReady ? 'READY' : 'OPEN'}
+                            </div>
+
+                            <div
+                              style={{
+                                minWidth: 0,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                                fontSize: 18,
+                                fontWeight: 900,
+                                letterSpacing: -0.035,
+                                lineHeight: 1.05,
+                              }}
+                            >
+                              {latestTeamSession.title}
+                            </div>
+                          </div>
+
+                          <div
+                            style={{
+                              marginTop: 4,
+                              fontSize: 12.5,
+                              lineHeight: 1.35,
+                              opacity: 0.62,
+                            }}
+                          >
+                            {latestTeamSession.deadline
+                              ? formatDeadline(latestTeamSession.deadline)
+                              : 'No deadline set'}
+                          </div>
+
+                          <div style={{ marginTop: 6, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                            {hasSummaryReady ? (
+                              <a
+                                href={`/team/${latestTeamSession.id}/summary`}
+                                style={{
+                                  borderRadius: 999,
+                                  border: 'none',
+                                  padding: '8px 11px',
+                                  background: '#111',
+                                  color: '#fff',
+                                  fontSize: 11.5,
+                                  fontWeight: 900,
+                                  textDecoration: 'none',
+                                  boxShadow: '0 6px 14px rgba(0,0,0,0.08)',
+                                }}
+                              >
+                                Open
+                              </a>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleCloseAndGenerateFromHome(latestTeamSession.id)}
+                                disabled={closingSessionId === latestTeamSession.id}
+                                style={{
+                                  borderRadius: 999,
+                                  border: 'none',
+                                  padding: '8px 11px',
+                                  background: '#111',
+                                  color: '#fff',
+                                  fontSize: 11.5,
+                                  fontWeight: 900,
+                                  cursor:
+                                    closingSessionId === latestTeamSession.id
+                                      ? 'default'
+                                      : 'pointer',
+                                  opacity: closingSessionId === latestTeamSession.id ? 0.72 : 1,
+                                  boxShadow: '0 6px 14px rgba(0,0,0,0.08)',
+                                }}
+                              >
+                                {closingSessionId === latestTeamSession.id
+                                  ? 'Closing...'
+                                  : 'Close review'}
+                              </button>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => handleDismissFromHome(latestTeamSession.id)}
+                              disabled={dismissingSessionId === latestTeamSession.id}
+                              style={{
+                                borderRadius: 999,
+                                border: '1px solid rgba(0,0,0,0.10)',
+                                padding: '8px 11px',
+                                background: '#fff',
+                                color: '#111',
+                                fontSize: 11.5,
+                                fontWeight: 800,
+                                cursor:
+                                  dismissingSessionId === latestTeamSession.id
+                                    ? 'default'
+                                    : 'pointer',
+                                opacity: dismissingSessionId === latestTeamSession.id ? 0.72 : 1,
+                              }}
+                            >
+                              {dismissingSessionId === latestTeamSession.id
+                                ? 'Dismissing...'
+                                : 'Dismiss'}
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </section>
+            )}
+
+          {/* ── Hero ── */}
+          <section style={{ textAlign: 'center', marginTop: 38 }}>
+            <h1
+              style={{
+                fontFamily: serif,
+                fontSize: 64,
+                fontWeight: 400,
+                margin: 0,
+                letterSpacing: '-0.5px',
+                lineHeight: 1.05,
+              }}
+            >
+              Decision Layer
+            </h1>
+            <div
+              style={{
+                marginTop: 10,
+                fontFamily: serif,
+                fontSize: 24,
+                fontStyle: 'italic',
+                fontWeight: 400,
+                letterSpacing: '0.01em',
+                opacity: 0.62,
+              }}
+            >
+              The last checkpoint before you commit.
+            </div>
+          </section>
+
+          {/* ── Mode selector ── */}
+          <section style={{ maxWidth: 720, margin: '20px auto 0' }}>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('solo');
+                  resetReviewState();
+                  setTimeout(() => {
+                    decisionInputRef.current?.focus();
+                  }, 50);
+                }}
+                style={{
+                  ...modeCardBase,
+                  border:
+                    mode === 'solo'
+                      ? '1px solid rgba(0,0,0,0.22)'
+                      : '1px solid rgba(0,0,0,0.10)',
+                  background: mode === 'solo' ? '#ffffff' : 'rgba(255,255,255,0.55)',
+                  boxShadow:
+                    mode === 'solo'
+                      ? '0 10px 24px rgba(0,0,0,0.06)'
+                      : '0 4px 12px rgba(0,0,0,0.02)',
+                }}
+              >
+                <div style={{ fontSize: 18, marginBottom: 6 }}>👤</div>
+                <div style={{ fontSize: 14, fontWeight: 800 }}>Solo Decision</div>
+                <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68, lineHeight: 1.45 }}>
+                  Get a verdict before you decide alone.
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('team');
+                  resetReviewState();
+                }}
+                style={{
+                  ...modeCardBase,
+                  border:
+                    mode === 'team'
+                      ? '1px solid rgba(0,0,0,0.22)'
+                      : '1px solid rgba(0,0,0,0.10)',
+                  background: mode === 'team' ? '#ffffff' : 'rgba(255,255,255,0.55)',
+                  boxShadow:
+                    mode === 'team'
+                      ? '0 10px 24px rgba(0,0,0,0.06)'
+                      : '0 4px 12px rgba(0,0,0,0.02)',
+                }}
+              >
+                <div style={{ fontSize: 18, marginBottom: 6 }}>👥</div>
+                <div style={{ fontSize: 14, fontWeight: 800 }}>Team Review</div>
+                <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68, lineHeight: 1.45 }}>
+                  Get alignment before the call gets made.
+                </div>
+              </button>
+            </div>
+          </section>
+
+          {/* ══════════════════════════════════════════════════════════════════════
+              SOLO MODE
+          ══════════════════════════════════════════════════════════════════════ */}
+          {mode === 'solo' ? (
+            <section style={{ maxWidth: 720, margin: '20px auto 0' }}>
+
+              {/* Input shell */}
+              <div
+                style={{
+                  border,
+                  borderRadius: 16,
+                  background: shellBg,
+                  boxShadow: '0 18px 40px rgba(0,0,0,0.05)',
+                  backdropFilter: 'blur(10px)',
+                  padding: 18,
+                }}
+              >
+                <div style={{ marginBottom: 12 }}>
+                  <div
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 900,
+                      letterSpacing: '0.06em',
+                      opacity: 0.58,
+                    }}
+                  >
+                    SOLO DECISION
+                  </div>
+                  <div
+                    style={{
+                      marginTop: 6,
+                      fontFamily: serif,
+                      fontSize: 22,
+                      fontWeight: 400,
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    What decision are you about to make?
+                  </div>
+                  <div style={{ marginTop: 6, fontSize: 13.5, lineHeight: 1.55, opacity: 0.68 }}>
+                    Get a readiness check, key risks, and a verdict.
+                  </div>
                 </div>
 
-                <div style={cardStyle}>
+                <div style={{ display: 'grid', gap: 12 }}>
+                  <div>
+                    <textarea
+                      ref={decisionInputRef}
+                      value={decision}
+                      onChange={(e) => setDecision(e.target.value)}
+                      rows={4}
+                      placeholder={decisionPlaceholder}
+                      style={{ ...inputStyle, minHeight: 124, resize: 'vertical' }}
+                    />
+                    {decisionError && (
+                      <div style={{ marginTop: 8, fontSize: 12, color: '#dc2626', fontWeight: 700 }}>
+                        {decisionError}
+                      </div>
+                    )}
+                  </div>
+
+                  <details style={detailStyle}>
+                    <summary style={summaryStyle}>{optionalDetailsLabel}</summary>
+                    <div style={{ paddingTop: 12 }}>
+                      <textarea
+                        value={context}
+                        onChange={(e) => setContext(e.target.value)}
+                        rows={4}
+                        placeholder={contextPlaceholder}
+                        style={{ ...inputStyle, minHeight: 112, resize: 'vertical' }}
+                      />
+                    </div>
+                  </details>
+
+                  {apiError && (
+                    <div
+                      style={{
+                        borderRadius: 12,
+                        border: '1px solid rgba(220,38,38,0.16)',
+                        background: 'rgba(220,38,38,0.04)',
+                        padding: '10px 12px',
+                        color: '#b91c1c',
+                        fontSize: 12.5,
+                        fontWeight: 700,
+                      }}
+                    >
+                      {apiError}
+                    </div>
+                  )}
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                    <button
+                      type="button"
+                      onClick={beginReview}
+                      disabled={loading}
+                      style={{
+                        ...ctaButtonStyle,
+                        opacity: loading ? 0.72 : 1,
+                        cursor: loading ? 'default' : 'pointer',
+                      }}
+                    >
+                      {loading ? 'Running Review...' : 'Run the Review'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Loading placeholder */}
+              {hasStarted && loading && !reviewResult && (
+                <div
+                  style={{
+                    marginTop: 16,
+                    border: '1px solid rgba(0,0,0,0.10)',
+                    borderRadius: 14,
+                    background: '#fff',
+                    padding: 16,
+                    boxShadow: '0 10px 20px rgba(0,0,0,0.04)',
+                  }}
+                >
+                  <div style={{ fontSize: 14, fontWeight: 800 }}>Review in progress...</div>
+                  <div style={{ marginTop: 6, fontSize: 13, lineHeight: 1.55, opacity: 0.68 }}>
+                    Structuring the decision, testing the main assumption, and checking whether this
+                    looks ready to commit.
+                  </div>
+                </div>
+              )}
+
+              {/* ── Results ── */}
+              {reviewResult && (
+                <div ref={snapshotRef} style={{ marginTop: 16 }}>
+                  <div
+                    style={{
+                      border: '1px solid rgba(0,0,0,0.10)',
+                      borderRadius: 16,
+                      background: '#fff',
+                      padding: '26px 26px 32px',
+                      boxShadow: '0 10px 24px rgba(0,0,0,0.04)',
+                    }}
+                  >
+                    {/* Meta line */}
+                    <div
+                      style={{
+                        fontFamily: sans,
+                        fontSize: 10,
+                        fontWeight: 500,
+                        letterSpacing: '0.14em',
+                        textTransform: 'uppercase',
+                        color: 'rgba(0,0,0,0.32)',
+                        marginBottom: '1.5rem',
+                      }}
+                    >
+                      Solo decision &nbsp;·&nbsp;{' '}
+                      {new Date().toLocaleDateString(undefined, {
+                        month: 'short',
+                        day: '2-digit',
+                        year: 'numeric',
+                      })}
+                    </div>
+
+                    {/* Decision text */}
+                    <div
+                      style={{
+                        fontFamily: serif,
+                        fontSize: 21,
+                        fontWeight: 400,
+                        lineHeight: 1.35,
+                        color: '#111',
+                        paddingBottom: '1.75rem',
+                        marginBottom: '1.75rem',
+                        borderBottom: '0.5px solid rgba(0,0,0,0.09)',
+                      }}
+                    >
+                      {decision}
+                    </div>
+
+                    {/* Verdict block */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '1.25rem',
+                        paddingBottom: '1.75rem',
+                        marginBottom: '1.75rem',
+                        borderBottom: '0.5px solid rgba(0,0,0,0.09)',
+                      }}
+                    >
+                      {/* Score ring */}
+                      <div
+                        style={{
+                          flexShrink: 0,
+                          width: 64,
+                          height: 64,
+                          borderRadius: '50%',
+                          background: 'rgba(0,0,0,0.03)',
+                          border: '0.5px solid rgba(0,0,0,0.14)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontFamily: mono,
+                            fontSize: 22,
+                            fontWeight: 500,
+                            color: meta.color,
+                            lineHeight: 1,
+                          }}
+                        >
+                          {scoreTotal ?? '—'}
+                        </span>
+                        <span
+                          style={{
+                            fontFamily: sans,
+                            fontSize: 10,
+                            color: 'rgba(0,0,0,0.28)',
+                            letterSpacing: '0.04em',
+                          }}
+                        >
+                          /100
+                        </span>
+                      </div>
+
+                      {/* Verdict label + headline */}
+                      <div>
+                        <span
+                          style={{
+                            display: 'inline-block',
+                            fontFamily: sans,
+                            fontSize: 10,
+                            fontWeight: 500,
+                            letterSpacing: '0.12em',
+                            textTransform: 'uppercase',
+                            background: meta.bg,
+                            color: meta.color,
+                            padding: '3px 10px',
+                            borderRadius: 4,
+                            marginBottom: 8,
+                          }}
+                        >
+                          {meta.badge}
+                        </span>
+                        <div
+                          style={{
+                            fontFamily: serif,
+                            fontSize: 26,
+                            fontWeight: 400,
+                            color: meta.color,
+                            lineHeight: 1.2,
+                            margin: '0 0 6px',
+                          }}
+                        >
+                          {verdictDisplay}
+                        </div>
+                        <div
+                          style={{
+                            fontFamily: sans,
+                            fontSize: 12,
+                            color: 'rgba(0,0,0,0.40)',
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          {buildBreakLine(reviewResult.snapshot.hinge)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Key findings */}
+                    <SectionLabel>Key findings</SectionLabel>
+                    <InsightCard
+                      label="Failure point"
+                      text={reviewResult.topline.primaryRisk}
+                      primary
+                    />
+                    <InsightCard
+                      label="Critical assumption"
+                      text={reviewResult.topline.mustBeTrue}
+                    />
+                    <InsightCard
+                      label="Next move"
+                      text={reviewResult.topline.recommendedMove}
+                    />
+
+                    <RowDivider />
+
+                    {/* Decision anatomy */}
+                    <SectionLabel>Decision anatomy</SectionLabel>
+                    <div style={{ borderTop: '0.5px solid rgba(0,0,0,0.09)' }}>
+                      <AnatomyRow
+                        label="Door"
+                        sublabel="type of decision"
+                        value={reviewResult.snapshot.door}
+                      />
+                      <AnatomyRow
+                        label="Hinge"
+                        sublabel="what must be true"
+                        value={reviewResult.snapshot.hinge}
+                      />
+                      <AnatomyRow
+                        label="Locks"
+                        sublabel="hard to undo"
+                        value={reviewResult.snapshot.lock}
+                      />
+                      <AnatomyRow
+                        label="Trap"
+                        sublabel="hidden failure risk"
+                        value={reviewResult.snapshot.trap}
+                      />
+                      <AnatomyRow
+                        label="Exit"
+                        sublabel="when to stop"
+                        value={reviewResult.snapshot.exit}
+                      />
+                      <AnatomyRow
+                        label="Step"
+                        sublabel="next survivable move"
+                        value={reviewResult.snapshot.step}
+                      />
+                    </div>
+
+                    <RowDivider />
+
+                    {/* Reasoning */}
+                    <SectionLabel>Reasoning</SectionLabel>
+                    {deepLoading ? (
+                      <div
+                        style={{
+                          fontFamily: sans,
+                          fontSize: 13,
+                          opacity: 0.55,
+                          padding: '10px 0',
+                        }}
+                      >
+                        Loading deeper review...
+                      </div>
+                    ) : deepReviewSections.length === 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => void loadDeepReview()}
+                        style={{
+                          ...lightButtonStyle,
+                          fontSize: 13,
+                          padding: '10px 16px',
+                        }}
+                      >
+                        Unpack the review ↓
+                      </button>
+                    ) : (
+                      <div style={{ borderTop: '0.5px solid rgba(0,0,0,0.09)' }}>
+                        {deepReviewSections.map((section) => (
+                          <AccordionRow
+                            key={section.heading}
+                            heading={section.heading}
+                            lines={section.lines}
+                            isOpen={Boolean(
+                              openBreakdownSections[section.heading.toLowerCase()]
+                            )}
+                            onToggle={() => toggleBreakdownSection(section.heading)}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    <RowDivider />
+
+                    {/* Your notes */}
+                    <SectionLabel>Your notes</SectionLabel>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 6,
+                        marginBottom: 14,
+                      }}
+                    >
+                      {[
+                        'What still feels unresolved?',
+                        'What would have to be true for you to feel ready?',
+                        'What are you avoiding looking at?',
+                      ].map((q) => (
+                        <div
+                          key={q}
+                          style={{
+                            fontFamily: sans,
+                            fontSize: 12,
+                            color: 'rgba(0,0,0,0.36)',
+                            paddingLeft: 12,
+                            borderLeft: '2px solid rgba(0,0,0,0.09)',
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          {q}
+                        </div>
+                      ))}
+                    </div>
+                    <textarea
+                      value={finalThoughts}
+                      onChange={(e) => setFinalThoughts(e.target.value)}
+                      rows={5}
+                      placeholder="Write before you decide…"
+                      style={{ ...inputStyle, minHeight: 132, resize: 'vertical' }}
+                    />
+
+                    {/* Commit gate */}
+                    <div
+                      style={{
+                        marginTop: '2.5rem',
+                        paddingTop: '2rem',
+                        borderTop: '0.5px solid rgba(0,0,0,0.09)',
+                        textAlign: 'center',
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontFamily: sans,
+                          fontSize: 10,
+                          fontWeight: 500,
+                          letterSpacing: '0.16em',
+                          textTransform: 'uppercase',
+                          color: 'rgba(0,0,0,0.30)',
+                          marginBottom: 6,
+                        }}
+                      >
+                        Last checkpoint
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: serif,
+                          fontSize: 20,
+                          fontWeight: 400,
+                          color: '#111',
+                          marginBottom: '1.75rem',
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        Before you commit.
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleGenerateVerdict}
+                        disabled={verdictLoading || !finalThoughts.trim()}
+                        style={{
+                          fontFamily: sans,
+                          fontSize: 12.5,
+                          fontWeight: 500,
+                          letterSpacing: '0.07em',
+                          textTransform: 'uppercase',
+                          background: '#0b0b0b',
+                          color: '#fff',
+                          border: 'none',
+                          padding: '14px 32px',
+                          borderRadius: 2,
+                          cursor: verdictLoading || !finalThoughts.trim() ? 'default' : 'pointer',
+                          opacity: verdictLoading || !finalThoughts.trim() ? 0.42 : 1,
+                          transition: 'opacity 0.15s ease',
+                        }}
+                      >
+                        {verdictLoading ? 'Generating...' : 'Generate final verdict'}
+                      </button>
+                      <div
+                        style={{
+                          marginTop: 10,
+                          fontFamily: sans,
+                          fontSize: 11,
+                          color: 'rgba(0,0,0,0.30)',
+                          letterSpacing: '0.02em',
+                        }}
+                      >
+                        Verdict saves automatically after generation.
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ── Final verdict card ── */}
+                  {verdictRequested && (
+                    <div
+                      ref={verdictRef}
+                      style={{
+                        marginTop: 14,
+                        border: '1px solid rgba(0,0,0,0.10)',
+                        borderRadius: 16,
+                        background: '#fff',
+                        padding: '26px 26px 32px',
+                        boxShadow: '0 10px 24px rgba(0,0,0,0.04)',
+                      }}
+                    >
+                      <SectionLabel>Final verdict</SectionLabel>
+
+                      {verdictLoading ? (
+                        <div style={{ fontFamily: sans, fontSize: 13.5, opacity: 0.55 }}>
+                          Generating final verdict...
+                        </div>
+                      ) : (
+                        <>
+                          <div
+                            style={{
+                              fontFamily: serif,
+                              fontSize: 26,
+                              fontWeight: 400,
+                              letterSpacing: '-0.01em',
+                              lineHeight: 1.15,
+                              marginBottom: 10,
+                            }}
+                          >
+                            {verdictTitle}
+                          </div>
+
+                          {verdictReason && (
+                            <div
+                              style={{
+                                whiteSpace: 'pre-wrap',
+                                fontFamily: sans,
+                                fontSize: 13.5,
+                                lineHeight: 1.65,
+                                color: 'rgba(0,0,0,0.70)',
+                              }}
+                            >
+                              {verdictReason}
+                            </div>
+                          )}
+                        </>
+                      )}
+
+                      {verdict && !verdictLoading && (
+                        <>
+                          <RowDivider />
+                          {!decisionId ? (
+                            <>
+                              <div
+                                style={{
+                                  fontFamily: sans,
+                                  fontSize: 10,
+                                  fontWeight: 500,
+                                  letterSpacing: '0.12em',
+                                  textTransform: 'uppercase',
+                                  color: 'rgba(0,0,0,0.36)',
+                                  marginBottom: 8,
+                                }}
+                              >
+                                Lock your decision
+                              </div>
+                              <div
+                                style={{
+                                  fontFamily: sans,
+                                  fontSize: 13.5,
+                                  lineHeight: 1.55,
+                                  opacity: 0.65,
+                                  marginBottom: 14,
+                                }}
+                              >
+                                {!user
+                                  ? 'Save this verdict and track what happens next. Sign in to add it to your decision record.'
+                                  : 'Signed in. Your decision is ready to lock.'}
+                              </div>
+                              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                <button
+                                  type="button"
+                                  onClick={handleLockVerdict}
+                                  disabled={savingVerdict}
+                                  style={{
+                                    ...ctaButtonStyle,
+                                    opacity: savingVerdict ? 0.72 : 1,
+                                    cursor: savingVerdict ? 'default' : 'pointer',
+                                  }}
+                                >
+                                  {savingVerdict
+                                    ? 'Saving...'
+                                    : user
+                                      ? 'Lock in verdict'
+                                      : 'Sign in to save'}
+                                </button>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div
+                                style={{
+                                  fontFamily: sans,
+                                  fontSize: 10,
+                                  fontWeight: 500,
+                                  letterSpacing: '0.12em',
+                                  textTransform: 'uppercase',
+                                  color: 'rgba(0,0,0,0.36)',
+                                  marginBottom: 8,
+                                }}
+                              >
+                                Decision locked
+                              </div>
+                              <div
+                                style={{
+                                  fontFamily: sans,
+                                  fontSize: 13.5,
+                                  lineHeight: 1.55,
+                                  opacity: 0.65,
+                                  marginBottom: 14,
+                                }}
+                              >
+                                You can now track how this decision plays out over time.
+                              </div>
+                              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                <a
+                                  href={`/decision-summary?id=${decisionId}`}
+                                  style={{
+                                    ...lightButtonStyle,
+                                    fontSize: 12,
+                                    padding: '8px 14px',
+                                    textDecoration: 'none',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                  }}
+                                >
+                                  View Decision Brief
+                                </a>
+
+                                <a
+                                  href="/history"
+                                  style={{
+                                    ...ctaButtonStyle,
+                                    fontSize: 12,
+                                    padding: '8px 14px',
+                                    textDecoration: 'none',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                  }}
+                                >
+                                  View Decision History
+                                </a>
+
+                                <button
+                                  type="button"
+                                  onClick={resetReviewState}
+                                  style={{
+                                    ...lightButtonStyle,
+                                    fontSize: 12,
+                                    padding: '8px 14px',
+                                  }}
+                                >
+                                  Done
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </section>
+
+          ) : (
+            /* ══════════════════════════════════════════════════════════════════════
+                TEAM MODE
+            ══════════════════════════════════════════════════════════════════════ */
+            <section style={{ maxWidth: 720, margin: '20px auto 0' }}>
+              <div
+                style={{
+                  border,
+                  borderRadius: 16,
+                  background: shellBg,
+                  boxShadow: '0 18px 40px rgba(0,0,0,0.05)',
+                  backdropFilter: 'blur(10px)',
+                  padding: 18,
+                }}
+              >
+                <div style={{ marginBottom: 12 }}>
+                  <div
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 900,
+                      letterSpacing: '0.06em',
+                      opacity: 0.58,
+                    }}
+                  >
+                    TEAM REVIEW
+                  </div>
+                  <div
+                    style={{
+                      marginTop: 6,
+                      fontFamily: serif,
+                      fontSize: 22,
+                      fontWeight: 400,
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    Hear from your team before you decide.
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gap: 14 }}>
+                  <div>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 800,
+                        marginBottom: 6,
+                        opacity: 0.66,
+                      }}
+                    >
+                      Title
+                    </div>
+                    <input
+                      value={teamTitle}
+                      onChange={(e) => setTeamTitle(e.target.value)}
+                      placeholder="new hire · raise prices · expand overseas · let someone go"
+                      style={inputStyle}
+                    />
+                  </div>
+
+                  <div>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 800,
+                        marginBottom: 6,
+                        opacity: 0.66,
+                      }}
+                    >
+                      What decision needs to be made?
+                    </div>
+                    <textarea
+                      value={teamPrompt}
+                      onChange={(e) => setTeamPrompt(e.target.value)}
+                      rows={5}
+                      placeholder="what's at stake · what's blocking it · what you need from the team"
+                      style={{ ...inputStyle, minHeight: 132, resize: 'vertical' }}
+                    />
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                      gap: 12,
+                      alignItems: 'end',
+                    }}
+                  >
+                    <div style={{ minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 800,
+                          marginBottom: 6,
+                          opacity: 0.66,
+                        }}
+                      >
+                        Deadline
+                        <span style={{ opacity: 0.42, marginLeft: 6, fontWeight: 600 }}>
+                          optional
+                        </span>
+                      </div>
+                      <input
+                        type="datetime-local"
+                        value={teamDeadline}
+                        onChange={(e) => setTeamDeadline(e.target.value)}
+                        style={inputStyle}
+                      />
+                    </div>
+
+                    <div style={{ minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 800,
+                          marginBottom: 6,
+                          opacity: 0.66,
+                        }}
+                      >
+                        Participants
+                        <span style={{ opacity: 0.42, marginLeft: 6, fontWeight: 600 }}>
+                          optional
+                        </span>
+                      </div>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min={1}
+                        step={1}
+                        value={expectedParticipants}
+                        onChange={(e) => setExpectedParticipants(e.target.value)}
+                        placeholder="6"
+                        style={inputStyle}
+                      />
+                    </div>
+                  </div>
+
+                  {teamError && (
+                    <div
+                      style={{
+                        borderRadius: 12,
+                        border: '1px solid rgba(220,38,38,0.16)',
+                        background: 'rgba(220,38,38,0.04)',
+                        padding: '10px 12px',
+                        color: '#b91c1c',
+                        fontSize: 12.5,
+                        fontWeight: 700,
+                      }}
+                    >
+                      {teamError}
+                    </div>
+                  )}
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: 4 }}>
+                    <button
+                      type="button"
+                      onClick={handleTeamCreateButtonClick}
+                      disabled={creatingTeamSession}
+                      style={{
+                        ...ctaButtonStyle,
+                        opacity: creatingTeamSession ? 0.72 : 1,
+                        cursor: creatingTeamSession ? 'default' : 'pointer',
+                      }}
+                    >
+                      {creatingTeamSession ? 'Creating...' : 'Start Team Review'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {teamSessionPreview && (
+                <div
+                  ref={teamPreviewRef}
+                  style={{
+                    marginTop: 16,
+                    border: '1px solid rgba(0,0,0,0.10)',
+                    borderRadius: 14,
+                    background: '#fff',
+                    padding: 14,
+                    boxShadow: '0 10px 20px rgba(0,0,0,0.04)',
+                  }}
+                >
                   <div
                     style={{
                       fontSize: 13,
@@ -2215,489 +2768,112 @@ export default function HomePage() {
                       marginBottom: 10,
                     }}
                   >
-                    Final Thoughts
+                    Team Review Created
                   </div>
 
-                  <textarea
-                    value={finalThoughts}
-                    onChange={(e) => setFinalThoughts(e.target.value)}
-                    rows={5}
-                    placeholder={finalThoughtsPlaceholder}
-                    style={{ ...inputStyle, minHeight: 132, resize: 'vertical' }}
-                  />
-
-                  <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                    <div style={{ width: '100%', fontSize: 12, opacity: 0.6, marginBottom: -2 }}>
-                      Generate the verdict first. Save comes after.
+                  <div style={{ display: 'grid', gap: 10 }}>
+                    <div style={detailStyle}>
+                      <div
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 900,
+                          opacity: 0.5,
+                          marginBottom: 6,
+                        }}
+                      >
+                        TITLE
+                      </div>
+                      <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>
+                        {teamSessionPreview.title}
+                      </div>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={handleGenerateVerdict}
-                      disabled={verdictLoading || !finalThoughts.trim()}
-                      style={{
-                        ...finalCtaButtonStyle,
-                        opacity: verdictLoading || !finalThoughts.trim() ? 0.72 : 1,
-                        cursor:
-                          verdictLoading || !finalThoughts.trim() ? 'default' : 'pointer',
-                      }}
-                    >
-                      {verdictLoading ? 'Generating...' : 'Generate Final Verdict'}
-                    </button>
-                  </div>
-                </div>
-
-                {verdictRequested && (
-                  <>
-                    <div ref={verdictRef} style={cardStyle}>
+                    <div style={detailStyle}>
+                      <div
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 900,
+                          opacity: 0.5,
+                          marginBottom: 6,
+                        }}
+                      >
+                        SHARE LINK
+                      </div>
                       <div
                         style={{
                           fontSize: 13,
-                          fontWeight: 900,
-                          opacity: 0.6,
-                          marginBottom: 10,
+                          lineHeight: 1.45,
+                          wordBreak: 'break-all',
                         }}
                       >
-                        Final Verdict
+                        {teamSessionPreview.shareUrl}
                       </div>
-
-                      {verdictLoading ? (
-                        <div style={{ fontSize: 13.5, lineHeight: 1.55, opacity: 0.72 }}>
-                          Generating final verdict...
-                        </div>
-                      ) : (
-                        <>
-                          <div
-                            style={{
-                              fontSize: 24,
-                              fontWeight: 900,
-                              letterSpacing: -0.03,
-                              lineHeight: 1.1,
-                              marginBottom: 8,
-                            }}
-                          >
-                            {verdictTitle}
-                          </div>
-
-                          {verdictReason ? (
-                            <div
-                              style={{
-                                whiteSpace: 'pre-wrap',
-                                fontSize: 13.5,
-                                lineHeight: 1.6,
-                                opacity: 0.84,
-                              }}
-                            >
-                              {verdictReason}
-                            </div>
-                          ) : null}
-                        </>
-                      )}
                     </div>
 
-                    {verdict && !verdictLoading && (
-                      <div style={{ ...cardStyle, marginTop: 14 }}>
-                        {!decisionId ? (
-                          <>
-                            <div
-                              style={{
-                                fontSize: 13,
-                                fontWeight: 900,
-                                opacity: 0.6,
-                                marginBottom: 10,
-                              }}
-                            >
-                              Lock your decision
-                            </div>
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                      <button type="button" onClick={handleCopyShareLink} style={lightButtonStyle}>
+                        {copied ? 'Copied' : 'Copy Share Link'}
+                      </button>
 
-                            {!user ? (
-                              <div
-                                style={{
-                                  fontSize: 13.5,
-                                  lineHeight: 1.55,
-                                  opacity: 0.76,
-                                  marginBottom: 12,
-                                }}
-                              >
-                                Save this verdict and track what happens next. Sign in to add it to
-                                your decision record.
-                              </div>
-                            ) : (
-                              <div
-                                style={{
-                                  fontSize: 13.5,
-                                  lineHeight: 1.55,
-                                  opacity: 0.76,
-                                  marginBottom: 12,
-                                }}
-                              >
-                                Signed in. Your decision is ready to lock.
-                              </div>
-                            )}
+                      <a
+                        href={teamSessionPreview.summaryUrl}
+                        style={{
+                          ...lightButtonStyle,
+                          textDecoration: 'none',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        Open Summary Page
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </section>
+          )}
 
-                            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                              <button
-                                type="button"
-                                onClick={handleLockVerdict}
-                                disabled={savingVerdict}
-                                style={{
-                                  ...finalCtaButtonStyle,
-                                  opacity: savingVerdict ? 0.72 : 1,
-                                  cursor: savingVerdict ? 'default' : 'pointer',
-                                }}
-                              >
-                                {savingVerdict
-                                  ? 'Saving...'
-                                  : user
-                                    ? 'Lock In Verdict'
-                                    : 'Sign In to Save'}
-                              </button>
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <div
-                              style={{
-                                fontSize: 13,
-                                fontWeight: 900,
-                                opacity: 0.6,
-                                marginBottom: 10,
-                              }}
-                            >
-                              Decision locked
-                            </div>
-
-                            <div
-                              style={{
-                                fontSize: 13.5,
-                                lineHeight: 1.55,
-                                opacity: 0.76,
-                                marginBottom: 12,
-                              }}
-                            >
-                              You can now track how this decision plays out over time.
-                            </div>
-
-                            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                              <a
-                                href={`/decision-summary?id=${decisionId}`}
-                                style={{
-                                  borderRadius: 999,
-                                  border: '1px solid rgba(0,0,0,0.12)',
-                                  padding: '8px 12px',
-                                  background: '#fff',
-                                  color: '#111',
-                                  fontSize: 12,
-                                  fontWeight: 800,
-                                  cursor: 'pointer',
-                                  textDecoration: 'none',
-                                }}
-                              >
-                                View Decision Brief
-                              </a>
-
-                              <a
-                                href="/history"
-                                style={{
-                                  borderRadius: 999,
-                                  border: 'none',
-                                  padding: '8px 12px',
-                                  background: '#111',
-                                  color: '#fff',
-                                  fontSize: 12,
-                                  fontWeight: 900,
-                                  textDecoration: 'none',
-                                  boxShadow: '0 8px 18px rgba(0,0,0,0.10)',
-                                }}
-                              >
-                                View Decision History
-                              </a>
-
-                              <button
-                                type="button"
-                                onClick={resetReviewState}
-                                style={{
-                                  borderRadius: 999,
-                                  border: '1px solid rgba(0,0,0,0.12)',
-                                  padding: '8px 12px',
-                                  background: '#fff',
-                                  color: '#111',
-                                  fontSize: 12,
-                                  fontWeight: 800,
-                                  cursor: 'pointer',
-                                }}
-                              >
-                                Done
-                              </button>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            )}
-          </section>
-        ) : (
-          <section style={{ maxWidth: 720, margin: '20px auto 0' }}>
+          {/* ── Footer ── */}
+          <footer
+            style={{
+              marginTop: 60,
+              paddingTop: 20,
+              paddingBottom: 40,
+              borderTop: '1px solid rgba(0,0,0,0.06)',
+              textAlign: 'center',
+              fontSize: 12,
+              color: '#777',
+              fontFamily: sans,
+            }}
+          >
             <div
               style={{
-                border,
-                borderRadius: 16,
-                background: shellBg,
-                boxShadow: '0 18px 40px rgba(0,0,0,0.05)',
-                backdropFilter: 'blur(10px)',
-                padding: 18,
+                marginBottom: 8,
+                fontFamily: serif,
+                fontSize: 15,
+                fontStyle: 'italic',
+                fontWeight: 400,
+                color: '#111',
+                opacity: 0.55,
               }}
             >
-              <div style={{ marginBottom: 12 }}>
-                <div
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 900,
-                    letterSpacing: '0.06em',
-                    opacity: 0.58,
-                  }}
-                >
-                  TEAM REVIEW
-                </div>
-                <div style={{ marginTop: 6, fontSize: 22, fontWeight: 900, lineHeight: 1.15 }}>
-                  Hear from your team before you decide.
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gap: 14 }}>
-                <div>
-                  <div
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 800,
-                      marginBottom: 6,
-                      opacity: 0.66,
-                    }}
-                  >
-                    Title
-                  </div>
-                  <input
-                    value={teamTitle}
-                    onChange={(e) => setTeamTitle(e.target.value)}
-                    placeholder="new hire · raise prices · expand overseas · let someone go"
-                    style={inputStyle}
-                  />
-                </div>
-
-                <div>
-                  <div
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 800,
-                      marginBottom: 6,
-                      opacity: 0.66,
-                    }}
-                  >
-                    What decision needs to be made?
-                  </div>
-                  <textarea
-                    value={teamPrompt}
-                    onChange={(e) => setTeamPrompt(e.target.value)}
-                    rows={5}
-                    placeholder="what's at stake · what's blocking it · what you need from the team"
-                    style={{ ...inputStyle, minHeight: 132, resize: 'vertical' }}
-                  />
-                </div>
-
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                    gap: 12,
-                    alignItems: 'end',
-                  }}
-                >
-                  <div style={{ minWidth: 0 }}>
-                    <div
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 800,
-                        marginBottom: 6,
-                        opacity: 0.66,
-                      }}
-                    >
-                      Deadline
-                      <span style={{ opacity: 0.42, marginLeft: 6, fontWeight: 600 }}>
-                        optional
-                      </span>
-                    </div>
-                    <input
-                      type="datetime-local"
-                      value={teamDeadline}
-                      onChange={(e) => setTeamDeadline(e.target.value)}
-                      style={inputStyle}
-                    />
-                  </div>
-
-                  <div style={{ minWidth: 0 }}>
-                    <div
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 800,
-                        marginBottom: 6,
-                        opacity: 0.66,
-                      }}
-                    >
-                      Participants
-                      <span style={{ opacity: 0.42, marginLeft: 6, fontWeight: 600 }}>
-                        optional
-                      </span>
-                    </div>
-                    <input
-                      type="number"
-                      inputMode="numeric"
-                      min={1}
-                      step={1}
-                      value={expectedParticipants}
-                      onChange={(e) => setExpectedParticipants(e.target.value)}
-                      placeholder="6"
-                      style={inputStyle}
-                    />
-                  </div>
-                </div>
-
-                {teamError && (
-                  <div
-                    style={{
-                      borderRadius: 12,
-                      border: '1px solid rgba(220,38,38,0.16)',
-                      background: 'rgba(220,38,38,0.04)',
-                      padding: '10px 12px',
-                      color: '#b91c1c',
-                      fontSize: 12.5,
-                      fontWeight: 700,
-                    }}
-                  >
-                    {teamError}
-                  </div>
-                )}
-
-                <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: 4 }}>
-                  <button
-                    type="button"
-                    onClick={handleTeamCreateButtonClick}
-                    disabled={creatingTeamSession}
-                    style={{
-                      ...ctaButtonStyle,
-                      opacity: creatingTeamSession ? 0.72 : 1,
-                      cursor: creatingTeamSession ? 'default' : 'pointer',
-                    }}
-                  >
-                    {creatingTeamSession ? 'Creating...' : 'Start Team Review'}
-                  </button>
-                </div>
-              </div>
+              Before you commit.
             </div>
 
-            {teamSessionPreview && (
-              <div ref={teamPreviewRef} style={{ marginTop: 16, ...cardStyle }}>
-                <div
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 900,
-                    opacity: 0.6,
-                    marginBottom: 10,
-                  }}
-                >
-                  Team Review Created
-                </div>
+            © 2026 Decision Layer ·{' '}
+            <a href="/privacy" style={{ color: '#777', textDecoration: 'none' }}>
+              Privacy
+            </a>{' '}
+            ·{' '}
+            <a href="/about" style={{ color: '#777', textDecoration: 'none' }}>
+              About
+            </a>
+          </footer>
 
-                <div style={{ display: 'grid', gap: 10 }}>
-                  <div style={detailStyle}>
-                    <div
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 900,
-                        opacity: 0.5,
-                        marginBottom: 6,
-                      }}
-                    >
-                      TITLE
-                    </div>
-                    <div style={{ fontSize: 13.5, lineHeight: 1.45 }}>
-                      {teamSessionPreview.title}
-                    </div>
-                  </div>
-
-                  <div style={detailStyle}>
-                    <div
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 900,
-                        opacity: 0.5,
-                        marginBottom: 6,
-                      }}
-                    >
-                      SHARE LINK
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 13,
-                        lineHeight: 1.45,
-                        wordBreak: 'break-all',
-                      }}
-                    >
-                      {teamSessionPreview.shareUrl}
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                    <button type="button" onClick={handleCopyShareLink} style={lightButtonStyle}>
-                      {copied ? 'Copied' : 'Copy Share Link'}
-                    </button>
-
-                    <a
-                      href={teamSessionPreview.summaryUrl}
-                      style={{
-                        ...lightButtonStyle,
-                        textDecoration: 'none',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      Open Summary Page
-                    </a>
-                  </div>
-                </div>
-              </div>
-            )}
-          </section>
-        )}
-
-        <footer
-          style={{
-            marginTop: 60,
-            paddingTop: 20,
-            paddingBottom: 40,
-            borderTop: '1px solid rgba(0,0,0,0.06)',
-            textAlign: 'center',
-            fontSize: 12,
-            color: '#777',
-          }}
-        >
-          <div style={{ marginBottom: 8, color: '#111', fontWeight: 500 }}>
-            Before you commit.
-          </div>
-
-          © 2026 Decision Layer ·{' '}
-          <a href="/privacy" style={{ color: '#777', textDecoration: 'none' }}>
-            Privacy
-          </a>{' '}
-          ·{' '}
-          <a href="/about" style={{ color: '#777', textDecoration: 'none' }}>
-            About
-          </a>
-        </footer>
-      </main>
-    </div>
+        </main>
+      </div>
+    </>
   );
 }
+
