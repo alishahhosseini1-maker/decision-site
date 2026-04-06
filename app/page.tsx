@@ -217,17 +217,25 @@ function InsightCard({
   label,
   text,
   primary = false,
+  accent = false,
 }: {
   label: string;
   text: string;
   primary?: boolean;
+  accent?: boolean;
 }) {
+  const borderColor = primary ? '#A32D2D' : accent ? 'rgba(0,0,0,0.22)' : 'rgba(0,0,0,0.08)';
+  const bg = primary ? '#FCEBEB' : accent ? 'rgba(0,0,0,0.04)' : 'rgba(0,0,0,0.015)';
+  const labelColor = primary ? '#A32D2D' : accent ? 'rgba(0,0,0,0.50)' : 'rgba(0,0,0,0.36)';
+  const textWeight = primary ? 500 : 400;
+  const textColor = primary ? '#111' : accent ? 'rgba(0,0,0,0.80)' : 'rgba(0,0,0,0.65)';
+
   return (
     <div
       style={{
-        borderLeft: `2px solid ${primary ? '#A32D2D' : 'rgba(0,0,0,0.11)'}`,
+        borderLeft: `2px solid ${borderColor}`,
         borderRadius: '0 8px 8px 0',
-        background: primary ? '#FCEBEB' : 'rgba(0,0,0,0.025)',
+        background: bg,
         padding: '12px 16px',
         marginBottom: 10,
       }}
@@ -239,7 +247,7 @@ function InsightCard({
           fontWeight: 500,
           letterSpacing: '0.12em',
           textTransform: 'uppercase' as const,
-          color: primary ? '#A32D2D' : 'rgba(0,0,0,0.36)',
+          color: labelColor,
           marginBottom: 5,
         }}
       >
@@ -250,8 +258,8 @@ function InsightCard({
           fontFamily: sans,
           fontSize: 13,
           lineHeight: 1.65,
-          color: '#111',
-          fontWeight: 400,
+          color: textColor,
+          fontWeight: textWeight,
         }}
       >
         {text}
@@ -259,6 +267,8 @@ function InsightCard({
     </div>
   );
 }
+
+const ANATOMY_HIGHLIGHT = new Set(['Hinge', 'Trap']);
 
 function AnatomyRow({
   label,
@@ -269,15 +279,19 @@ function AnatomyRow({
   sublabel: string;
   value: string;
 }) {
+  const highlight = ANATOMY_HIGHLIGHT.has(label);
+
   return (
     <div
       style={{
         display: 'grid',
         gridTemplateColumns: '110px 1fr',
-        padding: '13px 0',
+        padding: '14px 26px',
+        margin: '0 -26px',
         borderBottom: '0.5px solid rgba(0,0,0,0.09)',
         alignItems: 'baseline',
         gap: 0,
+        background: highlight ? 'rgba(0,0,0,0.022)' : 'transparent',
       }}
     >
       <div>
@@ -288,7 +302,7 @@ function AnatomyRow({
             fontWeight: 500,
             letterSpacing: '0.12em',
             textTransform: 'uppercase' as const,
-            color: 'rgba(0,0,0,0.36)',
+            color: highlight ? 'rgba(0,0,0,0.55)' : 'rgba(0,0,0,0.36)',
           }}
         >
           {label}
@@ -310,10 +324,10 @@ function AnatomyRow({
       <div
         style={{
           fontFamily: sans,
-          fontSize: 13.5,
-          color: '#111',
+          fontSize: highlight ? 15 : 13.5,
+          color: highlight ? '#111' : 'rgba(0,0,0,0.75)',
           lineHeight: 1.5,
-          fontWeight: 400,
+          fontWeight: highlight ? 500 : 400,
         }}
       >
         {value}
@@ -2206,6 +2220,7 @@ export default function HomePage() {
                     <InsightCard
                       label="Critical assumption"
                       text={reviewResult.topline.mustBeTrue}
+                      accent
                     />
                     <InsightCard
                       label="Next move"
