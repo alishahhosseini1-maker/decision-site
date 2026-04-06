@@ -183,7 +183,7 @@ function getScoreMeta(label?: string) {
 
 // ─── Layout sub-components ──────────────────────────────────────────────────────
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
+function Z2Label({ children }: { children: React.ReactNode }) {
   return (
     <div
       style={{
@@ -213,53 +213,55 @@ function RowDivider() {
   );
 }
 
-function InsightCard({
-  label,
+// Zone 2 finding row - replaces InsightCard
+function FindingRow({
+  tag,
   text,
-  primary = false,
-  accent = false,
+  variant = 'default',
 }: {
-  label: string;
+  tag: string;
   text: string;
-  primary?: boolean;
-  accent?: boolean;
+  variant?: 'threat' | 'condition' | 'directive' | 'default';
 }) {
-  const borderColor = primary ? '#A32D2D' : accent ? 'rgba(0,0,0,0.22)' : 'rgba(0,0,0,0.08)';
-  const bg = primary ? '#FCEBEB' : accent ? 'rgba(0,0,0,0.04)' : 'rgba(0,0,0,0.015)';
-  const labelColor = primary ? '#A32D2D' : accent ? 'rgba(0,0,0,0.50)' : 'rgba(0,0,0,0.36)';
-  const textWeight = primary ? 500 : 400;
-  const textColor = primary ? '#111' : accent ? 'rgba(0,0,0,0.80)' : 'rgba(0,0,0,0.65)';
+  const tagColor =
+    variant === 'threat' ? '#A32D2D' :
+    variant === 'condition' ? 'rgba(0,0,0,0.55)' :
+    'rgba(0,0,0,0.36)';
+
+  const textSize = variant === 'threat' ? 15 : variant === 'condition' ? 14 : 13.5;
+  const textWeight = variant === 'threat' ? 500 : variant === 'condition' ? 500 : 400;
+  const textColor = variant === 'directive' ? 'rgba(0,0,0,0.55)' : '#111';
+  const textFamily = variant === 'directive' ? serif : sans;
+  const textStyle = variant === 'directive' ? 'italic' as const : 'normal' as const;
 
   return (
     <div
       style={{
-        borderLeft: `2px solid ${borderColor}`,
-        borderRadius: '0 8px 8px 0',
-        background: bg,
-        padding: '12px 16px',
-        marginBottom: 10,
+        padding: '15px 0',
+        borderBottom: '0.5px solid rgba(0,0,0,0.07)',
       }}
     >
       <div
         style={{
           fontFamily: sans,
-          fontSize: 10,
+          fontSize: 9.5,
           fontWeight: 500,
-          letterSpacing: '0.12em',
+          letterSpacing: '0.13em',
           textTransform: 'uppercase' as const,
-          color: labelColor,
-          marginBottom: 5,
+          color: tagColor,
+          marginBottom: 6,
         }}
       >
-        {label}
+        {tag}
       </div>
       <div
         style={{
-          fontFamily: sans,
-          fontSize: 13,
-          lineHeight: 1.65,
+          fontFamily: textFamily,
+          fontSize: textSize,
+          lineHeight: 1.6,
           color: textColor,
           fontWeight: textWeight,
+          fontStyle: textStyle,
         }}
       >
         {text}
@@ -286,21 +288,19 @@ function AnatomyRow({
       style={{
         display: 'grid',
         gridTemplateColumns: '110px 1fr',
-        padding: '14px 26px',
-        margin: '0 -26px',
-        borderBottom: '0.5px solid rgba(0,0,0,0.09)',
+        padding: '12px 0',
+        borderBottom: '0.5px solid rgba(0,0,0,0.07)',
         alignItems: 'baseline',
         gap: 0,
-        background: highlight ? 'rgba(0,0,0,0.022)' : 'transparent',
       }}
     >
       <div>
         <div
           style={{
             fontFamily: sans,
-            fontSize: 10,
+            fontSize: 9.5,
             fontWeight: 500,
-            letterSpacing: '0.12em',
+            letterSpacing: '0.11em',
             textTransform: 'uppercase' as const,
             color: highlight ? 'rgba(0,0,0,0.55)' : 'rgba(0,0,0,0.36)',
           }}
@@ -311,7 +311,7 @@ function AnatomyRow({
           <div
             style={{
               fontFamily: sans,
-              fontSize: 10,
+              fontSize: 9.5,
               color: 'rgba(0,0,0,0.28)',
               marginTop: 2,
               fontWeight: 400,
@@ -324,8 +324,8 @@ function AnatomyRow({
       <div
         style={{
           fontFamily: sans,
-          fontSize: highlight ? 15 : 13.5,
-          color: highlight ? '#111' : 'rgba(0,0,0,0.75)',
+          fontSize: highlight ? 14 : 13,
+          color: highlight ? '#111' : 'rgba(0,0,0,0.72)',
           lineHeight: 1.5,
           fontWeight: highlight ? 500 : 400,
         }}
@@ -348,7 +348,7 @@ function AccordionRow({
   onToggle: () => void;
 }) {
   return (
-    <div style={{ borderBottom: '0.5px solid rgba(0,0,0,0.09)' }}>
+    <div style={{ borderBottom: '0.5px solid rgba(0,0,0,0.07)' }}>
       <button
         type="button"
         onClick={onToggle}
@@ -356,22 +356,22 @@ function AccordionRow({
           width: '100%',
           background: 'none',
           border: 'none',
-          padding: '15px 0',
+          padding: '14px 0',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           cursor: 'pointer',
           fontFamily: sans,
-          fontSize: 13.5,
+          fontSize: 13,
           fontWeight: 500,
-          color: '#111',
+          color: 'rgba(0,0,0,0.72)',
           textAlign: 'left' as const,
         }}
       >
         {heading}
         <span
           style={{
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: 300,
             color: 'rgba(0,0,0,0.28)',
             lineHeight: 1,
@@ -385,7 +385,7 @@ function AccordionRow({
         </span>
       </button>
       {isOpen && (
-        <div style={{ paddingBottom: 16 }}>
+        <div style={{ paddingBottom: 14 }}>
           {lines.map((line, i) => (
             <div
               key={i}
@@ -393,7 +393,7 @@ function AccordionRow({
                 fontFamily: sans,
                 fontSize: 13,
                 lineHeight: 1.7,
-                color: 'rgba(0,0,0,0.60)',
+                color: 'rgba(0,0,0,0.55)',
                 marginBottom: i < lines.length - 1 ? 6 : 0,
               }}
             >
@@ -2069,28 +2069,30 @@ export default function HomePage() {
                 </div>
               )}
 
-              {/* ── Results ── */}
+              {/* ── Results: two-zone layout ── */}
               {reviewResult && (
                 <div ref={snapshotRef} style={{ marginTop: 16 }}>
+
+                  {/* ── ZONE 1: THE SIGNAL ── */}
                   <div
                     style={{
                       border: '1px solid rgba(0,0,0,0.10)',
-                      borderRadius: 16,
+                      borderRadius: '16px 16px 0 0',
+                      borderBottom: 'none',
                       background: '#fff',
-                      padding: '26px 26px 32px',
-                      boxShadow: '0 10px 24px rgba(0,0,0,0.04)',
+                      padding: '2.5rem 2.5rem 2.75rem',
                     }}
                   >
-                    {/* Meta line */}
+                    {/* Meta */}
                     <div
                       style={{
                         fontFamily: sans,
                         fontSize: 10,
                         fontWeight: 500,
-                        letterSpacing: '0.14em',
+                        letterSpacing: '0.16em',
                         textTransform: 'uppercase',
                         color: 'rgba(0,0,0,0.32)',
-                        marginBottom: '1.5rem',
+                        marginBottom: '2rem',
                       }}
                     >
                       Solo decision &nbsp;·&nbsp;{' '}
@@ -2101,42 +2103,39 @@ export default function HomePage() {
                       })}
                     </div>
 
-                    {/* Decision text */}
+                    {/* Decision in italics */}
                     <div
                       style={{
                         fontFamily: serif,
-                        fontSize: 21,
+                        fontSize: 18,
                         fontWeight: 400,
-                        lineHeight: 1.35,
-                        color: '#111',
-                        paddingBottom: '1.75rem',
-                        marginBottom: '1.75rem',
-                        borderBottom: '0.5px solid rgba(0,0,0,0.09)',
+                        fontStyle: 'italic',
+                        lineHeight: 1.45,
+                        color: 'rgba(0,0,0,0.55)',
+                        marginBottom: '3rem',
                       }}
                     >
-                      {decision}
+                      "{decision}"
                     </div>
 
-                    {/* Verdict block */}
+                    {/* Score + verdict headline */}
                     <div
                       style={{
                         display: 'flex',
                         alignItems: 'flex-start',
-                        gap: '1.25rem',
-                        paddingBottom: '1.75rem',
-                        marginBottom: '1.75rem',
-                        borderBottom: '0.5px solid rgba(0,0,0,0.09)',
+                        gap: '2rem',
+                        marginBottom: '2.5rem',
                       }}
                     >
-                      {/* Score ring */}
+                      {/* Ring */}
                       <div
                         style={{
                           flexShrink: 0,
-                          width: 64,
-                          height: 64,
+                          width: 80,
+                          height: 80,
                           borderRadius: '50%',
-                          background: 'rgba(0,0,0,0.03)',
-                          border: '0.5px solid rgba(0,0,0,0.14)',
+                          background: meta.bg,
+                          border: `0.5px solid ${meta.borderColor}`,
                           display: 'flex',
                           flexDirection: 'column',
                           alignItems: 'center',
@@ -2146,7 +2145,7 @@ export default function HomePage() {
                         <span
                           style={{
                             fontFamily: mono,
-                            fontSize: 22,
+                            fontSize: 28,
                             fontWeight: 500,
                             color: meta.color,
                             lineHeight: 1,
@@ -2158,7 +2157,8 @@ export default function HomePage() {
                           style={{
                             fontFamily: sans,
                             fontSize: 10,
-                            color: 'rgba(0,0,0,0.28)',
+                            color: meta.color,
+                            opacity: 0.5,
                             letterSpacing: '0.04em',
                           }}
                         >
@@ -2166,21 +2166,21 @@ export default function HomePage() {
                         </span>
                       </div>
 
-                      {/* Verdict label + headline */}
-                      <div>
+                      {/* Verdict */}
+                      <div style={{ paddingTop: 4 }}>
                         <span
                           style={{
                             display: 'inline-block',
                             fontFamily: sans,
-                            fontSize: 10,
+                            fontSize: 9,
                             fontWeight: 500,
-                            letterSpacing: '0.12em',
+                            letterSpacing: '0.14em',
                             textTransform: 'uppercase',
                             background: meta.bg,
                             color: meta.color,
-                            padding: '3px 10px',
-                            borderRadius: 4,
-                            marginBottom: 8,
+                            padding: '3px 8px',
+                            borderRadius: 3,
+                            marginBottom: 10,
                           }}
                         >
                           {meta.badge}
@@ -2188,231 +2188,240 @@ export default function HomePage() {
                         <div
                           style={{
                             fontFamily: serif,
-                            fontSize: 26,
+                            fontSize: 38,
                             fontWeight: 400,
                             color: meta.color,
-                            lineHeight: 1.2,
-                            margin: '0 0 6px',
+                            lineHeight: 1.05,
                           }}
                         >
-                          {verdictDisplay}
-                        </div>
-                        <div
-                          style={{
-                            fontFamily: sans,
-                            fontSize: 12,
-                            color: 'rgba(0,0,0,0.40)',
-                            lineHeight: 1.5,
-                          }}
-                        >
-                          {buildBreakLine(reviewResult.snapshot.hinge)}
+                          {verdictDisplay}.
                         </div>
                       </div>
                     </div>
 
-                    {/* Key findings */}
-                    <SectionLabel>Key findings</SectionLabel>
-                    <InsightCard
-                      label="Failure point"
-                      text={reviewResult.topline.primaryRisk}
-                      primary
-                    />
-                    <InsightCard
-                      label="Critical assumption"
-                      text={reviewResult.topline.mustBeTrue}
-                      accent
-                    />
-                    <InsightCard
-                      label="Next move"
-                      text={reviewResult.topline.recommendedMove}
-                    />
+                    {/* Break line sentence */}
+                    <div
+                      style={{
+                        borderTop: '0.5px solid rgba(0,0,0,0.09)',
+                        paddingTop: '1.75rem',
+                        fontFamily: sans,
+                        fontSize: 14,
+                        lineHeight: 1.7,
+                        color: 'rgba(0,0,0,0.55)',
+                      }}
+                    >
+                      {buildBreakLine(reviewResult.snapshot.hinge)}{' '}
+                      <span style={{ color: 'rgba(0,0,0,0.80)', fontWeight: 500 }}>
+                        Until that assumption is tested, committing is speculation — and the downside is irreversible.
+                      </span>
+                    </div>
+                  </div>
 
-                    <RowDivider />
+                  {/* ── BRIDGE ── */}
+                  <div
+                    style={{
+                      height: 3,
+                      background: meta.color,
+                      opacity: 0.12,
+                    }}
+                  />
+
+                  {/* ── ZONE 2: THE EVIDENCE ── */}
+                  <div
+                    style={{
+                      border: '1px solid rgba(0,0,0,0.10)',
+                      borderRadius: '0 0 16px 16px',
+                      borderTop: 'none',
+                      background: 'rgba(0,0,0,0.018)',
+                      padding: '0 2.5rem',
+                    }}
+                  >
+
+                    {/* Why this verdict */}
+                    <div
+                      style={{
+                        padding: '1.75rem 0',
+                        borderBottom: '0.5px solid rgba(0,0,0,0.09)',
+                      }}
+                    >
+                      <Z2Label>Why this verdict</Z2Label>
+                      <FindingRow
+                        tag="The threat"
+                        text={reviewResult.topline.primaryRisk}
+                        variant="threat"
+                      />
+                      <FindingRow
+                        tag="What must hold"
+                        text={reviewResult.topline.mustBeTrue}
+                        variant="condition"
+                      />
+                      <div style={{ borderBottom: 'none' }}>
+                        <FindingRow
+                          tag="The move"
+                          text={reviewResult.topline.recommendedMove}
+                          variant="directive"
+                        />
+                      </div>
+                    </div>
 
                     {/* Decision anatomy */}
-                    <SectionLabel>Decision anatomy</SectionLabel>
-                    <div style={{ borderTop: '0.5px solid rgba(0,0,0,0.09)' }}>
-                      <AnatomyRow
-                        label="Door"
-                        sublabel="type of decision"
-                        value={reviewResult.snapshot.door}
-                      />
-                      <AnatomyRow
-                        label="Hinge"
-                        sublabel="what must be true"
-                        value={reviewResult.snapshot.hinge}
-                      />
-                      <AnatomyRow
-                        label="Locks"
-                        sublabel="hard to undo"
-                        value={reviewResult.snapshot.lock}
-                      />
-                      <AnatomyRow
-                        label="Trap"
-                        sublabel="hidden failure risk"
-                        value={reviewResult.snapshot.trap}
-                      />
-                      <AnatomyRow
-                        label="Exit"
-                        sublabel="when to stop"
-                        value={reviewResult.snapshot.exit}
-                      />
-                      <AnatomyRow
-                        label="Step"
-                        sublabel="next survivable move"
-                        value={reviewResult.snapshot.step}
-                      />
+                    <div
+                      style={{
+                        padding: '1.75rem 0',
+                        borderBottom: '0.5px solid rgba(0,0,0,0.09)',
+                      }}
+                    >
+                      <Z2Label>Decision anatomy</Z2Label>
+                      <div style={{ borderTop: '0.5px solid rgba(0,0,0,0.07)' }}>
+                        <AnatomyRow label="Door" sublabel="type of decision" value={reviewResult.snapshot.door} />
+                        <AnatomyRow label="Hinge" sublabel="what must be true" value={reviewResult.snapshot.hinge} />
+                        <AnatomyRow label="Locks" sublabel="hard to undo" value={reviewResult.snapshot.lock} />
+                        <AnatomyRow label="Trap" sublabel="hidden failure risk" value={reviewResult.snapshot.trap} />
+                        <AnatomyRow label="Exit" sublabel="when to stop" value={reviewResult.snapshot.exit} />
+                        <div style={{ borderBottom: 'none' }}>
+                          <AnatomyRow label="Step" sublabel="next survivable move" value={reviewResult.snapshot.step} />
+                        </div>
+                      </div>
                     </div>
-
-                    <RowDivider />
 
                     {/* Reasoning */}
-                    <SectionLabel>Reasoning</SectionLabel>
-                    {deepLoading ? (
-                      <div
-                        style={{
-                          fontFamily: sans,
-                          fontSize: 13,
-                          opacity: 0.55,
-                          padding: '10px 0',
-                        }}
-                      >
-                        Loading deeper review...
-                      </div>
-                    ) : deepReviewSections.length === 0 ? (
-                      <button
-                        type="button"
-                        onClick={() => void loadDeepReview()}
-                        style={{
-                          ...lightButtonStyle,
-                          fontSize: 13,
-                          padding: '10px 16px',
-                        }}
-                      >
-                        Unpack the review ↓
-                      </button>
-                    ) : (
-                      <div style={{ borderTop: '0.5px solid rgba(0,0,0,0.09)' }}>
-                        {deepReviewSections.map((section) => (
-                          <AccordionRow
-                            key={section.heading}
-                            heading={section.heading}
-                            lines={section.lines}
-                            isOpen={Boolean(
-                              openBreakdownSections[section.heading.toLowerCase()]
-                            )}
-                            onToggle={() => toggleBreakdownSection(section.heading)}
-                          />
-                        ))}
-                      </div>
-                    )}
-
-                    <RowDivider />
-
-                    {/* Your notes */}
-                    <SectionLabel>Your notes</SectionLabel>
                     <div
                       style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 6,
-                        marginBottom: 14,
+                        padding: '1.75rem 0',
+                        borderBottom: '0.5px solid rgba(0,0,0,0.09)',
                       }}
                     >
-                      {[
-                        'What still feels unresolved?',
-                        'What would have to be true for you to feel ready?',
-                        'What are you avoiding looking at?',
-                      ].map((q) => (
-                        <div
-                          key={q}
+                      <Z2Label>Reasoning</Z2Label>
+                      {deepLoading ? (
+                        <div style={{ fontFamily: sans, fontSize: 13, color: 'rgba(0,0,0,0.42)', padding: '8px 0' }}>
+                          Loading deeper review...
+                        </div>
+                      ) : deepReviewSections.length === 0 ? (
+                        <button
+                          type="button"
+                          onClick={() => void loadDeepReview()}
                           style={{
-                            fontFamily: sans,
-                            fontSize: 12,
-                            color: 'rgba(0,0,0,0.36)',
-                            paddingLeft: 12,
-                            borderLeft: '2px solid rgba(0,0,0,0.09)',
-                            lineHeight: 1.5,
+                            ...lightButtonStyle,
+                            fontSize: 12.5,
+                            padding: '9px 16px',
                           }}
                         >
-                          {q}
+                          Unpack the review ↓
+                        </button>
+                      ) : (
+                        <div style={{ borderTop: '0.5px solid rgba(0,0,0,0.07)' }}>
+                          {deepReviewSections.map((section) => (
+                            <AccordionRow
+                              key={section.heading}
+                              heading={section.heading}
+                              lines={section.lines}
+                              isOpen={Boolean(openBreakdownSections[section.heading.toLowerCase()])}
+                              onToggle={() => toggleBreakdownSection(section.heading)}
+                            />
+                          ))}
                         </div>
-                      ))}
+                      )}
                     </div>
-                    <textarea
-                      value={finalThoughts}
-                      onChange={(e) => setFinalThoughts(e.target.value)}
-                      rows={5}
-                      placeholder="Write before you decide…"
-                      style={{ ...inputStyle, minHeight: 132, resize: 'vertical' }}
-                    />
 
-                    {/* Commit gate */}
-                    <div
-                      style={{
-                        marginTop: '2.5rem',
-                        paddingTop: '2rem',
-                        borderTop: '0.5px solid rgba(0,0,0,0.09)',
-                        textAlign: 'center',
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontFamily: sans,
-                          fontSize: 10,
-                          fontWeight: 500,
-                          letterSpacing: '0.16em',
-                          textTransform: 'uppercase',
-                          color: 'rgba(0,0,0,0.30)',
-                          marginBottom: 6,
-                        }}
-                      >
-                        Last checkpoint
+                    {/* Your notes + commit gate */}
+                    <div style={{ padding: '1.75rem 0' }}>
+                      <Z2Label>Your notes</Z2Label>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
+                        {[
+                          'What still feels unresolved?',
+                          'What would have to be true for you to feel ready?',
+                          'What are you avoiding looking at?',
+                        ].map((q) => (
+                          <div
+                            key={q}
+                            style={{
+                              fontFamily: sans,
+                              fontSize: 12,
+                              color: 'rgba(0,0,0,0.36)',
+                              paddingLeft: 12,
+                              borderLeft: '2px solid rgba(0,0,0,0.09)',
+                              lineHeight: 1.5,
+                            }}
+                          >
+                            {q}
+                          </div>
+                        ))}
                       </div>
+                      <textarea
+                        value={finalThoughts}
+                        onChange={(e) => setFinalThoughts(e.target.value)}
+                        rows={5}
+                        placeholder="Write before you decide…"
+                        style={{ ...inputStyle, minHeight: 132, resize: 'vertical', background: '#fff' }}
+                      />
+
+                      {/* Commit gate */}
                       <div
                         style={{
-                          fontFamily: serif,
-                          fontSize: 20,
-                          fontWeight: 400,
-                          color: '#111',
-                          marginBottom: '1.75rem',
-                          lineHeight: 1.3,
+                          marginTop: '2.5rem',
+                          paddingTop: '2rem',
+                          borderTop: '0.5px solid rgba(0,0,0,0.09)',
+                          textAlign: 'center',
                         }}
                       >
-                        Before you commit.
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleGenerateVerdict}
-                        disabled={verdictLoading || !finalThoughts.trim()}
-                        style={{
-                          fontFamily: sans,
-                          fontSize: 12.5,
-                          fontWeight: 500,
-                          letterSpacing: '0.07em',
-                          textTransform: 'uppercase',
-                          background: '#0b0b0b',
-                          color: '#fff',
-                          border: 'none',
-                          padding: '14px 32px',
-                          borderRadius: 2,
-                          cursor: verdictLoading || !finalThoughts.trim() ? 'default' : 'pointer',
-                          opacity: verdictLoading || !finalThoughts.trim() ? 0.42 : 1,
-                          transition: 'opacity 0.15s ease',
-                        }}
-                      >
-                        {verdictLoading ? 'Generating...' : 'Generate final verdict'}
-                      </button>
-                      <div
-                        style={{
-                          marginTop: 10,
-                          fontFamily: sans,
-                          fontSize: 11,
-                          color: 'rgba(0,0,0,0.30)',
-                          letterSpacing: '0.02em',
-                        }}
-                      >
-                        Verdict saves automatically after generation.
+                        <div
+                          style={{
+                            fontFamily: sans,
+                            fontSize: 10,
+                            fontWeight: 500,
+                            letterSpacing: '0.16em',
+                            textTransform: 'uppercase',
+                            color: 'rgba(0,0,0,0.30)',
+                            marginBottom: 6,
+                          }}
+                        >
+                          Last checkpoint
+                        </div>
+                        <div
+                          style={{
+                            fontFamily: serif,
+                            fontSize: 20,
+                            fontWeight: 400,
+                            color: '#111',
+                            marginBottom: '1.75rem',
+                            lineHeight: 1.3,
+                          }}
+                        >
+                          Before you commit.
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleGenerateVerdict}
+                          disabled={verdictLoading || !finalThoughts.trim()}
+                          style={{
+                            fontFamily: sans,
+                            fontSize: 12.5,
+                            fontWeight: 500,
+                            letterSpacing: '0.07em',
+                            textTransform: 'uppercase',
+                            background: '#0b0b0b',
+                            color: '#fff',
+                            border: 'none',
+                            padding: '14px 32px',
+                            borderRadius: 2,
+                            cursor: verdictLoading || !finalThoughts.trim() ? 'default' : 'pointer',
+                            opacity: verdictLoading || !finalThoughts.trim() ? 0.42 : 1,
+                            transition: 'opacity 0.15s ease',
+                          }}
+                        >
+                          {verdictLoading ? 'Generating...' : 'Generate final verdict'}
+                        </button>
+                        <div
+                          style={{
+                            marginTop: 10,
+                            fontFamily: sans,
+                            fontSize: 11,
+                            color: 'rgba(0,0,0,0.30)',
+                            letterSpacing: '0.02em',
+                          }}
+                        >
+                          Verdict saves automatically after generation.
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -2427,10 +2436,21 @@ export default function HomePage() {
                         borderRadius: 16,
                         background: '#fff',
                         padding: '26px 26px 32px',
-                        boxShadow: '0 10px 24px rgba(0,0,0,0.04)',
                       }}
                     >
-                      <SectionLabel>Final verdict</SectionLabel>
+                      <div
+                        style={{
+                          fontFamily: sans,
+                          fontSize: 10,
+                          fontWeight: 500,
+                          letterSpacing: '0.14em',
+                          textTransform: 'uppercase',
+                          color: 'rgba(0,0,0,0.36)',
+                          marginBottom: '0.85rem',
+                        }}
+                      >
+                        Final verdict
+                      </div>
 
                       {verdictLoading ? (
                         <div style={{ fontFamily: sans, fontSize: 13.5, opacity: 0.55 }}>
@@ -2509,11 +2529,7 @@ export default function HomePage() {
                                     cursor: savingVerdict ? 'default' : 'pointer',
                                   }}
                                 >
-                                  {savingVerdict
-                                    ? 'Saving...'
-                                    : user
-                                      ? 'Lock in verdict'
-                                      : 'Sign in to save'}
+                                  {savingVerdict ? 'Saving...' : user ? 'Lock in verdict' : 'Sign in to save'}
                                 </button>
                               </div>
                             </>
@@ -2557,7 +2573,6 @@ export default function HomePage() {
                                 >
                                   View Decision Brief
                                 </a>
-
                                 <a
                                   href="/history"
                                   style={{
@@ -2571,7 +2586,6 @@ export default function HomePage() {
                                 >
                                   View Decision History
                                 </a>
-
                                 <button
                                   type="button"
                                   onClick={resetReviewState}
