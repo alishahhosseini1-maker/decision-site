@@ -391,7 +391,7 @@ export async function sendSummaryEmail({
   `;
 
   await resend.emails.send({
-    from: 'Decision Layer <onboarding@resend.dev>',
+    from: 'Decision Layer <info@decisionlayer.dev>',
     to,
     subject: `Summary: ${title}`,
     html,

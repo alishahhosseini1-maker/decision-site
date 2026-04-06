@@ -24,7 +24,7 @@ export default function PrivacyPage() {
         </p>
   
         <p style={{ color: '#444' }}>
-          If you have questions, contact: hello@decisionlayer.dev
+          If you have questions, contact: info@decisionlayer.dev
         </p>
       </div>
     );
