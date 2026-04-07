@@ -586,68 +586,76 @@ export default function HomePage() {
 
       setAuthLoading(false);
       setAuthError(null);
-
-      try {
-        const pendingLock = localStorage.getItem(STORAGE.pendingLockVerdict);
-
-        if (authUser && pendingLock === 'true') {
-          localStorage.removeItem(STORAGE.pendingLockVerdict);
-
-          // Read directly from localStorage — avoids stale closure state after magic link return
-          setTimeout(async () => {
-            try {
-              const raw = localStorage.getItem(STORAGE.pendingSoloReview);
-              if (!raw) return;
-              const saved = JSON.parse(raw) as PendingSoloReview;
-              if (!saved.reviewResult || !saved.verdict) return;
-
-              // Restore UI so page looks correct on return
-              if (saved.decision) setDecision(saved.decision);
-              if (saved.context) setContext(saved.context);
-              if (saved.reviewResult) setReviewResult(saved.reviewResult);
-              if (saved.deepReview) setDeepReview(saved.deepReview);
-              if (saved.finalThoughts) setFinalThoughts(saved.finalThoughts);
-              if (saved.verdictRequested) setVerdictRequested(true);
-              if (saved.verdict) setVerdict(saved.verdict);
-              setHasStarted(true);
-
-              const saveRes = await fetch('/api/decision/save', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  decision: saved.decision,
-                  context: saved.context,
-                  score: saved.reviewResult?.readiness?.total ?? null,
-                  verdict: saved.verdict,
-                  door: saved.reviewResult?.snapshot?.door ?? null,
-                  hinge: saved.reviewResult?.snapshot?.hinge ?? null,
-                  trap: saved.reviewResult?.snapshot?.trap ?? null,
-                  step: saved.reviewResult?.snapshot?.step ?? null,
-                  outcome_status: 'awaiting_outcome',
-                  userId: authUser.id,
-                }),
-              });
-
-              if (saveRes.ok) {
-                const saveData = await saveRes.json();
-                if (saveData?.id) setDecisionId(saveData.id);
-                localStorage.removeItem(STORAGE.pendingSoloReview);
-                setSavedToast('Decision saved to history');
-              }
-            } catch {
-              // ignore
-            }
-          }, 500);
-        }
-      } catch {
-        // ignore
-      }
     });
 
     return () => {
       subscription.unsubscribe();
     };
   }, []);
+
+  // Separate effect: fires when user becomes available after magic link sign-in.
+  // Reads pending save from localStorage and completes it without closure state issues.
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const pendingLock = (() => {
+      try { return localStorage.getItem('dl:pending_lock_verdict'); }
+      catch { return null; }
+    })();
+
+    if (pendingLock !== 'true') return;
+
+    // Remove flag immediately so this only fires once
+    try { localStorage.removeItem('dl:pending_lock_verdict'); } catch { /* ignore */ }
+
+    const doSave = async () => {
+      try {
+        const raw = localStorage.getItem('dl:pending_solo_review');
+        if (!raw) return;
+        const saved = JSON.parse(raw) as PendingSoloReview;
+        if (!saved.reviewResult || !saved.verdict) return;
+
+        // Restore UI state so the page shows the review on return
+        setDecision(saved.decision ?? '');
+        setContext(saved.context ?? '');
+        setReviewResult(saved.reviewResult);
+        setDeepReview(saved.deepReview ?? null);
+        setFinalThoughts(saved.finalThoughts ?? '');
+        setVerdictRequested(Boolean(saved.verdictRequested));
+        setVerdict(saved.verdict);
+        setHasStarted(true);
+
+        const saveRes = await fetch('/api/decision/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            decision: saved.decision,
+            context: saved.context,
+            score: saved.reviewResult?.readiness?.total ?? null,
+            verdict: saved.verdict,
+            door: saved.reviewResult?.snapshot?.door ?? null,
+            hinge: saved.reviewResult?.snapshot?.hinge ?? null,
+            trap: saved.reviewResult?.snapshot?.trap ?? null,
+            step: saved.reviewResult?.snapshot?.step ?? null,
+            outcome_status: 'awaiting_outcome',
+            userId: user.id,
+          }),
+        });
+
+        if (saveRes.ok) {
+          const saveData = await saveRes.json();
+          if (saveData?.id) setDecisionId(saveData.id);
+          try { localStorage.removeItem('dl:pending_solo_review'); } catch { /* ignore */ }
+          setSavedToast('Decision saved to history');
+        }
+      } catch {
+        // ignore
+      }
+    };
+
+    void doSave();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   useEffect(() => {
     if (!mode || mode !== 'solo') return;
