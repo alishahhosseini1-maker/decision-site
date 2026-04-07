@@ -213,7 +213,7 @@ function RowDivider() {
   );
 }
 
-// Zone 2 finding row - replaces InsightCard
+// Zone 2 finding row
 function FindingRow({
   tag,
   text,
@@ -1073,19 +1073,50 @@ export default function HomePage() {
   };
 
   const handleLockVerdict = async () => {
-    if (!reviewResult || !verdict || savingVerdict) return;
+    // After magic link sign-in the component remounts and React state is stale.
+    // Read from localStorage as the authoritative source of truth in that case.
+    let activeReview = reviewResult;
+    let activeVerdict = verdict;
+    let activeDecision = decision;
+    let activeContext = context;
+
+    if (!activeReview || !activeVerdict) {
+      try {
+        const raw = localStorage.getItem(STORAGE.pendingSoloReview);
+        if (raw) {
+          const saved = JSON.parse(raw) as PendingSoloReview;
+          activeReview = saved.reviewResult ?? null;
+          activeVerdict = saved.verdict ?? null;
+          activeDecision = saved.decision ?? decision;
+          activeContext = saved.context ?? context;
+          // Restore UI state so the page looks correct after return
+          if (saved.decision) setDecision(saved.decision);
+          if (saved.context) setContext(saved.context);
+          if (saved.reviewResult) setReviewResult(saved.reviewResult);
+          if (saved.deepReview) setDeepReview(saved.deepReview);
+          if (saved.finalThoughts) setFinalThoughts(saved.finalThoughts);
+          if (saved.verdictRequested) setVerdictRequested(true);
+          if (saved.verdict) setVerdict(saved.verdict);
+          setHasStarted(true);
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    if (!activeReview || !activeVerdict || savingVerdict) return;
 
     setApiError(null);
 
     if (!user) {
       persistSoloReviewLocally({
-        decision,
-        context,
-        reviewResult,
+        decision: activeDecision,
+        context: activeContext,
+        reviewResult: activeReview,
         deepReview,
         finalThoughts,
         verdictRequested,
-        verdict,
+        verdict: activeVerdict,
       });
 
       try {
@@ -1105,14 +1136,14 @@ export default function HomePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          decision,
-          context,
-          score: reviewResult?.readiness?.total ?? null,
-          verdict,
-          door: reviewResult?.snapshot?.door ?? null,
-          hinge: reviewResult?.snapshot?.hinge ?? null,
-          trap: reviewResult?.snapshot?.trap ?? null,
-          step: reviewResult?.snapshot?.step ?? null,
+          decision: activeDecision,
+          context: activeContext,
+          score: activeReview?.readiness?.total ?? null,
+          verdict: activeVerdict,
+          door: activeReview?.snapshot?.door ?? null,
+          hinge: activeReview?.snapshot?.hinge ?? null,
+          trap: activeReview?.snapshot?.trap ?? null,
+          step: activeReview?.snapshot?.step ?? null,
           outcome_status: 'awaiting_outcome',
           userId: user.id,
         }),
