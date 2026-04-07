@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
+import Anthropic from '@anthropic-ai/sdk';
 
 export const runtime = 'nodejs';
+
+const client = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
 
 function cleanText(value: unknown) {
   return typeof value === 'string' ? value.trim() : '';
@@ -23,17 +28,14 @@ export async function POST(req: Request) {
       );
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
-
-    if (!apiKey) {
+    if (!process.env.ANTHROPIC_API_KEY) {
       return NextResponse.json(
-        { error: 'Missing OPENAI_API_KEY in .env' },
+        { error: 'Missing ANTHROPIC_API_KEY in .env' },
         { status: 500 }
       );
     }
 
-    const prompt = `
-You are a disciplined decision partner.
+    const prompt = `You are a disciplined decision partner.
 
 Your job is to generate a FINAL VERDICT that sets a clear commitment rule.
 
@@ -78,46 +80,27 @@ KEY HINGE
 ${hinge || 'Not provided'}
 
 MISSING CONDITION / NEXT MOVE
-${nextMove || 'Not provided'}
-`;
+${nextMove || 'Not provided'}`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content:
-              'You deliver final decision calls like a senior operator reviewing a hard-to-reverse move. You are precise, concrete, constraint-driven, and never generic.',
-          },
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        temperature: 0.1,
-      }),
+    const message = await client.messages.create({
+      model: 'claude-opus-4-5',
+      max_tokens: 512,
+      system:
+        'You deliver final decision calls like a senior operator reviewing a hard-to-reverse move. You are precise, concrete, constraint-driven, and never generic.',
+      messages: [
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
     });
 
-    const data = await response.json();
+    const text =
+      message.content[0].type === 'text'
+        ? message.content[0].text.trim()
+        : '';
 
-    if (!response.ok) {
-      return NextResponse.json(
-        { error: data?.error?.message || 'OpenAI request failed.' },
-        { status: 500 }
-      );
-    }
-
-    const text = data?.choices?.[0]?.message?.content?.trim() ?? '';
-
-    return NextResponse.json({
-      verdict: text,
-    });
+    return NextResponse.json({ verdict: text });
   } catch (_err) {
     return NextResponse.json(
       { error: 'Verdict failed.' },

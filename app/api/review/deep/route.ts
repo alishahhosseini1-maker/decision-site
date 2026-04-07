@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
+import Anthropic from '@anthropic-ai/sdk';
 
 export const runtime = 'nodejs';
+
+const client = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
 
 export async function POST(req: Request) {
   try {
@@ -13,51 +18,20 @@ export async function POST(req: Request) {
       );
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
-
-    if (!apiKey) {
+    if (!process.env.ANTHROPIC_API_KEY) {
       return NextResponse.json(
-        { error: 'Missing OPENAI_API_KEY in .env' },
+        { error: 'Missing ANTHROPIC_API_KEY in .env' },
         { status: 500 }
       );
     }
 
-    const prompt = `
-You are a disciplined decision partner.
+    const prompt = `You are a senior operator doing a pre-commitment review.
 
-Your job is to pressure-test the structure of a decision before commitment.
+You have seen this decision fail before. You know exactly what kills it.
+Your job is not to encourage. Your job is to name what most people miss.
 
-You are NOT:
-- a consultant
-- a cheerleader
-- a therapist
-- a brainstorm partner
-- a generic AI assistant
-
-Audience:
-The reader is smart but busy.
-Write so a smart 15-year-old can understand it immediately.
-
-Style:
-- Calm
-- Precise
-- Direct
-- Short sentences
-- Skimmable
-- Plain English
-- No jargon
-- No buzzwords
-- No em dashes
-- No emojis
-- No markdown tables
-- No code blocks
-- No consultant tone
-
-Core standard:
-Think like a senior engineer doing a design review.
-Optimize for survivability, not confidence.
-Name the real constraint.
-Be specific to THIS decision, not generic.
+Be specific to THIS decision. Not generic. Not applicable to any decision.
+Every sentence must only make sense for this exact situation.
 
 Decision:
 ${decision}
@@ -65,18 +39,13 @@ ${decision}
 Context:
 ${context || 'None provided'}
 
-Return the answer using the EXACT structure below.
-
-Do not add extra sections.
-Do not rename the sections.
-Leave one blank line between sections.
-Do not use separator lines.
+Return EXACTLY this structure. No extra sections. No renamed sections.
 
 What must go right
 
-List exactly 3 bullets.
-These should be the 3 most load-bearing conditions.
-Make them specific.
+3 bullets. Each one is a specific condition that must hold for this decision to survive.
+Do not write obvious conditions. Write the non-obvious ones.
+If the context reveals a specific constraint (network, clients, pricing, timing), name it directly.
 
 •
 •
@@ -84,9 +53,9 @@ Make them specific.
 
 What could go wrong
 
-List exactly 3 bullets.
-These should be concrete failure modes.
-Do not be generic.
+3 bullets. Each one is a concrete failure mode specific to this decision.
+At least one bullet must name a failure mode the decision-maker is probably not thinking about.
+Do not write vague failure modes. Name the actual mechanism of failure.
 
 •
 •
@@ -94,73 +63,34 @@ Do not be generic.
 
 Hard to undo
 
-Write 1–2 short sentences.
-Explain what becomes difficult to reverse after committing.
-Focus on time, money, reputation, stress, flexibility, or lost options.
+1-2 sentences. Name the specific thing that becomes locked in after commitment.
+Focus on what specifically gets harder: which relationship, which reputation, which option, which resource.
 
 Bottom line
 
-Write exactly 1 sentence.
-This must be direct, specific, and decision-grade.
+1 sentence. A directive. Tells the reader exactly what must be true before they commit.
+Must be specific to this decision. Must name the actual condition.
+Format: "Do not [action] until [specific condition]."`;
 
-Rules for Bottom line:
-- It must be a directive, not commentary.
-- It must be specific to the decision.
-- It must not say "this decision is not ready".
-- It must not say "consider starting smaller" unless the actual specific action is named.
-- It must tell the reader what must be true before they commit, or what they should not do yet.
-- Good example: "Do not leave until contracts are secured."
-- Good example: "Do not hire until the role and budget are both clear."
-- Good example: "Do not launch until compliance approval is confirmed."
-
-Formatting rules:
-- Keep sentences short.
-- Prefer bullets where requested.
-- No emojis.
-- No generic advice.
-- No filler.
-- No motivational language.
-- No vague summary language.
-- Every section must feel tied to the actual decision and context.
-`;
-
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content:
-              'You analyze decisions like a calm senior engineer doing a design review. You write in plain English. You are specific, constraint-focused, and never generic.',
-          },
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        temperature: 0.25,
-      }),
+    const message = await client.messages.create({
+      model: 'claude-opus-4-5',
+      max_tokens: 1024,
+      system:
+        'You analyze decisions like a calm senior operator who has seen things fail. You are specific, constraint-focused, and never generic. Every insight must be tied to the actual decision and context provided.',
+      messages: [
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
     });
 
-    const data = await response.json();
+    const text =
+      message.content[0].type === 'text'
+        ? message.content[0].text.trim()
+        : '';
 
-    if (!response.ok) {
-      return NextResponse.json(
-        { error: data?.error?.message || 'OpenAI request failed.' },
-        { status: 500 }
-      );
-    }
-
-    const text = data?.choices?.[0]?.message?.content?.trim() ?? '';
-
-    return NextResponse.json({
-      analysis: text,
-    });
+    return NextResponse.json({ analysis: text });
   } catch (_err) {
     return NextResponse.json(
       { error: 'Deep review failed.' },
