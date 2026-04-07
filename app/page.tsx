@@ -662,7 +662,6 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!mode || mode !== 'solo') return;
-    if (!decision && !reviewResult && !verdict) return; // don't overwrite with empty state
     persistSoloReviewLocally();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [decision, context, reviewResult, deepReview, finalThoughts, verdictRequested, verdict, mode]);
@@ -1347,9 +1346,10 @@ export default function HomePage() {
   const visibleDeepReview = cleanDeepReview(deepReview);
   const deepReviewSections = parseDeepReviewSections(visibleDeepReview);
 
+  const stripMarkdownBold = (text: string) => text.replace(/\*\*(.*?)\*\*/g, '$1').replace(/__(.*?)__/g, '$1');
   const verdictParts = verdict ? verdict.split('\n\n') : [];
-  const verdictTitle = verdictParts[0] ?? '';
-  const verdictReason = verdictParts.slice(1).join('\n\n');
+  const verdictTitle = stripMarkdownBold(verdictParts[0] ?? '');
+  const verdictReason = stripMarkdownBold(verdictParts.slice(1).join('\n\n'));
 
   const hasSummaryReady = Boolean(latestTeamSession?.summary_generated_at);
   const openLoopCount = openDecisions.length;
@@ -2515,11 +2515,12 @@ export default function HomePage() {
                           <div
                             style={{
                               fontFamily: serif,
-                              fontSize: 26,
+                              fontSize: 22,
                               fontWeight: 400,
                               letterSpacing: '-0.01em',
-                              lineHeight: 1.15,
-                              marginBottom: 10,
+                              lineHeight: 1.2,
+                              marginBottom: 12,
+                              color: '#111',
                             }}
                           >
                             {verdictTitle}
@@ -2533,6 +2534,7 @@ export default function HomePage() {
                                 fontSize: 13.5,
                                 lineHeight: 1.65,
                                 color: 'rgba(0,0,0,0.70)',
+                                fontWeight: 400,
                               }}
                             >
                               {verdictReason}
