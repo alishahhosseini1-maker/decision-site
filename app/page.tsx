@@ -593,29 +593,32 @@ export default function HomePage() {
     };
   }, []);
 
-  // Separate effect: fires when user becomes available after magic link sign-in.
-  // Reads pending save from localStorage and completes it without closure state issues.
+  // ─── Sign-in pending save: fires once when user becomes available ─────────────
+  // Supabase magic link causes a full page reload. On return, user starts as null
+  // and becomes non-null after onAuthStateChange fires. This effect watches for
+  // that transition and completes any pending save directly from localStorage,
+  // bypassing all closure state entirely.
   useEffect(() => {
     if (!user?.id) return;
 
-    const pendingLock = (() => {
-      try { return localStorage.getItem('dl:pending_lock_verdict'); }
-      catch { return null; }
-    })();
-
+    let pendingLock: string | null = null;
+    try { pendingLock = localStorage.getItem(STORAGE.pendingLockVerdict); } catch { return; }
     if (pendingLock !== 'true') return;
 
-    // Remove flag immediately so this only fires once
-    try { localStorage.removeItem('dl:pending_lock_verdict'); } catch { /* ignore */ }
+    // Clear the flag immediately so this only runs once
+    try { localStorage.removeItem(STORAGE.pendingLockVerdict); } catch { /* ignore */ }
+
+    const userId = user.id; // capture before async
 
     const doSave = async () => {
       try {
-        const raw = localStorage.getItem('dl:pending_solo_review');
+        const raw = localStorage.getItem(STORAGE.pendingSoloReview);
         if (!raw) return;
+
         const saved = JSON.parse(raw) as PendingSoloReview;
         if (!saved.reviewResult || !saved.verdict) return;
 
-        // Restore UI state so the page shows the review on return
+        // Restore all UI state so the page shows the review correctly
         setDecision(saved.decision ?? '');
         setContext(saved.context ?? '');
         setReviewResult(saved.reviewResult);
@@ -638,14 +641,14 @@ export default function HomePage() {
             trap: saved.reviewResult?.snapshot?.trap ?? null,
             step: saved.reviewResult?.snapshot?.step ?? null,
             outcome_status: 'awaiting_outcome',
-            userId: user.id,
+            userId,
           }),
         });
 
         if (saveRes.ok) {
           const saveData = await saveRes.json();
           if (saveData?.id) setDecisionId(saveData.id);
-          try { localStorage.removeItem('dl:pending_solo_review'); } catch { /* ignore */ }
+          try { localStorage.removeItem(STORAGE.pendingSoloReview); } catch { /* ignore */ }
           setSavedToast('Decision saved to history');
         }
       } catch {
@@ -1123,50 +1126,19 @@ export default function HomePage() {
   };
 
   const handleLockVerdict = async () => {
-    // After magic link sign-in the component remounts and React state is stale.
-    // Read from localStorage as the authoritative source of truth in that case.
-    let activeReview = reviewResult;
-    let activeVerdict = verdict;
-    let activeDecision = decision;
-    let activeContext = context;
-
-    if (!activeReview || !activeVerdict) {
-      try {
-        const raw = localStorage.getItem(STORAGE.pendingSoloReview);
-        if (raw) {
-          const saved = JSON.parse(raw) as PendingSoloReview;
-          activeReview = saved.reviewResult ?? null;
-          activeVerdict = saved.verdict ?? null;
-          activeDecision = saved.decision ?? decision;
-          activeContext = saved.context ?? context;
-          // Restore UI state so the page looks correct after return
-          if (saved.decision) setDecision(saved.decision);
-          if (saved.context) setContext(saved.context);
-          if (saved.reviewResult) setReviewResult(saved.reviewResult);
-          if (saved.deepReview) setDeepReview(saved.deepReview);
-          if (saved.finalThoughts) setFinalThoughts(saved.finalThoughts);
-          if (saved.verdictRequested) setVerdictRequested(true);
-          if (saved.verdict) setVerdict(saved.verdict);
-          setHasStarted(true);
-        }
-      } catch {
-        // ignore
-      }
-    }
-
-    if (!activeReview || !activeVerdict || savingVerdict) return;
+    if (!reviewResult || !verdict || savingVerdict) return;
 
     setApiError(null);
 
     if (!user) {
       persistSoloReviewLocally({
-        decision: activeDecision,
-        context: activeContext,
-        reviewResult: activeReview,
+        decision,
+        context,
+        reviewResult,
         deepReview,
         finalThoughts,
         verdictRequested,
-        verdict: activeVerdict,
+        verdict,
       });
 
       try {
@@ -1186,14 +1158,14 @@ export default function HomePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          decision: activeDecision,
-          context: activeContext,
-          score: activeReview?.readiness?.total ?? null,
-          verdict: activeVerdict,
-          door: activeReview?.snapshot?.door ?? null,
-          hinge: activeReview?.snapshot?.hinge ?? null,
-          trap: activeReview?.snapshot?.trap ?? null,
-          step: activeReview?.snapshot?.step ?? null,
+          decision,
+          context,
+          score: reviewResult?.readiness?.total ?? null,
+          verdict,
+          door: reviewResult?.snapshot?.door ?? null,
+          hinge: reviewResult?.snapshot?.hinge ?? null,
+          trap: reviewResult?.snapshot?.trap ?? null,
+          step: reviewResult?.snapshot?.step ?? null,
           outcome_status: 'awaiting_outcome',
           userId: user.id,
         }),
