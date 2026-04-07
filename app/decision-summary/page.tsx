@@ -262,6 +262,7 @@ export default function DecisionSummaryPage() {
       title: item.decision,
       date: formatDate(item.created_at),
       score: safeNumber(item.score),
+      isCurrent: false as boolean,
     }));
   }, [comparisonDecisions]);
 
@@ -273,9 +274,9 @@ export default function DecisionSummaryPage() {
       title: decision.decision,
       date: formatDate(decision.created_at),
       score: safeNumber(decision.score),
-      isCurrent: true,
+      isCurrent: true as boolean,
     };
-    return [currentRow, ...comparisonRows.map((r) => ({ ...r, isCurrent: false }))];
+    return [currentRow, ...comparisonRows];
   }, [decision, comparisonRows]);
 
   const currentScore = safeNumber(decision?.score);
