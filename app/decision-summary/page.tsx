@@ -21,6 +21,13 @@ type DecisionRecord = {
   dismissed_at?: string | null;
 };
 
+type ComparisonDecision = {
+  id: string;
+  decision: string;
+  score: number | null;
+  created_at: string | null;
+};
+
 function formatDateTime(value?: string | null) {
   if (!value) return '—';
   const d = new Date(value);
@@ -28,11 +35,18 @@ function formatDateTime(value?: string | null) {
   return d.toLocaleString();
 }
 
+function formatDate(value?: string | null) {
+  if (!value) return '—';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString();
+}
+
 function safeNumber(value?: number | null) {
   return typeof value === 'number' && !Number.isNaN(value) ? value : null;
 }
 
-function getConfidenceMeta(score?: number | null) {
+function getScoreMeta(score?: number | null) {
   const value = typeof score === 'number' ? score : 0;
 
   if (value >= 70) {
@@ -67,13 +81,7 @@ function getConfidenceMeta(score?: number | null) {
   };
 }
 
-function PrimaryCard({
-  label,
-  value,
-}: {
-  label: string;
-  value?: string | null;
-}) {
+function PrimaryCard({ label, value }: { label: string; value?: string | null }) {
   return (
     <section className="rounded-[24px] border border-black/5 bg-white p-6 shadow-sm">
       <p className="text-[11px] uppercase tracking-[0.18em] text-black/38">{label}</p>
@@ -82,13 +90,7 @@ function PrimaryCard({
   );
 }
 
-function SecondaryCard({
-  label,
-  value,
-}: {
-  label: string;
-  value?: string | null;
-}) {
+function SecondaryCard({ label, value }: { label: string; value?: string | null }) {
   return (
     <section className="rounded-[22px] border border-black/5 bg-white p-6 shadow-sm">
       <p className="text-[11px] uppercase tracking-[0.18em] text-black/38">{label}</p>
@@ -97,17 +99,10 @@ function SecondaryCard({
   );
 }
 
-function EvidenceCard({
-  label,
-  items,
-}: {
-  label: string;
-  items?: string[];
-}) {
+function EvidenceCard({ label, items }: { label: string; items?: string[] }) {
   return (
     <section className="rounded-[22px] border border-black/5 bg-white p-6 shadow-sm">
       <p className="text-[11px] uppercase tracking-[0.18em] text-black/38">{label}</p>
-
       {!items || items.length === 0 ? (
         <p className="mt-3 text-sm text-black/45">—</p>
       ) : (
@@ -125,21 +120,13 @@ function EvidenceCard({
 }
 
 function splitVerdict(verdict?: string | null) {
-  if (!verdict) {
-    return {
-      title: 'No verdict saved',
-      rationale: '—',
-    };
-  }
-
-  const parts = verdict
-    .split('\n\n')
-    .map((part) => part.trim())
-    .filter(Boolean);
-
+  if (!verdict) return { title: 'No verdict saved', rationale: '—' };
+  const parts = verdict.split('\n\n').map((p) => p.trim()).filter(Boolean);
+  // Strip markdown bold
+  const clean = (s: string) => s.replace(/\*\*(.*?)\*\*/g, '$1').replace(/__(.*?)__/g, '$1');
   return {
-    title: parts[0] || 'No verdict saved',
-    rationale: parts.slice(1).join('\n\n') || '—',
+    title: clean(parts[0] || 'No verdict saved'),
+    rationale: clean(parts.slice(1).join('\n\n') || '—'),
   };
 }
 
@@ -155,23 +142,17 @@ function extractBreaking(decision?: DecisionRecord | null) {
   const items: string[] = [];
   if (decision?.trap) items.push(`Hidden risk: ${decision.trap}`);
   if (decision?.hinge) items.push(`If this assumption fails, the decision breaks: ${decision.hinge}`);
-  if (decision?.context) items.push(`Context pressure: ${decision.context}`);
   return items;
 }
 
 function buildInsight(decision?: DecisionRecord | null) {
   if (!decision) return '—';
-
-  if (decision.score !== null && decision.score !== undefined) {
-    if (decision.score < 40) {
-      return 'The decision is not ready for full commitment yet.';
-    }
-    if (decision.score < 70) {
-      return 'There may be a real opportunity here, but the move likely needs to be smaller or clearer.';
-    }
+  const score = decision.score;
+  if (score !== null && score !== undefined) {
+    if (score < 40) return 'The decision is not ready for full commitment yet.';
+    if (score < 70) return 'There may be a real opportunity here, but the move likely needs to be smaller or clearer.';
     return 'The decision looks survivable if you keep the next step disciplined.';
   }
-
   return 'This decision should be judged by survivability, not optimism.';
 }
 
@@ -181,7 +162,7 @@ function buildTension(decision?: DecisionRecord | null) {
   return 'The main tension is whether the upside is real enough to justify what gets harder to undo.';
 }
 
-function buildIfWrong(decision?: DecisionRecord | null) {
+function buildIfDelayed(decision?: DecisionRecord | null) {
   if (!decision) return '—';
   if (decision.trap?.trim()) return decision.trap;
   return 'The hidden cost becomes visible only after commitment.';
@@ -200,6 +181,7 @@ export default function DecisionSummaryPage() {
   const [animateIn, setAnimateIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [decision, setDecision] = useState<DecisionRecord | null>(null);
+  const [comparisonDecisions, setComparisonDecisions] = useState<ComparisonDecision[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -214,75 +196,80 @@ export default function DecisionSummaryPage() {
           error: authError,
         } = await supabase.auth.getUser();
 
-        if (authError) {
-          throw new Error(authError.message);
-        }
+        if (authError) throw new Error(authError.message);
+        if (!user) throw new Error('You must be signed in to view this decision brief.');
 
-        if (!user) {
-          throw new Error('You must be signed in to view this decision brief.');
-        }
+        // Read id from URL query param
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
 
-        const { data, error: decisionError } = await supabase
+        let query = supabase
           .from('decisions')
-          .select(
-            `
-            id,
-            user_id,
-            decision,
-            context,
-            score,
-            verdict,
-            door,
-            hinge,
-            trap,
-            step,
-            outcome_status,
-            needs_follow_up,
-            created_at,
-            dismissed_at
-          `
-          )
+          .select('id, user_id, decision, context, score, verdict, door, hinge, trap, step, outcome_status, needs_follow_up, created_at, dismissed_at')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
+          .limit(1);
 
-        if (decisionError || !data) {
-          throw new Error('No saved decision brief found yet.');
+        if (id) {
+          query = supabase
+            .from('decisions')
+            .select('id, user_id, decision, context, score, verdict, door, hinge, trap, step, outcome_status, needs_follow_up, created_at, dismissed_at')
+            .eq('id', id)
+            .eq('user_id', user.id)
+            .limit(1);
         }
+
+        const { data, error: decisionError } = await query.single();
+
+        if (decisionError || !data) throw new Error('No saved decision brief found yet.');
+
+        // Load recent decisions for comparison table
+        const { data: recentData } = await supabase
+          .from('decisions')
+          .select('id, decision, score, created_at')
+          .eq('user_id', user.id)
+          .not('score', 'is', null)
+          .order('created_at', { ascending: false })
+          .limit(5);
 
         if (!cancelled) {
           setDecision(data as DecisionRecord);
+          setComparisonDecisions((recentData as ComparisonDecision[]) ?? []);
         }
       } catch (err: any) {
-        if (!cancelled) {
-          setError(err?.message || 'Something went wrong.');
-        }
+        if (!cancelled) setError(err?.message || 'Something went wrong.');
       } finally {
         if (!cancelled) {
           setLoading(false);
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => setAnimateIn(true));
-          });
+          requestAnimationFrame(() => requestAnimationFrame(() => setAnimateIn(true)));
         }
       }
     }
 
     load();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, []);
 
-  const confidenceMeta = useMemo(
-    () => getConfidenceMeta(decision?.score),
-    [decision?.score]
-  );
-
+  const scoreMeta = useMemo(() => getScoreMeta(decision?.score), [decision?.score]);
   const verdictData = useMemo(() => splitVerdict(decision?.verdict), [decision?.verdict]);
   const supporting = useMemo(() => extractSupporting(decision), [decision]);
   const breaking = useMemo(() => extractBreaking(decision), [decision]);
+
+  const comparisonRows = useMemo(() => {
+    return comparisonDecisions.slice(0, 4).map((item) => ({
+      id: item.id,
+      title: item.decision,
+      date: formatDate(item.created_at),
+      score: safeNumber(item.score),
+    }));
+  }, [comparisonDecisions]);
+
+  const currentScore = safeNumber(decision?.score);
+  const previousComparable = comparisonRows.find((r) => r.id !== decision?.id && r.score !== null);
+  const delta =
+    currentScore !== null && previousComparable?.score != null
+      ? currentScore - previousComparable.score
+      : null;
 
   if (loading) {
     return (
@@ -299,19 +286,11 @@ export default function DecisionSummaryPage() {
       <main className="min-h-screen bg-[#f7f7f2] px-6 py-12 text-black">
         <div className="mx-auto max-w-5xl rounded-3xl border border-rose-200 bg-rose-50 p-6">
           <p className="text-sm font-medium text-rose-700">{error}</p>
-
           <div className="mt-4 flex gap-3">
-            <a
-              href="/"
-              className="inline-flex items-center rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-black shadow-sm transition hover:bg-black hover:text-white"
-            >
+            <a href="/" className="inline-flex items-center rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-black shadow-sm transition hover:bg-black hover:text-white">
               Back home
             </a>
-
-            <a
-              href="/decisions"
-              className="inline-flex items-center rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-black shadow-sm transition hover:bg-black hover:text-white"
-            >
+            <a href="/history" className="inline-flex items-center rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-black shadow-sm transition hover:bg-black hover:text-white">
               View history
             </a>
           </div>
@@ -337,6 +316,7 @@ export default function DecisionSummaryPage() {
           animateIn ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'
         }`}
       >
+        {/* ── Header ── */}
         <header className="flex flex-col gap-3">
           <p className="text-[10px] uppercase tracking-[0.32em] text-black/38">
             Prepared for: Decision, not review
@@ -345,12 +325,13 @@ export default function DecisionSummaryPage() {
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <h1 className="text-3xl font-semibold tracking-tight text-black md:text-4xl">
-                decision brief
+                {decision.decision}
               </h1>
-
-              <p className="mt-2 max-w-3xl text-sm leading-7 text-black/56">
-                A saved record of the decision, the verdict, and the survivable next move.
-              </p>
+              {decision.context ? (
+                <p className="mt-2 max-w-3xl text-sm leading-7 text-black/56">
+                  {decision.context}
+                </p>
+              ) : null}
             </div>
 
             <div className="flex items-center gap-3">
@@ -358,9 +339,8 @@ export default function DecisionSummaryPage() {
                 <span className="h-2 w-2 rounded-full bg-black" />
                 Decision locked
               </div>
-
               <a
-                href="/decisions"
+                href="/history"
                 className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-black shadow-sm transition hover:bg-black hover:text-white"
               >
                 View history
@@ -369,75 +349,84 @@ export default function DecisionSummaryPage() {
           </div>
         </header>
 
+        {/* ── What matters now ── */}
         <section className="rounded-[28px] border border-black/5 border-l-4 border-l-black bg-[#f1f1ec] p-8 shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
-          <p className="text-[11px] uppercase tracking-[0.22em] text-black/38">
-            What matters now
-          </p>
-
+          <p className="text-[11px] uppercase tracking-[0.22em] text-black/38">What matters now</p>
           <h2 className="mt-4 max-w-4xl text-3xl font-semibold leading-tight tracking-tight text-black md:text-[2.15rem]">
             {buildInsight(decision)}
           </h2>
-
           <p className="mt-4 text-sm leading-7 text-black/63">{buildTension(decision)}</p>
         </section>
 
+        {/* ── Decision + Verdict ── */}
         <section className="grid gap-6 md:grid-cols-2">
           <PrimaryCard label="The decision" value={decision.decision} />
           <PrimaryCard label="Verdict" value={verdictData.title} />
         </section>
 
+        {/* ── Score + If delayed ── */}
         <section className="grid gap-6 md:grid-cols-2">
-          <section className={`rounded-[24px] border p-6 shadow-sm ${confidenceMeta.cardClass}`}>
+          <section className={`rounded-[24px] border p-6 shadow-sm ${scoreMeta.cardClass}`}>
             <div className="flex items-center justify-between gap-4">
-              <p className={`text-[11px] uppercase tracking-[0.18em] ${confidenceMeta.mutedClass}`}>
+              <p className={`text-[11px] uppercase tracking-[0.18em] ${scoreMeta.mutedClass}`}>
                 Decision quality
               </p>
-
-              <span
-                className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] ${confidenceMeta.pillClass}`}
-              >
-                {confidenceMeta.label}
+              <span className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] ${scoreMeta.pillClass}`}>
+                {scoreMeta.label}
               </span>
             </div>
 
-            <div className={`mt-4 flex items-end gap-3 ${confidenceMeta.textClass}`}>
+            <div className={`mt-4 flex items-end gap-3 ${scoreMeta.textClass}`}>
               <div className="text-4xl font-semibold leading-none">
                 {safeNumber(decision.score) ?? '—'}
               </div>
-              <div className={`mb-1 flex items-center gap-2 text-sm ${confidenceMeta.mutedClass}`}>
-                <span className={`h-2.5 w-2.5 rounded-full ${confidenceMeta.dotClass}`} />
+              <div className={`mb-1 flex items-center gap-2 text-sm ${scoreMeta.mutedClass}`}>
+                <span className={`h-2.5 w-2.5 rounded-full ${scoreMeta.dotClass}`} />
                 <span>Readiness score</span>
               </div>
             </div>
 
-            <p className={`mt-4 text-sm leading-7 ${confidenceMeta.mutedClass}`}>
+            <p className={`mt-4 text-sm leading-7 ${scoreMeta.mutedClass}`}>
               Higher scores suggest the move is more survivable. Lower scores suggest the decision
               likely needs clearer assumptions or a smaller step.
             </p>
+
+            {delta !== null ? (
+              <div className={`mt-4 border-t border-black/8 pt-4 text-sm ${scoreMeta.mutedClass}`}>
+                <span>Compared with last comparable review: </span>
+                <span className="font-semibold">{delta > 0 ? `+${delta}` : delta}</span>
+              </div>
+            ) : null}
           </section>
 
-          <SecondaryCard label="If wrong" value={buildIfWrong(decision)} />
+          <SecondaryCard label="If wrong" value={buildIfDelayed(decision)} />
         </section>
 
-        <section className="rounded-[24px] border border-black/5 bg-white p-6 shadow-sm">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-black/38">Rationale</p>
-          <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-black/78">
-            {verdictData.rationale || '—'}
-          </p>
-        </section>
-
+        {/* ── What others may miss ── */}
         <section className="rounded-[24px] bg-black p-6 text-white shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-white/58">
-            What others may miss
+          <p className="text-[11px] uppercase tracking-[0.18em] text-white/58">What others may miss</p>
+          <p className="mt-3 text-lg font-medium italic leading-8 text-white">
+            {buildWhatOthersMiss(decision)}
           </p>
-          <p className="mt-3 text-lg leading-8 text-white">{buildWhatOthersMiss(decision)}</p>
         </section>
 
+        {/* ── Supporting + Breaking ── */}
         <section className="grid gap-6 md:grid-cols-2">
           <EvidenceCard label="Supporting" items={supporting} />
           <EvidenceCard label="Breaking" items={breaking} />
         </section>
 
+        {/* ── Rationale (full verdict body) ── */}
+        {verdictData.rationale && verdictData.rationale !== '—' ? (
+          <section className="rounded-[24px] border border-black/5 bg-white p-6 shadow-sm">
+            <p className="text-[11px] uppercase tracking-[0.18em] text-black/38">Rationale</p>
+            <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-black/78">
+              {verdictData.rationale}
+            </p>
+          </section>
+        ) : null}
+
+        {/* ── Anatomy grid ── */}
         <section className="grid gap-6 md:grid-cols-2">
           <SecondaryCard label="Door" value={decision.door} />
           <SecondaryCard label="Hinge" value={decision.hinge} />
@@ -445,6 +434,60 @@ export default function DecisionSummaryPage() {
           <SecondaryCard label="Recommended move" value={decision.step} />
         </section>
 
+        {/* ── Comparison over time ── */}
+        <section className="rounded-[24px] border border-black/5 bg-white p-6 shadow-sm">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-black/38">Comparison over time</p>
+            <p className="mt-2 text-sm leading-6 text-black/55">
+              A lighter historical view. Useful for trend, but secondary to the current decision.
+            </p>
+          </div>
+
+          {comparisonRows.length === 0 ? (
+            <p className="mt-5 text-sm text-black/45">No prior decisions to compare yet.</p>
+          ) : (
+            <div className="mt-5 overflow-hidden rounded-2xl border border-black/6">
+              <div className="grid grid-cols-[1.6fr_0.8fr_0.6fr] border-b border-black/6 bg-black/[0.03] px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-black/42">
+                <div>Review</div>
+                <div>Date</div>
+                <div>Score</div>
+              </div>
+
+              {comparisonRows.map((row) => {
+                const rowMeta = getScoreMeta(row.score);
+                const isCurrent = row.id === decision.id;
+
+                return (
+                  <div
+                    key={row.id}
+                    className={`grid grid-cols-[1.6fr_0.8fr_0.6fr] items-center border-b border-black/6 px-4 py-4 text-sm last:border-b-0 ${
+                      isCurrent ? 'bg-black/[0.025]' : 'bg-white'
+                    }`}
+                  >
+                    <div className="pr-4">
+                      <div className="font-medium text-black/86 truncate">{row.title || 'Untitled'}</div>
+                      {isCurrent ? (
+                        <div className="mt-1 text-xs uppercase tracking-[0.12em] text-black/38">Current</div>
+                      ) : null}
+                    </div>
+                    <div className="text-black/55">{row.date}</div>
+                    <div>
+                      {row.score !== null ? (
+                        <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${rowMeta.pillClass}`}>
+                          {row.score}
+                        </span>
+                      ) : (
+                        <span className="text-black/40">—</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        {/* ── Footer ── */}
         <footer className="pt-1 text-xs text-black/38">
           <div className="flex flex-wrap gap-x-6 gap-y-2">
             <span>Status: {decision.outcome_status || '—'}</span>
@@ -456,3 +499,4 @@ export default function DecisionSummaryPage() {
     </main>
   );
 }
+
