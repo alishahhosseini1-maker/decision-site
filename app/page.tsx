@@ -662,6 +662,7 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!mode || mode !== 'solo') return;
+    if (!decision && !reviewResult && !verdict) return; // don't overwrite with empty state
     persistSoloReviewLocally();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [decision, context, reviewResult, deepReview, finalThoughts, verdictRequested, verdict, mode]);
