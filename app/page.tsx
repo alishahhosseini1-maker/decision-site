@@ -593,9 +593,51 @@ export default function HomePage() {
         if (authUser && pendingLock === 'true') {
           localStorage.removeItem(STORAGE.pendingLockVerdict);
 
-          setTimeout(() => {
-            void handleLockVerdict();
-          }, 100);
+          // Read directly from localStorage — avoids stale closure state after magic link return
+          setTimeout(async () => {
+            try {
+              const raw = localStorage.getItem(STORAGE.pendingSoloReview);
+              if (!raw) return;
+              const saved = JSON.parse(raw) as PendingSoloReview;
+              if (!saved.reviewResult || !saved.verdict) return;
+
+              // Restore UI so page looks correct on return
+              if (saved.decision) setDecision(saved.decision);
+              if (saved.context) setContext(saved.context);
+              if (saved.reviewResult) setReviewResult(saved.reviewResult);
+              if (saved.deepReview) setDeepReview(saved.deepReview);
+              if (saved.finalThoughts) setFinalThoughts(saved.finalThoughts);
+              if (saved.verdictRequested) setVerdictRequested(true);
+              if (saved.verdict) setVerdict(saved.verdict);
+              setHasStarted(true);
+
+              const saveRes = await fetch('/api/decision/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  decision: saved.decision,
+                  context: saved.context,
+                  score: saved.reviewResult?.readiness?.total ?? null,
+                  verdict: saved.verdict,
+                  door: saved.reviewResult?.snapshot?.door ?? null,
+                  hinge: saved.reviewResult?.snapshot?.hinge ?? null,
+                  trap: saved.reviewResult?.snapshot?.trap ?? null,
+                  step: saved.reviewResult?.snapshot?.step ?? null,
+                  outcome_status: 'awaiting_outcome',
+                  userId: authUser.id,
+                }),
+              });
+
+              if (saveRes.ok) {
+                const saveData = await saveRes.json();
+                if (saveData?.id) setDecisionId(saveData.id);
+                localStorage.removeItem(STORAGE.pendingSoloReview);
+                setSavedToast('Decision saved to history');
+              }
+            } catch {
+              // ignore
+            }
+          }, 500);
         }
       } catch {
         // ignore
