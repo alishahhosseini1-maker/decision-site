@@ -2146,7 +2146,7 @@ export default function HomePage() {
                         marginBottom: '3rem',
                       }}
                     >
-                      "{decision}"
+                      &ldquo;{decision}&rdquo;
                     </div>
 
                     {/* Score + verdict headline */}
