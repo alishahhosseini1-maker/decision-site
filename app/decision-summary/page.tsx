@@ -223,14 +223,15 @@ export default function DecisionSummaryPage() {
 
         if (decisionError || !data) throw new Error('No saved decision brief found yet.');
 
-        // Load recent decisions for comparison table
+        // Load recent decisions for comparison table (exclude current)
         const { data: recentData } = await supabase
           .from('decisions')
           .select('id, decision, score, created_at')
           .eq('user_id', user.id)
+          .neq('id', data.id)
           .not('score', 'is', null)
           .order('created_at', { ascending: false })
-          .limit(5);
+          .limit(4);
 
         if (!cancelled) {
           setDecision(data as DecisionRecord);
@@ -264,8 +265,21 @@ export default function DecisionSummaryPage() {
     }));
   }, [comparisonDecisions]);
 
+  // Build full table: current decision first, then past decisions
+  const allComparisonRows = useMemo(() => {
+    if (!decision) return comparisonRows;
+    const currentRow = {
+      id: decision.id,
+      title: decision.decision,
+      date: formatDate(decision.created_at),
+      score: safeNumber(decision.score),
+      isCurrent: true,
+    };
+    return [currentRow, ...comparisonRows.map((r) => ({ ...r, isCurrent: false }))];
+  }, [decision, comparisonRows]);
+
   const currentScore = safeNumber(decision?.score);
-  const previousComparable = comparisonRows.find((r) => r.id !== decision?.id && r.score !== null);
+  const previousComparable = comparisonRows.find((r) => r.score !== null);
   const delta =
     currentScore !== null && previousComparable?.score != null
       ? currentScore - previousComparable.score
@@ -426,14 +440,6 @@ export default function DecisionSummaryPage() {
           </section>
         ) : null}
 
-        {/* ── Anatomy grid ── */}
-        <section className="grid gap-6 md:grid-cols-2">
-          <SecondaryCard label="Door" value={decision.door} />
-          <SecondaryCard label="Hinge" value={decision.hinge} />
-          <SecondaryCard label="Trap" value={decision.trap} />
-          <SecondaryCard label="Recommended move" value={decision.step} />
-        </section>
-
         {/* ── Comparison over time ── */}
         <section className="rounded-[24px] border border-black/5 bg-white p-6 shadow-sm">
           <div>
@@ -443,7 +449,7 @@ export default function DecisionSummaryPage() {
             </p>
           </div>
 
-          {comparisonRows.length === 0 ? (
+          {allComparisonRows.length === 0 ? (
             <p className="mt-5 text-sm text-black/45">No prior decisions to compare yet.</p>
           ) : (
             <div className="mt-5 overflow-hidden rounded-2xl border border-black/6">
@@ -453,20 +459,19 @@ export default function DecisionSummaryPage() {
                 <div>Score</div>
               </div>
 
-              {comparisonRows.map((row) => {
+              {allComparisonRows.map((row) => {
                 const rowMeta = getScoreMeta(row.score);
-                const isCurrent = row.id === decision.id;
 
                 return (
                   <div
                     key={row.id}
                     className={`grid grid-cols-[1.6fr_0.8fr_0.6fr] items-center border-b border-black/6 px-4 py-4 text-sm last:border-b-0 ${
-                      isCurrent ? 'bg-black/[0.025]' : 'bg-white'
+                      row.isCurrent ? 'bg-black/[0.025]' : 'bg-white'
                     }`}
                   >
-                    <div className="pr-4">
-                      <div className="font-medium text-black/86 truncate">{row.title || 'Untitled'}</div>
-                      {isCurrent ? (
+                    <div className="min-w-0 pr-4">
+                      <div className="overflow-hidden truncate font-medium text-black/86">{row.title || 'Untitled'}</div>
+                      {row.isCurrent ? (
                         <div className="mt-1 text-xs uppercase tracking-[0.12em] text-black/38">Current</div>
                       ) : null}
                     </div>
