@@ -3,10 +3,6 @@ import Anthropic from '@anthropic-ai/sdk';
 
 export const runtime = 'nodejs';
 
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
-
 export async function POST(req: Request) {
   try {
     const { decision, context = '' } = await req.json();
@@ -24,6 +20,10 @@ export async function POST(req: Request) {
         { status: 500 }
       );
     }
+
+    const client = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    });
 
     const prompt = `You are a senior operator doing a pre-commitment review.
 
@@ -73,7 +73,7 @@ Must be specific to this decision. Must name the actual condition.
 Format: "Do not [action] until [specific condition]."`;
 
     const message = await client.messages.create({
-      model: 'claude-opus-4-5',
+      model: 'claude-opus-4-6',
       max_tokens: 1024,
       system:
         'You analyze decisions like a calm senior operator who has seen things fail. You are specific, constraint-focused, and never generic. Every insight must be tied to the actual decision and context provided.',
