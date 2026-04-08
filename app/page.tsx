@@ -469,6 +469,25 @@ export default function HomePage() {
     pendingLockVerdict: 'dl:pending_lock_verdict',
   };
 
+  const restorePendingSoloReview = (raw: string | null) => {
+    if (!raw) return;
+
+    try {
+      const saved = JSON.parse(raw) as PendingSoloReview;
+
+      setDecision(saved.decision ?? '');
+      setContext(saved.context ?? '');
+      setReviewResult(saved.reviewResult ?? null);
+      setDeepReview(saved.deepReview ?? null);
+      setFinalThoughts(saved.finalThoughts ?? '');
+      setVerdictRequested(Boolean(saved.verdictRequested));
+      setVerdict(saved.verdict ?? null);
+      setHasStarted(Boolean(saved.reviewResult || saved.verdict || saved.deepReview));
+    } catch {
+      // ignore
+    }
+  };
+
   const persistSoloReviewLocally = (payload?: Partial<PendingSoloReview>) => {
     try {
       const nextPayload: PendingSoloReview = {
@@ -510,26 +529,6 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    const hydratePendingSoloReview = () => {
-      try {
-        const raw = localStorage.getItem(STORAGE.pendingSoloReview);
-        if (!raw) return;
-
-        const saved = JSON.parse(raw) as PendingSoloReview;
-
-        setDecision(saved.decision ?? '');
-        setContext(saved.context ?? '');
-        setReviewResult(saved.reviewResult ?? null);
-        setDeepReview(saved.deepReview ?? null);
-        setFinalThoughts(saved.finalThoughts ?? '');
-        setVerdictRequested(Boolean(saved.verdictRequested));
-        setVerdict(saved.verdict ?? null);
-        setHasStarted(Boolean(saved.reviewResult || saved.verdict || saved.deepReview));
-      } catch {
-        // ignore
-      }
-    };
-
     const getSession = async () => {
       const {
         data: { session },
@@ -546,7 +545,7 @@ export default function HomePage() {
           : null
       );
 
-      hydratePendingSoloReview();
+      restorePendingSoloReview(localStorage.getItem(STORAGE.pendingSoloReview));
       setAuthLoading(false);
     };
 
@@ -566,23 +565,7 @@ export default function HomePage() {
           : null
       );
 
-      try {
-        const raw = localStorage.getItem(STORAGE.pendingSoloReview);
-        if (raw) {
-          const saved = JSON.parse(raw) as PendingSoloReview;
-
-          setDecision(saved.decision ?? '');
-          setContext(saved.context ?? '');
-          setReviewResult(saved.reviewResult ?? null);
-          setDeepReview(saved.deepReview ?? null);
-          setFinalThoughts(saved.finalThoughts ?? '');
-          setVerdictRequested(Boolean(saved.verdictRequested));
-          setVerdict(saved.verdict ?? null);
-          setHasStarted(Boolean(saved.reviewResult || saved.verdict || saved.deepReview));
-        }
-      } catch {
-        // ignore
-      }
+      restorePendingSoloReview(localStorage.getItem(STORAGE.pendingSoloReview));
 
       setAuthLoading(false);
       setAuthError(null);
@@ -794,7 +777,7 @@ export default function HomePage() {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: window.location.href,
       },
     });
 
