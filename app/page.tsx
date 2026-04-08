@@ -647,7 +647,15 @@ export default function HomePage() {
 
         if (saveRes.ok) {
           const saveData = await saveRes.json();
-          if (saveData?.id) setDecisionId(saveData.id);
+          if (saveData?.id) {
+            setDecisionId(saveData.id);
+            try { localStorage.removeItem(STORAGE.pendingSoloReview); } catch { /* ignore */ }
+            setSavedToast('Decision saved to history');
+            setTimeout(() => {
+              window.location.href = `/decision-summary?id=${saveData.id}`;
+            }, 800);
+            return;
+          }
           try { localStorage.removeItem(STORAGE.pendingSoloReview); } catch { /* ignore */ }
           setSavedToast('Decision saved to history');
         }
@@ -1180,6 +1188,13 @@ export default function HomePage() {
 
       if (saveData?.id) {
         setDecisionId(saveData.id);
+        clearPendingSoloReview();
+        setSavedToast('Decision saved to history');
+        // Auto-redirect to decision brief after brief confirmation
+        setTimeout(() => {
+          window.location.href = `/decision-summary?id=${saveData.id}`;
+        }, 800);
+        return;
       }
 
       clearPendingSoloReview();
