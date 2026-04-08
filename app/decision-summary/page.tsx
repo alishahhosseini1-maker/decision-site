@@ -15,6 +15,8 @@ type DecisionRecord = {
   hinge: string | null;
   trap: string | null;
   step: string | null;
+  deep_review: string | null;
+  final_thoughts: string | null;
   outcome_status: string | null;
   needs_follow_up: boolean | null;
   created_at: string | null;
@@ -205,7 +207,7 @@ export default function DecisionSummaryPage() {
 
         let query = supabase
           .from('decisions')
-          .select('id, user_id, decision, context, score, verdict, door, hinge, trap, step, outcome_status, needs_follow_up, created_at, dismissed_at')
+          .select('id, user_id, decision, context, score, verdict, door, hinge, trap, step, deep_review, final_thoughts, outcome_status, needs_follow_up, created_at, dismissed_at')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(1);
@@ -213,7 +215,7 @@ export default function DecisionSummaryPage() {
         if (id) {
           query = supabase
             .from('decisions')
-            .select('id, user_id, decision, context, score, verdict, door, hinge, trap, step, outcome_status, needs_follow_up, created_at, dismissed_at')
+            .select('id, user_id, decision, context, score, verdict, door, hinge, trap, step, deep_review, final_thoughts, outcome_status, needs_follow_up, created_at, dismissed_at')
             .eq('id', id)
             .eq('user_id', user.id)
             .limit(1);
@@ -430,6 +432,26 @@ export default function DecisionSummaryPage() {
           <EvidenceCard label="Supporting" items={supporting} />
           <EvidenceCard label="Breaking" items={breaking} />
         </section>
+
+        {/* ── Deep review ── */}
+        {decision.deep_review ? (
+          <section className="rounded-[24px] border border-black/5 bg-white p-6 shadow-sm">
+            <p className="text-[11px] uppercase tracking-[0.18em] text-black/38">Reasoning</p>
+            <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-black/78">
+              {decision.deep_review}
+            </p>
+          </section>
+        ) : null}
+
+        {/* ── Final thoughts / notes ── */}
+        {decision.final_thoughts ? (
+          <section className="rounded-[24px] border border-black/5 bg-white p-6 shadow-sm">
+            <p className="text-[11px] uppercase tracking-[0.18em] text-black/38">Your notes</p>
+            <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-black/78">
+              {decision.final_thoughts}
+            </p>
+          </section>
+        ) : null}
 
         {/* ── Rationale (full verdict body) ── */}
         {verdictData.rationale && verdictData.rationale !== '—' ? (

@@ -26,6 +26,10 @@ export async function POST(req: Request) {
         trap: body.trap ?? null,
         step: body.step ?? null,
 
+        // deep review and notes
+        deep_review: body.deep_review ?? null,
+        final_thoughts: body.final_thoughts ?? null,
+
         outcome_status: 'awaiting_outcome',
         needs_follow_up: false,
         exclude_from_patterns: false,
