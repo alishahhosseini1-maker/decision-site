@@ -2515,13 +2515,13 @@ export default function HomePage() {
                         <>
                           <div
                             style={{
-                              fontFamily: serif,
-                              fontSize: 22,
+                              whiteSpace: 'pre-wrap',
+                              fontFamily: sans,
+                              fontSize: 15,
                               fontWeight: 400,
-                              letterSpacing: '-0.01em',
-                              lineHeight: 1.2,
-                              marginBottom: 12,
-                              color: '#111',
+                              lineHeight: 1.7,
+                              color: 'rgba(0,0,0,0.82)',
+                              marginBottom: verdictReason ? 12 : 0,
                             }}
                           >
                             {verdictTitle}
