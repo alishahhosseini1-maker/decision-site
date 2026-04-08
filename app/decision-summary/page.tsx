@@ -380,9 +380,7 @@ export default function DecisionSummaryPage() {
               <div className="mt-2 border-l-[3px] border-l-black pl-4 py-1 bg-[#f9f9f7] rounded-r-lg">
                 <p className="text-sm font-normal leading-7 text-black">{verdictData.title}</p>
               </div>
-              {verdictData.rationale ? (
-                <p className="mt-3 text-sm leading-7 text-black/60">{verdictData.rationale}</p>
-              ) : null}
+
             </div>
           </div>
         </section>
@@ -434,9 +432,7 @@ export default function DecisionSummaryPage() {
             {decision.trap ? (
               <EvidenceRow tag="Hidden trap" text={decision.trap} />
             ) : null}
-            {decision.step ? (
-              <EvidenceRow tag="Next survivable move" text={decision.step} />
-            ) : null}
+
           </div>
         </section>
 
