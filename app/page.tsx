@@ -2513,18 +2513,30 @@ export default function HomePage() {
                         </div>
                       ) : (
                         <>
+                          {/* Verdict text block — distinct from surrounding content */}
                           <div
                             style={{
-                              whiteSpace: 'pre-wrap',
-                              fontFamily: sans,
-                              fontSize: 15,
-                              fontWeight: 400,
-                              lineHeight: 1.7,
-                              color: 'rgba(0,0,0,0.82)',
-                              marginBottom: verdictReason ? 12 : 0,
+                              borderLeft: '3px solid #111',
+                              paddingLeft: '1.25rem',
+                              paddingTop: '0.85rem',
+                              paddingBottom: '0.85rem',
+                              background: '#f9f9f7',
+                              borderRadius: '0 8px 8px 0',
+                              marginBottom: verdictReason ? 14 : 0,
                             }}
                           >
-                            {verdictTitle}
+                            <div
+                              style={{
+                                whiteSpace: 'pre-wrap',
+                                fontFamily: sans,
+                                fontSize: 15,
+                                fontWeight: 400,
+                                lineHeight: 1.75,
+                                color: '#111',
+                              }}
+                            >
+                              {verdictTitle}
+                            </div>
                           </div>
 
                           {verdictReason && (
