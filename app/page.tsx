@@ -662,7 +662,6 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!mode || mode !== 'solo') return;
-    if (!decision && !reviewResult && !verdict) return; // don't overwrite with empty state
     persistSoloReviewLocally();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [decision, context, reviewResult, deepReview, finalThoughts, verdictRequested, verdict, mode]);
@@ -2614,47 +2613,21 @@ export default function HomePage() {
                                   marginBottom: 14,
                                 }}
                               >
-                                You can now track how this decision plays out over time.
+                                Your decision is saved. View the full brief to see the verdict, risks, and next move.
                               </div>
-                              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                                <a
-                                  href={`/decision-summary?id=${decisionId}`}
-                                  style={{
-                                    ...lightButtonStyle,
-                                    fontSize: 12,
-                                    padding: '8px 14px',
-                                    textDecoration: 'none',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                  }}
-                                >
-                                  View Decision Brief
-                                </a>
-                                <a
-                                  href="/history"
-                                  style={{
-                                    ...ctaButtonStyle,
-                                    fontSize: 12,
-                                    padding: '8px 14px',
-                                    textDecoration: 'none',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                  }}
-                                >
-                                  View Decision History
-                                </a>
-                                <button
-                                  type="button"
-                                  onClick={resetReviewState}
-                                  style={{
-                                    ...lightButtonStyle,
-                                    fontSize: 12,
-                                    padding: '8px 14px',
-                                  }}
-                                >
-                                  Done
-                                </button>
-                              </div>
+                              <a
+                                href={`/decision-summary?id=${decisionId}`}
+                                style={{
+                                  ...ctaButtonStyle,
+                                  fontSize: 12,
+                                  padding: '10px 18px',
+                                  textDecoration: 'none',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                }}
+                              >
+                                View Decision Brief →
+                              </a>
                             </>
                           )}
                         </>
