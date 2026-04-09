@@ -2920,7 +2920,7 @@ export default function HomePage() {
                                 }}
                               >
                                 {!user
-                                  ? 'Save this verdict and track what happens next. Sign in to add it to your decision record.'
+                                  ? 'You just put in the work. This verdict only lives in this tab — close it and it\'s gone.'
                                   : 'Signed in. Your decision is ready to lock.'}
                               </div>
                               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -2934,7 +2934,7 @@ export default function HomePage() {
                                     cursor: savingVerdict ? 'default' : 'pointer',
                                   }}
                                 >
-                                  {savingVerdict ? 'Saving...' : user ? 'Lock in verdict' : 'Sign in to save'}
+                                  {savingVerdict ? 'Saving...' : user ? 'Lock in verdict' : 'Keep this verdict →'}
                                 </button>
                               </div>
                               {signInEmailSent && (
