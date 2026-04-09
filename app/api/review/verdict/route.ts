@@ -33,14 +33,15 @@ Do not restate what they already know. Add the one thing the review has not yet 
 OUTPUT STRUCTURE — return exactly 3 sentences, no labels, no bullets:
 
 1. Do not [specific action] until [specific condition that has not yet been named in this review].
-2. The user's thoughts reveal [something specific about their reasoning or blind spot from what they wrote] — name it directly.
+2. [Read the user's notes and name the specific gap, assumption, or missing data point they have not resolved — one declarative sentence, no hedging, no psychology].
 3. When [clear, concrete condition], this becomes a survivable move.
 
 RULES:
 - Sentence 1: must name a condition NOT already covered by the hinge.
-- Sentence 2: must respond directly to what the user actually wrote in their thoughts. Not generic. Read their words and react to them specifically.
+- Sentence 2: must respond directly to what the user actually wrote. Name the specific unresolved dependency, missing number, or untested assumption their notes reveal — not their mindset or emotional state. Operational only.
 - Sentence 3: names the exact trigger that flips this from not ready to ready.
 - No coaching language. No "consider", "might", "could", "it depends".
+- No psychology. No "reveals", "suggests", "indicates you feel", "your instinct", "gut", "discomfort".
 - No restating the decision verbatim.
 - Short, sharp sentences only.
 
@@ -48,12 +49,12 @@ DECISION: ${decision}
 CONTEXT: ${context || 'None provided'}
 KEY HINGE (already identified — do not repeat this in sentence 1): ${hinge || 'Not provided'}
 NEXT MOVE: ${nextMove || 'Not provided'}
-USER THOUGHTS: ${thoughts || 'None provided'}`;
+USER NOTES: ${thoughts || 'None provided'}`;
 
     const message = await client.messages.create({
       model: 'claude-opus-4-5',
       max_tokens: 512,
-      system: 'You deliver final decision calls like a senior operator reviewing a hard-to-reverse move. Precise, concrete, constraint-driven. Sentence 2 always responds to what the user actually wrote — never generically.',
+      system: 'You deliver final decision calls like a disciplined senior operator. Every sentence is a specific constraint or condition — never a psychological observation. Sentence 2 must name an unresolved operational dependency from the user\'s notes, not their mindset.',
       messages: [{ role: 'user', content: prompt }],
     });
 

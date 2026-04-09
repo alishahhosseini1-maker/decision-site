@@ -2893,7 +2893,7 @@ export default function HomePage() {
                           marginBottom: '0.85rem',
                         }}
                       >
-                        Final verdict
+                        Commitment rule
                       </div>
 
                       {verdictLoading ? (
