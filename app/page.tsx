@@ -521,6 +521,7 @@ export default function HomePage() {
 
   const [deepLoading, setDeepLoading] = useState(false);
   const [deepReview, setDeepReview] = useState<string | null>(null);
+  const [deepError, setDeepError] = useState<string | null>(null);
 
   const [finalThoughts, setFinalThoughts] = useState('');
   const [verdictRequested, setVerdictRequested] = useState(false);
@@ -1143,6 +1144,7 @@ export default function HomePage() {
     if (deepLoading) return;
 
     setDeepLoading(true);
+    setDeepError(null);
 
     try {
       const res = await fetch('/api/review/deep', {
@@ -1168,9 +1170,8 @@ export default function HomePage() {
       setReflectionPrompts(prompts);
       persistSoloReviewLocally({ deepReview: analysis, reflectionPrompts: prompts });
     } catch (err: any) {
-      const failureMessage = err?.message || 'Failed to load deep review.';
-      setDeepReview(failureMessage);
-      persistSoloReviewLocally({ deepReview: failureMessage });
+      setDeepError(err?.message || 'Failed to load. Tap to retry.');
+      setDeepReview(null);
     } finally {
       setDeepLoading(false);
     }
@@ -2669,21 +2670,29 @@ export default function HomePage() {
                     >
                       <Z2Label>Reasoning</Z2Label>
                       {deepLoading ? (
-                        <div style={{ fontFamily: sans, fontSize: 13, color: 'rgba(0,0,0,0.42)', padding: '8px 0' }}>
-                          Loading deeper review...
+                        <div style={{ fontFamily: sans, fontSize: 13, color: 'rgba(0,0,0,0.42)', padding: '8px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: '50%', background: 'rgba(0,0,0,0.18)', animation: 'pulse 1.2s ease-in-out infinite' }} />
+                          Analysing...
                         </div>
                       ) : deepReviewSections.length === 0 ? (
-                        <button
-                          type="button"
-                          onClick={() => void loadDeepReview()}
-                          style={{
-                            ...lightButtonStyle,
-                            fontSize: 12.5,
-                            padding: '9px 16px',
-                          }}
-                        >
-                          Unpack the review ↓
-                        </button>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start' }}>
+                          {deepError && (
+                            <div style={{ fontFamily: sans, fontSize: 12, color: '#A32D2D', marginBottom: 4 }}>
+                              {deepError}
+                            </div>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => void loadDeepReview()}
+                            style={{
+                              ...lightButtonStyle,
+                              fontSize: 12.5,
+                              padding: '9px 16px',
+                            }}
+                          >
+                            {deepError ? 'Retry ↓' : 'Unpack the review ↓'}
+                          </button>
+                        </div>
                       ) : (
                         <div style={{ borderTop: '0.5px solid rgba(0,0,0,0.07)' }}>
                           {deepReviewSections.map((section) => (

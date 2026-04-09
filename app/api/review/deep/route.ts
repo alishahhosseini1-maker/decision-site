@@ -63,7 +63,7 @@ Format each as a direct question that starts with What, Who, When, or Why.
 3.`;
 
     const message = await client.messages.create({
-      model: 'claude-opus-4-6',
+      model: 'claude-haiku-4-5',
       max_tokens: 900,
       system: 'You analyze decisions like a calm senior operator who has seen things fail. Specific, constraint-focused, never generic. No section repeats the same underlying risk as another section.',
       messages: [{ role: 'user', content: prompt }],
