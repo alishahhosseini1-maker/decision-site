@@ -57,9 +57,7 @@ export async function GET() {
               letterSpacing: '-0.02em',
             }}
           >
-            Think before
-            <br />
-            you commit.
+            Before you commit.
           </div>
           <div
             style={{
