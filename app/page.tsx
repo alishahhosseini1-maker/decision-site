@@ -181,6 +181,32 @@ function getScoreMeta(label?: string) {
   return { color: '#0F6E56', bg: '#E1F5EE', borderColor: 'rgba(15,110,86,0.20)', badge: 'READY' };
 }
 
+function getProgressColor(value?: number | null) {
+  if (value === null || value === undefined) return 'rgba(0,0,0,0.14)';
+  if (value <= 8) return '#dc2626';
+  if (value <= 16) return '#f59e0b';
+  return '#16a34a';
+}
+
+function getFactorHint(name: string, decisionText: string) {
+  const decisionLabel = decisionText ? `“${decisionText.trim()}”` : 'this decision';
+
+  switch (name) {
+    case 'Clarity':
+      return `Can someone read ${decisionLabel} and immediately know what outcome you want and why it matters?`;
+    case 'Assumptions':
+      return `For ${decisionLabel}, what must be true about the offer, the team, or the timing for it to work?`;
+    case 'Reversibility':
+      return `If ${decisionLabel} goes wrong, can you unwind it quickly enough to avoid a bigger loss?`;
+    case 'Risk':
+      return `What is the worst realistic outcome of ${decisionLabel}, and how likely is it?`;
+    case 'Exit Logic':
+      return `When would you stop and change course if ${decisionLabel} stops meeting your core criteria?`;
+    default:
+      return 'Keep this factor specific to the decision at hand.';
+  }
+}
+
 // ─── Layout sub-components ──────────────────────────────────────────────────────
 
 function Z2Label({ children }: { children: React.ReactNode }) {
@@ -2072,9 +2098,23 @@ export default function HomePage() {
                         {decisionError}
                       </div>
                     )}
+                    {!hasStarted && (
+                      <div
+                        style={{
+                          marginTop: 8,
+                          fontSize: 12,
+                          lineHeight: 1.6,
+                          color: 'rgba(0,0,0,0.42)',
+                          borderLeft: '2px solid rgba(0,0,0,0.10)',
+                          paddingLeft: 9,
+                        }}
+                      >
+                        Gaps in context become gaps in the verdict.
+                      </div>
+                    )}
                   </div>
 
-                  <details style={detailStyle}>
+                  <details style={detailStyle} open>
                     <summary style={summaryStyle}>{optionalDetailsLabel}</summary>
                     <div style={{ paddingTop: 12 }}>
                       <textarea
@@ -2204,15 +2244,39 @@ export default function HomePage() {
                         {/* Header */}
                         <div
                           style={{
-                            fontSize: 11,
-                            fontWeight: 700,
-                            letterSpacing: '0.12em',
-                            textTransform: 'uppercase',
-                            color: 'rgba(0,0,0,0.42)',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            gap: '1rem',
                             marginBottom: '1.2rem',
                           }}
                         >
-                          Decision Quality
+                          <div
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 700,
+                              letterSpacing: '0.12em',
+                              textTransform: 'uppercase',
+                              color: 'rgba(0,0,0,0.42)',
+                            }}
+                          >
+                            Decision Quality
+                          </div>
+                          <div
+                            style={{
+                              padding: '8px 11px',
+                              borderRadius: 999,
+                              background: meta.bg,
+                              color: meta.color,
+                              fontSize: 11,
+                              fontWeight: 700,
+                              letterSpacing: '0.08em',
+                              textTransform: 'uppercase',
+                              border: `1px solid ${meta.borderColor}`,
+                            }}
+                          >
+                            {meta.badge}
+                          </div>
                         </div>
 
                         {/* Hero score */}
@@ -2316,11 +2380,11 @@ export default function HomePage() {
                           {/* Breakdown */}
                           <div style={{ marginTop: '1rem' }}>
                             {[
-                              { name: 'Clarity', value: reviewResult?.readiness?.clarity, hint: 'Is the decision stated clearly? Include context about why it\'s being made.' },
-                              { name: 'Assumptions', value: reviewResult?.readiness?.assumptions, hint: 'What must be true? List and validate key assumptions before proceeding.' },
-                              { name: 'Reversibility', value: reviewResult?.readiness?.reversibility, hint: 'Can this be undone? More reversible decisions allow for faster iteration.' },
-                              { name: 'Risk', value: reviewResult?.readiness?.risk, hint: 'What\'s the downside? Identify worst-case scenarios and likelihood.' },
-                              { name: 'Exit Logic', value: reviewResult?.readiness?.exitLogic, hint: 'When would you cut losses? Define clear exit criteria beforehand.' },
+                              { name: 'Clarity', value: reviewResult?.readiness?.clarity, hint: getFactorHint('Clarity', decision) },
+                              { name: 'Assumptions', value: reviewResult?.readiness?.assumptions, hint: getFactorHint('Assumptions', decision) },
+                              { name: 'Reversibility', value: reviewResult?.readiness?.reversibility, hint: getFactorHint('Reversibility', decision) },
+                              { name: 'Risk', value: reviewResult?.readiness?.risk, hint: getFactorHint('Risk', decision) },
+                              { name: 'Exit Logic', value: reviewResult?.readiness?.exitLogic, hint: getFactorHint('Exit Logic', decision) },
                             ].map((factor, i) => (
                               <div key={i}>
                                 <div
@@ -2350,7 +2414,7 @@ export default function HomePage() {
                                         style={{
                                           height: '100%',
                                           width: `${((factor.value ?? 0) / 25) * 100}%`,
-                                          background: 'rgba(0,0,0,0.22)',
+                                          background: getProgressColor(factor.value),
                                         }}
                                       />
                                     </div>
@@ -2425,18 +2489,6 @@ export default function HomePage() {
                         </details>
                       </div>
 
-                      {/* Verdict headline */}
-                      <div
-                        style={{
-                          fontFamily: serif,
-                          fontSize: 20,
-                          fontWeight: 400,
-                          lineHeight: 1.5,
-                          color: '#111',
-                        }}
-                      >
-                        {verdictDisplay}
-                      </div>
                     </div>
 
                     {/* Break line sentence */}

@@ -90,6 +90,32 @@ function getScoreMeta(score?: number | null) {
   return { label: 'Not ready', pillClass: 'bg-rose-600 text-white', dotClass: 'bg-rose-500', textClass: 'text-rose-700', cardClass: 'border-rose-200 bg-rose-50/60' };
 }
 
+function getProgressColor(value?: number | null) {
+  if (value === null || value === undefined) return 'rgba(0,0,0,0.14)';
+  if (value <= 8) return '#dc2626';
+  if (value <= 16) return '#f59e0b';
+  return '#16a34a';
+}
+
+function getFactorHint(name: string, decisionText: string) {
+  const decisionLabel = decisionText ? `“${decisionText.trim()}”` : 'this decision';
+
+  switch (name) {
+    case 'Clarity':
+      return `Can someone read ${decisionLabel} and immediately know what outcome you want and why it matters?`;
+    case 'Assumptions':
+      return `For ${decisionLabel}, what must be true about the offer, the team, or the timing for it to work?`;
+    case 'Reversibility':
+      return `If ${decisionLabel} goes wrong, can you unwind it quickly enough to avoid a bigger loss?`;
+    case 'Risk':
+      return `What is the worst realistic outcome of ${decisionLabel}, and how likely is it?`;
+    case 'Exit Logic':
+      return `When would you stop and change course if ${decisionLabel} stops meeting your core criteria?`;
+    default:
+      return 'Keep this factor specific to the decision at hand.';
+  }
+}
+
 function splitVerdict(verdict?: string | null) {
   if (!verdict) return { title: 'No verdict saved', rationale: '' };
   const clean = (s: string) => s.replace(/\*\*(.*?)\*\*/g, '$1').replace(/__(.*?)__/g, '$1');
@@ -418,8 +444,13 @@ export default function DecisionSummaryPage() {
 
         {/* ── SCORE ── */}
         <section className={`rounded-2xl border border-black/12 bg-white/60 p-7 shadow-sm`}>
-          <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-black/42 mb-5">
-            Decision Quality
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+            <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-black/42">
+              Decision Quality
+            </div>
+            <div className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] ${scoreMeta.textClass}`}>
+              {scoreMeta.label}
+            </div>
           </div>
 
           {/* Hero score */}
@@ -454,11 +485,11 @@ export default function DecisionSummaryPage() {
             </summary>
             <div className="mt-4 space-y-2">
               {[
-                { name: 'Clarity', value: decision.readiness_clarity, hint: 'Is the decision stated clearly? Include context about why it\'s being made.' },
-                { name: 'Assumptions', value: decision.readiness_assumptions, hint: 'What must be true? List and validate key assumptions before proceeding.' },
-                { name: 'Reversibility', value: decision.readiness_reversibility, hint: 'Can this be undone? More reversible decisions allow for faster iteration.' },
-                { name: 'Risk', value: decision.readiness_risk, hint: 'What\'s the downside? Identify worst-case scenarios and likelihood.' },
-                { name: 'Exit Logic', value: decision.readiness_exit_logic, hint: 'When would you cut losses? Define clear exit criteria beforehand.' },
+                { name: 'Clarity', value: decision.readiness_clarity, hint: getFactorHint('Clarity', decision.decision) },
+                { name: 'Assumptions', value: decision.readiness_assumptions, hint: getFactorHint('Assumptions', decision.decision) },
+                { name: 'Reversibility', value: decision.readiness_reversibility, hint: getFactorHint('Reversibility', decision.decision) },
+                { name: 'Risk', value: decision.readiness_risk, hint: getFactorHint('Risk', decision.decision) },
+                { name: 'Exit Logic', value: decision.readiness_exit_logic, hint: getFactorHint('Exit Logic', decision.decision) },
               ].map((factor, i) => (
                 <div key={i}>
                   <div className="grid gap-2 items-center py-2 border-b border-black/6 grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[120px_1fr_50px]">
@@ -466,8 +497,11 @@ export default function DecisionSummaryPage() {
                       <div className="text-xs font-medium text-black/72">{factor.name}</div>
                       <div className="h-0.5 bg-black/8 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-black/22"
-                          style={{ width: `${((factor.value ?? 0) / 25) * 100}%` }}
+                          className="h-full"
+                          style={{
+                            width: `${((factor.value ?? 0) / 25) * 100}%`,
+                            background: getProgressColor(factor.value),
+                          }}
                         />
                       </div>
                     </div>
