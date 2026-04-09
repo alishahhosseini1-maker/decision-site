@@ -269,10 +269,10 @@ function FindingRow({
     'rgba(0,0,0,0.36)';
 
   const textSize = variant === 'threat' ? 15 : variant === 'condition' ? 14 : 13.5;
-  const textWeight = variant === 'threat' ? 500 : variant === 'condition' ? 500 : 400;
-  const textColor = variant === 'directive' ? 'rgba(0,0,0,0.55)' : '#111';
-  const textFamily = variant === 'directive' ? serif : sans;
-  const textStyle = variant === 'directive' ? 'italic' as const : 'normal' as const;
+  const textWeight = variant === 'threat' ? 500 : variant === 'condition' ? 500 : 500;
+  const textColor = variant === 'directive' ? '#111' : '#111';
+  const textFamily = sans;
+  const textStyle = 'normal' as const;
 
   return (
     <div
@@ -469,7 +469,23 @@ function AccordionRow({
                 {!isNumbered && (
                   <span style={{ color: 'rgba(0,0,0,0.18)', flexShrink: 0, marginTop: 4, fontSize: 11 }}>—</span>
                 )}
-                <span style={{ paddingLeft: isNumbered ? 2 : 0 }}>{renderMarkdownLine(line)}</span>
+                <span style={{ paddingLeft: isNumbered ? 2 : 0 }}>
+                  {(() => {
+                    // Split at first period/exclamation/question that ends a sentence
+                    const boldEnd = line.search(/(?<=[^A-Z][.!?])\s/);
+                    if (boldEnd > 0 && boldEnd < 120) {
+                      const boldPart = line.slice(0, boldEnd + 1);
+                      const restPart = line.slice(boldEnd + 1).trim();
+                      return (
+                        <>
+                          <strong style={{ fontWeight: 600, color: 'rgba(0,0,0,0.80)' }}>{renderMarkdownLine(boldPart)}</strong>
+                          {restPart && <span style={{ fontWeight: 400 }}>{' '}{renderMarkdownLine(restPart)}</span>}
+                        </>
+                      );
+                    }
+                    return renderMarkdownLine(line);
+                  })()}
+                </span>
               </div>
             );
           })}
@@ -2995,7 +3011,7 @@ export default function HomePage() {
                                 }}
                               >
                                 {!user
-                                  ? 'Sign in to keep this verdict. You’ll also get a full decision brief you can revisit, share, and track over time.'
+                                  ? 'Decisions you don’t write down disappear. Keep this one.'
                                   : 'Signed in. Your decision is ready to lock.'}
                               </div>
                               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
