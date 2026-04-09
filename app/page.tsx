@@ -147,18 +147,26 @@ function parseDeepReviewSections(text?: string | null): DeepReviewSection[] {
 
   const sections: DeepReviewSection[] = [];
   let current: DeepReviewSection | null = null;
+  let skipToNextSection = false;
 
   for (const rawLine of rawLines) {
+    // Stop adding lines if we hit a markdown sub-heading (e.g. ## Reflection prompts)
+    if (rawLine.startsWith('#')) {
+      skipToNextSection = true;
+      continue;
+    }
+
     const cleaned = cleanDeepReviewHeading(rawLine);
     const key = cleaned.toLowerCase();
 
     if (DEEP_REVIEW_HEADINGS.has(key)) {
       current = { heading: cleaned, lines: [] };
       sections.push(current);
+      skipToNextSection = false;
       continue;
     }
 
-    if (!current) continue;
+    if (!current || skipToNextSection) continue;
 
     current.lines.push(rawLine.replace(/^[•\-]\s*/, '').trim());
   }
@@ -434,25 +442,30 @@ function AccordionRow({
         </span>
       </button>
       {isOpen && (
-        <div style={{ paddingBottom: 14 }}>
-          {lines.map((line, i) => (
-            <div
-              key={i}
-              style={{
-                fontFamily: sans,
-                fontSize: 13,
-                lineHeight: 1.65,
-                color: 'rgba(0,0,0,0.55)',
-                marginBottom: i < lines.length - 1 ? 8 : 0,
-                display: 'flex',
-                gap: 8,
-                alignItems: 'flex-start',
-              }}
-            >
-              <span style={{ color: 'rgba(0,0,0,0.20)', flexShrink: 0, marginTop: 2 }}>–</span>
-              <span>{renderMarkdownLine(line)}</span>
-            </div>
-          ))}
+        <div style={{ paddingBottom: 16 }}>
+          {lines.map((line, i) => {
+            const isNumbered = /^\d+\./.test(line);
+            return (
+              <div
+                key={i}
+                style={{
+                  fontFamily: sans,
+                  fontSize: 13,
+                  lineHeight: 1.7,
+                  color: 'rgba(0,0,0,0.55)',
+                  marginBottom: i < lines.length - 1 ? 12 : 0,
+                  display: 'flex',
+                  gap: 10,
+                  alignItems: 'flex-start',
+                }}
+              >
+                {!isNumbered && (
+                  <span style={{ color: 'rgba(0,0,0,0.18)', flexShrink: 0, marginTop: 3 }}>–</span>
+                )}
+                <span style={{ paddingLeft: isNumbered ? 2 : 0 }}>{renderMarkdownLine(line)}</span>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
