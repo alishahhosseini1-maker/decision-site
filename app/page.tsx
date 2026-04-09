@@ -2149,7 +2149,7 @@ export default function HomePage() {
                     What decision are you about to make?
                   </div>
                   <div style={{ marginTop: 6, fontSize: 13.5, lineHeight: 1.55, opacity: 0.68 }}>
-                    Get a readiness check, key risks, and a verdict.
+                    Get a pre-commit score, key risks, and a verdict.
                   </div>
                 </div>
 
@@ -2284,24 +2284,25 @@ export default function HomePage() {
                       })}
                     </div>
 
-                    {/* Decision in italics */}
-                    <div
-                      style={{
-                        fontFamily: serif,
-                        fontSize: 18,
-                        fontWeight: 400,
-                        fontStyle: 'italic',
-                        lineHeight: 1.45,
-                        color: 'rgba(0,0,0,0.55)',
-                        marginBottom: '3rem',
-                      }}
-                    >
-                      &ldquo;{decision}&rdquo;
-                    </div>
-
                     {/* Score card + verdict headline */}
                     <div style={{ marginBottom: '2.5rem' }}>
-                      {/* Readiness Score Card */}
+
+                      {/* Plain-english verdict — shown first */}
+                      <div
+                        style={{
+                          fontFamily: serif,
+                          fontSize: 20,
+                          fontWeight: 400,
+                          lineHeight: 1.5,
+                          color: '#0b0b0b',
+                          marginBottom: '1.75rem',
+                          fontStyle: 'italic',
+                        }}
+                      >
+                        {reviewResult.topline.recommendedMove}
+                      </div>
+
+                      {/* Pre-commit Score Card */}
                       <div
                         style={{
                           borderRadius: 14,
@@ -2380,7 +2381,7 @@ export default function HomePage() {
                               marginTop: '0.6rem',
                             }}
                           >
-                            Readiness score
+                            Pre-commit score
                           </div>
                         </div>
 
