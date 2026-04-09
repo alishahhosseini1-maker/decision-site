@@ -2647,7 +2647,6 @@ export default function HomePage() {
                       <Z2Label>Decision anatomy</Z2Label>
                       <div style={{ borderTop: '0.5px solid rgba(0,0,0,0.07)' }}>
                         <AnatomyRow label="Door" sublabel="type of decision" value={reviewResult.snapshot.door} />
-                        <AnatomyRow label="Hinge" sublabel="what must be true" value={reviewResult.snapshot.hinge} />
                         <AnatomyRow label="Locks" sublabel="hard to undo" value={reviewResult.snapshot.lock} />
                         <AnatomyRow label="Trap" sublabel="hidden failure risk" value={reviewResult.snapshot.trap} />
                         <AnatomyRow label="Exit" sublabel="when to stop" value={reviewResult.snapshot.exit} />
