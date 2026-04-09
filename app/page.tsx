@@ -190,20 +190,18 @@ function getProgressColor(value?: number | null) {
   return '#16a34a';
 }
 
-function getFactorHint(name: string, decisionText: string) {
-  const d = decisionText ? `"${decisionText.trim()}"` : 'this decision';
-
+function getFactorHint(name: string, _decisionText: string) {
   switch (name) {
     case 'Clarity':
-      return `If you can’t say what “good” looks like for ${d}, you don’t have a decision — you have a preference.`;
+      return `If you can’t say what success looks like, you don’t have a decision — you have a preference.`;
     case 'Assumptions':
-      return `${d} works only if certain things are true. Which ones have you actually verified?`;
+      return `Which things must be true for this to work — and have you actually checked any of them?`;
     case 'Reversibility':
-      return `If ${d} goes wrong, how much of the cost is unrecoverable? That’s your real stake.`;
+      return `How much of the cost is unrecoverable if this goes wrong? That’s your real stake.`;
     case 'Risk':
-      return `What’s the worst realistic outcome of ${d} — and could you survive it?`;
+      return `What’s the worst realistic outcome — and could you survive it?`;
     case 'Exit Logic':
-      return `Without a clear exit condition for ${d}, you’ll keep going long after you should have stopped.`;
+      return `Without a clear exit condition, you’ll keep going long after you should have stopped.`;
     default:
       return 'Keep this factor specific to the decision at hand.';
   }
@@ -364,6 +362,29 @@ function AnatomyRow({
   );
 }
 
+// Converts **bold** and *italic* markdown to React elements
+function renderMarkdownLine(text: string): React.ReactNode[] {
+  const parts: React.ReactNode[] = [];
+  // Handle **bold** and *italic*
+  const regex = /\*\*(.+?)\*\*|\*(.+?)\*/g;
+  let lastIndex = 0;
+  let match;
+  let key = 0;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    if (match[1] !== undefined) {
+      parts.push(<strong key={key++} style={{ fontWeight: 600, color: 'rgba(0,0,0,0.75)' }}>{match[1]}</strong>);
+    } else if (match[2] !== undefined) {
+      parts.push(<em key={key++}>{match[2]}</em>);
+    }
+    lastIndex = regex.lastIndex;
+  }
+  if (lastIndex < text.length) parts.push(text.slice(lastIndex));
+  return parts;
+}
+
 function AccordionRow({
   heading,
   lines,
@@ -420,12 +441,16 @@ function AccordionRow({
               style={{
                 fontFamily: sans,
                 fontSize: 13,
-                lineHeight: 1.7,
+                lineHeight: 1.65,
                 color: 'rgba(0,0,0,0.55)',
-                marginBottom: i < lines.length - 1 ? 6 : 0,
+                marginBottom: i < lines.length - 1 ? 8 : 0,
+                display: 'flex',
+                gap: 8,
+                alignItems: 'flex-start',
               }}
             >
-              {line}
+              <span style={{ color: 'rgba(0,0,0,0.20)', flexShrink: 0, marginTop: 2 }}>–</span>
+              <span>{renderMarkdownLine(line)}</span>
             </div>
           ))}
         </div>
@@ -2920,7 +2945,7 @@ export default function HomePage() {
                                 }}
                               >
                                 {!user
-                                  ? 'You just put in the work. This verdict only lives in this tab — close it and it\'s gone.'
+                                  ? 'Sign in to keep this verdict. You’ll also get a full decision brief you can revisit, share, and track over time.'
                                   : 'Signed in. Your decision is ready to lock.'}
                               </div>
                               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
