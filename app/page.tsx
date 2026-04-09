@@ -851,7 +851,6 @@ export default function HomePage() {
       return false;
     }
 
-    window.alert('Check your email for the sign-in link.');
     setSignInEmailSent(true);
     return true;
   };

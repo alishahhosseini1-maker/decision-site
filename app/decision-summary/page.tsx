@@ -327,7 +327,6 @@ export default function DecisionSummaryPage() {
       return;
     }
 
-    window.alert('Check your email for the sign-in link.');
     setSignInEmailSent(true);
   };
 
