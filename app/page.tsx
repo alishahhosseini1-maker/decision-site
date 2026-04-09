@@ -185,8 +185,8 @@ function getScoreMeta(label?: string) {
 
 function getProgressColor(value?: number | null) {
   if (value === null || value === undefined) return 'rgba(0,0,0,0.14)';
-  if (value <= 8) return '#dc2626';
-  if (value <= 16) return '#f59e0b';
+  if (value <= 6) return '#dc2626';
+  if (value <= 13) return '#f59e0b';
   return '#16a34a';
 }
 
@@ -2437,14 +2437,14 @@ export default function HomePage() {
                                       <div
                                         style={{
                                           height: '100%',
-                                          width: `${((factor.value ?? 0) / 25) * 100}%`,
+                                          width: `${((factor.value ?? 0) / 20) * 100}%`,
                                           background: getProgressColor(factor.value),
                                         }}
                                       />
                                     </div>
                                   </div>
                                   <div style={{ fontSize: 11.5, fontWeight: 600, color: 'rgba(0,0,0,0.55)', textAlign: 'right' }}>
-                                    {factor.value ?? '—'}<span style={{ fontSize: 10.5, opacity: 0.6 }}>/25</span>
+                                    {factor.value ?? '—'}<span style={{ fontSize: 10.5, opacity: 0.6 }}>/20</span>
                                   </div>
                                 </div>
                                 <div style={{ fontSize: 11.5, color: 'rgba(0,0,0,0.50)', lineHeight: 1.4, marginTop: '0.4rem', marginBottom: '0.3rem', fontStyle: 'italic' }}>

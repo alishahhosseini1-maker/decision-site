@@ -92,8 +92,8 @@ function getScoreMeta(score?: number | null) {
 
 function getProgressColor(value?: number | null) {
   if (value === null || value === undefined) return 'rgba(0,0,0,0.14)';
-  if (value <= 8) return '#dc2626';
-  if (value <= 16) return '#f59e0b';
+  if (value <= 6) return '#dc2626';
+  if (value <= 13) return '#f59e0b';
   return '#16a34a';
 }
 
@@ -509,13 +509,13 @@ export default function DecisionSummaryPage() {
                         <div
                           className="h-full"
                           style={{
-                            width: `${((factor.value ?? 0) / 25) * 100}%`,
+                            width: `${((factor.value ?? 0) / 20) * 100}%`,
                             background: getProgressColor(factor.value),
                           }}
                         />
                       </div>
                     </div>
-                    <div className="text-xs font-semibold text-black/55 text-right">{factor.value ?? '—'}<span className="text-[10px] opacity-60">/25</span></div>
+                    <div className="text-xs font-semibold text-black/55 text-right">{factor.value ?? '—'}<span className="text-[10px] opacity-60">/20</span></div>
                   </div>
                   <p className="text-xs text-black/50 italic leading-relaxed mt-1 mb-2 sm:ml-32">{factor.hint}</p>
                 </div>
