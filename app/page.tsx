@@ -170,7 +170,7 @@ function parseDeepReviewSections(text?: string | null): DeepReviewSection[] {
 
     if (!current || skipToNextSection) continue;
 
-    current.lines.push(rawLine.replace(/^[•\-]\s*/, '').trim());
+    current.lines.push(rawLine.replace(/^[\u2022\u2023\u25E6\u2043\-\*]\s*/, '').trim());
   }
 
   return sections.filter((section) => section.lines.length > 0);
@@ -323,22 +323,22 @@ function AnatomyRow({
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: '120px 1fr',
-        padding: '18px 0',
+        gridTemplateColumns: '150px 1fr',
+        padding: '20px 0',
         borderBottom: '0.5px solid rgba(0,0,0,0.07)',
         alignItems: 'start',
-        gap: 0,
+        gap: 12,
       }}
     >
       <div>
         <div
           style={{
             fontFamily: sans,
-            fontSize: 9.5,
-            fontWeight: 500,
-            letterSpacing: '0.11em',
+            fontSize: 9,
+            fontWeight: 600,
+            letterSpacing: '0.13em',
             textTransform: 'uppercase' as const,
-            color: highlight ? 'rgba(0,0,0,0.55)' : 'rgba(0,0,0,0.36)',
+            color: highlight ? 'rgba(0,0,0,0.60)' : 'rgba(0,0,0,0.32)',
           }}
         >
           {label}
@@ -347,10 +347,11 @@ function AnatomyRow({
           <div
             style={{
               fontFamily: sans,
-              fontSize: 9.5,
+              fontSize: 9,
               color: 'rgba(0,0,0,0.28)',
-              marginTop: 2,
+              marginTop: 3,
               fontWeight: 400,
+              letterSpacing: '0.03em',
             }}
           >
             {sublabel}
@@ -415,15 +416,15 @@ function AccordionRow({
           width: '100%',
           background: 'none',
           border: 'none',
-          padding: '14px 0',
+          padding: '18px 0',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           cursor: 'pointer',
           fontFamily: sans,
-          fontSize: 13,
+          fontSize: 13.5,
           fontWeight: 500,
-          color: 'rgba(0,0,0,0.72)',
+          color: 'rgba(0,0,0,0.75)',
           textAlign: 'left' as const,
         }}
       >
@@ -444,7 +445,7 @@ function AccordionRow({
         </span>
       </button>
       {isOpen && (
-        <div style={{ paddingBottom: 16 }}>
+        <div style={{ paddingBottom: 20 }}>
           {lines.map((line, i) => {
             const isNumbered = /^\d+\./.test(line);
             return (
@@ -452,17 +453,17 @@ function AccordionRow({
                 key={i}
                 style={{
                   fontFamily: sans,
-                  fontSize: 13,
-                  lineHeight: 1.7,
-                  color: 'rgba(0,0,0,0.55)',
-                  marginBottom: i < lines.length - 1 ? 12 : 0,
+                  fontSize: 13.5,
+                  lineHeight: 1.75,
+                  color: 'rgba(0,0,0,0.58)',
+                  marginBottom: i < lines.length - 1 ? 16 : 0,
                   display: 'flex',
-                  gap: 10,
+                  gap: 12,
                   alignItems: 'flex-start',
                 }}
               >
                 {!isNumbered && (
-                  <span style={{ color: 'rgba(0,0,0,0.18)', flexShrink: 0, marginTop: 3 }}>–</span>
+                  <span style={{ color: 'rgba(0,0,0,0.18)', flexShrink: 0, marginTop: 4, fontSize: 11 }}>—</span>
                 )}
                 <span style={{ paddingLeft: isNumbered ? 2 : 0 }}>{renderMarkdownLine(line)}</span>
               </div>
