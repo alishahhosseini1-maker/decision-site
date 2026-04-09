@@ -2779,13 +2779,6 @@ export default function HomePage() {
                         text={reviewResult.topline.mustBeTrue}
                         variant="condition"
                       />
-                      <div style={{ borderBottom: 'none' }}>
-                        <FindingRow
-                          tag="The move"
-                          text={reviewResult.topline.recommendedMove}
-                          variant="directive"
-                        />
-                      </div>
                     </div>
                     )}
 
