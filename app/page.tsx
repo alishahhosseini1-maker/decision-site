@@ -2287,19 +2287,52 @@ export default function HomePage() {
                     {/* Score card + verdict headline */}
                     <div style={{ marginBottom: '2.5rem' }}>
 
-                      {/* Plain-english verdict — shown first */}
+                      {/* Verdict block — the finding, stated plainly */}
                       <div
                         style={{
-                          fontFamily: serif,
-                          fontSize: 20,
-                          fontWeight: 400,
-                          lineHeight: 1.5,
-                          color: '#0b0b0b',
-                          marginBottom: '1.75rem',
-                          fontStyle: 'italic',
+                          marginBottom: '2rem',
+                          paddingBottom: '2rem',
+                          borderBottom: '0.5px solid rgba(0,0,0,0.09)',
                         }}
                       >
-                        {reviewResult.topline.recommendedMove}
+                        <div
+                          style={{
+                            fontFamily: sans,
+                            fontSize: 10,
+                            fontWeight: 700,
+                            letterSpacing: '0.16em',
+                            textTransform: 'uppercase',
+                            color: 'rgba(0,0,0,0.36)',
+                            marginBottom: '0.85rem',
+                          }}
+                        >
+                          The verdict
+                        </div>
+                        <div
+                          style={{
+                            fontFamily: sans,
+                            fontSize: 18,
+                            fontWeight: 500,
+                            lineHeight: 1.55,
+                            color: '#0b0b0b',
+                            marginBottom: '0.85rem',
+                          }}
+                        >
+                          {reviewResult.topline.recommendedMove}
+                        </div>
+                        {reviewResult?.readiness?.summary && (
+                          <div
+                            style={{
+                              fontFamily: sans,
+                              fontSize: 13.5,
+                              lineHeight: 1.65,
+                              color: 'rgba(0,0,0,0.55)',
+                              fontWeight: 400,
+                            }}
+                          >
+                            {reviewResult.readiness.summary}
+                          </div>
+                        )}
                       </div>
 
                       {/* Pre-commit Score Card */}
@@ -2403,18 +2436,6 @@ export default function HomePage() {
                               transition: 'width 0.3s ease',
                             }}
                           />
-                        </div>
-
-                        {/* Interpretation text */}
-                        <div
-                          style={{
-                            fontSize: 13.5,
-                            lineHeight: 1.6,
-                            color: 'rgba(0,0,0,0.72)',
-                            marginBottom: '1.5rem',
-                          }}
-                        >
-                          {reviewResult?.readiness?.summary || 'Higher scores indicate a more survivable move. Lower scores signal unclear assumptions, weak evidence, or a step that\'s too large.'}
                         </div>
 
                         {/* Scoring model dropdown */}

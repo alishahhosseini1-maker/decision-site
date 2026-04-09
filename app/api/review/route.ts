@@ -209,10 +209,12 @@ mustBeTrue:
 - Never generic. "Demand exists" is wrong. "At least 2 of your current 3 clients will pay $1,500 without requiring a renewal incentive" is right.
 
 recommendedMove:
-- The single most survivable next action
-- Must reduce the biggest risk or test the hinge directly
-- Must be something the user can do in the next 7 days
-- Must be specific enough that the user knows exactly what to do
+- EXACTLY ONE SENTENCE. 20 words or fewer. Hard limit — no exceptions.
+- This is the verdict a judge slides across the table. It must land in one breath.
+- State only the finding. No reasoning, no clauses, no action steps.
+- The test: can you read it in one breath and does it make the user slightly uncomfortable? If not, cut it again.
+- Wrong: "Before looking at listings, calculate your take-home, savings, debt, and baby costs and run them through a mortgage calculator."
+- Right: "You don't have the financial picture to make this decision."
 
 SNAPSHOT RULES:
 
