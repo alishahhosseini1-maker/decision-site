@@ -150,19 +150,21 @@ function parseDeepReviewSections(text?: string | null): DeepReviewSection[] {
   let skipToNextSection = false;
 
   for (const rawLine of rawLines) {
-    // Stop adding lines if we hit a markdown sub-heading (e.g. ## Reflection prompts)
-    if (rawLine.startsWith('#')) {
-      skipToNextSection = true;
-      continue;
-    }
-
+    const isMarkdownHeading = rawLine.startsWith('#');
     const cleaned = cleanDeepReviewHeading(rawLine);
     const key = cleaned.toLowerCase();
 
     if (DEEP_REVIEW_HEADINGS.has(key)) {
+      // Recognised section heading (e.g. ## What must go right)
       current = { heading: cleaned, lines: [] };
       sections.push(current);
       skipToNextSection = false;
+      continue;
+    }
+
+    if (isMarkdownHeading) {
+      // Unrecognised heading (e.g. ## Reflection prompts) — stop collecting
+      skipToNextSection = true;
       continue;
     }
 
@@ -321,10 +323,10 @@ function AnatomyRow({
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: '110px 1fr',
-        padding: '12px 0',
+        gridTemplateColumns: '120px 1fr',
+        padding: '18px 0',
         borderBottom: '0.5px solid rgba(0,0,0,0.07)',
-        alignItems: 'baseline',
+        alignItems: 'start',
         gap: 0,
       }}
     >
@@ -360,7 +362,7 @@ function AnatomyRow({
           fontFamily: sans,
           fontSize: highlight ? 14 : 13,
           color: highlight ? '#111' : 'rgba(0,0,0,0.72)',
-          lineHeight: 1.5,
+          lineHeight: 1.65,
           fontWeight: highlight ? 500 : 400,
         }}
       >
@@ -2685,7 +2687,7 @@ export default function HomePage() {
                               key={section.heading}
                               heading={section.heading}
                               lines={section.lines}
-                              isOpen={Boolean(openBreakdownSections[section.heading.toLowerCase()])}
+                              isOpen={openBreakdownSections[section.heading.toLowerCase()] !== false}
                               onToggle={() => toggleBreakdownSection(section.heading)}
                             />
                           ))}
