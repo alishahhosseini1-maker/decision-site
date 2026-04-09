@@ -126,6 +126,10 @@ type DeepReviewSection = {
   lines: string[];
 };
 
+const DEEP_REVIEW_SKIP_HEADINGS = new Set([
+  'reflection prompts',
+]);
+
 const DEEP_REVIEW_HEADINGS = new Set([
   'what must go right',
   'what could go wrong',
@@ -162,8 +166,8 @@ function parseDeepReviewSections(text?: string | null): DeepReviewSection[] {
       continue;
     }
 
-    if (isMarkdownHeading) {
-      // Unrecognised heading (e.g. ## Reflection prompts) — stop collecting
+    if (isMarkdownHeading || DEEP_REVIEW_SKIP_HEADINGS.has(key)) {
+      // Unrecognised heading (e.g. ## Reflection prompts or plain Reflection prompts) — stop collecting
       skipToNextSection = true;
       continue;
     }
@@ -1136,7 +1140,7 @@ export default function HomePage() {
   };
 
   const loadDeepReview = async () => {
-    if (deepReview || deepLoading) return;
+    if (deepLoading) return;
 
     setDeepLoading(true);
 
