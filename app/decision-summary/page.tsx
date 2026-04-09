@@ -10,6 +10,11 @@ type DecisionRecord = {
   decision: string;
   context: string | null;
   score: number | null;
+  readiness_clarity: number | null;
+  readiness_assumptions: number | null;
+  readiness_reversibility: number | null;
+  readiness_risk: number | null;
+  readiness_exit_logic: number | null;
   verdict: string | null;
   door: string | null;
   hinge: string | null;
@@ -213,7 +218,7 @@ export default function DecisionSummaryPage() {
 
         let query = supabase
           .from('decisions')
-          .select('id, user_id, decision, context, score, verdict, door, hinge, trap, step, deep_review, final_thoughts, outcome_status, needs_follow_up, created_at, dismissed_at')
+          .select('id, user_id, decision, context, score, readiness_clarity, readiness_assumptions, readiness_reversibility, readiness_risk, readiness_exit_logic, verdict, door, hinge, trap, step, deep_review, final_thoughts, outcome_status, needs_follow_up, created_at, dismissed_at')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(1);
@@ -221,7 +226,7 @@ export default function DecisionSummaryPage() {
         if (id) {
           query = supabase
             .from('decisions')
-            .select('id, user_id, decision, context, score, verdict, door, hinge, trap, step, deep_review, final_thoughts, outcome_status, needs_follow_up, created_at, dismissed_at')
+            .select('id, user_id, decision, context, score, readiness_clarity, readiness_assumptions, readiness_reversibility, readiness_risk, readiness_exit_logic, verdict, door, hinge, trap, step, deep_review, final_thoughts, outcome_status, needs_follow_up, created_at, dismissed_at')
             .eq('id', id)
             .eq('user_id', user.id)
             .limit(1);
@@ -279,6 +284,25 @@ export default function DecisionSummaryPage() {
     ];
   }, [decision, comparisonRows]);
 
+  const handleSignIn = async () => {
+    const email = window.prompt('Enter your email to sign in:');
+    if (!email) return;
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: window.location.href,
+      },
+    });
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    window.alert('Check your email for the sign-in link.');
+  };
+
   const currentScore = safeNumber(decision?.score);
   const previousComparable = comparisonRows.find((r) => r.score !== null);
   const delta = currentScore !== null && previousComparable?.score != null
@@ -304,7 +328,14 @@ export default function DecisionSummaryPage() {
       <main className="min-h-screen bg-[#f7f7f2] px-6 py-12 text-black">
         <div className="mx-auto max-w-3xl rounded-3xl border border-rose-200 bg-rose-50 p-6">
           <p className="text-sm font-medium text-rose-700">{error}</p>
-          <div className="mt-4 flex gap-3">
+          <div className="mt-4 flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={handleSignIn}
+              className="inline-flex items-center rounded-full border border-black/10 bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-black/90"
+            >
+              Sign in
+            </button>
             <a href="/" className="inline-flex items-center rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-black shadow-sm transition hover:bg-black hover:text-white">Back home</a>
             <a href="/history" className="inline-flex items-center rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-black shadow-sm transition hover:bg-black hover:text-white">View history</a>
           </div>
@@ -386,30 +417,89 @@ export default function DecisionSummaryPage() {
         </section>
 
         {/* ── SCORE ── */}
-        <section className={`rounded-[20px] border p-6 shadow-sm ${scoreMeta.cardClass}`}>
-          <div className="flex items-center justify-between gap-4">
-            <p className={`text-[10px] uppercase tracking-[0.18em] ${scoreMeta.textClass} opacity-70`}>
-              Decision quality
-            </p>
-            <span className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ${scoreMeta.pillClass}`}>
-              {scoreMeta.label}
-            </span>
+        <section className={`rounded-2xl border border-black/12 bg-white/60 p-7 shadow-sm`}>
+          <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-black/42 mb-5">
+            Decision Quality
           </div>
-          <div className="mt-3 flex items-end gap-3">
-            <span className={`text-4xl font-semibold leading-none ${scoreMeta.textClass}`}>
-              {safeNumber(decision.score) ?? '—'}
-            </span>
-            <div className={`mb-1 flex items-center gap-1.5 text-sm ${scoreMeta.textClass} opacity-70`}>
-              <span className={`h-2 w-2 rounded-full ${scoreMeta.dotClass}`} />
-              Readiness score
+
+          {/* Hero score */}
+          <div className="mb-5">
+            <div className="flex items-baseline gap-1">
+              <span className={`text-5xl font-bold ${scoreMeta.textClass}`}>
+                {safeNumber(decision.score) ?? '—'}
+              </span>
+              <span className="text-2xl text-black/36 font-normal">/ 100</span>
             </div>
+            <div className="text-sm text-black/55 mt-2">Readiness score</div>
           </div>
-          <p className={`mt-3 text-sm leading-6 ${scoreMeta.textClass} opacity-70`}>
+
+          {/* Progress bar */}
+          <div className="h-0.5 bg-black/8 rounded-full overflow-hidden mb-4">
+            <div
+              className={`h-full ${scoreMeta.textClass.replace('text-', 'bg-').replace('/70', '')}`}
+              style={{ width: `${safeNumber(decision.score) ?? 0}%`, transition: 'width 0.3s ease' }}
+            />
+          </div>
+
+          {/* Interpretation */}
+          <p className="text-sm leading-6 text-black/72 mb-4">
             Higher scores suggest the move is more survivable. Lower scores suggest the decision needs clearer assumptions or a smaller step.
           </p>
+
+          {/* Scoring model dropdown */}
+          <details className="border-t border-black/9 pt-3">
+            <summary className="cursor-pointer text-sm font-semibold text-black/72 flex justify-between items-center list-none">
+              Scoring model
+              <span className="text-base text-black/28">▼</span>
+            </summary>
+            <div className="mt-4 space-y-2">
+              {[
+                { name: 'Clarity', value: decision.readiness_clarity, hint: 'Is the decision stated clearly? Include context about why it\'s being made.' },
+                { name: 'Assumptions', value: decision.readiness_assumptions, hint: 'What must be true? List and validate key assumptions before proceeding.' },
+                { name: 'Reversibility', value: decision.readiness_reversibility, hint: 'Can this be undone? More reversible decisions allow for faster iteration.' },
+                { name: 'Risk', value: decision.readiness_risk, hint: 'What\'s the downside? Identify worst-case scenarios and likelihood.' },
+                { name: 'Exit Logic', value: decision.readiness_exit_logic, hint: 'When would you cut losses? Define clear exit criteria beforehand.' },
+              ].map((factor, i) => (
+                <div key={i}>
+                  <div className="grid gap-2 items-center py-2 border-b border-black/6 grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[120px_1fr_50px]">
+                    <div className="space-y-1">
+                      <div className="text-xs font-medium text-black/72">{factor.name}</div>
+                      <div className="h-0.5 bg-black/8 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-black/22"
+                          style={{ width: `${((factor.value ?? 0) / 25) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                    <div className="text-xs font-semibold text-black/55 text-right">{factor.value ?? '—'}<span className="text-[10px] opacity-60">/25</span></div>
+                  </div>
+                  <p className="text-xs text-black/50 italic leading-relaxed mt-1 mb-2 sm:ml-32">{factor.hint}</p>
+                </div>
+              ))}
+              
+              {/* Total row */}
+              <div className="grid gap-2 items-center py-2 border-t border-black/9 mt-2 grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[120px_1fr_40px]">
+                <div className="space-y-1">
+                  <div className={`text-xs font-bold ${scoreMeta.textClass}`}>Total</div>
+                  <div className="h-1 bg-black/8 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full ${scoreMeta.textClass.replace('text-', 'bg-')}`}
+                      style={{ width: `${safeNumber(decision.score) ?? 0}%` }}
+                    />
+                  </div>
+                </div>
+                <div className={`text-xs font-bold ${scoreMeta.textClass} text-right`}>{safeNumber(decision.score) ?? '—'}</div>
+              </div>
+            </div>
+          </details>
+
+          {/* Comparison */}
           {delta !== null ? (
-            <div className={`mt-3 border-t border-black/8 pt-3 text-sm ${scoreMeta.textClass} opacity-70`}>
-              Compared with last comparable review: <span className="font-semibold">{delta > 0 ? `+${delta}` : delta}</span>
+            <div className={`mt-4 border-t border-black/9 pt-3 text-sm text-black/55`}>
+              vs your last similar decision{' '}
+              <span className={`font-semibold ${delta > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {delta > 0 ? `+${delta}` : delta}
+              </span>
             </div>
           ) : null}
         </section>

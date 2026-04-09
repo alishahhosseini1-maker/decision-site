@@ -467,25 +467,8 @@ export default function HomePage() {
     lastUsed: 'dl:last_used_at',
     pendingSoloReview: 'dl:pending_solo_review',
     pendingLockVerdict: 'dl:pending_lock_verdict',
-  };
-
-  const restorePendingSoloReview = (raw: string | null) => {
-    if (!raw) return;
-
-    try {
-      const saved = JSON.parse(raw) as PendingSoloReview;
-
-      setDecision(saved.decision ?? '');
-      setContext(saved.context ?? '');
-      setReviewResult(saved.reviewResult ?? null);
-      setDeepReview(saved.deepReview ?? null);
-      setFinalThoughts(saved.finalThoughts ?? '');
-      setVerdictRequested(Boolean(saved.verdictRequested));
-      setVerdict(saved.verdict ?? null);
-      setHasStarted(Boolean(saved.reviewResult || saved.verdict || saved.deepReview));
-    } catch {
-      // ignore
-    }
+    pendingBeginReview: 'dl:pending_begin_review',
+    pendingDecisionInput: 'dl:pending_decision_input',
   };
 
   const persistSoloReviewLocally = (payload?: Partial<PendingSoloReview>) => {
@@ -529,6 +512,26 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
+    const hydratePendingSoloReview = () => {
+      try {
+        const raw = localStorage.getItem(STORAGE.pendingSoloReview);
+        if (!raw) return;
+
+        const saved = JSON.parse(raw) as PendingSoloReview;
+
+        setDecision(saved.decision ?? '');
+        setContext(saved.context ?? '');
+        setReviewResult(saved.reviewResult ?? null);
+        setDeepReview(saved.deepReview ?? null);
+        setFinalThoughts(saved.finalThoughts ?? '');
+        setVerdictRequested(Boolean(saved.verdictRequested));
+        setVerdict(saved.verdict ?? null);
+        setHasStarted(Boolean(saved.reviewResult || saved.verdict || saved.deepReview));
+      } catch {
+        // ignore
+      }
+    };
+
     const getSession = async () => {
       const {
         data: { session },
@@ -545,7 +548,7 @@ export default function HomePage() {
           : null
       );
 
-      restorePendingSoloReview(localStorage.getItem(STORAGE.pendingSoloReview));
+      hydratePendingSoloReview();
       setAuthLoading(false);
     };
 
@@ -565,7 +568,23 @@ export default function HomePage() {
           : null
       );
 
-      restorePendingSoloReview(localStorage.getItem(STORAGE.pendingSoloReview));
+      try {
+        const raw = localStorage.getItem(STORAGE.pendingSoloReview);
+        if (raw) {
+          const saved = JSON.parse(raw) as PendingSoloReview;
+
+          setDecision(saved.decision ?? '');
+          setContext(saved.context ?? '');
+          setReviewResult(saved.reviewResult ?? null);
+          setDeepReview(saved.deepReview ?? null);
+          setFinalThoughts(saved.finalThoughts ?? '');
+          setVerdictRequested(Boolean(saved.verdictRequested));
+          setVerdict(saved.verdict ?? null);
+          setHasStarted(Boolean(saved.reviewResult || saved.verdict || saved.deepReview));
+        }
+      } catch {
+        // ignore
+      }
 
       setAuthLoading(false);
       setAuthError(null);
@@ -618,6 +637,11 @@ export default function HomePage() {
             decision: saved.decision,
             context: saved.context,
             score: saved.reviewResult?.readiness?.total ?? null,
+            clarity: saved.reviewResult?.readiness?.clarity ?? null,
+            assumptions: saved.reviewResult?.readiness?.assumptions ?? null,
+            reversibility: saved.reviewResult?.readiness?.reversibility ?? null,
+            risk: saved.reviewResult?.readiness?.risk ?? null,
+            exitLogic: saved.reviewResult?.readiness?.exitLogic ?? null,
             verdict: saved.verdict,
             door: saved.reviewResult?.snapshot?.door ?? null,
             hinge: saved.reviewResult?.snapshot?.hinge ?? null,
@@ -777,7 +801,7 @@ export default function HomePage() {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: window.location.href,
+        emailRedirectTo: window.location.origin,
       },
     });
 
@@ -1147,6 +1171,11 @@ export default function HomePage() {
           decision,
           context,
           score: reviewResult?.readiness?.total ?? null,
+          clarity: reviewResult?.readiness?.clarity ?? null,
+          assumptions: reviewResult?.readiness?.assumptions ?? null,
+          reversibility: reviewResult?.readiness?.reversibility ?? null,
+          risk: reviewResult?.readiness?.risk ?? null,
+          exitLogic: reviewResult?.readiness?.exitLogic ?? null,
           verdict,
           door: reviewResult?.snapshot?.door ?? null,
           hinge: reviewResult?.snapshot?.hinge ?? null,
@@ -2160,84 +2189,253 @@ export default function HomePage() {
                       &ldquo;{decision}&rdquo;
                     </div>
 
-                    {/* Score + verdict headline */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: '2rem',
-                        marginBottom: '2.5rem',
-                      }}
-                    >
-                      {/* Ring */}
+                    {/* Score card + verdict headline */}
+                    <div style={{ marginBottom: '2.5rem' }}>
+                      {/* Readiness Score Card */}
                       <div
                         style={{
-                          flexShrink: 0,
-                          width: 80,
-                          height: 80,
-                          borderRadius: '50%',
-                          background: meta.bg,
-                          border: `0.5px solid ${meta.borderColor}`,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
+                          borderRadius: 14,
+                          border: '1px solid rgba(0,0,0,0.12)',
+                          background: 'rgba(255,255,255,0.6)',
+                          padding: '1.75rem',
+                          marginBottom: '2rem',
                         }}
                       >
-                        <span
-                          style={{
-                            fontFamily: mono,
-                            fontSize: 28,
-                            fontWeight: 500,
-                            color: meta.color,
-                            lineHeight: 1,
-                          }}
-                        >
-                          {scoreTotal ?? '—'}
-                        </span>
-                        <span
-                          style={{
-                            fontFamily: sans,
-                            fontSize: 10,
-                            color: meta.color,
-                            opacity: 0.5,
-                            letterSpacing: '0.04em',
-                          }}
-                        >
-                          /100
-                        </span>
-                      </div>
-
-                      {/* Verdict */}
-                      <div style={{ paddingTop: 4 }}>
-                        <span
-                          style={{
-                            display: 'inline-block',
-                            fontFamily: sans,
-                            fontSize: 9,
-                            fontWeight: 500,
-                            letterSpacing: '0.14em',
-                            textTransform: 'uppercase',
-                            background: meta.bg,
-                            color: meta.color,
-                            padding: '3px 8px',
-                            borderRadius: 3,
-                            marginBottom: 10,
-                          }}
-                        >
-                          {meta.badge}
-                        </span>
+                        {/* Header */}
                         <div
                           style={{
-                            fontFamily: serif,
-                            fontSize: 38,
-                            fontWeight: 400,
-                            color: meta.color,
-                            lineHeight: 1.05,
+                            fontSize: 11,
+                            fontWeight: 700,
+                            letterSpacing: '0.12em',
+                            textTransform: 'uppercase',
+                            color: 'rgba(0,0,0,0.42)',
+                            marginBottom: '1.2rem',
                           }}
                         >
-                          {verdictDisplay}.
+                          Decision Quality
                         </div>
+
+                        {/* Hero score */}
+                        <div style={{ marginBottom: '1.2rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem' }}>
+                            <span
+                              style={{
+                                fontSize: 'clamp(3rem, 10vw, 56px)',
+                                fontWeight: 700,
+                                color: meta.color,
+                                lineHeight: 1,
+                              }}
+                            >
+                              {scoreTotal ?? '—'}
+                            </span>
+                            <span
+                              style={{
+                                fontSize: 'clamp(1.5rem, 4vw, 28px)',
+                                color: 'rgba(0,0,0,0.36)',
+                                fontWeight: 400,
+                                lineHeight: 1,
+                              }}
+                            >
+                              / 100
+                            </span>
+                          </div>
+                          <div
+                            style={{
+                              fontSize: 12.5,
+                              color: 'rgba(0,0,0,0.55)',
+                              marginTop: '0.6rem',
+                            }}
+                          >
+                            Readiness score
+                          </div>
+                        </div>
+
+                        {/* Progress bar */}
+                        <div
+                          style={{
+                            height: 3,
+                            background: 'rgba(0,0,0,0.08)',
+                            borderRadius: 999,
+                            overflow: 'hidden',
+                            marginBottom: '1.5rem',
+                          }}
+                        >
+                          <div
+                            style={{
+                              height: '100%',
+                              width: `${scoreTotal ?? 0}%`,
+                              background: meta.color,
+                              transition: 'width 0.3s ease',
+                            }}
+                          />
+                        </div>
+
+                        {/* Interpretation text */}
+                        <div
+                          style={{
+                            fontSize: 13.5,
+                            lineHeight: 1.6,
+                            color: 'rgba(0,0,0,0.72)',
+                            marginBottom: '1.5rem',
+                          }}
+                        >
+                          {reviewResult?.readiness?.summary || 'Higher scores indicate a more survivable move. Lower scores signal unclear assumptions, weak evidence, or a step that\'s too large.'}
+                        </div>
+
+                        {/* Scoring model dropdown */}
+                        <details
+                          style={{
+                            borderTop: '0.5px solid rgba(0,0,0,0.09)',
+                            paddingTop: '1.2rem',
+                          }}
+                        >
+                          <summary
+                            style={{
+                              cursor: 'pointer',
+                              listStyle: 'none',
+                              fontSize: 12.5,
+                              fontWeight: 600,
+                              color: 'rgba(0,0,0,0.72)',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                            }}
+                          >
+                            Scoring model
+                            <span
+                              style={{
+                                fontSize: 16,
+                                color: 'rgba(0,0,0,0.28)',
+                                display: 'inline-block',
+                              }}
+                            >
+                              ▼
+                            </span>
+                          </summary>
+
+                          {/* Breakdown */}
+                          <div style={{ marginTop: '1rem' }}>
+                            {[
+                              { name: 'Clarity', value: reviewResult?.readiness?.clarity, hint: 'Is the decision stated clearly? Include context about why it\'s being made.' },
+                              { name: 'Assumptions', value: reviewResult?.readiness?.assumptions, hint: 'What must be true? List and validate key assumptions before proceeding.' },
+                              { name: 'Reversibility', value: reviewResult?.readiness?.reversibility, hint: 'Can this be undone? More reversible decisions allow for faster iteration.' },
+                              { name: 'Risk', value: reviewResult?.readiness?.risk, hint: 'What\'s the downside? Identify worst-case scenarios and likelihood.' },
+                              { name: 'Exit Logic', value: reviewResult?.readiness?.exitLogic, hint: 'When would you cut losses? Define clear exit criteria beforehand.' },
+                            ].map((factor, i) => (
+                              <div key={i}>
+                                <div
+                                  style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'minmax(0, 1fr) 52px',
+                                    gap: '0.75rem',
+                                    alignItems: 'center',
+                                    paddingBottom: '0.75rem',
+                                    paddingTop: '0.75rem',
+                                    borderBottom: '0.5px solid rgba(0,0,0,0.06)',
+                                  }}
+                                >
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                                    <div style={{ fontSize: 12.5, fontWeight: 500, color: 'rgba(0,0,0,0.72)' }}>
+                                      {factor.name}
+                                    </div>
+                                    <div
+                                      style={{
+                                        height: 3,
+                                        background: 'rgba(0,0,0,0.08)',
+                                        borderRadius: 999,
+                                        overflow: 'hidden',
+                                      }}
+                                    >
+                                      <div
+                                        style={{
+                                          height: '100%',
+                                          width: `${((factor.value ?? 0) / 25) * 100}%`,
+                                          background: 'rgba(0,0,0,0.22)',
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
+                                  <div style={{ fontSize: 11.5, fontWeight: 600, color: 'rgba(0,0,0,0.55)', textAlign: 'right' }}>
+                                    {factor.value ?? '—'}<span style={{ fontSize: 10.5, opacity: 0.6 }}>/25</span>
+                                  </div>
+                                </div>
+                                <div style={{ fontSize: 11.5, color: 'rgba(0,0,0,0.50)', lineHeight: 1.4, marginTop: '0.4rem', marginBottom: '0.3rem', fontStyle: 'italic' }}>
+                                  {factor.hint}
+                                </div>
+                              </div>
+                            ))}
+
+                            {/* Total row (bolded and in color) */}
+                            <div
+                              style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'minmax(0, 1fr) 44px',
+                                gap: '0.75rem',
+                                alignItems: 'center',
+                                paddingTop: '0.75rem',
+                                marginTop: '0.5rem',
+                                borderTop: '0.5px solid rgba(0,0,0,0.09)',
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: '0.45rem',
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    fontSize: 12.5,
+                                    fontWeight: 700,
+                                    color: meta.color,
+                                  }}
+                                >
+                                  Total
+                                </div>
+                                <div
+                                  style={{
+                                    height: 4,
+                                    background: 'rgba(0,0,0,0.08)',
+                                    borderRadius: 999,
+                                    overflow: 'hidden',
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      height: '100%',
+                                      width: `${scoreTotal ?? 0}%`,
+                                      background: meta.color,
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: 12,
+                                  fontWeight: 700,
+                                  color: meta.color,
+                                  textAlign: 'right',
+                                }}
+                              >
+                                {scoreTotal ?? '—'}
+                              </div>
+                            </div>
+                          </div>
+                        </details>
+                      </div>
+
+                      {/* Verdict headline */}
+                      <div
+                        style={{
+                          fontFamily: serif,
+                          fontSize: 20,
+                          fontWeight: 400,
+                          lineHeight: 1.5,
+                          color: '#111',
+                        }}
+                      >
+                        {verdictDisplay}
                       </div>
                     </div>
 

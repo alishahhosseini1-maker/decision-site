@@ -20,6 +20,13 @@ export async function POST(req: Request) {
         score: body.score,
         verdict: body.verdict,
 
+        // readiness factors
+        readiness_clarity: body.clarity ?? null,
+        readiness_assumptions: body.assumptions ?? null,
+        readiness_reversibility: body.reversibility ?? null,
+        readiness_risk: body.risk ?? null,
+        readiness_exit_logic: body.exitLogic ?? null,
+
         // structured decision fields
         door: body.door ?? null,
         hinge: body.hinge ?? null,
