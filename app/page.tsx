@@ -72,6 +72,8 @@ type PendingSoloReview = {
   finalThoughts: string;
   verdictRequested: boolean;
   verdict: string | null;
+  revealStage: number;
+  reflectionPrompts: string[];
 };
 
 function parseLocalDateTimeParts(value: string) {
@@ -189,19 +191,19 @@ function getProgressColor(value?: number | null) {
 }
 
 function getFactorHint(name: string, decisionText: string) {
-  const decisionLabel = decisionText ? `“${decisionText.trim()}”` : 'this decision';
+  const d = decisionText ? `"${decisionText.trim()}"` : 'this decision';
 
   switch (name) {
     case 'Clarity':
-      return `Can someone read ${decisionLabel} and immediately know what outcome you want and why it matters?`;
+      return `If you can’t say what “good” looks like for ${d}, you don’t have a decision — you have a preference.`;
     case 'Assumptions':
-      return `For ${decisionLabel}, what must be true about the offer, the team, or the timing for it to work?`;
+      return `${d} works only if certain things are true. Which ones have you actually verified?`;
     case 'Reversibility':
-      return `If ${decisionLabel} goes wrong, can you unwind it quickly enough to avoid a bigger loss?`;
+      return `If ${d} goes wrong, how much of the cost is unrecoverable? That’s your real stake.`;
     case 'Risk':
-      return `What is the worst realistic outcome of ${decisionLabel}, and how likely is it?`;
+      return `What’s the worst realistic outcome of ${d} — and could you survive it?`;
     case 'Exit Logic':
-      return `When would you stop and change course if ${decisionLabel} stops meeting your core criteria?`;
+      return `Without a clear exit condition for ${d}, you’ll keep going long after you should have stopped.`;
     default:
       return 'Keep this factor specific to the decision at hand.';
   }
@@ -480,6 +482,8 @@ export default function HomePage() {
   const [verdictLoading, setVerdictLoading] = useState(false);
   const [savingVerdict, setSavingVerdict] = useState(false);
   const [savedToast, setSavedToast] = useState<string | null>(null);
+  const [revealStage, setRevealStage] = useState(0);
+  const [reflectionPrompts, setReflectionPrompts] = useState<string[]>([]);
 
   const [decisionId, setDecisionId] = useState<string | null>(null);
   const [openBreakdownSections, setOpenBreakdownSections] = useState<Record<string, boolean>>({});
@@ -507,6 +511,8 @@ export default function HomePage() {
         finalThoughts: payload?.finalThoughts ?? finalThoughts,
         verdictRequested: payload?.verdictRequested ?? verdictRequested,
         verdict: payload?.verdict ?? verdict,
+        revealStage: payload?.revealStage ?? revealStage,
+        reflectionPrompts: payload?.reflectionPrompts ?? reflectionPrompts,
       };
 
       localStorage.setItem(STORAGE.pendingSoloReview, JSON.stringify(nextPayload));
@@ -552,6 +558,8 @@ export default function HomePage() {
         setFinalThoughts(saved.finalThoughts ?? '');
         setVerdictRequested(Boolean(saved.verdictRequested));
         setVerdict(saved.verdict ?? null);
+        setRevealStage(saved.revealStage ?? 0);
+        setReflectionPrompts(saved.reflectionPrompts ?? []);
         setHasStarted(Boolean(saved.reviewResult || saved.verdict || saved.deepReview));
       } catch {
         // ignore
@@ -606,6 +614,8 @@ export default function HomePage() {
           setFinalThoughts(saved.finalThoughts ?? '');
           setVerdictRequested(Boolean(saved.verdictRequested));
           setVerdict(saved.verdict ?? null);
+          setRevealStage(saved.revealStage ?? 0);
+          setReflectionPrompts(saved.reflectionPrompts ?? []);
           setHasStarted(Boolean(saved.reviewResult || saved.verdict || saved.deepReview));
         }
       } catch {
@@ -983,6 +993,8 @@ export default function HomePage() {
     setVerdictLoading(false);
     setSavingVerdict(false);
     setDecisionId(null);
+    setRevealStage(0);
+    setReflectionPrompts([]);
     clearPendingSoloReview();
   };
 
@@ -1064,7 +1076,11 @@ export default function HomePage() {
         finalThoughts: '',
         verdictRequested: false,
         verdict: null,
+        revealStage: 0,
+        reflectionPrompts: [],
       });
+      setRevealStage(0);
+      setReflectionPrompts([]);
 
       setTimeout(() => {
         snapshotRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1086,7 +1102,12 @@ export default function HomePage() {
       const res = await fetch('/api/review/deep', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ decision, context }),
+        body: JSON.stringify({
+          decision,
+          context,
+          hinge: reviewResult?.snapshot?.hinge ?? '',
+          trap: reviewResult?.snapshot?.trap ?? '',
+        }),
       });
 
       const data = await res.json();
@@ -1096,8 +1117,10 @@ export default function HomePage() {
       }
 
       const analysis = data?.analysis ?? 'No deep review returned.';
+      const prompts: string[] = Array.isArray(data?.reflectionPrompts) ? data.reflectionPrompts : [];
       setDeepReview(analysis);
-      persistSoloReviewLocally({ deepReview: analysis });
+      setReflectionPrompts(prompts);
+      persistSoloReviewLocally({ deepReview: analysis, reflectionPrompts: prompts });
     } catch (err: any) {
       const failureMessage = err?.message || 'Failed to load deep review.';
       setDeepReview(failureMessage);
@@ -2491,34 +2514,77 @@ export default function HomePage() {
 
                     </div>
 
-                    {/* Break line sentence */}
-                    <div
-                      style={{
-                        borderTop: '0.5px solid rgba(0,0,0,0.09)',
-                        paddingTop: '1.75rem',
-                        fontFamily: sans,
-                        fontSize: 14,
-                        lineHeight: 1.7,
-                        color: 'rgba(0,0,0,0.55)',
-                      }}
-                    >
-                      {buildBreakLine(reviewResult.snapshot.hinge)}{' '}
-                      <span style={{ color: 'rgba(0,0,0,0.80)', fontWeight: 500 }}>
-                        Until that assumption is tested, committing is speculation — and the downside is irreversible.
-                      </span>
-                    </div>
+                    {/* Stage 1+: Break line + Hinge */}
+                    {revealStage >= 1 ? (
+                      <>
+                        <div
+                          style={{
+                            borderTop: '0.5px solid rgba(0,0,0,0.09)',
+                            paddingTop: '1.75rem',
+                            fontFamily: sans,
+                            fontSize: 14,
+                            lineHeight: 1.7,
+                            color: 'rgba(0,0,0,0.55)',
+                          }}
+                        >
+                          {buildBreakLine(reviewResult.snapshot.hinge)}{' '}
+                          <span style={{ color: 'rgba(0,0,0,0.80)', fontWeight: 500 }}>
+                            Until that assumption is tested, committing is speculation — and the downside is irreversible.
+                          </span>
+                        </div>
+                        {/* Hinge highlighted */}
+                        <div
+                          style={{
+                            background: 'rgba(0,0,0,0.025)',
+                            border: '1px solid rgba(0,0,0,0.08)',
+                            borderRadius: 10,
+                            padding: '1rem 1.25rem',
+                            marginTop: '1.25rem',
+                          }}
+                        >
+                          <div style={{ fontFamily: sans, fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(0,0,0,0.36)', marginBottom: 8 }}>Hinge</div>
+                          <div style={{ fontFamily: sans, fontSize: 14.5, lineHeight: 1.6, color: 'rgba(0,0,0,0.82)', fontWeight: 500 }}>{reviewResult.snapshot.hinge}</div>
+                        </div>
+                        {/* Stage 1 CTA */}
+                        {revealStage === 1 && (
+                          <div style={{ marginTop: '1.75rem' }}>
+                            <button
+                              type="button"
+                              onClick={() => { const n = 2; setRevealStage(n); persistSoloReviewLocally({ revealStage: n }); }}
+                              style={{ fontFamily: sans, fontSize: 12.5, fontWeight: 500, letterSpacing: '0.07em', background: '#0b0b0b', color: '#fff', border: 'none', padding: '13px 26px', borderRadius: 2, cursor: 'pointer' }}
+                            >
+                              See the full anatomy →
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      /* Stage 0 CTA */
+                      <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '0.5px solid rgba(0,0,0,0.07)' }}>
+                        <button
+                          type="button"
+                          onClick={() => { const n = 1; setRevealStage(n); persistSoloReviewLocally({ revealStage: n }); }}
+                          style={{ fontFamily: sans, fontSize: 12.5, fontWeight: 500, letterSpacing: '0.07em', background: '#0b0b0b', color: '#fff', border: 'none', padding: '13px 26px', borderRadius: 2, cursor: 'pointer' }}
+                        >
+                          See what&apos;s at stake →
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   {/* ── BRIDGE ── */}
-                  <div
-                    style={{
-                      height: 3,
-                      background: meta.color,
-                      opacity: 0.12,
-                    }}
-                  />
+                  {revealStage >= 2 && (
+                    <div
+                      style={{
+                        height: 3,
+                        background: meta.color,
+                        opacity: 0.12,
+                      }}
+                    />
+                  )}
 
                   {/* ── ZONE 2: THE EVIDENCE ── */}
+                  {revealStage >= 2 && (
                   <div
                     style={{
                       border: '1px solid rgba(0,0,0,0.10)',
@@ -2528,33 +2594,6 @@ export default function HomePage() {
                       padding: '0 2.5rem',
                     }}
                   >
-
-                    {/* Why this verdict */}
-                    <div
-                      style={{
-                        padding: '1.75rem 0',
-                        borderBottom: '0.5px solid rgba(0,0,0,0.09)',
-                      }}
-                    >
-                      <Z2Label>Why this verdict</Z2Label>
-                      <FindingRow
-                        tag="The threat"
-                        text={reviewResult.topline.primaryRisk}
-                        variant="threat"
-                      />
-                      <FindingRow
-                        tag="What must hold"
-                        text={reviewResult.topline.mustBeTrue}
-                        variant="condition"
-                      />
-                      <div style={{ borderBottom: 'none' }}>
-                        <FindingRow
-                          tag="The move"
-                          text={reviewResult.topline.recommendedMove}
-                          variant="directive"
-                        />
-                      </div>
-                    </div>
 
                     {/* Decision anatomy */}
                     <div
@@ -2615,7 +2654,64 @@ export default function HomePage() {
                       )}
                     </div>
 
+                    {/* Stage 2 CTA */}
+                    {revealStage === 2 && (
+                      <div style={{ padding: '1.5rem 0' }}>
+                        <button
+                          type="button"
+                          onClick={() => { const n = 3; setRevealStage(n); persistSoloReviewLocally({ revealStage: n }); }}
+                          style={{ fontFamily: sans, fontSize: 12.5, fontWeight: 500, letterSpacing: '0.07em', background: '#0b0b0b', color: '#fff', border: 'none', padding: '13px 26px', borderRadius: 2, cursor: 'pointer' }}
+                        >
+                          See why →
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Stage 3+: Why this verdict */}
+                    {revealStage >= 3 && (
+                    <div
+                      style={{
+                        padding: '1.75rem 0',
+                        borderBottom: '0.5px solid rgba(0,0,0,0.09)',
+                        borderTop: '0.5px solid rgba(0,0,0,0.09)',
+                      }}
+                    >
+                      <Z2Label>Why this verdict</Z2Label>
+                      <FindingRow
+                        tag="The threat"
+                        text={reviewResult.topline.primaryRisk}
+                        variant="threat"
+                      />
+                      <FindingRow
+                        tag="What must hold"
+                        text={reviewResult.topline.mustBeTrue}
+                        variant="condition"
+                      />
+                      <div style={{ borderBottom: 'none' }}>
+                        <FindingRow
+                          tag="The move"
+                          text={reviewResult.topline.recommendedMove}
+                          variant="directive"
+                        />
+                      </div>
+                    </div>
+                    )}
+
+                    {/* Stage 3 CTA */}
+                    {revealStage === 3 && (
+                      <div style={{ padding: '1.5rem 0' }}>
+                        <button
+                          type="button"
+                          onClick={() => { const n = 4; setRevealStage(n); persistSoloReviewLocally({ revealStage: n }); }}
+                          style={{ fontFamily: sans, fontSize: 12.5, fontWeight: 500, letterSpacing: '0.07em', background: '#0b0b0b', color: '#fff', border: 'none', padding: '13px 26px', borderRadius: 2, cursor: 'pointer' }}
+                        >
+                          Add your notes →
+                        </button>
+                      </div>
+                    )}
+
                     {/* Your notes + commit gate */}
+                    {revealStage >= 4 && (
                     <div style={{ padding: '1.75rem 0' }}>
                       <Z2Label>Your notes</Z2Label>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
@@ -2716,7 +2812,9 @@ export default function HomePage() {
                         </div>
                       </div>
                     </div>
+                    )}
                   </div>
+                  )}
 
                   {/* ── Final verdict card ── */}
                   {verdictRequested && (

@@ -98,19 +98,19 @@ function getProgressColor(value?: number | null) {
 }
 
 function getFactorHint(name: string, decisionText: string) {
-  const decisionLabel = decisionText ? `“${decisionText.trim()}”` : 'this decision';
+  const d = decisionText ? `"${decisionText.trim()}"` : 'this decision';
 
   switch (name) {
     case 'Clarity':
-      return `Can someone read ${decisionLabel} and immediately know what outcome you want and why it matters?`;
+      return `If you can't say what "good" looks like for ${d}, you don't have a decision — you have a preference.`;
     case 'Assumptions':
-      return `For ${decisionLabel}, what must be true about the offer, the team, or the timing for it to work?`;
+      return `${d} works only if certain things are true. Which ones have you actually verified?`;
     case 'Reversibility':
-      return `If ${decisionLabel} goes wrong, can you unwind it quickly enough to avoid a bigger loss?`;
+      return `If ${d} goes wrong, how much of the cost is unrecoverable? That's your real stake.`;
     case 'Risk':
-      return `What is the worst realistic outcome of ${decisionLabel}, and how likely is it?`;
+      return `What's the worst realistic outcome of ${d} — and could you survive it?`;
     case 'Exit Logic':
-      return `When would you stop and change course if ${decisionLabel} stops meeting your core criteria?`;
+      return `Without a clear exit condition for ${d}, you'll keep going long after you should have stopped.`;
     default:
       return 'Keep this factor specific to the decision at hand.';
   }

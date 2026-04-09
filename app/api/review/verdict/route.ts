@@ -3,9 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 
 export const runtime = 'nodejs';
 
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 function cleanText(value: unknown) {
   return typeof value === 'string' ? value.trim() : '';
@@ -14,7 +12,6 @@ function cleanText(value: unknown) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-
     const decision = cleanText(body?.decision);
     const context = cleanText(body?.context);
     const thoughts = cleanText(body?.thoughts);
@@ -22,89 +19,48 @@ export async function POST(req: Request) {
     const nextMove = cleanText(body?.next_move || body?.nextMove);
 
     if (!decision || decision.length < 8) {
-      return NextResponse.json(
-        { error: 'Decision is too short.' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Decision is too short.' }, { status: 400 });
     }
 
     if (!process.env.ANTHROPIC_API_KEY) {
-      return NextResponse.json(
-        { error: 'Missing ANTHROPIC_API_KEY in .env' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Missing ANTHROPIC_API_KEY in .env' }, { status: 500 });
     }
 
-    const prompt = `You are a disciplined decision partner.
+    const prompt = `You are a disciplined decision partner setting a final commitment rule.
+The user has already reviewed risks, seen the anatomy, and written their thoughts.
+Do not restate what they already know. Add the one thing the review has not yet said.
 
-Your job is to generate a FINAL VERDICT that sets a clear commitment rule.
+OUTPUT STRUCTURE — return exactly 3 sentences, no labels, no bullets:
 
-The user has already reviewed the decision, seen the risks, and reflected.
-You are not brainstorming.
-You are not coaching.
-You are not summarizing.
-You are setting the condition for commitment.
+1. Do not [specific action] until [specific condition that has not yet been named in this review].
+2. The user's thoughts reveal [something specific about their reasoning or blind spot from what they wrote] — name it directly.
+3. When [clear, concrete condition], this becomes a survivable move.
 
-OUTPUT STRUCTURE (STRICT)
+RULES:
+- Sentence 1: must name a condition NOT already covered by the hinge.
+- Sentence 2: must respond directly to what the user actually wrote in their thoughts. Not generic. Read their words and react to them specifically.
+- Sentence 3: names the exact trigger that flips this from not ready to ready.
+- No coaching language. No "consider", "might", "could", "it depends".
+- No restating the decision verbatim.
+- Short, sharp sentences only.
 
-Return EXACTLY 3 sentences in this structure:
-
-1. Do not [specific action] until [specific condition].
-2. Your plan depends on [key assumption / hinge], which is currently unproven or weak.
-3. When [clear condition is met], this becomes a survivable move.
-
-RULES
-- Tie the verdict directly to the user's specific decision.
-- The first sentence must begin with: Do not
-- Be concrete and specific.
-- Use real-world constraints like contracts, revenue, time, runway, approvals, hires, or thresholds when possible.
-- Name the actual missing condition.
-- Keep each sentence short and sharp.
-- No bullet points.
-- No labels.
-- No extra text before or after.
-- No generic phrases like "move forward carefully", "it depends", "consider", "might", or "could".
-- Do not repeat the decision word for word unless needed for clarity.
-- If hinge or next move is missing, infer the most important one from the decision, context, and thoughts.
-
-DECISION
-${decision}
-
-CONTEXT
-${context || 'None provided'}
-
-USER THOUGHTS
-${thoughts || 'None provided'}
-
-KEY HINGE
-${hinge || 'Not provided'}
-
-MISSING CONDITION / NEXT MOVE
-${nextMove || 'Not provided'}`;
+DECISION: ${decision}
+CONTEXT: ${context || 'None provided'}
+KEY HINGE (already identified — do not repeat this in sentence 1): ${hinge || 'Not provided'}
+NEXT MOVE: ${nextMove || 'Not provided'}
+USER THOUGHTS: ${thoughts || 'None provided'}`;
 
     const message = await client.messages.create({
       model: 'claude-opus-4-5',
       max_tokens: 512,
-      system:
-        'You deliver final decision calls like a senior operator reviewing a hard-to-reverse move. You are precise, concrete, constraint-driven, and never generic.',
-      messages: [
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
+      system: 'You deliver final decision calls like a senior operator reviewing a hard-to-reverse move. Precise, concrete, constraint-driven. Sentence 2 always responds to what the user actually wrote — never generically.',
+      messages: [{ role: 'user', content: prompt }],
     });
 
-    const text =
-      message.content[0].type === 'text'
-        ? message.content[0].text.trim()
-        : '';
+    const text = message.content[0].type === 'text' ? message.content[0].text.trim() : '';
 
     return NextResponse.json({ verdict: text });
   } catch (_err) {
-    return NextResponse.json(
-      { error: 'Verdict failed.' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Verdict failed.' }, { status: 500 });
   }
 }

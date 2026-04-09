@@ -5,96 +5,74 @@ export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
   try {
-    const { decision, context = '' } = await req.json();
+    const { decision, context = '', hinge = '', trap = '' } = await req.json();
 
     if (!decision || decision.trim().length < 8) {
-      return NextResponse.json(
-        { error: 'Decision is too short.' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Decision is too short.' }, { status: 400 });
     }
 
     if (!process.env.ANTHROPIC_API_KEY) {
-      return NextResponse.json(
-        { error: 'Missing ANTHROPIC_API_KEY in .env' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Missing ANTHROPIC_API_KEY in .env' }, { status: 500 });
     }
 
-    const client = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
-    });
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
     const prompt = `You are a senior operator doing a pre-commitment review.
-
 You have seen this decision fail before. You know exactly what kills it.
 Your job is not to encourage. Your job is to name what most people miss.
+Be specific to THIS decision. Every sentence must only make sense for this exact situation.
 
-Be specific to THIS decision. Not generic. Not applicable to any decision.
-Every sentence must only make sense for this exact situation.
+Decision: ${decision}
+Context: ${context || 'None provided'}
+Key hinge: ${hinge || 'Not provided'}
+Hidden trap: ${trap || 'Not provided'}
 
-Decision:
-${decision}
+STRICT RULES:
+- Each section covers a DIFFERENT angle. Do not repeat the same underlying risk across sections.
+- If one risk dominates (e.g. a single customer, a cash constraint), name it once in the most relevant section only.
+- No generic observations. Every line must be specific to this decision.
 
-Context:
-${context || 'None provided'}
-
-Return EXACTLY this structure. No extra sections. No renamed sections.
+Return EXACTLY this structure. No extra sections. No renamed headings.
 
 What must go right
-
-3 bullets. Each one is a specific condition that must hold for this decision to survive.
-Do not write obvious conditions. Write the non-obvious ones.
-If the context reveals a specific constraint (network, clients, pricing, timing), name it directly.
-
-•
-•
-•
+2 bullets. The two non-obvious conditions that must hold. Not the obvious ones.
+Name specific mechanisms: which relationship, which number, which timeline.
+- •
 
 What could go wrong
-
-3 bullets. Each one is a concrete failure mode specific to this decision.
-At least one bullet must name a failure mode the decision-maker is probably not thinking about.
-Do not write vague failure modes. Name the actual mechanism of failure.
-
-•
-•
-•
+2 bullets. Two distinct failure modes — one the person is probably thinking about, one they are probably not.
+Name the actual mechanism. Not "things could go wrong." Exactly how.
+- •
 
 Hard to undo
-
-1-2 sentences. Name the specific thing that becomes locked in after commitment.
-Focus on what specifically gets harder: which relationship, which reputation, which option, which resource.
+1 sentence only. The single most locked-in consequence of committing.
+Name what specifically becomes harder: which option closes, which position weakens.
 
 Bottom line
+1 sentence. Format: "Do not [action] until [specific condition]."
+Must name the actual missing condition. Must be different from the hinge already identified.
 
-1 sentence. A directive. Tells the reader exactly what must be true before they commit.
-Must be specific to this decision. Must name the actual condition.
-Format: "Do not [action] until [specific condition]."`;
+Reflection prompts
+3 questions. These are for the decision-maker to answer before committing.
+Each question must be specific to this decision — not generic coaching questions.
+Make them hard. They should surface what the person is avoiding.
+Do not use: "Have you considered", "What are your thoughts", "How do you feel".
+Format each as a direct question that starts with What, Who, When, or Why.
+1.
+2.
+3.`;
 
     const message = await client.messages.create({
       model: 'claude-opus-4-6',
-      max_tokens: 1024,
-      system:
-        'You analyze decisions like a calm senior operator who has seen things fail. You are specific, constraint-focused, and never generic. Every insight must be tied to the actual decision and context provided.',
-      messages: [
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
+      max_tokens: 900,
+      system: 'You analyze decisions like a calm senior operator who has seen things fail. Specific, constraint-focused, never generic. No section repeats the same underlying risk as another section.',
+      messages: [{ role: 'user', content: prompt }],
     });
 
-    const text =
-      message.content[0].type === 'text'
-        ? message.content[0].text.trim()
-        : '';
+    const text = message.content[0].type === 'text' ? message.content[0].text.trim() : '';
 
     return NextResponse.json({ analysis: text });
   } catch (_err) {
-    return NextResponse.json(
-      { error: 'Deep review failed.' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Deep review failed.' }, { status: 500 });
   }
 }
