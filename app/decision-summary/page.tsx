@@ -223,6 +223,7 @@ export default function DecisionSummaryPage() {
   const [loading, setLoading] = useState(true);
   const [animateIn, setAnimateIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [signInEmailSent, setSignInEmailSent] = useState(false);
   const [decision, setDecision] = useState<DecisionRecord | null>(null);
   const [comparisonDecisions, setComparisonDecisions] = useState<ComparisonDecision[]>([]);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
@@ -327,6 +328,7 @@ export default function DecisionSummaryPage() {
     }
 
     window.alert('Check your email for the sign-in link.');
+    setSignInEmailSent(true);
   };
 
   const currentScore = safeNumber(decision?.score);
@@ -365,6 +367,15 @@ export default function DecisionSummaryPage() {
             <a href="/" className="inline-flex items-center rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-black shadow-sm transition hover:bg-black hover:text-white">Back home</a>
             <a href="/history" className="inline-flex items-center rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-black shadow-sm transition hover:bg-black hover:text-white">View history</a>
           </div>
+          {signInEmailSent && (
+            <div className="mt-4 rounded-xl border border-black/10 bg-white p-3 flex items-start gap-3">
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-black">Check your email for the sign-in link.</p>
+                <p className="mt-0.5 text-xs text-black/50">Don&apos;t see it? Check your junk or spam folder.</p>
+              </div>
+              <button type="button" onClick={() => setSignInEmailSent(false)} className="text-black/30 hover:text-black/60 text-base leading-none">&times;</button>
+            </div>
+          )}
         </div>
       </main>
     );

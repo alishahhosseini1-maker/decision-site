@@ -442,6 +442,7 @@ export default function HomePage() {
   const [user, setUser] = useState<{ id: string; email?: string | null } | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [signInEmailSent, setSignInEmailSent] = useState(false);
 
   const [latestTeamSession, setLatestTeamSession] = useState<LatestTeamSession | null>(null);
   const [loadingLatestTeamSession, setLoadingLatestTeamSession] = useState(false);
@@ -851,6 +852,7 @@ export default function HomePage() {
     }
 
     window.alert('Check your email for the sign-in link.');
+    setSignInEmailSent(true);
     return true;
   };
 
@@ -1588,6 +1590,40 @@ export default function HomePage() {
               }}
             >
               {authError}
+            </div>
+          )}
+
+          {/* ── Sign-in email sent ── */}
+          {signInEmailSent && (
+            <div
+              style={{
+                maxWidth: 720,
+                margin: '14px auto 0',
+                borderRadius: 12,
+                border: '1px solid rgba(0,0,0,0.10)',
+                background: '#fff',
+                padding: '12px 16px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                gap: 12,
+              }}
+            >
+              <div>
+                <div style={{ fontFamily: sans, fontSize: 13, fontWeight: 600, color: '#111', marginBottom: 4 }}>
+                  Check your email for the sign-in link.
+                </div>
+                <div style={{ fontFamily: sans, fontSize: 12, color: 'rgba(0,0,0,0.50)', lineHeight: 1.5 }}>
+                  Don&apos;t see it? Check your junk or spam folder.
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSignInEmailSent(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: 'rgba(0,0,0,0.30)', padding: 0, flexShrink: 0 }}
+              >
+                ×
+              </button>
             </div>
           )}
 
