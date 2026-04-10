@@ -2574,25 +2574,22 @@ export default function HomePage() {
                                 </div>
                               </div>
                             ))}
-                            {/* Step — always shown as final anatomy row */}
-                            <div
-                              style={{
-                                display: 'grid',
-                                gridTemplateColumns: '70px 1fr',
-                                padding: '14px 0',
-                                alignItems: 'start',
-                                gap: 10,
-                              }}
-                            >
-                              <div style={{ fontFamily: sans, fontSize: 9, fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase' as const, color: 'rgba(0,0,0,0.50)', paddingTop: 2 }}>
-                                Step
-                              </div>
-                              <div style={{ fontFamily: sans, fontSize: 12.5, color: 'rgba(0,0,0,0.72)', lineHeight: 1.6, fontWeight: 400 }}>
-                                {reviewResult.snapshot.step}
-                              </div>
-                            </div>
                           </div>
                         </details>
+
+                        {/* Step — own box below score card */}
+                        <div
+                          style={{
+                            background: 'rgba(0,0,0,0.025)',
+                            border: '1px solid rgba(0,0,0,0.08)',
+                            borderRadius: 10,
+                            padding: '1rem 1.25rem',
+                            marginTop: '1rem',
+                          }}
+                        >
+                          <div style={{ fontFamily: sans, fontSize: 9, fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase' as const, color: 'rgba(0,0,0,0.36)', marginBottom: 6 }}>Step</div>
+                          <div style={{ fontFamily: sans, fontSize: 13.5, lineHeight: 1.6, color: 'rgba(0,0,0,0.82)', fontWeight: 400 }}>{reviewResult.snapshot.step}</div>
+                        </div>
 
                       </div>
                     </div>
