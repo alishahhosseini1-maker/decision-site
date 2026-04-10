@@ -1233,7 +1233,7 @@ export default function HomePage() {
   };
 
   const handleGenerateVerdict = async () => {
-    if (!finalThoughts.trim()) return;
+    if (verdictLoading) return;
 
     setVerdictRequested(true);
     setVerdictLoading(true);
@@ -2908,7 +2908,7 @@ export default function HomePage() {
                         <button
                           type="button"
                           onClick={handleGenerateVerdict}
-                          disabled={verdictLoading || !finalThoughts.trim()}
+                          disabled={verdictLoading}
                           style={{
                             fontFamily: sans,
                             fontSize: 12.5,
@@ -2920,8 +2920,8 @@ export default function HomePage() {
                             border: 'none',
                             padding: '14px 32px',
                             borderRadius: 2,
-                            cursor: verdictLoading || !finalThoughts.trim() ? 'default' : 'pointer',
-                            opacity: verdictLoading || !finalThoughts.trim() ? 0.42 : 1,
+                            cursor: verdictLoading ? 'default' : 'pointer',
+                            opacity: verdictLoading ? 0.42 : 1,
                             transition: 'opacity 0.15s ease',
                           }}
                         >
