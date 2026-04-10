@@ -555,6 +555,7 @@ export default function HomePage() {
   const decisionInputRef = useRef<HTMLTextAreaElement | null>(null);
   const verdictRef = useRef<HTMLDivElement | null>(null);
   const teamPreviewRef = useRef<HTMLDivElement | null>(null);
+  const isSavingRef = useRef(false);
 
   const STORAGE = {
     lastUsed: 'dl:last_used_at',
@@ -1248,7 +1249,8 @@ export default function HomePage() {
   };
 
   const handleLockVerdict = async () => {
-    if (!reviewResult || !verdict || savingVerdict) return;
+    if (!reviewResult || !verdict || savingVerdict || isSavingRef.current || decisionId) return;
+    isSavingRef.current = true;
 
     setApiError(null);
 
@@ -1270,6 +1272,7 @@ export default function HomePage() {
       }
 
       await handleSignIn();
+      isSavingRef.current = false;
       return;
     }
 
@@ -1316,6 +1319,7 @@ export default function HomePage() {
       setApiError(err?.message || 'Failed to save decision.');
     } finally {
       setSavingVerdict(false);
+      isSavingRef.current = false;
     }
   };
 
