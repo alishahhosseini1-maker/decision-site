@@ -2574,68 +2574,40 @@ export default function HomePage() {
                                 </div>
                               </div>
                             ))}
+                            {/* Step — always shown as final anatomy row */}
+                            <div
+                              style={{
+                                display: 'grid',
+                                gridTemplateColumns: '70px 1fr',
+                                padding: '14px 0',
+                                alignItems: 'start',
+                                gap: 10,
+                              }}
+                            >
+                              <div style={{ fontFamily: sans, fontSize: 9, fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase' as const, color: 'rgba(0,0,0,0.50)', paddingTop: 2 }}>
+                                Step
+                              </div>
+                              <div style={{ fontFamily: sans, fontSize: 12.5, color: 'rgba(0,0,0,0.72)', lineHeight: 1.6, fontWeight: 400 }}>
+                                {reviewResult.snapshot.step}
+                              </div>
+                            </div>
                           </div>
                         </details>
 
                       </div>
                     </div>
-
-                    {/* Stage 1+: Break line + Hinge */}
-                    {revealStage >= 1 ? (
-                      <>
-                        {/* Step highlighted */}
-                        <div
-                          style={{
-                            background: 'rgba(0,0,0,0.025)',
-                            border: '1px solid rgba(0,0,0,0.08)',
-                            borderRadius: 10,
-                            padding: '1rem 1.25rem',
-                            marginTop: '1.5rem',
-                          }}
-                        >
-                          <div style={{ fontFamily: sans, fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(0,0,0,0.36)', marginBottom: 8 }}>Step</div>
-                          <div style={{ fontFamily: sans, fontSize: 14.5, lineHeight: 1.6, color: 'rgba(0,0,0,0.82)', fontWeight: 500 }}>{reviewResult.snapshot.step}</div>
-                        </div>
-                        {/* Stage 1 CTA */}
-                        {revealStage === 1 && (
-                          <div style={{ marginTop: '1.75rem' }}>
-                            <button
-                              type="button"
-                              onClick={() => { const n = 2; setRevealStage(n); persistSoloReviewLocally({ revealStage: n }); }}
-                              style={{ fontFamily: sans, fontSize: 12.5, fontWeight: 500, letterSpacing: '0.07em', background: '#0b0b0b', color: '#fff', border: 'none', padding: '13px 26px', borderRadius: 2, cursor: 'pointer' }}
-                            >
-                              See the full anatomy →
-                            </button>
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      /* Stage 0 CTA */
-                      <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '0.5px solid rgba(0,0,0,0.07)' }}>
-                        <button
-                          type="button"
-                          onClick={() => { const n = 1; setRevealStage(n); persistSoloReviewLocally({ revealStage: n }); }}
-                          style={{ fontFamily: sans, fontSize: 12.5, fontWeight: 500, letterSpacing: '0.07em', background: '#0b0b0b', color: '#fff', border: 'none', padding: '13px 26px', borderRadius: 2, cursor: 'pointer' }}
-                        >
-                          See what&apos;s at stake →
-                        </button>
-                      </div>
-                    )}
                   </div>
 
                   {/* ── BRIDGE ── */}
-                  {revealStage >= 2 && (
-                    <div
-                      style={{
-                        height: 3,
-                        background: meta.color,
-                        opacity: 0.12,
-                      }}
-                    />
-                  )}
+                  <div
+                    style={{
+                      height: 3,
+                      background: meta.color,
+                      opacity: 0.12,
+                    }}
+                  />
 
                   {/* ── ZONE 2: THE EVIDENCE ── */}
-                  {revealStage >= 2 && (
                   <div
                     style={{
                       border: '1px solid rgba(0,0,0,0.10)',
@@ -2694,7 +2666,7 @@ export default function HomePage() {
                     </div>
 
                     {/* Stage 2 CTA */}
-                    {revealStage === 2 && (
+                    {revealStage < 3 && (
                       <div style={{ padding: '1.5rem 0' }}>
                         <button
                           type="button"
@@ -2841,7 +2813,6 @@ export default function HomePage() {
                     </div>
                     )}
                   </div>
-                  )}
 
                   {/* ── Final verdict card ── */}
                   {verdictRequested && (
