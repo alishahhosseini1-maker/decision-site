@@ -2577,22 +2577,21 @@ export default function HomePage() {
                           </div>
                         </details>
 
-                        {/* Step — own box below score card */}
-                        <div
-                          style={{
-                            background: 'rgba(0,0,0,0.025)',
-                            border: '1px solid rgba(0,0,0,0.08)',
-                            borderRadius: 10,
-                            padding: '1rem 1.25rem',
-                            marginTop: '1rem',
-                          }}
-                        >
-                          <div style={{ fontFamily: sans, fontSize: 9, fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase' as const, color: 'rgba(0,0,0,0.36)', marginBottom: 6 }}>Step</div>
-                          <div style={{ fontFamily: sans, fontSize: 13.5, lineHeight: 1.6, color: 'rgba(0,0,0,0.82)', fontWeight: 400 }}>{reviewResult.snapshot.step}</div>
-                        </div>
-
                       </div>
                     </div>
+                  </div>
+
+                  {/* ── STEP ── */}
+                  <div
+                    style={{
+                      padding: '1.25rem 2.5rem',
+                      background: '#fff',
+                      borderLeft: '1px solid rgba(0,0,0,0.10)',
+                      borderRight: '1px solid rgba(0,0,0,0.10)',
+                    }}
+                  >
+                    <div style={{ fontFamily: sans, fontSize: 9, fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase' as const, color: 'rgba(0,0,0,0.36)', marginBottom: 6 }}>Step</div>
+                    <div style={{ fontFamily: sans, fontSize: 14, lineHeight: 1.65, color: 'rgba(0,0,0,0.82)', fontWeight: 400 }}>{reviewResult.snapshot.step}</div>
                   </div>
 
                   {/* ── BRIDGE ── */}
