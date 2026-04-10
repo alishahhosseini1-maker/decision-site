@@ -2645,21 +2645,6 @@ export default function HomePage() {
                     {/* Stage 1+: Break line + Hinge */}
                     {revealStage >= 1 ? (
                       <>
-                        <div
-                          style={{
-                            borderTop: '0.5px solid rgba(0,0,0,0.09)',
-                            paddingTop: '1.75rem',
-                            fontFamily: sans,
-                            fontSize: 14,
-                            lineHeight: 1.7,
-                            color: 'rgba(0,0,0,0.55)',
-                          }}
-                        >
-                          {buildBreakLine(reviewResult.snapshot.hinge)}{' '}
-                          <span style={{ color: 'rgba(0,0,0,0.80)', fontWeight: 500 }}>
-                            Until that assumption is tested, committing is speculation — and the downside is irreversible.
-                          </span>
-                        </div>
                         {/* Hinge highlighted */}
                         <div
                           style={{
@@ -2667,7 +2652,7 @@ export default function HomePage() {
                             border: '1px solid rgba(0,0,0,0.08)',
                             borderRadius: 10,
                             padding: '1rem 1.25rem',
-                            marginTop: '1.25rem',
+                            marginTop: '1.5rem',
                           }}
                         >
                           <div style={{ fontFamily: sans, fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(0,0,0,0.36)', marginBottom: 8 }}>Hinge</div>
