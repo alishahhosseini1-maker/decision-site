@@ -2530,12 +2530,12 @@ export default function HomePage() {
                           </summary>
                           <div style={{ marginTop: '0.75rem' }}>
                             {([
-                              { label: 'Door',  value: reviewResult.snapshot.door,  score: reviewResult.readiness?.clarity,       rationale: reviewResult.readiness?.rationale?.clarity        ?? null },
-                              { label: 'Hinge', value: reviewResult.snapshot.hinge, score: reviewResult.readiness?.assumptions,   rationale: reviewResult.readiness?.rationale?.assumptions    ?? null },
-                              { label: 'Locks', value: reviewResult.snapshot.lock,  score: reviewResult.readiness?.reversibility, rationale: reviewResult.readiness?.rationale?.reversibility  ?? null },
-                              { label: 'Trap',  value: reviewResult.snapshot.trap,  score: reviewResult.readiness?.risk,          rationale: reviewResult.readiness?.rationale?.risk           ?? null },
-                              { label: 'Exit',  value: reviewResult.snapshot.exit,  score: reviewResult.readiness?.exitLogic,     rationale: reviewResult.readiness?.rationale?.exitLogic      ?? null },
-                            ] as { label: string; value: string; score: number | undefined; rationale: string | null }[]).map((row, i, arr) => (
+                              { label: 'Door',  sub: 'Clarity',        value: reviewResult.snapshot.door,  score: reviewResult.readiness?.clarity,       rationale: reviewResult.readiness?.rationale?.clarity        ?? null },
+                              { label: 'Hinge', sub: 'Assumptions',    value: reviewResult.snapshot.hinge, score: reviewResult.readiness?.assumptions,   rationale: reviewResult.readiness?.rationale?.assumptions    ?? null },
+                              { label: 'Locks', sub: 'Reversibility',  value: reviewResult.snapshot.lock,  score: reviewResult.readiness?.reversibility, rationale: reviewResult.readiness?.rationale?.reversibility  ?? null },
+                              { label: 'Trap',  sub: 'Risk',           value: reviewResult.snapshot.trap,  score: reviewResult.readiness?.risk,          rationale: reviewResult.readiness?.rationale?.risk           ?? null },
+                              { label: 'Exit',  sub: 'Exit logic',     value: reviewResult.snapshot.exit,  score: reviewResult.readiness?.exitLogic,     rationale: reviewResult.readiness?.rationale?.exitLogic      ?? null },
+                            ] as { label: string; sub: string; value: string; score: number | undefined; rationale: string | null }[]).map((row, i, arr) => (
                               <div
                                 key={row.label}
                                 style={{
@@ -2549,6 +2549,7 @@ export default function HomePage() {
                               >
                                 <div style={{ fontFamily: sans, fontSize: 9, fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase' as const, color: 'rgba(0,0,0,0.50)', paddingTop: 2 }}>
                                   {row.label}
+                                  <div style={{ fontSize: 8.5, fontWeight: 500, letterSpacing: '0.06em', textTransform: 'none' as const, color: 'rgba(0,0,0,0.32)', marginTop: 2 }}>{row.sub}</div>
                                 </div>
                                 <div>
                                   <div style={{ fontFamily: sans, fontSize: 12.5, color: 'rgba(0,0,0,0.72)', lineHeight: 1.6, fontWeight: 400 }}>
@@ -2588,7 +2589,7 @@ export default function HomePage() {
                       boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
                     }}
                   >
-                    <div style={{ fontFamily: sans, fontSize: 9, fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase' as const, color: 'rgba(0,0,0,0.36)', marginBottom: 8 }}>Step</div>
+                    <div style={{ fontFamily: sans, fontSize: 9, fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase' as const, color: 'rgba(0,0,0,0.36)', marginBottom: 8 }}>Step <span style={{ fontSize: 8.5, fontWeight: 500, letterSpacing: '0.06em', textTransform: 'none' as const, color: 'rgba(0,0,0,0.28)' }}>· Next move</span></div>
                     <div style={{ fontFamily: sans, fontSize: 14.5, lineHeight: 1.65, color: '#0b0b0b', fontWeight: 500 }}>{reviewResult.snapshot.step}</div>
                   </div>
 
