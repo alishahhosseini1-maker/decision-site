@@ -2808,7 +2808,7 @@ export default function HomePage() {
                               paddingBottom: '0.85rem',
                               background: '#f9f9f7',
                               borderRadius: '0 8px 8px 0',
-                              marginBottom: verdictReason ? 14 : 0,
+                              marginBottom: 0,
                             }}
                           >
                             <div
@@ -2825,20 +2825,6 @@ export default function HomePage() {
                             </div>
                           </div>
 
-                          {verdictReason && (
-                            <div
-                              style={{
-                                whiteSpace: 'pre-wrap',
-                                fontFamily: sans,
-                                fontSize: 13.5,
-                                lineHeight: 1.65,
-                                color: 'rgba(0,0,0,0.70)',
-                                fontWeight: 400,
-                              }}
-                            >
-                              {verdictReason}
-                            </div>
-                          )}
                         </>
                       )}
 
