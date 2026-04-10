@@ -2501,7 +2501,7 @@ export default function HomePage() {
                         <details
                           style={{
                             borderTop: '0.5px solid rgba(0,0,0,0.09)',
-                            paddingTop: '1.2rem',
+                            marginTop: '1.2rem',
                           }}
                         >
                           <summary
@@ -2514,13 +2514,18 @@ export default function HomePage() {
                               display: 'flex',
                               justifyContent: 'space-between',
                               alignItems: 'center',
+                              background: 'rgba(0,0,0,0.035)',
+                              border: '1px solid rgba(0,0,0,0.10)',
+                              borderRadius: 6,
+                              padding: '10px 14px',
+                              marginTop: '1rem',
                             }}
                           >
                             Scoring model
                             <span
                               style={{
-                                fontSize: 16,
-                                color: 'rgba(0,0,0,0.28)',
+                                fontSize: 11,
+                                color: 'rgba(0,0,0,0.45)',
                                 display: 'inline-block',
                               }}
                             >
