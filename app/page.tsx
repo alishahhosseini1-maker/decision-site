@@ -74,6 +74,7 @@ type PendingSoloReview = {
   verdict: string | null;
   revealStage: number;
   reflectionPrompts: string[];
+  requestKey?: string;
 };
 
 function parseLocalDateTimeParts(value: string) {
@@ -549,6 +550,7 @@ export default function HomePage() {
   const [reflectionPrompts, setReflectionPrompts] = useState<string[]>([]);
 
   const [decisionId, setDecisionId] = useState<string | null>(null);
+  const [requestKey, setRequestKey] = useState<string>(() => crypto.randomUUID());
   const [openBreakdownSections, setOpenBreakdownSections] = useState<Record<string, boolean>>({});
 
   const snapshotRef = useRef<HTMLDivElement | null>(null);
@@ -577,6 +579,7 @@ export default function HomePage() {
         verdict: payload?.verdict ?? verdict,
         revealStage: payload?.revealStage ?? revealStage,
         reflectionPrompts: payload?.reflectionPrompts ?? reflectionPrompts,
+        requestKey: payload?.requestKey ?? requestKey,
       };
 
       localStorage.setItem(STORAGE.pendingSoloReview, JSON.stringify(nextPayload));
@@ -624,6 +627,7 @@ export default function HomePage() {
         setVerdict(saved.verdict ?? null);
         setRevealStage(saved.revealStage ?? 0);
         setReflectionPrompts(saved.reflectionPrompts ?? []);
+        if (saved.requestKey) setRequestKey(saved.requestKey);
         setHasStarted(Boolean(saved.reviewResult || saved.verdict || saved.deepReview));
       } catch {
         // ignore
@@ -753,6 +757,7 @@ export default function HomePage() {
             final_thoughts: saved.finalThoughts ?? null,
             outcome_status: 'awaiting_outcome',
             userId,
+            requestKey: saved.requestKey ?? null,
           }),
         });
 
@@ -1111,6 +1116,9 @@ export default function HomePage() {
     setVerdictLoading(false);
     setSavingVerdict(false);
     setDecisionId(null);
+    isSavingRef.current = false;
+    const newRequestKey = crypto.randomUUID();
+    setRequestKey(newRequestKey);
 
     try {
       const res = await fetch('/api/review', {
@@ -1304,6 +1312,7 @@ export default function HomePage() {
           final_thoughts: finalThoughts ?? null,
           outcome_status: 'awaiting_outcome',
           userId: user.id,
+          requestKey,
         }),
       });
 
