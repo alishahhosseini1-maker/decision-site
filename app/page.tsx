@@ -2504,9 +2504,79 @@ export default function HomePage() {
                           />
                         </div>
 
+                        {/* Combined scoring model + anatomy dropdown */}
+                        <details
+                          style={{
+                            borderTop: '0.5px solid rgba(0,0,0,0.09)',
+                            marginTop: '0',
+                          }}
+                        >
+                          <summary
+                            style={{
+                              cursor: 'pointer',
+                              listStyle: 'none',
+                              fontSize: 12.5,
+                              fontWeight: 600,
+                              color: 'rgba(0,0,0,0.72)',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              background: 'rgba(0,0,0,0.035)',
+                              border: '1px solid rgba(0,0,0,0.10)',
+                              borderRadius: 6,
+                              padding: '10px 14px',
+                              marginTop: '1rem',
+                            }}
+                          >
+                            Decision anatomy
+                            <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.45)' }}>▼</span>
+                          </summary>
+                          <div style={{ marginTop: '0.75rem' }}>
+                            {([
+                              { label: 'Door',  value: reviewResult.snapshot.door,  score: reviewResult.readiness?.clarity,       rationale: reviewResult.readiness?.rationale?.clarity        ?? null },
+                              { label: 'Hinge', value: reviewResult.snapshot.hinge, score: reviewResult.readiness?.assumptions,   rationale: reviewResult.readiness?.rationale?.assumptions    ?? null },
+                              { label: 'Locks', value: reviewResult.snapshot.lock,  score: reviewResult.readiness?.reversibility, rationale: reviewResult.readiness?.rationale?.reversibility  ?? null },
+                              { label: 'Trap',  value: reviewResult.snapshot.trap,  score: reviewResult.readiness?.risk,          rationale: reviewResult.readiness?.rationale?.risk           ?? null },
+                              { label: 'Exit',  value: reviewResult.snapshot.exit,  score: reviewResult.readiness?.exitLogic,     rationale: reviewResult.readiness?.rationale?.exitLogic      ?? null },
+                            ] as { label: string; value: string; score: number | undefined; rationale: string | null }[]).map((row, i, arr) => (
+                              <div
+                                key={row.label}
+                                style={{
+                                  display: 'grid',
+                                  gridTemplateColumns: '70px 1fr 52px',
+                                  padding: '14px 0',
+                                  borderBottom: i < arr.length - 1 ? '0.5px solid rgba(0,0,0,0.06)' : 'none',
+                                  alignItems: 'start',
+                                  gap: 10,
+                                }}
+                              >
+                                <div style={{ fontFamily: sans, fontSize: 9, fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase' as const, color: 'rgba(0,0,0,0.50)', paddingTop: 2 }}>
+                                  {row.label}
+                                </div>
+                                <div>
+                                  <div style={{ fontFamily: sans, fontSize: 12.5, color: 'rgba(0,0,0,0.72)', lineHeight: 1.6, fontWeight: 400 }}>
+                                    {row.value}
+                                  </div>
+                                  {row.rationale && (
+                                    <div style={{ fontFamily: sans, fontSize: 11, color: 'rgba(0,0,0,0.38)', lineHeight: 1.45, marginTop: 4, fontStyle: 'italic' }}>
+                                      {row.rationale}
+                                    </div>
+                                  )}
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, paddingTop: 2 }}>
+                                  <div style={{ fontSize: 11, fontWeight: 600, color: getProgressColor(row.score) }}>
+                                    {row.score ?? '—'}<span style={{ fontSize: 9.5, opacity: 0.6 }}>/20</span>
+                                  </div>
+                                  <div style={{ width: '100%', height: 3, background: 'rgba(0,0,0,0.08)', borderRadius: 999, overflow: 'hidden' }}>
+                                    <div style={{ height: '100%', width: `${((row.score ?? 0) / 20) * 100}%`, background: getProgressColor(row.score) }} />
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </details>
 
                       </div>
-
                     </div>
 
                     {/* Stage 1+: Break line + Hinge */}
@@ -2574,62 +2644,6 @@ export default function HomePage() {
                       padding: '0 2.5rem',
                     }}
                   >
-
-                    {/* Decision anatomy + score */}
-                    <div
-                      style={{
-                        padding: '1.75rem 0',
-                        borderBottom: '0.5px solid rgba(0,0,0,0.09)',
-                      }}
-                    >
-                      <Z2Label>Decision anatomy</Z2Label>
-                      <div style={{ borderTop: '0.5px solid rgba(0,0,0,0.07)' }}>
-                        {([
-                          { label: 'Door',  sublabel: reviewResult.readiness?.rationale?.clarity        ?? 'clarity',         value: reviewResult.snapshot.door,  score: reviewResult.readiness?.clarity },
-                          { label: 'Hinge', sublabel: reviewResult.readiness?.rationale?.assumptions    ?? 'assumptions',     value: reviewResult.snapshot.hinge, score: reviewResult.readiness?.assumptions },
-                          { label: 'Locks', sublabel: reviewResult.readiness?.rationale?.reversibility  ?? 'irreversibility', value: reviewResult.snapshot.lock,  score: reviewResult.readiness?.reversibility },
-                          { label: 'Trap',  sublabel: reviewResult.readiness?.rationale?.risk           ?? 'risk',            value: reviewResult.snapshot.trap,  score: reviewResult.readiness?.risk },
-                          { label: 'Exit',  sublabel: reviewResult.readiness?.rationale?.exitLogic      ?? 'exit logic',      value: reviewResult.snapshot.exit,  score: reviewResult.readiness?.exitLogic },
-                        ] as { label: string; sublabel: string; value: string; score: number | undefined }[]).map((row, i, arr) => (
-                          <div
-                            key={row.label}
-                            style={{
-                              display: 'grid',
-                              gridTemplateColumns: '90px 1fr 56px',
-                              padding: '18px 0',
-                              borderBottom: i < arr.length - 1 ? '0.5px solid rgba(0,0,0,0.07)' : 'none',
-                              alignItems: 'start',
-                              gap: 12,
-                            }}
-                          >
-                            {/* Label column */}
-                            <div>
-                              <div style={{ fontFamily: sans, fontSize: 9, fontWeight: 600, letterSpacing: '0.13em', textTransform: 'uppercase' as const, color: 'rgba(0,0,0,0.50)' }}>
-                                {row.label}
-                              </div>
-                            </div>
-                            {/* Content + rationale */}
-                            <div>
-                              <div style={{ fontFamily: sans, fontSize: 13, color: 'rgba(0,0,0,0.72)', lineHeight: 1.65, fontWeight: 400 }}>
-                                {row.value}
-                              </div>
-                              <div style={{ fontFamily: sans, fontSize: 11, color: 'rgba(0,0,0,0.38)', lineHeight: 1.5, marginTop: 5, fontStyle: 'italic' }}>
-                                {row.sublabel}
-                              </div>
-                            </div>
-                            {/* Score */}
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 5, paddingTop: 2 }}>
-                              <div style={{ fontSize: 11, fontWeight: 600, color: getProgressColor(row.score) }}>
-                                {row.score ?? '—'}<span style={{ fontSize: 9.5, opacity: 0.6 }}>/20</span>
-                              </div>
-                              <div style={{ width: '100%', height: 3, background: 'rgba(0,0,0,0.08)', borderRadius: 999, overflow: 'hidden' }}>
-                                <div style={{ height: '100%', width: `${((row.score ?? 0) / 20) * 100}%`, background: getProgressColor(row.score) }} />
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
 
                     {/* Reasoning */}
                     <div
