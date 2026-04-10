@@ -2327,7 +2327,7 @@ export default function HomePage() {
                       borderRadius: '16px 16px 0 0',
                       borderBottom: 'none',
                       background: '#fff',
-                      padding: '2.5rem 2.5rem 2.75rem',
+                      padding: '2.5rem 2.5rem 2rem',
                     }}
                   >
                     {/* Meta */}
@@ -2404,10 +2404,6 @@ export default function HomePage() {
                       {/* Pre-commit Score Card */}
                       <div
                         style={{
-                          borderRadius: 14,
-                          border: '1px solid rgba(0,0,0,0.12)',
-                          background: 'rgba(255,255,255,0.6)',
-                          padding: '1.75rem',
                           marginBottom: '2rem',
                         }}
                       >
@@ -2418,7 +2414,7 @@ export default function HomePage() {
                             justifyContent: 'space-between',
                             alignItems: 'center',
                             gap: '1rem',
-                            marginBottom: '1.2rem',
+                            marginBottom: '1.5rem',
                           }}
                         >
                           <div
@@ -2450,7 +2446,7 @@ export default function HomePage() {
                         </div>
 
                         {/* Hero score */}
-                        <div style={{ marginBottom: '1.2rem' }}>
+                        <div style={{ marginBottom: '1.5rem' }}>
                           <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem' }}>
                             <span
                               style={{
@@ -2491,7 +2487,7 @@ export default function HomePage() {
                             background: 'rgba(0,0,0,0.08)',
                             borderRadius: 999,
                             overflow: 'hidden',
-                            marginBottom: '1.5rem',
+                            marginBottom: '2rem',
                           }}
                         >
                           <div
@@ -2545,7 +2541,7 @@ export default function HomePage() {
                                 style={{
                                   display: 'grid',
                                   gridTemplateColumns: '70px 1fr 52px',
-                                  padding: '14px 0',
+                                  padding: '18px 0',
                                   borderBottom: i < arr.length - 1 ? '0.5px solid rgba(0,0,0,0.06)' : 'none',
                                   alignItems: 'start',
                                   gap: 10,
@@ -2584,14 +2580,15 @@ export default function HomePage() {
                   {/* ── STEP ── */}
                   <div
                     style={{
-                      padding: '1.25rem 2.5rem',
+                      padding: '1.5rem 2.5rem 1.75rem',
                       background: '#fff',
                       borderLeft: '1px solid rgba(0,0,0,0.10)',
                       borderRight: '1px solid rgba(0,0,0,0.10)',
+                      borderTop: '0.5px solid rgba(0,0,0,0.09)',
                     }}
                   >
-                    <div style={{ fontFamily: sans, fontSize: 9, fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase' as const, color: 'rgba(0,0,0,0.36)', marginBottom: 6 }}>Step</div>
-                    <div style={{ fontFamily: sans, fontSize: 14, lineHeight: 1.65, color: 'rgba(0,0,0,0.82)', fontWeight: 400 }}>{reviewResult.snapshot.step}</div>
+                    <div style={{ fontFamily: sans, fontSize: 9, fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase' as const, color: 'rgba(0,0,0,0.36)', marginBottom: 8 }}>Step</div>
+                    <div style={{ fontFamily: sans, fontSize: 14.5, lineHeight: 1.65, color: '#0b0b0b', fontWeight: 500 }}>{reviewResult.snapshot.step}</div>
                   </div>
 
                   {/* ── BRIDGE ── */}
