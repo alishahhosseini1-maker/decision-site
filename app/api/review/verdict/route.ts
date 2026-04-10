@@ -52,9 +52,9 @@ NEXT MOVE: ${nextMove || 'Not provided'}
 USER NOTES: ${thoughts || 'None provided'}`;
 
     const message = await client.messages.create({
-      model: 'claude-opus-4-5',
+      model: 'claude-opus-4-6',
       max_tokens: 512,
-      system: 'You deliver final decision calls like a disciplined senior operator. Every sentence is a specific constraint or condition — never a psychological observation. Sentence 2 must name an unresolved operational dependency from the user\'s notes, not their mindset.',
+      system: 'You deliver final decision calls like a disciplined senior operator. Every sentence is a specific constraint or condition — never a psychological observation. Sentence 2 must name an unresolved operational dependency from the user\'s notes, not their mindset. If sentence 2 could apply to any decision, it is wrong. Rewrite it until it could only apply to this specific decision with these specific numbers, people, or conditions.',
       messages: [{ role: 'user', content: prompt }],
     });
 
