@@ -2324,10 +2324,10 @@ export default function HomePage() {
                   <div
                     style={{
                       border: '1px solid rgba(0,0,0,0.10)',
-                      borderRadius: '16px 16px 0 0',
-                      borderBottom: 'none',
+                      borderRadius: 16,
                       background: '#fff',
                       padding: '2.5rem 2.5rem 2.5rem',
+                      boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
                     }}
                   >
                     {/* Meta */}
@@ -2580,42 +2580,27 @@ export default function HomePage() {
                   {/* ── STEP ── */}
                   <div
                     style={{
-                      padding: '0 2.5rem 2rem',
+                      marginTop: 12,
+                      border: '1px solid rgba(0,0,0,0.10)',
+                      borderRadius: 16,
                       background: '#fff',
-                      borderLeft: '1px solid rgba(0,0,0,0.10)',
-                      borderRight: '1px solid rgba(0,0,0,0.10)',
+                      padding: '1.5rem 2rem',
+                      boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
                     }}
                   >
-                    <div
-                      style={{
-                        background: 'rgba(0,0,0,0.03)',
-                        border: '1px solid rgba(0,0,0,0.09)',
-                        borderRadius: 12,
-                        padding: '1.25rem 1.5rem',
-                      }}
-                    >
-                      <div style={{ fontFamily: sans, fontSize: 9, fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase' as const, color: 'rgba(0,0,0,0.40)', marginBottom: 8 }}>Step</div>
-                      <div style={{ fontFamily: sans, fontSize: 14, lineHeight: 1.65, color: '#0b0b0b', fontWeight: 500 }}>{reviewResult.snapshot.step}</div>
-                    </div>
+                    <div style={{ fontFamily: sans, fontSize: 9, fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase' as const, color: 'rgba(0,0,0,0.36)', marginBottom: 8 }}>Step</div>
+                    <div style={{ fontFamily: sans, fontSize: 14.5, lineHeight: 1.65, color: '#0b0b0b', fontWeight: 500 }}>{reviewResult.snapshot.step}</div>
                   </div>
-
-                  {/* ── BRIDGE ── */}
-                  <div
-                    style={{
-                      height: 3,
-                      background: meta.color,
-                      opacity: 0.12,
-                    }}
-                  />
 
                   {/* ── ZONE 2: THE EVIDENCE ── */}
                   <div
                     style={{
+                      marginTop: 12,
                       border: '1px solid rgba(0,0,0,0.10)',
-                      borderRadius: '0 0 16px 16px',
-                      borderTop: 'none',
+                      borderRadius: 16,
                       background: 'rgba(0,0,0,0.018)',
                       padding: '0 2.5rem',
+                      boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
                     }}
                   >
 
