@@ -2497,152 +2497,7 @@ export default function HomePage() {
                           />
                         </div>
 
-                        {/* Scoring model dropdown */}
-                        <details
-                          style={{
-                            borderTop: '0.5px solid rgba(0,0,0,0.09)',
-                            marginTop: '1.2rem',
-                          }}
-                        >
-                          <summary
-                            style={{
-                              cursor: 'pointer',
-                              listStyle: 'none',
-                              fontSize: 12.5,
-                              fontWeight: 600,
-                              color: 'rgba(0,0,0,0.72)',
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              background: 'rgba(0,0,0,0.035)',
-                              border: '1px solid rgba(0,0,0,0.10)',
-                              borderRadius: 6,
-                              padding: '10px 14px',
-                              marginTop: '1rem',
-                            }}
-                          >
-                            Scoring model
-                            <span
-                              style={{
-                                fontSize: 11,
-                                color: 'rgba(0,0,0,0.45)',
-                                display: 'inline-block',
-                              }}
-                            >
-                              ▼
-                            </span>
-                          </summary>
 
-                          {/* Breakdown */}
-                          <div style={{ marginTop: '1rem' }}>
-                            {[
-                              { name: 'Clarity', value: reviewResult?.readiness?.clarity, hint: getFactorHint('Clarity', decision) },
-                              { name: 'Assumptions', value: reviewResult?.readiness?.assumptions, hint: getFactorHint('Assumptions', decision) },
-                              { name: 'Reversibility', value: reviewResult?.readiness?.reversibility, hint: getFactorHint('Reversibility', decision) },
-                              { name: 'Risk', value: reviewResult?.readiness?.risk, hint: getFactorHint('Risk', decision) },
-                              { name: 'Exit Logic', value: reviewResult?.readiness?.exitLogic, hint: getFactorHint('Exit Logic', decision) },
-                            ].map((factor, i) => (
-                              <div key={i}>
-                                <div
-                                  style={{
-                                    display: 'grid',
-                                    gridTemplateColumns: 'minmax(0, 1fr) 52px',
-                                    gap: '0.75rem',
-                                    alignItems: 'center',
-                                    paddingBottom: '0.75rem',
-                                    paddingTop: '0.75rem',
-                                    borderBottom: '0.5px solid rgba(0,0,0,0.06)',
-                                  }}
-                                >
-                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
-                                    <div style={{ fontSize: 12.5, fontWeight: 500, color: 'rgba(0,0,0,0.72)' }}>
-                                      {factor.name}
-                                    </div>
-                                    <div
-                                      style={{
-                                        height: 3,
-                                        background: 'rgba(0,0,0,0.08)',
-                                        borderRadius: 999,
-                                        overflow: 'hidden',
-                                      }}
-                                    >
-                                      <div
-                                        style={{
-                                          height: '100%',
-                                          width: `${((factor.value ?? 0) / 20) * 100}%`,
-                                          background: getProgressColor(factor.value),
-                                        }}
-                                      />
-                                    </div>
-                                  </div>
-                                  <div style={{ fontSize: 11.5, fontWeight: 600, color: 'rgba(0,0,0,0.55)', textAlign: 'right' }}>
-                                    {factor.value ?? '—'}<span style={{ fontSize: 10.5, opacity: 0.6 }}>/20</span>
-                                  </div>
-                                </div>
-                                <div style={{ fontSize: 11.5, color: 'rgba(0,0,0,0.50)', lineHeight: 1.4, marginTop: '0.4rem', marginBottom: '0.3rem', fontStyle: 'italic' }}>
-                                  {factor.hint}
-                                </div>
-                              </div>
-                            ))}
-
-                            {/* Total row (bolded and in color) */}
-                            <div
-                              style={{
-                                display: 'grid',
-                                gridTemplateColumns: 'minmax(0, 1fr) 44px',
-                                gap: '0.75rem',
-                                alignItems: 'center',
-                                paddingTop: '0.75rem',
-                                marginTop: '0.5rem',
-                                borderTop: '0.5px solid rgba(0,0,0,0.09)',
-                              }}
-                            >
-                              <div
-                                style={{
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                  gap: '0.45rem',
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    fontSize: 12.5,
-                                    fontWeight: 700,
-                                    color: meta.color,
-                                  }}
-                                >
-                                  Total
-                                </div>
-                                <div
-                                  style={{
-                                    height: 4,
-                                    background: 'rgba(0,0,0,0.08)',
-                                    borderRadius: 999,
-                                    overflow: 'hidden',
-                                  }}
-                                >
-                                  <div
-                                    style={{
-                                      height: '100%',
-                                      width: `${scoreTotal ?? 0}%`,
-                                      background: meta.color,
-                                    }}
-                                  />
-                                </div>
-                              </div>
-                              <div
-                                style={{
-                                  fontSize: 12,
-                                  fontWeight: 700,
-                                  color: meta.color,
-                                  textAlign: 'right',
-                                }}
-                              >
-                                {scoreTotal ?? '—'}
-                              </div>
-                            </div>
-                          </div>
-                        </details>
                       </div>
 
                     </div>
@@ -2650,7 +2505,7 @@ export default function HomePage() {
                     {/* Stage 1+: Break line + Hinge */}
                     {revealStage >= 1 ? (
                       <>
-                        {/* Hinge highlighted */}
+                        {/* Step highlighted */}
                         <div
                           style={{
                             background: 'rgba(0,0,0,0.025)',
@@ -2660,8 +2515,8 @@ export default function HomePage() {
                             marginTop: '1.5rem',
                           }}
                         >
-                          <div style={{ fontFamily: sans, fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(0,0,0,0.36)', marginBottom: 8 }}>Hinge</div>
-                          <div style={{ fontFamily: sans, fontSize: 14.5, lineHeight: 1.6, color: 'rgba(0,0,0,0.82)', fontWeight: 500 }}>{reviewResult.snapshot.hinge}</div>
+                          <div style={{ fontFamily: sans, fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(0,0,0,0.36)', marginBottom: 8 }}>Step</div>
+                          <div style={{ fontFamily: sans, fontSize: 14.5, lineHeight: 1.6, color: 'rgba(0,0,0,0.82)', fontWeight: 500 }}>{reviewResult.snapshot.step}</div>
                         </div>
                         {/* Stage 1 CTA */}
                         {revealStage === 1 && (
@@ -2713,7 +2568,7 @@ export default function HomePage() {
                     }}
                   >
 
-                    {/* Decision anatomy */}
+                    {/* Decision anatomy + score */}
                     <div
                       style={{
                         padding: '1.75rem 0',
@@ -2722,13 +2577,48 @@ export default function HomePage() {
                     >
                       <Z2Label>Decision anatomy</Z2Label>
                       <div style={{ borderTop: '0.5px solid rgba(0,0,0,0.07)' }}>
-                        <AnatomyRow label="Door" sublabel="type of decision" value={reviewResult.snapshot.door} />
-                        <AnatomyRow label="Locks" sublabel="hard to undo" value={reviewResult.snapshot.lock} />
-                        <AnatomyRow label="Trap" sublabel="hidden failure risk" value={reviewResult.snapshot.trap} />
-                        <AnatomyRow label="Exit" sublabel="when to stop" value={reviewResult.snapshot.exit} />
-                        <div style={{ borderBottom: 'none' }}>
-                          <AnatomyRow label="Step" sublabel="next survivable move" value={reviewResult.snapshot.step} />
-                        </div>
+                        {([
+                          { label: 'Door',  sublabel: 'clarity',        value: reviewResult.snapshot.door,  score: reviewResult.readiness?.clarity },
+                          { label: 'Hinge', sublabel: 'assumptions',    value: reviewResult.snapshot.hinge, score: reviewResult.readiness?.assumptions },
+                          { label: 'Locks', sublabel: 'irreversibility', value: reviewResult.snapshot.lock,  score: reviewResult.readiness?.reversibility },
+                          { label: 'Trap',  sublabel: 'risk',            value: reviewResult.snapshot.trap,  score: reviewResult.readiness?.risk },
+                          { label: 'Exit',  sublabel: 'exit logic',      value: reviewResult.snapshot.exit,  score: reviewResult.readiness?.exitLogic },
+                        ] as { label: string; sublabel: string; value: string; score: number | undefined }[]).map((row, i, arr) => (
+                          <div
+                            key={row.label}
+                            style={{
+                              display: 'grid',
+                              gridTemplateColumns: '130px 1fr 56px',
+                              padding: '18px 0',
+                              borderBottom: i < arr.length - 1 ? '0.5px solid rgba(0,0,0,0.07)' : 'none',
+                              alignItems: 'start',
+                              gap: 12,
+                            }}
+                          >
+                            {/* Label column */}
+                            <div>
+                              <div style={{ fontFamily: sans, fontSize: 9, fontWeight: 600, letterSpacing: '0.13em', textTransform: 'uppercase' as const, color: 'rgba(0,0,0,0.50)' }}>
+                                {row.label}
+                              </div>
+                              <div style={{ fontFamily: sans, fontSize: 9, color: 'rgba(0,0,0,0.28)', marginTop: 3, fontWeight: 400, letterSpacing: '0.03em' }}>
+                                {row.sublabel}
+                              </div>
+                            </div>
+                            {/* Content */}
+                            <div style={{ fontFamily: sans, fontSize: 13, color: 'rgba(0,0,0,0.72)', lineHeight: 1.65, fontWeight: 400 }}>
+                              {row.value}
+                            </div>
+                            {/* Score */}
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 5, paddingTop: 2 }}>
+                              <div style={{ fontSize: 11, fontWeight: 600, color: getProgressColor(row.score) }}>
+                                {row.score ?? '—'}<span style={{ fontSize: 9.5, opacity: 0.6 }}>/20</span>
+                              </div>
+                              <div style={{ width: '100%', height: 3, background: 'rgba(0,0,0,0.08)', borderRadius: 999, overflow: 'hidden' }}>
+                                <div style={{ height: '100%', width: `${((row.score ?? 0) / 20) * 100}%`, background: getProgressColor(row.score) }} />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
 
