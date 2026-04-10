@@ -48,6 +48,13 @@ type ReviewResult = {
     total: number;
     label: 'Not ready to commit' | 'Proceed smaller' | 'Ready to commit';
     summary: string;
+    rationale?: {
+      clarity: string;
+      assumptions: string;
+      reversibility: string;
+      risk: string;
+      exitLogic: string;
+    };
   };
   topline: {
     primaryRisk: string;
@@ -2578,17 +2585,17 @@ export default function HomePage() {
                       <Z2Label>Decision anatomy</Z2Label>
                       <div style={{ borderTop: '0.5px solid rgba(0,0,0,0.07)' }}>
                         {([
-                          { label: 'Door',  sublabel: 'clarity',        value: reviewResult.snapshot.door,  score: reviewResult.readiness?.clarity },
-                          { label: 'Hinge', sublabel: 'assumptions',    value: reviewResult.snapshot.hinge, score: reviewResult.readiness?.assumptions },
-                          { label: 'Locks', sublabel: 'irreversibility', value: reviewResult.snapshot.lock,  score: reviewResult.readiness?.reversibility },
-                          { label: 'Trap',  sublabel: 'risk',            value: reviewResult.snapshot.trap,  score: reviewResult.readiness?.risk },
-                          { label: 'Exit',  sublabel: 'exit logic',      value: reviewResult.snapshot.exit,  score: reviewResult.readiness?.exitLogic },
+                          { label: 'Door',  sublabel: reviewResult.readiness?.rationale?.clarity        ?? 'clarity',         value: reviewResult.snapshot.door,  score: reviewResult.readiness?.clarity },
+                          { label: 'Hinge', sublabel: reviewResult.readiness?.rationale?.assumptions    ?? 'assumptions',     value: reviewResult.snapshot.hinge, score: reviewResult.readiness?.assumptions },
+                          { label: 'Locks', sublabel: reviewResult.readiness?.rationale?.reversibility  ?? 'irreversibility', value: reviewResult.snapshot.lock,  score: reviewResult.readiness?.reversibility },
+                          { label: 'Trap',  sublabel: reviewResult.readiness?.rationale?.risk           ?? 'risk',            value: reviewResult.snapshot.trap,  score: reviewResult.readiness?.risk },
+                          { label: 'Exit',  sublabel: reviewResult.readiness?.rationale?.exitLogic      ?? 'exit logic',      value: reviewResult.snapshot.exit,  score: reviewResult.readiness?.exitLogic },
                         ] as { label: string; sublabel: string; value: string; score: number | undefined }[]).map((row, i, arr) => (
                           <div
                             key={row.label}
                             style={{
                               display: 'grid',
-                              gridTemplateColumns: '130px 1fr 56px',
+                              gridTemplateColumns: '90px 1fr 56px',
                               padding: '18px 0',
                               borderBottom: i < arr.length - 1 ? '0.5px solid rgba(0,0,0,0.07)' : 'none',
                               alignItems: 'start',
@@ -2600,13 +2607,15 @@ export default function HomePage() {
                               <div style={{ fontFamily: sans, fontSize: 9, fontWeight: 600, letterSpacing: '0.13em', textTransform: 'uppercase' as const, color: 'rgba(0,0,0,0.50)' }}>
                                 {row.label}
                               </div>
-                              <div style={{ fontFamily: sans, fontSize: 9, color: 'rgba(0,0,0,0.28)', marginTop: 3, fontWeight: 400, letterSpacing: '0.03em' }}>
+                            </div>
+                            {/* Content + rationale */}
+                            <div>
+                              <div style={{ fontFamily: sans, fontSize: 13, color: 'rgba(0,0,0,0.72)', lineHeight: 1.65, fontWeight: 400 }}>
+                                {row.value}
+                              </div>
+                              <div style={{ fontFamily: sans, fontSize: 11, color: 'rgba(0,0,0,0.38)', lineHeight: 1.5, marginTop: 5, fontStyle: 'italic' }}>
                                 {row.sublabel}
                               </div>
-                            </div>
-                            {/* Content */}
-                            <div style={{ fontFamily: sans, fontSize: 13, color: 'rgba(0,0,0,0.72)', lineHeight: 1.65, fontWeight: 400 }}>
-                              {row.value}
                             </div>
                             {/* Score */}
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 5, paddingTop: 2 }}>

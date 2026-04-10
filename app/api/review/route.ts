@@ -16,6 +16,13 @@ type ReviewResult = {
     total: number;
     label: 'Not ready to commit' | 'Proceed smaller' | 'Ready to commit';
     summary: string;
+    rationale: {
+      clarity: string;
+      assumptions: string;
+      reversibility: string;
+      risk: string;
+      exitLogic: string;
+    };
   };
   topline: {
     primaryRisk: string;
@@ -194,6 +201,16 @@ READINESS RULES:
   - "Ready to commit"
 - summary must be one short, specific sentence — name the actual constraint
 
+rationale (inside readiness):
+- Add a "rationale" object with keys: clarity, assumptions, reversibility, risk, exitLogic
+- Each value is one short sentence (max 12 words) explaining why that factor received its specific score
+- Must reference the actual decision context — never generic
+- Example: clarity: "You haven't named the specific outcome that would make this a success."
+- Example: assumptions: "Two pricing assumptions are untested and could invalidate the model."
+- Example: reversibility: "Signing the lease makes the commitment hard to exit before 12 months."
+- Example: risk: "The downside exposure is bounded — you cap losses at the deposit."
+- Example: exitLogic: "No concrete signal defined for when to stop or pivot."
+
 TOPLINE RULES:
 
 primaryRisk:
@@ -340,6 +357,13 @@ Return raw JSON only.
           parsed?.readiness?.summary,
           'The main constraint is not strong enough yet.'
         ),
+        rationale: {
+          clarity: asString(parsed?.readiness?.rationale?.clarity, 'Clarity of the outcome needs more definition.'),
+          assumptions: asString(parsed?.readiness?.rationale?.assumptions, 'Key assumptions are not yet verified.'),
+          reversibility: asString(parsed?.readiness?.rationale?.reversibility, 'The cost of reversing this decision is significant.'),
+          risk: asString(parsed?.readiness?.rationale?.risk, 'The downside has not been fully mapped.'),
+          exitLogic: asString(parsed?.readiness?.rationale?.exitLogic, 'No clear signal defined for when to stop.'),
+        },
       },
       topline: {
         primaryRisk: asString(
