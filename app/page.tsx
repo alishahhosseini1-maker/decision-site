@@ -713,6 +713,8 @@ export default function HomePage() {
     const userId = user.id; // capture before async
 
     const doSave = async () => {
+      if (isSavingRef.current) return;
+      isSavingRef.current = true;
       try {
         const raw = localStorage.getItem(STORAGE.pendingSoloReview);
         if (!raw) return;
@@ -762,6 +764,8 @@ export default function HomePage() {
         }
       } catch {
         // ignore
+      } finally {
+        isSavingRef.current = false;
       }
     };
 
