@@ -1135,6 +1135,31 @@ export default function HomePage() {
 
       setReviewResult(data);
 
+      // Fire-and-forget: capture row immediately so anonymous users are recorded
+      void fetch('/api/decision/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          decision,
+          context,
+          score: data.readiness?.total ?? null,
+          clarity: data.readiness?.clarity ?? null,
+          assumptions: data.readiness?.assumptions ?? null,
+          reversibility: data.readiness?.reversibility ?? null,
+          risk: data.readiness?.risk ?? null,
+          exitLogic: data.readiness?.exitLogic ?? null,
+          door: data.snapshot?.door ?? null,
+          hinge: data.snapshot?.hinge ?? null,
+          trap: data.snapshot?.trap ?? null,
+          step: data.snapshot?.step ?? null,
+          verdict: null,
+          deep_review: null,
+          final_thoughts: null,
+          userId: user?.id ?? null,
+          requestKey: newRequestKey,
+        }),
+      }).catch(() => { /* best-effort, ignore */ });
+
       const iso = new Date().toISOString();
       setLastUsedAt(iso);
 
@@ -1154,6 +1179,7 @@ export default function HomePage() {
         verdict: null,
         revealStage: 0,
         reflectionPrompts: [],
+        requestKey: newRequestKey,
       });
       setRevealStage(0);
       setReflectionPrompts([]);

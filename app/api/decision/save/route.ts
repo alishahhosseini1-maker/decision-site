@@ -46,23 +46,13 @@ export async function POST(req: Request) {
       .from('decisions')
       .upsert(insertPayload, {
         onConflict: 'request_key',
-        ignoreDuplicates: true,
       })
       .select('id')
       .maybeSingle();
 
     if (error) throw error;
 
-    // If ignoreDuplicates suppressed the insert, fetch the existing row by request_key
-    let id = data?.id;
-    if (!id && body.requestKey) {
-      const { data: existing } = await supabase
-        .from('decisions')
-        .select('id')
-        .eq('request_key', body.requestKey)
-        .maybeSingle();
-      id = existing?.id ?? null;
-    }
+    const id = data?.id ?? null;
 
     return NextResponse.json({
       success: true,
