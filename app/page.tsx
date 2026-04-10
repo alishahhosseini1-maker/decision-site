@@ -2378,7 +2378,7 @@ export default function HomePage() {
                           style={{
                             fontFamily: sans,
                             fontSize: 18,
-                            fontWeight: 500,
+                            fontWeight: 400,
                             lineHeight: 1.55,
                             color: '#0b0b0b',
                             marginBottom: '0.85rem',
@@ -2450,10 +2450,11 @@ export default function HomePage() {
                           <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem' }}>
                             <span
                               style={{
-                                fontSize: 'clamp(3rem, 10vw, 56px)',
-                                fontWeight: 700,
+                                fontSize: 'clamp(2.25rem, 8vw, 44px)',
+                                fontWeight: 600,
                                 color: meta.color,
                                 lineHeight: 1,
+                                opacity: 0.82,
                               }}
                             >
                               {scoreTotal ?? '—'}
@@ -2502,7 +2503,6 @@ export default function HomePage() {
 
                         {/* Combined scoring model + anatomy dropdown */}
                         <details
-                          open
                           style={{
                             borderTop: '0.5px solid rgba(0,0,0,0.09)',
                             marginTop: '0',
