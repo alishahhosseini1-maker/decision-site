@@ -2605,7 +2605,21 @@ export default function HomePage() {
                     }}
                   >
 
-                    {/* Reasoning */}
+                    {/* The threat — always visible */}
+                    <div
+                      style={{
+                        padding: '1.75rem 0',
+                        borderBottom: '0.5px solid rgba(0,0,0,0.09)',
+                      }}
+                    >
+                      <FindingRow
+                        tag="The threat"
+                        text={reviewResult.topline.primaryRisk}
+                        variant="threat"
+                      />
+                    </div>
+
+                    {/* Reasoning — Unpack the review */}
                     <div
                       style={{
                         padding: '1.75rem 0',
@@ -2651,53 +2665,6 @@ export default function HomePage() {
                         </div>
                       )}
                     </div>
-
-                    {/* Stage 2 CTA */}
-                    {revealStage < 3 && (
-                      <div style={{ padding: '1.5rem 0' }}>
-                        <button
-                          type="button"
-                          onClick={() => { const n = 3; setRevealStage(n); persistSoloReviewLocally({ revealStage: n }); }}
-                          style={{ fontFamily: sans, fontSize: 12.5, fontWeight: 500, letterSpacing: '0.07em', background: '#0b0b0b', color: '#fff', border: 'none', padding: '13px 26px', borderRadius: 2, cursor: 'pointer' }}
-                        >
-                          See why →
-                        </button>
-                      </div>
-                    )}
-
-                    {/* Stage 3+: Why this verdict */}
-                    {revealStage >= 3 && (
-                    <div
-                      style={{
-                        padding: '1.75rem 0',
-                        borderBottom: '0.5px solid rgba(0,0,0,0.09)',
-                        borderTop: '0.5px solid rgba(0,0,0,0.09)',
-                      }}
-                    >
-                      <Z2Label>Why this verdict</Z2Label>
-                      <FindingRow
-                        tag="The threat"
-                        text={reviewResult.topline.primaryRisk}
-                        variant="threat"
-                      />
-                    </div>
-                    )}
-
-                    {/* Stage 3 CTA */}
-                    {revealStage === 3 && (
-                      <div style={{ padding: '1.5rem 0' }}>
-                        <button
-                          type="button"
-                          onClick={() => { const n = 4; setRevealStage(n); persistSoloReviewLocally({ revealStage: n }); }}
-                          style={{ fontFamily: sans, fontSize: 12.5, fontWeight: 500, letterSpacing: '0.07em', background: '#0b0b0b', color: '#fff', border: 'none', padding: '13px 26px', borderRadius: 2, cursor: 'pointer' }}
-                        >
-                          Add your notes →
-                        </button>
-                      </div>
-                    )}
-
-                    {/* Your notes + commit gate */}
-                    {revealStage >= 4 && (
                     <div style={{ padding: '1.75rem 0' }}>
                       <Z2Label>Your notes</Z2Label>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
@@ -2798,7 +2765,6 @@ export default function HomePage() {
                         </div>
                       </div>
                     </div>
-                    )}
                   </div>
 
                   {/* ── Final verdict card ── */}
