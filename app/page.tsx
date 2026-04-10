@@ -2802,11 +2802,6 @@ export default function HomePage() {
                         text={reviewResult.topline.primaryRisk}
                         variant="threat"
                       />
-                      <FindingRow
-                        tag="What must hold"
-                        text={reviewResult.topline.mustBeTrue}
-                        variant="condition"
-                      />
                     </div>
                     )}
 
