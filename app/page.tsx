@@ -2506,6 +2506,7 @@ export default function HomePage() {
 
                         {/* Combined scoring model + anatomy dropdown */}
                         <details
+                          open
                           style={{
                             borderTop: '0.5px solid rgba(0,0,0,0.09)',
                             marginTop: '0',
@@ -2528,7 +2529,7 @@ export default function HomePage() {
                               marginTop: '1rem',
                             }}
                           >
-                            Decision anatomy
+                            Why {scoreTotal ?? '—'}/100? See the breakdown
                             <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.45)' }}>▼</span>
                           </summary>
                           <div style={{ marginTop: '0.75rem' }}>
