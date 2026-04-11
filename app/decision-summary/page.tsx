@@ -85,9 +85,9 @@ function safeNumber(value?: number | null) {
 
 function getScoreMeta(score?: number | null) {
   const v = typeof score === 'number' ? score : 0;
-  if (v >= 80) return { label: 'Ready', pillClass: 'bg-emerald-600 text-white', dotClass: 'bg-emerald-500', textClass: 'text-emerald-700', cardClass: 'border-emerald-200 bg-emerald-50/60' };
-  if (v >= 60) return { label: 'Proceed smaller', pillClass: 'bg-amber-500 text-white', dotClass: 'bg-amber-400', textClass: 'text-amber-700', cardClass: 'border-amber-200 bg-amber-50/60' };
-  return { label: 'Not ready', pillClass: 'bg-rose-600 text-white', dotClass: 'bg-rose-500', textClass: 'text-rose-700', cardClass: 'border-rose-200 bg-rose-50/60' };
+  if (v >= 80) return { label: 'Strong to commit', pillClass: 'bg-emerald-600 text-white', dotClass: 'bg-emerald-500', textClass: 'text-emerald-700', cardClass: 'border-emerald-200 bg-emerald-50/60' };
+  if (v >= 60) return { label: 'Take a smaller first step', pillClass: 'bg-amber-500 text-white', dotClass: 'bg-amber-400', textClass: 'text-amber-700', cardClass: 'border-amber-200 bg-amber-50/60' };
+  return { label: 'Needs more before you commit', pillClass: 'bg-rose-600 text-white', dotClass: 'bg-rose-500', textClass: 'text-rose-700', cardClass: 'border-rose-200 bg-rose-50/60' };
 }
 
 function getProgressColor(value?: number | null) {

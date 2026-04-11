@@ -14,7 +14,7 @@ type ReviewResult = {
     risk: number;
     exitLogic: number;
     total: number;
-    label: 'Not ready to commit' | 'Proceed smaller' | 'Ready to commit';
+    label: 'Needs more before you commit' | 'Take a smaller first step' | 'Strong to commit';
     summary: string;
     rationale: {
       clarity: string;
@@ -198,9 +198,9 @@ READINESS RULES:
 - Each score must be an integer from 0 to 20
 - total must equal the sum of the five scores
 - label must be exactly one of:
-  - "Not ready to commit"
-  - "Proceed smaller"
-  - "Ready to commit"
+  - "Needs more before you commit"
+  - "Take a smaller first step"
+  - "Strong to commit"
 - summary must be one short, specific sentence — name the actual constraint
 
 rationale (inside readiness):
@@ -358,7 +358,7 @@ Return raw JSON only.
         risk: clampScore(parsed?.readiness?.risk),
         exitLogic: clampScore(parsed?.readiness?.exitLogic),
         total: 0,
-        label: 'Proceed smaller',
+        label: 'Take a smaller first step',
         summary: asString(
           parsed?.readiness?.summary,
           'The main constraint is not strong enough yet.'
@@ -406,11 +406,11 @@ Return raw JSON only.
 
     // Tighter thresholds — most decisions should land in "Proceed smaller"
     if (calculatedTotal < 60) {
-      safeResult.readiness.label = 'Not ready to commit';
+      safeResult.readiness.label = 'Needs more before you commit';
     } else if (calculatedTotal < 80) {
-      safeResult.readiness.label = 'Proceed smaller';
+      safeResult.readiness.label = 'Take a smaller first step';
     } else {
-      safeResult.readiness.label = 'Ready to commit';
+      safeResult.readiness.label = 'Strong to commit';
     }
 
     return NextResponse.json(safeResult);

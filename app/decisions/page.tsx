@@ -77,7 +77,7 @@ function getScoreMeta(score?: number | null) {
 
   if (score <= 69) {
     return {
-      label: 'Proceed smaller',
+      label: 'Take a smaller first step',
       color: '#a16207',
       border: 'rgba(161,98,7,0.20)',
       background: 'rgba(161,98,7,0.06)',

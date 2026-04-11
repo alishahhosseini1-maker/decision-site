@@ -46,7 +46,7 @@ type ReviewResult = {
     risk: number;
     exitLogic: number;
     total: number;
-    label: 'Not ready to commit' | 'Proceed smaller' | 'Ready to commit';
+    label: 'Needs more before you commit' | 'Take a smaller first step' | 'Strong to commit';
     summary: string;
     rationale?: {
       clarity: string;
@@ -198,11 +198,11 @@ const sans = "'Outfit', sans-serif";
 const mono = "'DM Mono', monospace";
 
 function getScoreMeta(label?: string) {
-  if (label === 'Not ready to commit')
-    return { color: '#A32D2D', bg: '#FCEBEB', borderColor: 'rgba(163,45,45,0.20)', badge: 'NOT READY' };
-  if (label === 'Proceed smaller')
-    return { color: '#854F0B', bg: '#FAEEDA', borderColor: 'rgba(133,79,11,0.20)', badge: 'PROCEED SMALLER' };
-  return { color: '#0F6E56', bg: '#E1F5EE', borderColor: 'rgba(15,110,86,0.20)', badge: 'READY' };
+  if (label === 'Needs more before you commit')
+    return { color: '#A32D2D', bg: '#FCEBEB', borderColor: 'rgba(163,45,45,0.20)', badge: 'NEEDS MORE' };
+  if (label === 'Take a smaller first step')
+    return { color: '#854F0B', bg: '#FAEEDA', borderColor: 'rgba(133,79,11,0.20)', badge: 'SMALLER FIRST' };
+  return { color: '#0F6E56', bg: '#E1F5EE', borderColor: 'rgba(15,110,86,0.20)', badge: 'STRONG' };
 }
 
 function getProgressColor(value?: number | null) {
@@ -1513,10 +1513,10 @@ export default function HomePage() {
     typeof reviewResult?.readiness?.total === 'number' ? reviewResult.readiness.total : null;
 
   const verdictDisplay =
-    reviewResult?.readiness?.label === 'Not ready to commit'
+    reviewResult?.readiness?.label === 'Needs more before you commit'
       ? 'Do not commit'
-      : reviewResult?.readiness?.label === 'Proceed smaller'
-        ? 'Proceed smaller'
+      : reviewResult?.readiness?.label === 'Take a smaller first step'
+        ? 'Take a smaller first step'
         : 'Proceed';
 
   const meta = getScoreMeta(reviewResult?.readiness?.label);
