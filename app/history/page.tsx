@@ -79,16 +79,16 @@ function getScoreMeta(score?: number | null) {
     };
   }
 
-  if (score <= 39) {
+  if (score < 60) {
     return {
-      label: 'Not ready',
+      label: 'Needs more before you commit',
       color: '#b91c1c',
       border: 'rgba(185,28,28,0.18)',
       background: 'rgba(185,28,28,0.07)',
     };
   }
 
-  if (score <= 69) {
+  if (score < 70) {
     return {
       label: 'Take a smaller first step',
       color: '#a16207',
@@ -97,8 +97,17 @@ function getScoreMeta(score?: number | null) {
     };
   }
 
+  if (score < 80) {
+    return {
+      label: 'Proceed with caution',
+      color: '#5C4B00',
+      border: 'rgba(92,75,0,0.20)',
+      background: '#FBF5DC',
+    };
+  }
+
   return {
-    label: 'Ready',
+    label: 'Strong to commit',
     color: '#166534',
     border: 'rgba(22,101,52,0.18)',
     background: 'rgba(22,101,52,0.07)',

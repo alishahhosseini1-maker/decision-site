@@ -14,7 +14,7 @@ type ReviewResult = {
     risk: number;
     exitLogic: number;
     total: number;
-    label: 'Needs more before you commit' | 'Take a smaller first step' | 'Strong to commit';
+    label: 'Needs more before you commit' | 'Take a smaller first step' | 'Proceed with caution' | 'Strong to commit';
     summary: string;
     rationale: {
       clarity: string;
@@ -200,6 +200,7 @@ READINESS RULES:
 - label must be exactly one of:
   - "Needs more before you commit"
   - "Take a smaller first step"
+  - "Proceed with caution"
   - "Strong to commit"
 - summary must be one short, specific sentence — name the actual constraint
 
@@ -404,11 +405,13 @@ Return raw JSON only.
 
     safeResult.readiness.total = calculatedTotal;
 
-    // Tighter thresholds — most decisions should land in "Proceed smaller"
+    // Thresholds: <60 not ready, 60-69 smaller, 70-79 caution, 80+ strong
     if (calculatedTotal < 60) {
       safeResult.readiness.label = 'Needs more before you commit';
-    } else if (calculatedTotal < 80) {
+    } else if (calculatedTotal < 70) {
       safeResult.readiness.label = 'Take a smaller first step';
+    } else if (calculatedTotal < 80) {
+      safeResult.readiness.label = 'Proceed with caution';
     } else {
       safeResult.readiness.label = 'Strong to commit';
     }

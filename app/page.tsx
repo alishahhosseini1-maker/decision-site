@@ -46,7 +46,7 @@ type ReviewResult = {
     risk: number;
     exitLogic: number;
     total: number;
-    label: 'Needs more before you commit' | 'Take a smaller first step' | 'Strong to commit';
+    label: 'Needs more before you commit' | 'Take a smaller first step' | 'Proceed with caution' | 'Strong to commit';
     summary: string;
     rationale?: {
       clarity: string;
@@ -202,6 +202,8 @@ function getScoreMeta(label?: string) {
     return { color: '#A32D2D', bg: '#FCEBEB', borderColor: 'rgba(163,45,45,0.20)', badge: 'NEEDS MORE' };
   if (label === 'Take a smaller first step')
     return { color: '#854F0B', bg: '#FAEEDA', borderColor: 'rgba(133,79,11,0.20)', badge: 'SMALLER FIRST' };
+  if (label === 'Proceed with caution')
+    return { color: '#5C4B00', bg: '#FBF5DC', borderColor: 'rgba(92,75,0,0.20)', badge: 'WITH CAUTION' };
   return { color: '#0F6E56', bg: '#E1F5EE', borderColor: 'rgba(15,110,86,0.20)', badge: 'STRONG' };
 }
 
@@ -1517,7 +1519,9 @@ export default function HomePage() {
       ? 'Do not commit'
       : reviewResult?.readiness?.label === 'Take a smaller first step'
         ? 'Take a smaller first step'
-        : 'Proceed';
+        : reviewResult?.readiness?.label === 'Proceed with caution'
+          ? 'Proceed with caution'
+          : 'Proceed';
 
   const meta = getScoreMeta(reviewResult?.readiness?.label);
 
