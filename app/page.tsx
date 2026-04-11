@@ -565,6 +565,8 @@ export default function HomePage() {
 
   const snapshotRef = useRef<HTMLDivElement | null>(null);
   const decisionInputRef = useRef<HTMLTextAreaElement | null>(null);
+  const contextInputRef = useRef<HTMLTextAreaElement | null>(null);
+  const contextDetailsRef = useRef<HTMLDetailsElement | null>(null);
   const verdictRef = useRef<HTMLDivElement | null>(null);
   const teamPreviewRef = useRef<HTMLDivElement | null>(null);
   const isSavingRef = useRef(false);
@@ -2260,10 +2262,11 @@ export default function HomePage() {
                     )}
                   </div>
 
-                  <details style={detailStyle} open>
+                  <details ref={contextDetailsRef} style={detailStyle} open>
                     <summary style={summaryStyle}>{optionalDetailsLabel}</summary>
                     <div style={{ paddingTop: 12 }}>
                       <textarea
+                        ref={contextInputRef}
                         value={context}
                         onChange={(e) => setContext(e.target.value)}
                         rows={4}
@@ -2622,6 +2625,83 @@ export default function HomePage() {
                     <div style={{ fontFamily: sans, fontSize: 9, fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase' as const, color: 'rgba(0,0,0,0.36)', marginBottom: 8 }}>Step <span style={{ fontSize: 8.5, fontWeight: 500, letterSpacing: '0.06em', textTransform: 'none' as const, color: 'rgba(0,0,0,0.28)' }}>· Next move</span></div>
                     <div style={{ fontFamily: sans, fontSize: 14.5, lineHeight: 1.65, color: '#0b0b0b', fontWeight: 500 }}>{reviewResult.snapshot.step}</div>
                   </div>
+
+                  {/* ── HOW TO STRENGTHEN ── */}
+                  {reviewResult.readiness.total < 60 && (() => {
+                    const addSuggestions: Record<string, string> = {
+                      clarity: 'Add: what a successful outcome looks like — a number, a date, or a measurable condition.',
+                      assumptions: 'Add: the key assumption you haven\'t verified and how you\'d confirm it within a week.',
+                      reversibility: 'Add: the exact cost, penalty, or process to undo this if your core assumption breaks.',
+                      risk: 'Add: the failure mode you\'d least want to explain, and the floor you can absorb if it happens.',
+                      exitLogic: 'Add: the specific signal or threshold that would tell you to stop before you\'ve gone too far.',
+                    };
+                    const fieldDefs = [
+                      { key: 'clarity' as const, label: 'Door · Clarity' },
+                      { key: 'assumptions' as const, label: 'Hinge · Assumptions' },
+                      { key: 'reversibility' as const, label: 'Locks · Reversibility' },
+                      { key: 'risk' as const, label: 'Trap · Risk' },
+                      { key: 'exitLogic' as const, label: 'Exit · Exit logic' },
+                    ];
+                    const bottomThree = [...fieldDefs]
+                      .sort((a, b) => (reviewResult.readiness[a.key] ?? 0) - (reviewResult.readiness[b.key] ?? 0))
+                      .slice(0, 3);
+                    return (
+                      <div
+                        style={{
+                          marginTop: 12,
+                          border: '1px solid rgba(185,28,28,0.14)',
+                          borderRadius: 16,
+                          background: 'rgba(185,28,28,0.025)',
+                          padding: '1.5rem 2rem',
+                          boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+                        }}
+                      >
+                        <div style={{ fontFamily: sans, fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'rgba(185,28,28,0.7)', marginBottom: 16 }}>How to strengthen this decision</div>
+                        <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 16 }}>
+                          {bottomThree.map((field) => (
+                            <div key={field.key}>
+                              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
+                                <span style={{ fontFamily: sans, fontSize: 12.5, fontWeight: 700, color: '#0b0b0b' }}>{field.label}</span>
+                                <span style={{ fontFamily: sans, fontSize: 11, color: 'rgba(0,0,0,0.38)' }}>{reviewResult.readiness[field.key]}/20</span>
+                              </div>
+                              {reviewResult.readiness.rationale?.[field.key] && (
+                                <div style={{ fontFamily: sans, fontSize: 12.5, fontStyle: 'italic', color: 'rgba(0,0,0,0.46)', lineHeight: 1.6, marginBottom: 4 }}>
+                                  {reviewResult.readiness.rationale[field.key]}
+                                </div>
+                              )}
+                              <div style={{ fontFamily: sans, fontSize: 12.5, color: 'rgba(0,0,0,0.62)', lineHeight: 1.6 }}>
+                                {addSuggestions[field.key]}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                            setTimeout(() => {
+                              if (contextDetailsRef.current) contextDetailsRef.current.open = true;
+                              contextInputRef.current?.focus();
+                            }, 400);
+                          }}
+                          style={{
+                            marginTop: 20,
+                            background: 'none',
+                            border: '1px solid rgba(185,28,28,0.28)',
+                            borderRadius: 8,
+                            padding: '7px 14px',
+                            fontFamily: sans,
+                            fontSize: 13,
+                            fontWeight: 600,
+                            color: '#b91c1c',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Revise and re-run →
+                        </button>
+                      </div>
+                    );
+                  })()}
 
                   {/* ── ZONE 2: THE EVIDENCE ── */}
                   <div
