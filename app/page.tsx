@@ -527,6 +527,7 @@ export default function HomePage() {
 
   const [decision, setDecision] = useState('');
   const [context, setContext] = useState('');
+  const [showThinContextWarning, setShowThinContextWarning] = useState(false);
 
   const [teamTitle, setTeamTitle] = useState('');
   const [teamPrompt, setTeamPrompt] = useState('');
@@ -1111,6 +1112,11 @@ export default function HomePage() {
       setDecisionError(err);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
+    }
+
+    if (context.trim().length < 50) {
+      setShowThinContextWarning(true);
+      setTimeout(() => setShowThinContextWarning(false), 1500);
     }
 
     setDecisionError(null);
@@ -2264,6 +2270,21 @@ export default function HomePage() {
                         placeholder={contextPlaceholder}
                         style={{ ...inputStyle, minHeight: 112, resize: 'vertical' }}
                       />
+                      {context.length > 0 && context.length <= 50 && (
+                        <div style={{ marginTop: 6, fontSize: 11, color: 'rgba(0,0,0,0.38)' }}>
+                          Vague context = vague verdict. Add what&apos;s actually at stake.
+                        </div>
+                      )}
+                      {context.length > 50 && context.length <= 150 && (
+                        <div style={{ marginTop: 6, fontSize: 11, color: 'rgba(0,0,0,0.38)' }}>
+                          Getting there. Add a number, a deadline, or who else is affected.
+                        </div>
+                      )}
+                      {context.length > 150 && (
+                        <div style={{ marginTop: 6, fontSize: 11, color: 'rgba(0,0,0,0.38)' }}>
+                          This is enough to work with.
+                        </div>
+                      )}
                     </div>
                   </details>
 
@@ -2283,7 +2304,7 @@ export default function HomePage() {
                     </div>
                   )}
 
-                  <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 0 }}>
                     <button
                       type="button"
                       onClick={beginReview}
@@ -2296,6 +2317,11 @@ export default function HomePage() {
                     >
                       {loading ? 'Running Review...' : 'Run the Review'}
                     </button>
+                    {showThinContextWarning && (
+                      <div style={{ marginTop: 6, fontSize: 12, color: 'rgba(0,0,0,0.42)' }}>
+                        Your verdict will be sharper with more context — but running anyway.
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
