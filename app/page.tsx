@@ -199,7 +199,7 @@ const mono = "'DM Mono', monospace";
 
 function getScoreMeta(label?: string) {
   if (label === 'Needs more before you commit')
-    return { color: '#A32D2D', bg: '#FCEBEB', borderColor: 'rgba(163,45,45,0.20)', badge: 'NEEDS MORE' };
+    return { color: '#A32D2D', bg: '#FCEBEB', borderColor: 'rgba(163,45,45,0.20)', badge: 'INCOMPLETE' };
   if (label === 'Take a smaller first step')
     return { color: '#854F0B', bg: '#FAEEDA', borderColor: 'rgba(133,79,11,0.20)', badge: 'SMALLER FIRST' };
   if (label === 'Proceed with caution')
@@ -2656,7 +2656,7 @@ export default function HomePage() {
                           boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
                         }}
                       >
-                        <div style={{ fontFamily: sans, fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'rgba(185,28,28,0.7)', marginBottom: 16 }}>How to strengthen this decision</div>
+                        <div style={{ fontFamily: sans, fontSize: 10, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: 'rgba(0,0,0,0.36)', marginBottom: 16 }}>How to strengthen this decision</div>
                         <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 16 }}>
                           {bottomThree.map((field) => (
                             <div key={field.key}>
