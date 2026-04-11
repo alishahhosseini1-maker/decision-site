@@ -46,7 +46,7 @@ type ReviewResult = {
     risk: number;
     exitLogic: number;
     total: number;
-    label: 'Needs more before you commit' | 'Take a smaller first step' | 'Proceed with caution' | 'Strong to commit';
+    label: 'Needs more before you commit' | 'Take a smaller step' | 'Proceed with caution' | 'Strong to commit';
     summary: string;
     rationale?: {
       clarity: string;
@@ -200,8 +200,8 @@ const mono = "'DM Mono', monospace";
 function getScoreMeta(label?: string) {
   if (label === 'Needs more before you commit')
     return { color: '#A32D2D', bg: '#FCEBEB', borderColor: 'rgba(163,45,45,0.20)', badge: 'INCOMPLETE' };
-  if (label === 'Take a smaller first step')
-    return { color: '#854F0B', bg: '#FAEEDA', borderColor: 'rgba(133,79,11,0.20)', badge: 'SMALLER FIRST' };
+  if (label === 'Take a smaller step')
+    return { color: '#854F0B', bg: '#FAEEDA', borderColor: 'rgba(133,79,11,0.20)', badge: 'SMALLER STEP' };
   if (label === 'Proceed with caution')
     return { color: '#5C4B00', bg: '#FBF5DC', borderColor: 'rgba(92,75,0,0.20)', badge: 'WITH CAUTION' };
   return { color: '#0F6E56', bg: '#E1F5EE', borderColor: 'rgba(15,110,86,0.20)', badge: 'STRONG' };
@@ -1525,8 +1525,8 @@ export default function HomePage() {
   const verdictDisplay =
     reviewResult?.readiness?.label === 'Needs more before you commit'
       ? 'Do not commit'
-      : reviewResult?.readiness?.label === 'Take a smaller first step'
-        ? 'Take a smaller first step'
+      : reviewResult?.readiness?.label === 'Take a smaller step'
+        ? 'Take a smaller step'
         : reviewResult?.readiness?.label === 'Proceed with caution'
           ? 'Proceed with caution'
           : 'Proceed';
@@ -2627,7 +2627,7 @@ export default function HomePage() {
                   </div>
 
                   {/* ── HOW TO STRENGTHEN ── */}
-                  {reviewResult.readiness.total < 60 && (() => {
+                  {reviewResult.readiness.total < 50 && (() => {
                     const addSuggestions: Record<string, string> = {
                       clarity: 'Add: what a successful outcome looks like — a number, a date, or a measurable condition.',
                       assumptions: 'Add: the key assumption you haven\'t verified and how you\'d confirm it within a week.',

@@ -14,7 +14,7 @@ type ReviewResult = {
     risk: number;
     exitLogic: number;
     total: number;
-    label: 'Needs more before you commit' | 'Take a smaller first step' | 'Proceed with caution' | 'Strong to commit';
+    label: 'Needs more before you commit' | 'Take a smaller step' | 'Proceed with caution' | 'Strong to commit';
     summary: string;
     rationale: {
       clarity: string;
@@ -141,9 +141,10 @@ Name real constraints: network, clients, pricing, timing, runway, reputation, re
 Scoring philosophy:
 Score conservatively. Most decisions are not ready.
 A score of 80+ means the decision is genuinely well-structured with real evidence.
-A score of 60-79 means the move is survivable but needs a smaller first step.
-A score below 60 means the decision is not ready to commit.
-Do not inflate scores. A hard decision with real uncertainty should score 55-70.
+A score of 65-79 means the move is survivable but needs a smaller step or more caution.
+A score of 50-64 means the decision needs a smaller first step before fuller commitment.
+A score below 50 means the decision is not ready to commit.
+Do not inflate scores. A hard decision with real uncertainty should score 50-65.
 
 Return ONLY valid raw JSON.
 Do not include markdown.
@@ -199,7 +200,7 @@ READINESS RULES:
 - total must equal the sum of the five scores
 - label must be exactly one of:
   - "Needs more before you commit"
-  - "Take a smaller first step"
+  - "Take a smaller step"
   - "Proceed with caution"
   - "Strong to commit"
 - summary must be one short, specific sentence — name the actual constraint
@@ -359,7 +360,7 @@ Return raw JSON only.
         risk: clampScore(parsed?.readiness?.risk),
         exitLogic: clampScore(parsed?.readiness?.exitLogic),
         total: 0,
-        label: 'Take a smaller first step',
+        label: 'Take a smaller step',
         summary: asString(
           parsed?.readiness?.summary,
           'The main constraint is not strong enough yet.'
@@ -405,11 +406,11 @@ Return raw JSON only.
 
     safeResult.readiness.total = calculatedTotal;
 
-    // Thresholds: <60 not ready, 60-69 smaller, 70-79 caution, 80+ strong
-    if (calculatedTotal < 60) {
+    // Thresholds: <50 not ready, 50-64 smaller, 65-79 caution, 80+ strong
+    if (calculatedTotal < 50) {
       safeResult.readiness.label = 'Needs more before you commit';
-    } else if (calculatedTotal < 70) {
-      safeResult.readiness.label = 'Take a smaller first step';
+    } else if (calculatedTotal < 65) {
+      safeResult.readiness.label = 'Take a smaller step';
     } else if (calculatedTotal < 80) {
       safeResult.readiness.label = 'Proceed with caution';
     } else {

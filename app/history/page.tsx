@@ -79,7 +79,7 @@ function getScoreMeta(score?: number | null) {
     };
   }
 
-  if (score < 60) {
+  if (score < 50) {
     return {
       label: 'Needs more before you commit',
       color: '#b91c1c',
@@ -88,9 +88,9 @@ function getScoreMeta(score?: number | null) {
     };
   }
 
-  if (score < 70) {
+  if (score < 65) {
     return {
-      label: 'Take a smaller first step',
+      label: 'Take a smaller step',
       color: '#a16207',
       border: 'rgba(161,98,7,0.20)',
       background: 'rgba(161,98,7,0.07)',
