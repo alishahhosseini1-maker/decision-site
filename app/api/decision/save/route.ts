@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { Resend } from 'resend';
 
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -53,6 +55,20 @@ export async function POST(req: Request) {
     if (error) throw error;
 
     const id = data?.id ?? null;
+
+    try {
+      await resend.emails.send({
+        from: 'notifications@decisionlayer.dev',
+        to: 'alishahhosseini1@gmail.com',
+        subject: `New decision: ${body.decision?.slice(0, 60)}`,
+        html: `<p><strong>Decision:</strong> ${body.decision}</p>
+<p><strong>Context:</strong> ${body.context || 'None provided'}</p>
+<p><strong>Score:</strong> ${body.score}</p>
+<p><strong>Verdict:</strong> ${body.verdict || 'Not yet generated'}</p>`,
+      });
+    } catch (emailErr) {
+      console.error('[decision/save] notification email failed:', emailErr);
+    }
 
     return NextResponse.json({
       success: true,
