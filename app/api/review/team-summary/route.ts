@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import Anthropic from '@anthropic-ai/sdk';
 
 type TeamInput = {
   id?: string;
@@ -19,14 +20,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Inputs are required.' }, { status: 400 });
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.ANTHROPIC_API_KEY;
 
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'Missing OPENAI_API_KEY in .env.local' },
+        { error: 'Missing ANTHROPIC_API_KEY in .env.local' },
         { status: 500 }
       );
     }
+
+    const client = new Anthropic({ apiKey });
 
     const safeInputs: TeamInput[] = inputs.map((input: TeamInput) => ({
       name: input?.name ?? null,
@@ -98,37 +101,21 @@ Here are the team inputs:
 ${JSON.stringify(safeInputs, null, 2)}
 `;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        temperature: 0.2,
-        response_format: { type: 'json_object' },
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-      }),
+    const message = await client.messages.create({
+      model: 'claude-opus-4-6',
+      max_tokens: 4096,
+      temperature: 0.2,
+      system: systemPrompt,
+      messages: [
+        { role: 'user', content: userPrompt },
+      ],
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      return NextResponse.json(
-        { error: `OpenAI request failed: ${errorText}` },
-        { status: 500 }
-      );
-    }
-
-    const data = await response.json();
-    const content = data?.choices?.[0]?.message?.content;
+    const content = message.content[0].type === 'text' ? message.content[0].text : null;
 
     if (!content) {
       return NextResponse.json(
-        { error: 'No content returned from OpenAI.' },
+        { error: 'No content returned from Claude.' },
         { status: 500 }
       );
     }
@@ -139,7 +126,7 @@ ${JSON.stringify(safeInputs, null, 2)}
       parsed = JSON.parse(content);
     } catch {
       return NextResponse.json(
-        { error: 'OpenAI returned invalid JSON.' },
+        { error: 'Claude returned invalid JSON.' },
         { status: 500 }
       );
     }
