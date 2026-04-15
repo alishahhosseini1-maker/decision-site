@@ -156,29 +156,37 @@ function splitVerdict(verdict?: string | null) {
 function buildInsight(decision?: DecisionRecord | null) {
   if (!decision) return '—';
 
-  // Use the verdict title (first paragraph), not the full commitment rule
-  const verdictData = splitVerdict(decision.verdict);
-  if (verdictData.title && verdictData.title !== 'No verdict saved') {
-    // Return just the first sentence if there are multiple
-    const sentences = verdictData.title.split(/[.!?]/).filter(s => s.trim().length > 20);
-    if (sentences.length > 0) {
-      return sentences[0].trim() + '.';
+  // Generate a crisp headline (15 words or fewer) naming the single biggest blocker
+  // Find the weakest dimension or most critical gap
+  const dims = [
+    { name: 'clarity', value: decision.readiness_clarity ?? 0, blocker: 'You have not defined what success looks like.' },
+    { name: 'assumptions', value: decision.readiness_assumptions ?? 0, blocker: 'You have not validated the things that must be true.' },
+    { name: 'reversibility', value: decision.readiness_reversibility ?? 0, blocker: 'You have not calculated what you cannot get back.' },
+    { name: 'risk', value: decision.readiness_risk ?? 0, blocker: 'You have not modeled what happens if this goes wrong.' },
+    { name: 'exit', value: decision.readiness_exit_logic ?? 0, blocker: 'You have not defined when you would walk away.' },
+  ];
+
+  const weakest = dims.sort((a, b) => a.value - b.value)[0];
+
+  // If there's a critically weak dimension (≤6), call it out
+  if (weakest.value <= 6) {
+    return weakest.blocker;
+  }
+
+  // If trap exists and is specific, synthesize from it
+  if (decision.trap?.trim() && decision.trap.length < 100) {
+    // Extract the core insight from trap (first clause or key phrase)
+    const trapCore = decision.trap.split(/[—,]/)[0].trim();
+    if (trapCore.length < 60) {
+      return `The hidden risk is ${trapCore.toLowerCase()}.`;
     }
-    return verdictData.title;
   }
 
-  // Fallback: synthesize from trap or score
-  if (decision.trap?.trim()) {
-    return `The biggest risk: ${decision.trap}`;
-  }
-
-  const s = decision.score;
-  if (s !== null && s !== undefined) {
-    if (s < 60) return 'The decision is not ready for full commitment yet.';
-    if (s < 80) return 'The path forward needs to be smaller or clearer.';
-    return 'This decision is survivable if you keep the next step disciplined.';
-  }
-  return 'Focus on what must be true for this to work, not what you hope will be true.';
+  // Synthesize from score and context
+  const s = decision.score ?? 0;
+  if (s < 60) return 'The foundation is incomplete. More clarity is needed.';
+  if (s < 80) return 'The decision is viable but the step needs to be smaller.';
+  return 'The decision is survivable if you stay disciplined.';
 }
 
 function buildWhatOthersMiss(decision?: DecisionRecord | null) {
@@ -275,7 +283,7 @@ function buildWhatsWorking(decision?: DecisionRecord | null): string[] {
 
   const working: string[] = [];
 
-  // Pull from high-scoring dimensions with specific context
+  // Generate short phrases (under 10 words) from high-scoring dimensions
   const clarity = decision.readiness_clarity ?? 0;
   const assumptions = decision.readiness_assumptions ?? 0;
   const reversibility = decision.readiness_reversibility ?? 0;
@@ -283,40 +291,40 @@ function buildWhatsWorking(decision?: DecisionRecord | null): string[] {
   const exitLogic = decision.readiness_exit_logic ?? 0;
 
   if (clarity > 13) {
-    working.push('Success criteria are clearly defined and measurable');
+    working.push('Success criteria are well-defined');
   }
 
   if (reversibility > 13) {
-    working.push('Most costs are recoverable if this does not work out');
+    working.push('Exit costs are manageable');
   }
 
   if (risk > 13) {
-    working.push('Worst-case scenario is understood and survivable');
+    working.push('Downside scenario is survivable');
   }
 
   if (exitLogic > 13) {
-    working.push('Clear exit conditions are defined');
+    working.push('Exit conditions are clear');
   }
 
   if (assumptions > 13) {
-    working.push('Key assumptions have been identified and tested');
+    working.push('Key assumptions have been validated');
   }
 
-  // If deep_review has "what must go right", extract first point
-  if (working.length < 2 && decision.deep_review) {
-    const sections = parseDeepReview(decision.deep_review);
-    const mustGoRight = sections.find(s => s.heading.toLowerCase().includes('must go right'));
-    if (mustGoRight && mustGoRight.lines.length > 0) {
-      working.push(mustGoRight.lines[0]);
-    }
+  // Add context-based strengths from decision fields
+  if (working.length < 3 && decision.context?.toLowerCase().includes('savings')) {
+    working.push('Financial cushion in place');
+  }
+
+  if (working.length < 3 && decision.context?.toLowerCase().includes('reversible')) {
+    working.push('Decision is reversible');
   }
 
   // Fallback if we still have less than 2
   if (working.length === 0) {
-    working.push('The decision has been structured and systematically evaluated');
+    working.push('Decision has been systematically evaluated');
   }
   if (working.length === 1 && (decision.score ?? 0) >= 50) {
-    working.push('Core risks and assumptions have been mapped');
+    working.push('Core risks have been identified');
   }
 
   return working.slice(0, 3);
