@@ -693,7 +693,7 @@ export default function DecisionSummaryPage() {
   if (loading) {
     return (
       <main className="min-h-screen bg-[#f7f7f2] px-6 py-12 text-black">
-        <div className="mx-auto max-w-3xl">
+        <div className="mx-auto max-w-5xl">
           <p className="text-sm text-black/55">Loading decision brief...</p>
         </div>
       </main>
@@ -703,7 +703,7 @@ export default function DecisionSummaryPage() {
   if (error) {
     return (
       <main className="min-h-screen bg-[#f7f7f2] px-6 py-12 text-black">
-        <div className="mx-auto max-w-3xl rounded-3xl border border-rose-200 bg-rose-50 p-6">
+        <div className="mx-auto max-w-5xl rounded-3xl border border-rose-200 bg-rose-50 p-6">
           <p className="text-sm font-medium text-rose-700">{error}</p>
           <div className="mt-4 flex flex-wrap gap-3">
             <button
@@ -733,7 +733,7 @@ export default function DecisionSummaryPage() {
   if (!decision) {
     return (
       <main className="min-h-screen bg-[#f7f7f2] px-6 py-12 text-black">
-        <div className="mx-auto max-w-3xl">
+        <div className="mx-auto max-w-5xl">
           <p className="text-sm text-black/55">No decision brief available.</p>
         </div>
       </main>
@@ -762,7 +762,7 @@ export default function DecisionSummaryPage() {
       ) : null}
 
       <div
-        className={`mx-auto max-w-3xl space-y-6 transition-all duration-700 ${
+        className={`mx-auto max-w-5xl space-y-6 transition-all duration-700 ${
           animateIn ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'
         }`}
       >
@@ -827,7 +827,7 @@ export default function DecisionSummaryPage() {
         </header>
 
         {/* ── SIGNAL: What matters now ── */}
-        <section className="rounded-[20px] border-l-4 border-l-black border border-black/6 bg-[#f1f1ec] p-7 shadow-sm">
+        <section className="rounded-[20px] border-l-4 border-l-black border border-black/6 bg-[#f1f1ec] p-8 shadow-sm">
           <p className="text-[10px] uppercase tracking-[0.22em] text-black/36">What matters now</p>
           <h2 className="mt-3 text-2xl font-semibold leading-snug tracking-tight text-black md:text-[1.65rem]">
             {buildInsight(decision)}
@@ -845,7 +845,7 @@ export default function DecisionSummaryPage() {
           </div>
           <div className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
             <p className="text-[10px] uppercase tracking-[0.18em] text-black/36">What to do now</p>
-            <p className="mt-3 text-sm leading-7 text-black/80 font-medium">{buildWhatToDoNow(decision)}</p>
+            <p className="mt-3 text-sm leading-7 text-black/80 font-semibold">{buildWhatToDoNow(decision)}</p>
           </div>
         </section>
 
