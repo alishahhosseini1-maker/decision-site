@@ -2227,7 +2227,7 @@ export default function HomePage() {
                     What decision are you about to make?
                   </div>
                   <div style={{ marginTop: 6, fontSize: 13.5, lineHeight: 1.55, opacity: 0.68 }}>
-                    You'll get a verdict, your key risks, and what to do next.
+                    You&apos;ll get a verdict, your key risks, and what to do next.
                   </div>
                 </div>
 
