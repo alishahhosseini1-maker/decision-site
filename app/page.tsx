@@ -2123,7 +2123,7 @@ export default function HomePage() {
                 opacity: 0.62,
               }}
             >
-              The last checkpoint before you commit.
+              Every decision has a blind spot. Find it before you commit.
             </div>
           </section>
 
@@ -2227,7 +2227,7 @@ export default function HomePage() {
                     What decision are you about to make?
                   </div>
                   <div style={{ marginTop: 6, fontSize: 13.5, lineHeight: 1.55, opacity: 0.68 }}>
-                    Get a pre-commit score, key risks, and a verdict.
+                    You'll get a verdict, your key risks, and what to do next.
                   </div>
                 </div>
 
