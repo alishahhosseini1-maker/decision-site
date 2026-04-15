@@ -110,33 +110,33 @@ function getFactorHint(name: string, value: number | null, decision: DecisionRec
   const isMid = score > 6 && score <= 13;
 
   switch (name) {
-    case ‘Clarity’:
-      if (isLow) return ‘Success criteria are vague or missing. You need to define what done looks like before committing.’;
-      if (isMid) return ‘Success is defined but may lack measurable specifics or clear boundaries.’;
-      return ‘Success criteria are clear and measurable.’;
+    case 'Clarity':
+      if (isLow) return 'Success criteria are vague or missing. You need to define what done looks like before committing.';
+      if (isMid) return 'Success is defined but may lack measurable specifics or clear boundaries.';
+      return 'Success criteria are clear and measurable.';
 
-    case ‘Assumptions’:
-      if (isLow) return ‘Critical assumptions have not been validated. Test the riskiest ones before proceeding.’;
-      if (isMid) return ‘Some assumptions identified but validation is incomplete or superficial.’;
-      return ‘Key assumptions have been identified and tested.’;
+    case 'Assumptions':
+      if (isLow) return 'Critical assumptions have not been validated. Test the riskiest ones before proceeding.';
+      if (isMid) return 'Some assumptions identified but validation is incomplete or superficial.';
+      return 'Key assumptions have been identified and tested.';
 
-    case ‘Reversibility’:
-      if (isLow) return ‘High sunk costs or irreversible commitments. Make sure you can survive if this fails.’;
-      if (isMid) return ‘Some costs can be recovered, but reversal would be costly or painful.’;
-      return ‘Decision is mostly reversible with manageable costs.’;
+    case 'Reversibility':
+      if (isLow) return 'High sunk costs or irreversible commitments. Make sure you can survive if this fails.';
+      if (isMid) return 'Some costs can be recovered, but reversal would be costly or painful.';
+      return 'Decision is mostly reversible with manageable costs.';
 
-    case ‘Risk’:
-      if (isLow) return ‘Worst-case scenario is poorly understood or potentially catastrophic. Map the downside.’;
-      if (isMid) return ‘Downside is identified but mitigation plan may be incomplete.’;
-      return ‘Worst-case scenario is understood and survivable.’;
+    case 'Risk':
+      if (isLow) return 'Worst-case scenario is poorly understood or potentially catastrophic. Map the downside.';
+      if (isMid) return 'Downside is identified but mitigation plan may be incomplete.';
+      return 'Worst-case scenario is understood and survivable.';
 
-    case ‘Exit Logic’:
-      if (isLow) return ‘No clear exit condition defined. You risk staying in too long if things go wrong.’;
-      if (isMid) return ‘Exit condition exists but may be too vague or easy to rationalize away.’;
-      return ‘Clear exit condition is defined and will be hard to ignore.’;
+    case 'Exit Logic':
+      if (isLow) return 'No clear exit condition defined. You risk staying in too long if things go wrong.';
+      if (isMid) return 'Exit condition exists but may be too vague or easy to rationalize away.';
+      return 'Clear exit condition is defined and will be hard to ignore.';
 
     default:
-      return ‘Assessment based on decision specifics.’;
+      return 'Assessment based on decision specifics.';
   }
 }
 
@@ -200,7 +200,7 @@ function buildWhatOthersMiss(decision?: DecisionRecord | null) {
   // Fallback based on score
   const score = decision.score ?? 0;
   if (score < 60) {
-    return 'What looks like hesitation is actually incomplete information. You can't commit to what you haven't fully understood.';
+    return 'What looks like hesitation is actually incomplete information. You cannot commit to what you have not fully understood.';
   }
 
   return 'What matters most is not whether the decision sounds good now, but whether it stays survivable if reality pushes back.';
