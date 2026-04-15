@@ -310,21 +310,51 @@ function buildWhatsWorking(decision?: DecisionRecord | null): string[] {
     working.push('Key assumptions have been validated');
   }
 
-  // Add context-based strengths from decision fields
-  if (working.length < 3 && decision.context?.toLowerCase().includes('savings')) {
-    working.push('Financial cushion in place');
+  // Extract genuine positives from context and deep review
+  const contextLower = (decision.context || '').toLowerCase();
+  const decisionLower = (decision.decision || '').toLowerCase();
+
+  // Financial signals
+  if (contextLower.includes('savings') || contextLower.includes('runway') || contextLower.includes('months')) {
+    if (working.length < 3) working.push('Financial cushion available');
   }
 
-  if (working.length < 3 && decision.context?.toLowerCase().includes('reversible')) {
-    working.push('Decision is reversible');
+  // Housing/flexibility signals
+  if (contextLower.includes('rent') || decisionLower.includes('rent')) {
+    if (working.length < 3) working.push('Housing flexibility (renting)');
   }
 
-  // Fallback if we still have less than 2
-  if (working.length === 0) {
-    working.push('Decision has been systematically evaluated');
+  // Reversibility signals
+  if (contextLower.includes('reversible') || contextLower.includes('undo')) {
+    if (working.length < 3) working.push('Decision is reversible');
   }
-  if (working.length === 1 && (decision.score ?? 0) >= 50) {
-    working.push('Core risks have been identified');
+
+  // Pull from "what must go right" but extract key phrases, not full text
+  if (working.length < 3 && decision.deep_review) {
+    const sections = parseDeepReview(decision.deep_review);
+    const mustGoRight = sections.find(s => s.heading.toLowerCase().includes('must go right'));
+    if (mustGoRight && mustGoRight.lines.length > 0) {
+      // Extract key phrase (first 8 words or up to comma/dash)
+      const firstLine = mustGoRight.lines[0];
+      const shortPhrase = firstLine.split(/[—,]/)[0].trim().split(' ').slice(0, 8).join(' ');
+      if (shortPhrase.length > 20) {
+        working.push(shortPhrase);
+      }
+    }
+  }
+
+  // If still empty, extract from door or hinge
+  if (working.length === 0 && decision.door) {
+    working.push(`Decision type is clear: ${decision.door.toLowerCase()}`);
+  }
+
+  // Ensure we always have at least 2 items
+  if (working.length === 1) {
+    if (decision.hinge) {
+      working.push('Critical success factor identified');
+    } else {
+      working.push('Core risks mapped');
+    }
   }
 
   return working.slice(0, 3);
@@ -335,22 +365,35 @@ function buildWhatsBreaking(decision?: DecisionRecord | null): string[] {
 
   const breaking: string[] = [];
 
-  // Extract weak points from trap, low scoring dimensions
+  // Summarize trap to under 12 words (don't paste full text)
   if (decision.trap?.trim()) {
-    breaking.push(decision.trap);
+    const trap = decision.trap;
+    // Extract key phrase up to first punctuation or limit to 12 words
+    const shortTrap = trap.split(/[—,;]/)[0].trim();
+    const words = shortTrap.split(' ');
+    if (words.length <= 12) {
+      breaking.push(shortTrap);
+    } else {
+      // Take first 12 words
+      breaking.push(words.slice(0, 12).join(' ') + '...');
+    }
   }
 
+  // Pull from low scoring dimensions
   if ((decision.readiness_clarity ?? 0) <= 6) {
-    breaking.push('Success criteria are vague or missing');
+    breaking.push('Success criteria are vague');
   }
   if ((decision.readiness_assumptions ?? 0) <= 6) {
-    breaking.push('Critical assumptions have not been validated');
+    breaking.push('Assumptions have not been tested');
   }
   if ((decision.readiness_risk ?? 0) <= 6) {
-    breaking.push('Downside scenario is poorly understood');
+    breaking.push('Downside scenario is unclear');
   }
   if ((decision.readiness_exit_logic ?? 0) <= 6) {
-    breaking.push('No clear exit condition defined');
+    breaking.push('Exit condition not defined');
+  }
+  if ((decision.readiness_reversibility ?? 0) <= 6) {
+    breaking.push('Sunk costs are high');
   }
 
   return breaking.slice(0, 3);
