@@ -30,7 +30,9 @@ export async function POST(req: Request) {
       // structured decision fields
       door: body.door ?? null,
       hinge: body.hinge ?? null,
+      lock: body.lock ?? null,
       trap: body.trap ?? null,
+      exit: body.exit ?? null,
       step: body.step ?? null,
 
       // deep review and notes
