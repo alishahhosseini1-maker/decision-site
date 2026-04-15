@@ -1,7 +1,7 @@
 // app/decision-summary/page.tsx
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/app/lib/supabase';
 
 type DecisionRecord = {
@@ -227,6 +227,11 @@ export default function DecisionSummaryPage() {
   const [comparisonDecisions, setComparisonDecisions] = useState<ComparisonDecision[]>([]);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
 
+  const [shareMenuOpen, setShareMenuOpen] = useState(false);
+  const [shareToast, setShareToast] = useState(false);
+
+  const shareMenuRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -288,6 +293,33 @@ export default function DecisionSummaryPage() {
     return () => { cancelled = true; };
   }, []);
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (!shareMenuRef.current) return;
+      if (!shareMenuRef.current.contains(event.target as Node)) {
+        setShareMenuOpen(false);
+      }
+    }
+
+    if (shareMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [shareMenuOpen]);
+
+  useEffect(() => {
+    if (!shareToast) return;
+
+    const timer = window.setTimeout(() => {
+      setShareToast(false);
+    }, 3000);
+
+    return () => window.clearTimeout(timer);
+  }, [shareToast]);
+
   const scoreMeta = useMemo(() => getScoreMeta(decision?.score), [decision?.score]);
   const verdictData = useMemo(() => splitVerdict(decision?.verdict), [decision?.verdict]);
   const deepSections = useMemo(() => parseDeepReview(decision?.deep_review), [decision?.deep_review]);
@@ -338,6 +370,31 @@ export default function DecisionSummaryPage() {
   const toggleSection = (key: string) => {
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
   };
+
+  async function handleCopyShareLink() {
+    if (!decision?.id) return;
+    try {
+      const shareUrl = `${window.location.origin}/share/summary/${decision.id}`;
+      await navigator.clipboard.writeText(shareUrl);
+      setShareMenuOpen(false);
+      setShareToast(true);
+    } catch {
+      setShareMenuOpen(false);
+      setShareToast(false);
+    }
+  }
+
+  function handleEmailShareLink() {
+    if (!decision?.id) return;
+    const shareUrl = `${window.location.origin}/share/summary/${decision.id}`;
+    const subject = encodeURIComponent(`Decision Layer Brief: ${decision.decision || 'Brief'}`);
+    const body = encodeURIComponent(
+      `Sharing my decision brief.\n\nView brief:\n${shareUrl}`
+    );
+
+    setShareMenuOpen(false);
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  }
 
   if (loading) {
     return (
@@ -391,6 +448,25 @@ export default function DecisionSummaryPage() {
 
   return (
     <main className="min-h-screen bg-[#f7f7f2] px-5 py-10 text-black">
+      {shareToast ? (
+        <div
+          className="fixed right-6 top-6 z-50"
+          style={{
+            animation: 'fadeInUp 0.25s ease',
+          }}
+        >
+          <div className="rounded-xl bg-black px-5 py-3 text-sm text-white shadow-lg">
+            <div className="flex items-center gap-2 font-medium">
+              <span>✓</span>
+              <span>Link copied</span>
+            </div>
+            <div className="mt-1 text-xs text-white/70">
+              This version excludes internal history and raw inputs.
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <div
         className={`mx-auto max-w-3xl space-y-6 transition-all duration-700 ${
           animateIn ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'
@@ -417,6 +493,41 @@ export default function DecisionSummaryPage() {
               >
                 View history
               </a>
+
+              <div className="relative" ref={shareMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setShareMenuOpen((prev) => !prev)}
+                  className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs font-medium text-black shadow-sm transition hover:bg-black hover:text-white"
+                >
+                  <span>Share Brief</span>
+                  <span className="text-[10px]">▾</span>
+                </button>
+
+                {shareMenuOpen ? (
+                  <div className="absolute right-0 top-[calc(100%+10px)] z-20 w-[220px] overflow-hidden rounded-2xl border border-black/10 bg-white shadow-[0_16px_40px_rgba(0,0,0,0.10)]">
+                    <div className="border-b border-black/6 px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-black/45">
+                      Share Brief
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleCopyShareLink}
+                      className="block w-full px-4 py-3 text-left text-sm text-black/82 transition hover:bg-black/[0.03]"
+                    >
+                      Copy share link
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleEmailShareLink}
+                      className="block w-full px-4 py-3 text-left text-sm text-black/82 transition hover:bg-black/[0.03]"
+                    >
+                      Email share link
+                    </button>
+                  </div>
+                ) : null}
+              </div>
             </div>
           </div>
         </header>
