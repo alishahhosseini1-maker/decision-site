@@ -63,6 +63,9 @@ function parseDeepReview(text?: string | null): DeepSection[] {
     // Skip reflection prompts (numbered questions like "1. ", "2. ", "3. ")
     if (/^\d+\.\s/.test(raw)) continue;
 
+    // Skip any line that looks like a reflection prompt heading
+    if (/reflection.*prompt/i.test(cleaned)) continue;
+
     current.lines.push(raw.replace(/^[•\-]\s*/, '').trim());
   }
   return sections.filter((s) => s.lines.length > 0);
@@ -204,6 +207,118 @@ function buildWhatOthersMiss(decision?: DecisionRecord | null) {
   }
 
   return 'What matters most is not whether the decision sounds good now, but whether it stays survivable if reality pushes back.';
+}
+
+function buildSupportingSentence(decision?: DecisionRecord | null) {
+  if (!decision) return '—';
+
+  // Extract a supporting context sentence from the verdict or hinge
+  if (decision.hinge?.trim()) {
+    return `This decision pivots on whether ${decision.hinge.toLowerCase().replace(/\.$/, '')}.`;
+  }
+
+  const score = decision.score ?? 0;
+  if (score < 60) {
+    return 'This needs more clarity before you can commit with confidence.';
+  }
+  if (score < 80) {
+    return 'There are real risks here that need mitigation before full commitment.';
+  }
+  return 'The foundation is solid enough to move forward if you stay disciplined.';
+}
+
+function buildWhatToDoNow(decision?: DecisionRecord | null) {
+  if (!decision) return '—';
+
+  // Extract sharp action from verdict title or step
+  if (decision.step?.trim()) {
+    return decision.step;
+  }
+
+  const verdictData = splitVerdict(decision.verdict);
+  if (verdictData.title) {
+    return verdictData.title;
+  }
+
+  return 'Review the key risks and decide on your next survivable step.';
+}
+
+function buildIfDelayed(decision?: DecisionRecord | null) {
+  if (!decision) return '—';
+
+  const score = decision.score ?? 0;
+
+  // Generate consequence of delay based on trap or score
+  if (decision.trap?.trim()) {
+    return `Delay amplifies the risk: ${decision.trap.toLowerCase()}`;
+  }
+
+  if (score >= 80) {
+    return 'The window to act may narrow as conditions change — momentum matters here.';
+  }
+
+  if (score >= 65) {
+    return 'Waiting without addressing the gaps means the decision gets harder, not clearer.';
+  }
+
+  return 'Delay without more information just compounds the uncertainty.';
+}
+
+function buildWhatsWorking(decision?: DecisionRecord | null): string[] {
+  if (!decision) return [];
+
+  const working: string[] = [];
+
+  // Extract positives from door, hinge, or score dimensions
+  if (decision.door?.trim()) {
+    working.push(`Decision type is clear: ${decision.door.toLowerCase()}`);
+  }
+
+  const score = decision.score ?? 0;
+  if (score >= 65) {
+    if ((decision.readiness_clarity ?? 0) > 13) {
+      working.push('Success criteria are well-defined');
+    }
+    if ((decision.readiness_reversibility ?? 0) > 13) {
+      working.push('Exit costs are manageable');
+    }
+  }
+
+  // Fallback
+  if (working.length === 0) {
+    working.push('The decision has been structured and evaluated');
+    if (score >= 50) {
+      working.push('Core assumptions have been identified');
+    }
+  }
+
+  return working.slice(0, 3);
+}
+
+function buildWhatsBreaking(decision?: DecisionRecord | null): string[] {
+  if (!decision) return [];
+
+  const breaking: string[] = [];
+
+  // Extract weak points from trap, low scoring dimensions
+  if (decision.trap?.trim()) {
+    breaking.push(decision.trap);
+  }
+
+  if ((decision.readiness_clarity ?? 0) <= 6) {
+    breaking.push('Success criteria are vague or missing');
+  }
+  if ((decision.readiness_assumptions ?? 0) <= 6) {
+    breaking.push('Critical assumptions have not been validated');
+  }
+  if ((decision.readiness_risk ?? 0) <= 6) {
+    breaking.push('Downside scenario is poorly understood');
+  }
+  if ((decision.readiness_exit_logic ?? 0) <= 6) {
+    breaking.push('No clear exit condition defined');
+  }
+
+  return breaking.slice(0, 3);
 }
 
 function renderMarkdown(text: string): React.ReactNode {
@@ -639,37 +754,26 @@ export default function DecisionSummaryPage() {
           <h2 className="mt-3 text-2xl font-semibold leading-snug tracking-tight text-black md:text-[1.65rem]">
             {buildInsight(decision)}
           </h2>
+          <p className="mt-4 text-sm leading-7 text-black/63">
+            {buildSupportingSentence(decision)}
+          </p>
         </section>
 
-        {/* ── VERDICT ── */}
-        <section className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
-          <div className="grid gap-6 md:grid-cols-2">
-            {/* Left — the decision */}
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.18em] text-black/36">The decision</p>
-              <p className="mt-2 text-sm leading-7 text-black/75">{decision.decision}</p>
-            </div>
-            {/* Right — the verdict with left border */}
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.18em] text-black/36">Verdict</p>
-              <div className="mt-2 border-l-[3px] border-l-black pl-4 py-1 bg-[#f9f9f7] rounded-r-lg">
-                <p className="text-sm font-normal leading-7 text-black">{verdictData.title}</p>
-              </div>
-
-            </div>
+        {/* ── THE DECISION + WHAT TO DO NOW ── */}
+        <section className="grid gap-6 md:grid-cols-2">
+          <div className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-black/36">The decision</p>
+            <p className="mt-3 text-sm leading-7 text-black/75">{decision.decision}</p>
           </div>
-
-          {/* Commitment Rule */}
-          {verdictData.rationale ? (
-            <div className="mt-6 pt-6 border-t border-black/6">
-              <p className="text-[10px] uppercase tracking-[0.18em] text-black/36 mb-3">Commitment Rule</p>
-              <p className="text-sm leading-7 text-black/70">{verdictData.rationale}</p>
-            </div>
-          ) : null}
+          <div className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-black/36">What to do now</p>
+            <p className="mt-3 text-sm leading-7 text-black/80 font-medium">{buildWhatToDoNow(decision)}</p>
+          </div>
         </section>
 
-        {/* ── SCORE ── */}
-        <section className={`rounded-2xl border border-black/12 bg-white/60 p-7 shadow-sm`}>
+        {/* ── SCORE + IF DELAYED ── */}
+        <section className="grid gap-6 md:grid-cols-2">
+          <div className={`rounded-2xl border border-black/12 bg-white/60 p-7 shadow-sm`}>
           <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
             <div className="text-[11px] font-bold uppercase tracking-[0.12em] text-black/42">
               Decision Quality
@@ -762,6 +866,13 @@ export default function DecisionSummaryPage() {
               </span>
             </div>
           ) : null}
+          </div>
+
+          {/* IF DELAYED */}
+          <div className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-black/36">If delayed</p>
+            <p className="mt-3 text-sm leading-7 text-black/75">{buildIfDelayed(decision)}</p>
+          </div>
         </section>
 
         {/* ── WHAT OTHERS MAY MISS ── */}
@@ -770,6 +881,32 @@ export default function DecisionSummaryPage() {
           <p className="mt-3 text-base font-medium italic leading-7 text-white">
             {buildWhatOthersMiss(decision)}
           </p>
+        </section>
+
+        {/* ── WHAT'S WORKING / WHAT'S BREAKING ── */}
+        <section className="grid gap-6 md:grid-cols-2">
+          <div className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-black/36 mb-4">What&apos;s working</p>
+            <div className="space-y-3">
+              {buildWhatsWorking(decision).map((item, i) => (
+                <div key={i} className="flex gap-3">
+                  <span className="text-green-600 text-sm mt-0.5">✓</span>
+                  <p className="text-sm leading-6 text-black/75">{item}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-black/36 mb-4">What&apos;s breaking</p>
+            <div className="space-y-3">
+              {buildWhatsBreaking(decision).map((item, i) => (
+                <div key={i} className="flex gap-3">
+                  <span className="text-red-600 text-sm mt-0.5">✗</span>
+                  <p className="text-sm leading-6 text-black/75">{item}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </section>
 
         {/* ── EVIDENCE: Threat / Hinge / Trap ── */}
