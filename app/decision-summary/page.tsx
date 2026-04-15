@@ -18,7 +18,9 @@ type DecisionRecord = {
   verdict: string | null;
   door: string | null;
   hinge: string | null;
+  lock: string | null;
   trap: string | null;
+  exit: string | null;
   step: string | null;
   deep_review: string | null;
   final_thoughts: string | null;
@@ -57,6 +59,10 @@ function parseDeepReview(text?: string | null): DeepSection[] {
       continue;
     }
     if (!current) continue;
+
+    // Skip reflection prompts (numbered questions like "1. ", "2. ", "3. ")
+    if (/^\d+\.\s/.test(raw)) continue;
+
     current.lines.push(raw.replace(/^[•\-]\s*/, '').trim());
   }
   return sections.filter((s) => s.lines.length > 0);
@@ -98,20 +104,39 @@ function getProgressColor(value?: number | null) {
   return '#16a34a';
 }
 
-function getFactorHint(name: string, _decisionText: string) {
+function getFactorHint(name: string, value: number | null, decision: DecisionRecord | null) {
+  const score = value ?? 0;
+  const isLow = score <= 6;
+  const isMid = score > 6 && score <= 13;
+
   switch (name) {
-    case 'Clarity':
-      return `If you can’t say what success looks like, you don’t have a decision — you have a preference.`;
-    case 'Assumptions':
-      return `Which things must be true for this to work — and have you actually checked any of them?`;
-    case 'Reversibility':
-      return `How much of the cost is unrecoverable if this goes wrong? That’s your real stake.`;
-    case 'Risk':
-      return `What’s the worst realistic outcome — and could you survive it?`;
-    case 'Exit Logic':
-      return `Without a clear exit condition, you’ll keep going long after you should have stopped.`;
+    case ‘Clarity’:
+      if (isLow) return ‘Success criteria are vague or missing. You need to define what done looks like before committing.’;
+      if (isMid) return ‘Success is defined but may lack measurable specifics or clear boundaries.’;
+      return ‘Success criteria are clear and measurable.’;
+
+    case ‘Assumptions’:
+      if (isLow) return ‘Critical assumptions have not been validated. Test the riskiest ones before proceeding.’;
+      if (isMid) return ‘Some assumptions identified but validation is incomplete or superficial.’;
+      return ‘Key assumptions have been identified and tested.’;
+
+    case ‘Reversibility’:
+      if (isLow) return ‘High sunk costs or irreversible commitments. Make sure you can survive if this fails.’;
+      if (isMid) return ‘Some costs can be recovered, but reversal would be costly or painful.’;
+      return ‘Decision is mostly reversible with manageable costs.’;
+
+    case ‘Risk’:
+      if (isLow) return ‘Worst-case scenario is poorly understood or potentially catastrophic. Map the downside.’;
+      if (isMid) return ‘Downside is identified but mitigation plan may be incomplete.’;
+      return ‘Worst-case scenario is understood and survivable.’;
+
+    case ‘Exit Logic’:
+      if (isLow) return ‘No clear exit condition defined. You risk staying in too long if things go wrong.’;
+      if (isMid) return ‘Exit condition exists but may be too vague or easy to rationalize away.’;
+      return ‘Clear exit condition is defined and will be hard to ignore.’;
+
     default:
-      return 'Keep this factor specific to the decision at hand.';
+      return ‘Assessment based on decision specifics.’;
   }
 }
 
@@ -127,21 +152,97 @@ function splitVerdict(verdict?: string | null) {
 
 function buildInsight(decision?: DecisionRecord | null) {
   if (!decision) return '—';
+
+  // Extract the key insight from the verdict
+  if (decision.verdict) {
+    const verdictLines = decision.verdict.split('\n').map(l => l.trim()).filter(Boolean);
+    // Look for the most actionable sentence - typically starts with verbs or "The"
+    for (const line of verdictLines) {
+      const cleaned = line.replace(/\*\*/g, '').replace(/__/g, '').trim();
+      // Skip headings and very short lines
+      if (cleaned.length > 40 && !cleaned.startsWith('#') && cleaned.endsWith('.')) {
+        // Return the first substantial sentence that's not a heading
+        if (cleaned.includes('must') || cleaned.includes('should') || cleaned.includes('need') ||
+            cleaned.includes('risk') || cleaned.includes('before') || cleaned.includes('if')) {
+          return cleaned;
+        }
+      }
+    }
+    // Fallback to first substantial line
+    const firstLine = verdictLines.find(l => l.length > 30 && !l.startsWith('#'));
+    if (firstLine) {
+      return firstLine.replace(/\*\*/g, '').replace(/__/g, '').trim();
+    }
+  }
+
+  // Final fallback based on score
   const s = decision.score;
   if (s !== null && s !== undefined) {
     if (s < 60) return 'The decision is not ready for full commitment yet.';
-    if (s < 80) return 'There may be a real opportunity here, but the move likely needs to be smaller or clearer.';
-    return 'The decision looks survivable if you keep the next step disciplined.';
+    if (s < 80) return 'Proceed carefully — the path forward needs to be smaller or clearer.';
+    return 'This decision is survivable if you keep the next step disciplined.';
   }
-  return 'This decision should be judged by survivability, not optimism.';
+  return 'Focus on what must be true for this to work, not what you hope will be true.';
 }
 
 function buildWhatOthersMiss(decision?: DecisionRecord | null) {
   if (!decision) return '—';
-  if (decision.step?.trim()) {
-    return `The smartest move may not be to commit fully. It may be to take this next survivable step first: ${decision.step}`;
+
+  // Surface a non-obvious insight based on the trap or hinge
+  if (decision.trap?.trim()) {
+    return `Most people won't see this risk coming: ${decision.trap}`;
   }
+
+  if (decision.hinge?.trim()) {
+    return `The entire decision pivots on something most people overlook: ${decision.hinge}`;
+  }
+
+  // Fallback based on score
+  const score = decision.score ?? 0;
+  if (score < 60) {
+    return 'What looks like hesitation is actually incomplete information. You can't commit to what you haven't fully understood.';
+  }
+
   return 'What matters most is not whether the decision sounds good now, but whether it stays survivable if reality pushes back.';
+}
+
+function renderMarkdown(text: string): React.ReactNode {
+  // Simple markdown rendering for bold, headings, and inline code
+  let result: React.ReactNode[] = [];
+  let currentText = text;
+  let key = 0;
+
+  // Handle headings (## )
+  const headingMatch = currentText.match(/^##\s+(.+)$/m);
+  if (headingMatch) {
+    const parts = currentText.split(/^##\s+/m);
+    result.push(<span key={key++}>{parts[0]}</span>);
+    const remaining = parts[1];
+    if (remaining) {
+      const [heading, ...rest] = remaining.split('\n');
+      result.push(<strong key={key++} className="font-semibold">{heading}</strong>);
+      if (rest.length > 0) {
+        result.push(<span key={key++}>{'\n' + rest.join('\n')}</span>);
+      }
+    }
+    return <>{result}</>;
+  }
+
+  // Handle bold (**text** or __text__)
+  const boldRegex = /(\*\*|__)(.*?)\1/g;
+  const parts = currentText.split(boldRegex);
+
+  for (let i = 0; i < parts.length; i++) {
+    if (parts[i] === '**' || parts[i] === '__') {
+      // Next part is the bold text
+      result.push(<strong key={key++} className="font-semibold">{parts[i + 1]}</strong>);
+      i++; // Skip the closing marker
+    } else if (parts[i]) {
+      result.push(<span key={key++}>{parts[i]}</span>);
+    }
+  }
+
+  return <>{result}</>;
 }
 
 // ── Accordion component ─────────────────────────────────────────────────────
@@ -175,7 +276,7 @@ function AccordionSection({
       {isOpen && (
         <div className="pb-4 space-y-2">
           {lines.map((line, i) => (
-            <p key={i} className="text-sm leading-7 text-black/60">{line}</p>
+            <p key={i} className="text-sm leading-7 text-black/60">{renderMarkdown(line)}</p>
           ))}
         </div>
       )}
@@ -249,7 +350,7 @@ export default function DecisionSummaryPage() {
 
         let query = supabase
           .from('decisions')
-          .select('id, user_id, decision, context, score, readiness_clarity, readiness_assumptions, readiness_reversibility, readiness_risk, readiness_exit_logic, verdict, door, hinge, trap, step, deep_review, final_thoughts, outcome_status, needs_follow_up, created_at, dismissed_at')
+          .select('id, user_id, decision, context, score, readiness_clarity, readiness_assumptions, readiness_reversibility, readiness_risk, readiness_exit_logic, verdict, door, hinge, lock, trap, exit, step, deep_review, final_thoughts, outcome_status, needs_follow_up, created_at, dismissed_at')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(1);
@@ -257,7 +358,7 @@ export default function DecisionSummaryPage() {
         if (id) {
           query = supabase
             .from('decisions')
-            .select('id, user_id, decision, context, score, readiness_clarity, readiness_assumptions, readiness_reversibility, readiness_risk, readiness_exit_logic, verdict, door, hinge, trap, step, deep_review, final_thoughts, outcome_status, needs_follow_up, created_at, dismissed_at')
+            .select('id, user_id, decision, context, score, readiness_clarity, readiness_assumptions, readiness_reversibility, readiness_risk, readiness_exit_logic, verdict, door, hinge, lock, trap, exit, step, deep_review, final_thoughts, outcome_status, needs_follow_up, created_at, dismissed_at')
             .eq('id', id)
             .eq('user_id', user.id)
             .limit(1);
@@ -538,9 +639,6 @@ export default function DecisionSummaryPage() {
           <h2 className="mt-3 text-2xl font-semibold leading-snug tracking-tight text-black md:text-[1.65rem]">
             {buildInsight(decision)}
           </h2>
-          {decision.context ? (
-            <p className="mt-3 text-sm leading-7 text-black/58">{decision.context}</p>
-          ) : null}
         </section>
 
         {/* ── VERDICT ── */}
@@ -560,6 +658,14 @@ export default function DecisionSummaryPage() {
 
             </div>
           </div>
+
+          {/* Commitment Rule */}
+          {verdictData.rationale ? (
+            <div className="mt-6 pt-6 border-t border-black/6">
+              <p className="text-[10px] uppercase tracking-[0.18em] text-black/36 mb-3">Commitment Rule</p>
+              <p className="text-sm leading-7 text-black/70">{verdictData.rationale}</p>
+            </div>
+          ) : null}
         </section>
 
         {/* ── SCORE ── */}
@@ -605,11 +711,11 @@ export default function DecisionSummaryPage() {
             </summary>
             <div className="mt-4 space-y-2">
               {[
-                { name: 'Clarity', value: decision.readiness_clarity, hint: getFactorHint('Clarity', decision.decision) },
-                { name: 'Assumptions', value: decision.readiness_assumptions, hint: getFactorHint('Assumptions', decision.decision) },
-                { name: 'Reversibility', value: decision.readiness_reversibility, hint: getFactorHint('Reversibility', decision.decision) },
-                { name: 'Risk', value: decision.readiness_risk, hint: getFactorHint('Risk', decision.decision) },
-                { name: 'Exit Logic', value: decision.readiness_exit_logic, hint: getFactorHint('Exit Logic', decision.decision) },
+                { name: 'Clarity', value: decision.readiness_clarity, hint: getFactorHint('Clarity', decision.readiness_clarity, decision) },
+                { name: 'Assumptions', value: decision.readiness_assumptions, hint: getFactorHint('Assumptions', decision.readiness_assumptions, decision) },
+                { name: 'Reversibility', value: decision.readiness_reversibility, hint: getFactorHint('Reversibility', decision.readiness_reversibility, decision) },
+                { name: 'Risk', value: decision.readiness_risk, hint: getFactorHint('Risk', decision.readiness_risk, decision) },
+                { name: 'Exit Logic', value: decision.readiness_exit_logic, hint: getFactorHint('Exit Logic', decision.readiness_exit_logic, decision) },
               ].map((factor, i) => (
                 <div key={i}>
                   <div className="grid gap-2 items-center py-2 border-b border-black/6 grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[120px_1fr_50px]">
@@ -714,7 +820,9 @@ export default function DecisionSummaryPage() {
           <div className="border-t border-black/6">
             <AnatomyRow label="Door" sublabel="type of decision" value={decision.door} />
             <AnatomyRow label="Hinge" sublabel="what must be true" value={decision.hinge} highlight />
+            <AnatomyRow label="Lock" sublabel="commitment mechanism" value={decision.lock} />
             <AnatomyRow label="Trap" sublabel="hidden failure risk" value={decision.trap} highlight />
+            <AnatomyRow label="Exit" sublabel="escape condition" value={decision.exit} />
             <AnatomyRow label="Step" sublabel="next survivable move" value={decision.step} />
           </div>
         </section>
