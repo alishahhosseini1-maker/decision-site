@@ -1009,11 +1009,11 @@ export default function HistoryPage() {
             style={{
               marginBottom: 14,
               borderRadius: 18,
-              border: '1px solid rgba(0,0,0,0.10)',
-              background: '#111',
+              border: '1px solid rgba(16,35,63,0.22)',
+              background: '#10233f',
               color: '#fff',
               padding: 16,
-              boxShadow: '0 14px 28px rgba(0,0,0,0.12)',
+              boxShadow: '0 14px 28px rgba(16,35,63,0.20)',
             }}
           >
             <div
