@@ -156,33 +156,26 @@ function splitVerdict(verdict?: string | null) {
 function buildInsight(decision?: DecisionRecord | null) {
   if (!decision) return '—';
 
-  // Extract the key insight from the verdict
-  if (decision.verdict) {
-    const verdictLines = decision.verdict.split('\n').map(l => l.trim()).filter(Boolean);
-    // Look for the most actionable sentence - typically starts with verbs or "The"
-    for (const line of verdictLines) {
-      const cleaned = line.replace(/\*\*/g, '').replace(/__/g, '').trim();
-      // Skip headings and very short lines
-      if (cleaned.length > 40 && !cleaned.startsWith('#') && cleaned.endsWith('.')) {
-        // Return the first substantial sentence that's not a heading
-        if (cleaned.includes('must') || cleaned.includes('should') || cleaned.includes('need') ||
-            cleaned.includes('risk') || cleaned.includes('before') || cleaned.includes('if')) {
-          return cleaned;
-        }
-      }
+  // Use the verdict title (first paragraph), not the full commitment rule
+  const verdictData = splitVerdict(decision.verdict);
+  if (verdictData.title && verdictData.title !== 'No verdict saved') {
+    // Return just the first sentence if there are multiple
+    const sentences = verdictData.title.split(/[.!?]/).filter(s => s.trim().length > 20);
+    if (sentences.length > 0) {
+      return sentences[0].trim() + '.';
     }
-    // Fallback to first substantial line
-    const firstLine = verdictLines.find(l => l.length > 30 && !l.startsWith('#'));
-    if (firstLine) {
-      return firstLine.replace(/\*\*/g, '').replace(/__/g, '').trim();
-    }
+    return verdictData.title;
   }
 
-  // Final fallback based on score
+  // Fallback: synthesize from trap or score
+  if (decision.trap?.trim()) {
+    return `The biggest risk: ${decision.trap}`;
+  }
+
   const s = decision.score;
   if (s !== null && s !== undefined) {
     if (s < 60) return 'The decision is not ready for full commitment yet.';
-    if (s < 80) return 'Proceed carefully — the path forward needs to be smaller or clearer.';
+    if (s < 80) return 'The path forward needs to be smaller or clearer.';
     return 'This decision is survivable if you keep the next step disciplined.';
   }
   return 'Focus on what must be true for this to work, not what you hope will be true.';
@@ -212,17 +205,30 @@ function buildWhatOthersMiss(decision?: DecisionRecord | null) {
 function buildSupportingSentence(decision?: DecisionRecord | null) {
   if (!decision) return '—';
 
-  // Extract a supporting context sentence from the verdict or hinge
+  // Provide specific detail from trap, hinge, or weakest dimension
+  if (decision.trap?.trim()) {
+    return `The hidden risk: ${decision.trap.toLowerCase().charAt(0) + decision.trap.slice(1)}`;
+  }
+
   if (decision.hinge?.trim()) {
-    return `This decision pivots on whether ${decision.hinge.toLowerCase().replace(/\.$/, '')}.`;
+    return `Everything pivots on: ${decision.hinge.toLowerCase().charAt(0) + decision.hinge.slice(1)}`;
+  }
+
+  // Identify weakest dimension and call it out
+  const dims = [
+    { name: 'clarity', value: decision.readiness_clarity ?? 0, label: 'success criteria are unclear' },
+    { name: 'assumptions', value: decision.readiness_assumptions ?? 0, label: 'key assumptions have not been validated' },
+    { name: 'risk', value: decision.readiness_risk ?? 0, label: 'downside scenario is not well understood' },
+    { name: 'exit', value: decision.readiness_exit_logic ?? 0, label: 'no clear exit condition is defined' },
+  ];
+  const weakest = dims.sort((a, b) => a.value - b.value)[0];
+  if (weakest.value <= 6) {
+    return `The main gap: ${weakest.label}.`;
   }
 
   const score = decision.score ?? 0;
   if (score < 60) {
-    return 'This needs more clarity before you can commit with confidence.';
-  }
-  if (score < 80) {
-    return 'There are real risks here that need mitigation before full commitment.';
+    return 'More information is needed before you can commit with confidence.';
   }
   return 'The foundation is solid enough to move forward if you stay disciplined.';
 }
@@ -269,27 +275,48 @@ function buildWhatsWorking(decision?: DecisionRecord | null): string[] {
 
   const working: string[] = [];
 
-  // Extract positives from door, hinge, or score dimensions
-  if (decision.door?.trim()) {
-    working.push(`Decision type is clear: ${decision.door.toLowerCase()}`);
+  // Pull from high-scoring dimensions with specific context
+  const clarity = decision.readiness_clarity ?? 0;
+  const assumptions = decision.readiness_assumptions ?? 0;
+  const reversibility = decision.readiness_reversibility ?? 0;
+  const risk = decision.readiness_risk ?? 0;
+  const exitLogic = decision.readiness_exit_logic ?? 0;
+
+  if (clarity > 13) {
+    working.push('Success criteria are clearly defined and measurable');
   }
 
-  const score = decision.score ?? 0;
-  if (score >= 65) {
-    if ((decision.readiness_clarity ?? 0) > 13) {
-      working.push('Success criteria are well-defined');
-    }
-    if ((decision.readiness_reversibility ?? 0) > 13) {
-      working.push('Exit costs are manageable');
+  if (reversibility > 13) {
+    working.push('Most costs are recoverable if this does not work out');
+  }
+
+  if (risk > 13) {
+    working.push('Worst-case scenario is understood and survivable');
+  }
+
+  if (exitLogic > 13) {
+    working.push('Clear exit conditions are defined');
+  }
+
+  if (assumptions > 13) {
+    working.push('Key assumptions have been identified and tested');
+  }
+
+  // If deep_review has "what must go right", extract first point
+  if (working.length < 2 && decision.deep_review) {
+    const sections = parseDeepReview(decision.deep_review);
+    const mustGoRight = sections.find(s => s.heading.toLowerCase().includes('must go right'));
+    if (mustGoRight && mustGoRight.lines.length > 0) {
+      working.push(mustGoRight.lines[0]);
     }
   }
 
-  // Fallback
+  // Fallback if we still have less than 2
   if (working.length === 0) {
-    working.push('The decision has been structured and evaluated');
-    if (score >= 50) {
-      working.push('Core assumptions have been identified');
-    }
+    working.push('The decision has been structured and systematically evaluated');
+  }
+  if (working.length === 1 && (decision.score ?? 0) >= 50) {
+    working.push('Core risks and assumptions have been mapped');
   }
 
   return working.slice(0, 3);
