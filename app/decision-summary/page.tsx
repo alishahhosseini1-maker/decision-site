@@ -18,9 +18,7 @@ type DecisionRecord = {
   verdict: string | null;
   door: string | null;
   hinge: string | null;
-  lock: string | null;
   trap: string | null;
-  exit: string | null;
   step: string | null;
   deep_review: string | null;
   final_thoughts: string | null;
@@ -350,7 +348,7 @@ export default function DecisionSummaryPage() {
 
         let query = supabase
           .from('decisions')
-          .select('id, user_id, decision, context, score, readiness_clarity, readiness_assumptions, readiness_reversibility, readiness_risk, readiness_exit_logic, verdict, door, hinge, lock, trap, exit, step, deep_review, final_thoughts, outcome_status, needs_follow_up, created_at, dismissed_at')
+          .select('id, user_id, decision, context, score, readiness_clarity, readiness_assumptions, readiness_reversibility, readiness_risk, readiness_exit_logic, verdict, door, hinge, trap, step, deep_review, final_thoughts, outcome_status, needs_follow_up, created_at, dismissed_at')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(1);
@@ -358,7 +356,7 @@ export default function DecisionSummaryPage() {
         if (id) {
           query = supabase
             .from('decisions')
-            .select('id, user_id, decision, context, score, readiness_clarity, readiness_assumptions, readiness_reversibility, readiness_risk, readiness_exit_logic, verdict, door, hinge, lock, trap, exit, step, deep_review, final_thoughts, outcome_status, needs_follow_up, created_at, dismissed_at')
+            .select('id, user_id, decision, context, score, readiness_clarity, readiness_assumptions, readiness_reversibility, readiness_risk, readiness_exit_logic, verdict, door, hinge, trap, step, deep_review, final_thoughts, outcome_status, needs_follow_up, created_at, dismissed_at')
             .eq('id', id)
             .eq('user_id', user.id)
             .limit(1);
@@ -820,9 +818,7 @@ export default function DecisionSummaryPage() {
           <div className="border-t border-black/6">
             <AnatomyRow label="Door" sublabel="type of decision" value={decision.door} />
             <AnatomyRow label="Hinge" sublabel="what must be true" value={decision.hinge} highlight />
-            <AnatomyRow label="Lock" sublabel="commitment mechanism" value={decision.lock} />
             <AnatomyRow label="Trap" sublabel="hidden failure risk" value={decision.trap} highlight />
-            <AnatomyRow label="Exit" sublabel="escape condition" value={decision.exit} />
             <AnatomyRow label="Step" sublabel="next survivable move" value={decision.step} />
           </div>
         </section>
