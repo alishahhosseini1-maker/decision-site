@@ -333,7 +333,7 @@ Return raw JSON only.
 
     const response = await anthropic.messages.create({
       model: 'claude-opus-4-6',
-      max_tokens: 1200,
+      max_tokens: 2500,
       temperature: 0.1,
       system: systemPrompt,
       messages: [
