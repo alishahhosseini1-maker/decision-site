@@ -228,11 +228,12 @@ failure_modes:
 - Each is one sentence.
 
 if_delayed:
-- What specifically degrades if the user waits another week to commit.
-- Must be distinct from trap. Focus on time-dependent consequences.
-- Not generic delay anxiety. Name what actually gets worse with time: runway burns, window closes, option disappears, alternative becomes unavailable.
-- One sentence. Specific mechanism.
-- Wrong: "The opportunity might pass." Right: "Your cash position drops from 9 months to 8, and the competitor launching next month will make customer acquisition 3x harder."
+- MUST state specifically what option closes, what number gets worse, or what window expires if the user waits 7-14 more days.
+- MUST be tied to the actual decision context. Generic statements like "delay compounds uncertainty" or "the opportunity might pass" are WRONG outputs.
+- Required elements: name the specific option/window/number + the timeframe + the consequence.
+- Wrong: "Waiting makes this harder." Right: "If you wait 2 weeks, your 60-day lease negotiation window closes and you lose the $800/month rate — the next available space is $1,400."
+- Wrong: "Delay compounds uncertainty." Right: "Each week you delay burns $8K in runway while your top competitor is 3 weeks from launching the same feature."
+- Must be distinct from trap. Focus on time-dependent degradation, not psychological patterns.
 
 what_others_miss:
 - Surface something genuinely non-obvious that is not already stated in trap, hinge, or primaryRisk.
