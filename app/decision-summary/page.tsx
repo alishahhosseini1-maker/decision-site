@@ -69,6 +69,11 @@ function parseDeepReview(text?: string | null): DeepSection[] {
     // Skip any line that looks like a reflection prompt heading
     if (/reflection.*prompt/i.test(cleaned)) continue;
 
+    // Stop parsing when we hit the new prompt sections (STEP, SCRIPT, etc.)
+    if (/^(STEP|SCRIPT|WALK AWAY IF|FAILURE MODES)$/i.test(cleaned)) {
+      break;
+    }
+
     current.lines.push(raw.replace(/^[•\-]\s*/, '').trim());
   }
   return sections.filter((s) => s.lines.length > 0);
@@ -338,7 +343,7 @@ function buildWhatsWorking(decision?: DecisionRecord | null): string[] {
     const mustGoRight = sections.find(s => s.heading.toLowerCase().includes('must go right'));
     if (mustGoRight && mustGoRight.lines.length > 0) {
       // Extract key phrase (first 8 words or up to comma/dash)
-      const firstLine = mustGoRight.lines[0];
+      const firstLine = stripMarkdown(mustGoRight.lines[0]);
       const shortPhrase = firstLine.split(/[—,]/)[0].trim().split(' ').slice(0, 8).join(' ');
       if (shortPhrase.length > 20) {
         working.push(shortPhrase);
@@ -361,6 +366,11 @@ function buildWhatsWorking(decision?: DecisionRecord | null): string[] {
   }
 
   return working.slice(0, 3);
+}
+
+function stripMarkdown(text: string): string {
+  // Remove markdown bold (**text** or __text__)
+  return text.replace(/(\*\*|__)(.*?)\1/g, '$2');
 }
 
 function buildWhatsBreaking(decision?: DecisionRecord | null): string[] {
@@ -986,7 +996,7 @@ export default function DecisionSummaryPage() {
               {buildWhatsWorking(decision).map((item, i) => (
                 <div key={i} className="flex gap-3">
                   <span className="text-green-600 text-sm mt-0.5">✓</span>
-                  <p className="text-sm leading-6 text-black/75">{renderMarkdown(item)}</p>
+                  <p className="text-sm leading-6 text-black/75">{item}</p>
                 </div>
               ))}
             </div>
