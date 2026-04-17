@@ -391,6 +391,10 @@ Return raw JSON only.
 
     try {
       parsed = JSON.parse(jsonText);
+
+      // Debug: log raw if_delayed and what_others_miss from Claude response
+      console.log('[review] Raw if_delayed from Claude:', parsed?.snapshot?.if_delayed);
+      console.log('[review] Raw what_others_miss from Claude:', parsed?.snapshot?.what_others_miss);
     } catch {
       console.error('[review] Claude raw output:', content);
       return NextResponse.json(
