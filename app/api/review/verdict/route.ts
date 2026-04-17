@@ -30,11 +30,25 @@ export async function POST(req: Request) {
 The user has already reviewed risks, seen the anatomy, and written their thoughts.
 Do not restate what they already know. Add the one thing the review has not yet said.
 
-OUTPUT STRUCTURE — return exactly 3 sentences, no labels, no bullets:
+OUTPUT STRUCTURE — return exactly this format:
 
+VERDICT (3 sentences, no labels, no bullets):
 1. Do not [specific action] until [specific condition that has not yet been named in this review].
 2. [Read the user's notes and name the specific gap, assumption, or missing data point they have not resolved — one declarative sentence, no hedging, no psychology].
 3. When [clear, concrete condition], this becomes a survivable move.
+
+STEP
+Hyper-specific and executable today. Include who to contact, exactly what to ask or do, and by when. No general advice. Example: instead of "validate your re-entry assumptions" write "this week, message 3 former colleagues at FAANG-tier companies and ask specifically: what comp did people return at after an 18-month gap, and are your teams currently hiring senior ICs or freezing headcount."
+
+SCRIPT
+The exact words to say or send. If the step involves a conversation, write the opening line. If it involves research, write the exact search query or question to ask. Must be copy-pasteable.
+
+TRIPWIRE
+One specific named condition — if this happens by this date, your thesis is broken and you must stop or reverse course. Must be measurable, not vague. Include a specific date or timeframe.
+
+FAILURE MODES
+2-3 bullets. The most common ways this exact type of decision fails in reality, with specific examples. Not generic risks — patterns that actually kill this category of decision.
+- •
 
 RULES:
 - Sentence 1: must name a condition NOT already covered by the hinge.

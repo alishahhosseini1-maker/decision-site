@@ -60,7 +60,21 @@ Do not use: "Have you considered", "What are your thoughts", "How do you feel".
 Format each as a direct question that starts with What, Who, When, or Why.
 1.
 2.
-3.`;
+3.
+
+STEP
+Hyper-specific and executable today. Include who to contact, exactly what to ask or do, and by when.
+No general advice. Example: instead of "validate your re-entry assumptions" write "this week, message 3 former colleagues at FAANG-tier companies and ask specifically: what comp did people return at after an 18-month gap, and are your teams currently hiring senior ICs or freezing headcount."
+
+SCRIPT
+The exact words to say or send. If the step involves a conversation, write the opening line. If it involves research, write the exact search query or question to ask. Must be copy-pasteable.
+
+TRIPWIRE
+One specific named condition — if this happens by this date, your thesis is broken and you must stop or reverse course. Must be measurable, not vague. Include a specific date or timeframe.
+
+FAILURE MODES
+2-3 bullets. The most common ways this exact type of decision fails in reality, with specific examples. Not generic risks — patterns that actually kill this category of decision.
+- •`;
 
     const message = await client.messages.create({
       model: 'claude-opus-4-6',

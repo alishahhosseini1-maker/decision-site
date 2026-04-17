@@ -2233,6 +2233,9 @@ export default function HomePage() {
                   <div style={{ marginTop: 6, fontSize: 13.5, lineHeight: 1.55, opacity: 0.68 }}>
                     You&apos;ll get a verdict, your key risks, and what to do next.
                   </div>
+                  <div style={{ marginTop: 12, fontSize: 13.5, lineHeight: 1.55, opacity: 0.68 }}>
+                    Decision Layer is built for decisions with real consequences. If you&apos;re deciding where to eat, this isn&apos;t for you.
+                  </div>
                 </div>
 
                 <div style={{ display: 'grid', gap: 12 }}>

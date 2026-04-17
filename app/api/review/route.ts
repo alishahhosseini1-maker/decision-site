@@ -36,6 +36,9 @@ type ReviewResult = {
     trap: string;
     exit: string;
     step: string;
+    script: string;
+    tripwire: string;
+    failure_modes: string[];
   };
 };
 
@@ -54,6 +57,13 @@ function clampScore(value: unknown): number {
 
 function asString(value: unknown, fallback: string = ''): string {
   return typeof value === 'string' ? value : fallback;
+}
+
+function asStringArray(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.filter((item) => typeof item === 'string');
+  }
+  return [];
 }
 
 function asReversibility(value: unknown): 'low' | 'medium' | 'high' {
@@ -181,7 +191,10 @@ Return this exact shape:
     "lock": string,
     "trap": string,
     "exit": string,
-    "step": string
+    "step": string,
+    "script": string,
+    "tripwire": string,
+    "failure_modes": string[]
   }
 }
 
@@ -267,9 +280,30 @@ exit:
 - Not vague. "Things don't work out" is wrong. "Zero new bookings at the new rate within 30 days" is right.
 
 step:
-- The smartest immediate move
-- Survivable, concrete, executable within 7 days
+- Hyper-specific and executable today
+- Must include: who to contact, exactly what to ask or do, and by when
+- No general advice — name the actual person, company, number, or specific action
+- Example: instead of "validate your assumptions" write "this week, message 3 former colleagues at FAANG-tier companies and ask specifically: what comp did people return at after an 18-month gap, and are your teams currently hiring senior ICs or freezing headcount"
 - Must directly test the hinge or reduce the biggest risk
+
+script:
+- The exact words to say or send
+- If the step involves a conversation, write the opening line
+- If it involves research, write the exact search query or question to ask
+- Must be copy-pasteable — the decision-maker should be able to use this verbatim
+- One to two sentences max
+
+tripwire:
+- One specific named condition — if this happens by this date, your thesis is broken and you must stop or reverse course
+- Must be measurable, not vague
+- Must include a specific date or timeframe
+- Example: "If you receive zero responses from outreach by April 30, your network access assumption is false"
+
+failure_modes:
+- Surface the 2-3 most common ways this exact type of decision fails in reality
+- Not generic risks — patterns that actually kill this category of decision
+- Each mode is one sentence with a specific example
+- Example: "Capital allocation decisions like this commonly fail when the decision-maker conflates having savings with having runway — $50K feels like a cushion until you realize it covers 4 months, not 12"
 
 STYLE RULES:
 - Plain English
@@ -394,6 +428,9 @@ Return raw JSON only.
         trap: asString(parsed?.snapshot?.trap),
         exit: asString(parsed?.snapshot?.exit),
         step: asString(parsed?.snapshot?.step),
+        script: asString(parsed?.snapshot?.script),
+        tripwire: asString(parsed?.snapshot?.tripwire),
+        failure_modes: asStringArray(parsed?.snapshot?.failure_modes),
       },
     };
 
