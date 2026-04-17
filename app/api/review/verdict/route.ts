@@ -45,7 +45,7 @@ Hyper-specific and executable today. Include who to contact, exactly what to ask
 SCRIPT
 The exact words to say or send. If the step involves a conversation, write the opening line. If it involves research, write the exact search query or question to ask. Must be copy-pasteable.
 
-TRIPWIRE
+WALK AWAY IF
 One specific named condition — if this happens by this date, your thesis is broken and you must stop or reverse course. Must be measurable, not vague. Include a specific date or timeframe.
 
 FAILURE MODES

@@ -193,7 +193,7 @@ Return this exact shape:
     "exit": string,
     "step": string,
     "script": string,
-    "tripwire": string,
+    "walk_away_if": string,
     "failure_modes": string[]
   }
 }
@@ -293,7 +293,7 @@ script:
 - Must be copy-pasteable — the decision-maker should be able to use this verbatim
 - One to two sentences max
 
-tripwire:
+walk_away_if:
 - One specific named condition — if this happens by this date, your thesis is broken and you must stop or reverse course
 - Must be measurable, not vague
 - Must include a specific date or timeframe
@@ -429,7 +429,7 @@ Return raw JSON only.
         exit: asString(parsed?.snapshot?.exit),
         step: asString(parsed?.snapshot?.step),
         script: asString(parsed?.snapshot?.script),
-        tripwire: asString(parsed?.snapshot?.tripwire),
+        tripwire: asString(parsed?.snapshot?.walk_away_if),
         failure_modes: asStringArray(parsed?.snapshot?.failure_modes),
       },
     };

@@ -503,8 +503,8 @@ function EvidenceRow({ tag, text, highlight }: { tag: string; text: string; high
 function AnatomyRow({ label, sublabel, value, highlight }: { label: string; sublabel: string; value?: string | null; highlight?: boolean }) {
   if (!value) return null;
 
-  // Special layout for Tripwire: full-width with label on its own line
-  if (label === 'Tripwire') {
+  // Special layout for Walk away if: full-width with label on its own line
+  if (label === 'Walk away if') {
     return (
       <div className="border-b border-black/6 py-3 last:border-b-0">
         <p className={`text-[9.5px] font-medium uppercase tracking-[0.11em] ${highlight ? 'text-black/55' : 'text-black/36'}`}>
@@ -1057,7 +1057,7 @@ export default function DecisionSummaryPage() {
             <AnatomyRow label="Exit" sublabel="escape condition" value={decision.exit} />
             <AnatomyRow label="Step" sublabel="next survivable move" value={decision.step} />
             <AnatomyRow label="Script" sublabel="exact words to use" value={decision.script} />
-            <AnatomyRow label="Tripwire" sublabel="stop signal" value={decision.tripwire} highlight />
+            <AnatomyRow label="Walk away if" sublabel="" value={decision.tripwire} highlight />
           </div>
         </section>
 
