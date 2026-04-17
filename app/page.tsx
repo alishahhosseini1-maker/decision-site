@@ -71,6 +71,8 @@ type ReviewResult = {
     script: string;
     tripwire: string;
     failure_modes: string[];
+    if_delayed: string;
+    what_others_miss: string;
   };
 };
 

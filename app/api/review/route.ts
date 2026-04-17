@@ -39,6 +39,8 @@ type ReviewResult = {
     script: string;
     tripwire: string;
     failure_modes: string[];
+    if_delayed: string;
+    what_others_miss: string;
   };
 };
 
@@ -225,6 +227,20 @@ failure_modes:
 - Include one counterfactual: "If you proceed without resolving X, here is what breaks."
 - Each is one sentence.
 
+if_delayed:
+- What specifically degrades if the user waits another week to commit.
+- Must be distinct from trap. Focus on time-dependent consequences.
+- Not generic delay anxiety. Name what actually gets worse with time: runway burns, window closes, option disappears, alternative becomes unavailable.
+- One sentence. Specific mechanism.
+- Wrong: "The opportunity might pass." Right: "Your cash position drops from 9 months to 8, and the competitor launching next month will make customer acquisition 3x harder."
+
+what_others_miss:
+- Surface something genuinely non-obvious that is not already stated in trap, hinge, or primaryRisk.
+- This should reveal a second-order effect, a counterintuitive dynamic, or a hidden constraint that most people won't see.
+- Not a restatement of existing fields. This must add new information.
+- One sentence.
+- Wrong: "The risk is bigger than it looks." Right: "What looks like a pricing decision is actually a signal about who you are willing to serve — raise rates and you lose access to early-stage founders who become your best referral source."
+
 primaryRisk:
 - The specific mechanism of failure. Causal. Named.
 - Must include: what breaks, why it breaks, what the consequence is.
@@ -299,7 +315,9 @@ Return this exact shape:
     "step": string,
     "script": string,
     "walk_away_if": string,
-    "failure_modes": string[]
+    "failure_modes": string[],
+    "if_delayed": string,
+    "what_others_miss": string
   }
 }
 
@@ -435,6 +453,8 @@ Return raw JSON only.
         script: asString(parsed?.snapshot?.script),
         tripwire: asString(parsed?.snapshot?.walk_away_if),
         failure_modes: asStringArray(parsed?.snapshot?.failure_modes),
+        if_delayed: asString(parsed?.snapshot?.if_delayed),
+        what_others_miss: asString(parsed?.snapshot?.what_others_miss),
       },
     };
 

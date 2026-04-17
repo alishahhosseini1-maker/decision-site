@@ -25,6 +25,8 @@ type DecisionRecord = {
   script: string | null;
   tripwire: string | null;
   failure_modes: string[] | null;
+  if_delayed: string | null;
+  what_others_miss: string | null;
   deep_review: string | null;
   final_thoughts: string | null;
   outcome_status: string | null;
@@ -200,16 +202,16 @@ function buildInsight(decision?: DecisionRecord | null) {
 function buildWhatOthersMiss(decision?: DecisionRecord | null) {
   if (!decision) return '—';
 
-  // Surface a non-obvious insight based on the trap or hinge
-  if (decision.trap?.trim()) {
-    return `Most people won't see this risk coming: ${decision.trap}`;
+  // Use LLM-generated what_others_miss if available
+  if (decision.what_others_miss?.trim()) {
+    return decision.what_others_miss;
   }
 
+  // Fallback: generate based on hinge or score
   if (decision.hinge?.trim()) {
     return `The entire decision pivots on something most people overlook: ${decision.hinge}`;
   }
 
-  // Fallback based on score
   const score = decision.score ?? 0;
   if (score < 60) {
     return 'What looks like hesitation is actually incomplete information. You cannot commit to what you have not fully understood.';
@@ -268,12 +270,13 @@ function buildWhatToDoNow(decision?: DecisionRecord | null) {
 function buildIfDelayed(decision?: DecisionRecord | null) {
   if (!decision) return '—';
 
-  const score = decision.score ?? 0;
-
-  // Generate consequence of delay based on trap or score
-  if (decision.trap?.trim()) {
-    return `Delay amplifies the risk: ${decision.trap.toLowerCase()}`;
+  // Use LLM-generated if_delayed if available
+  if (decision.if_delayed?.trim()) {
+    return decision.if_delayed;
   }
+
+  // Fallback: generate based on score
+  const score = decision.score ?? 0;
 
   if (score >= 80) {
     return 'The window to act may narrow as conditions change — momentum matters here.';
