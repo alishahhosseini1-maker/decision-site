@@ -559,6 +559,7 @@ export default function HomePage() {
   const [verdictRequested, setVerdictRequested] = useState(false);
   const [verdict, setVerdict] = useState<string | null>(null);
   const [verdictLoading, setVerdictLoading] = useState(false);
+  const [commitment, setCommitment] = useState('');
   const [savingVerdict, setSavingVerdict] = useState(false);
   const [savedToast, setSavedToast] = useState<string | null>(null);
   const [revealStage, setRevealStage] = useState(0);
@@ -1379,6 +1380,7 @@ export default function HomePage() {
           what_others_miss: reviewResult?.snapshot?.what_others_miss ?? null,
           deep_review: deepReview ?? null,
           final_thoughts: finalThoughts ?? null,
+          commitment: commitment.trim() || null,
           outcome_status: 'awaiting_outcome',
           userId: user.id,
           requestKey,
@@ -2802,42 +2804,11 @@ export default function HomePage() {
                       )}
                     </div>
                     <div style={{ padding: '1.75rem 0' }}>
-                      <Z2Label>Your notes</Z2Label>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
-                        {[
-                          'What still feels unresolved?',
-                          'What would have to be true for you to feel ready?',
-                          'What are you avoiding looking at?',
-                        ].map((q) => (
-                          <div
-                            key={q}
-                            style={{
-                              fontFamily: sans,
-                              fontSize: 12,
-                              color: 'rgba(0,0,0,0.36)',
-                              paddingLeft: 12,
-                              borderLeft: '2px solid rgba(0,0,0,0.09)',
-                              lineHeight: 1.5,
-                            }}
-                          >
-                            {q}
-                          </div>
-                        ))}
-                      </div>
-                      <textarea
-                        value={finalThoughts}
-                        onChange={(e) => setFinalThoughts(e.target.value)}
-                        rows={5}
-                        placeholder="Write before you decide…"
-                        style={{ ...inputStyle, minHeight: 132, resize: 'vertical', background: '#fff' }}
-                      />
-
                       {/* Commit gate */}
                       <div
                         style={{
-                          marginTop: '2.5rem',
-                          paddingTop: '2rem',
-                          borderTop: '0.5px solid rgba(0,0,0,0.09)',
+                          marginTop: '0',
+                          paddingTop: '0',
                           textAlign: 'center',
                         }}
                       >
@@ -2935,21 +2906,31 @@ export default function HomePage() {
                         </div>
                       ) : (
                         <>
-                          {/* Verdict text block — distinct from surrounding content */}
+                          {/* 1. FINAL VERDICT card */}
                           <div
                             style={{
-                              borderLeft: '3px solid #111',
-                              paddingLeft: '1.25rem',
-                              paddingTop: '0.85rem',
-                              paddingBottom: '0.85rem',
-                              background: '#f9f9f7',
-                              borderRadius: '0 8px 8px 0',
-                              marginBottom: 0,
+                              border: '1px solid rgba(0,0,0,0.10)',
+                              borderRadius: 12,
+                              background: '#fff',
+                              padding: 20,
+                              marginBottom: 16,
                             }}
                           >
                             <div
                               style={{
-                                whiteSpace: 'pre-wrap',
+                                fontFamily: sans,
+                                fontSize: 10,
+                                fontWeight: 600,
+                                letterSpacing: '0.14em',
+                                textTransform: 'uppercase',
+                                color: 'rgba(0,0,0,0.36)',
+                                marginBottom: 12,
+                              }}
+                            >
+                              Final Verdict
+                            </div>
+                            <div
+                              style={{
                                 fontFamily: sans,
                                 fontSize: 15,
                                 fontWeight: 400,
@@ -2957,8 +2938,136 @@ export default function HomePage() {
                                 color: '#111',
                               }}
                             >
-                              {verdictTitle}
+                              {verdictParts[0] || ''}
                             </div>
+                          </div>
+
+                          {/* 2. WHEN THIS CHANGES card */}
+                          {verdictParts[1] && (
+                            <div
+                              style={{
+                                border: '1px solid rgba(0,0,0,0.10)',
+                                borderRadius: 12,
+                                background: '#fff',
+                                padding: 20,
+                                marginBottom: 16,
+                              }}
+                            >
+                              <div
+                                style={{
+                                  fontFamily: sans,
+                                  fontSize: 10,
+                                  fontWeight: 600,
+                                  letterSpacing: '0.14em',
+                                  textTransform: 'uppercase',
+                                  color: 'rgba(0,0,0,0.36)',
+                                  marginBottom: 12,
+                                }}
+                              >
+                                When This Changes
+                              </div>
+                              <div
+                                style={{
+                                  fontFamily: sans,
+                                  fontSize: 14,
+                                  fontWeight: 400,
+                                  lineHeight: 1.6,
+                                  color: 'rgba(0,0,0,0.75)',
+                                }}
+                              >
+                                {verdictParts[1]}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* 3. Commitment card */}
+                          <div
+                            style={{
+                              border: '1px solid rgba(0,0,0,0.10)',
+                              borderRadius: 12,
+                              background: '#fff',
+                              padding: 20,
+                              marginBottom: 16,
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontFamily: sans,
+                                fontSize: 10,
+                                fontWeight: 600,
+                                letterSpacing: '0.14em',
+                                textTransform: 'uppercase',
+                                color: 'rgba(0,0,0,0.36)',
+                                marginBottom: 8,
+                              }}
+                            >
+                              What are you doing in the next 48 hours?
+                            </div>
+                            <div
+                              style={{
+                                fontFamily: sans,
+                                fontSize: 12,
+                                color: 'rgba(0,0,0,0.50)',
+                                marginBottom: 12,
+                              }}
+                            >
+                              You cannot lock this verdict without answering.
+                            </div>
+                            <textarea
+                              value={commitment}
+                              onChange={(e) => setCommitment(e.target.value)}
+                              placeholder="I'm going to..."
+                              rows={4}
+                              style={{
+                                width: '100%',
+                                fontFamily: sans,
+                                fontSize: 14,
+                                lineHeight: 1.6,
+                                padding: '12px 14px',
+                                border: '1px solid rgba(0,0,0,0.12)',
+                                borderRadius: 8,
+                                resize: 'vertical',
+                                outline: 'none',
+                                marginBottom: 8,
+                              }}
+                            />
+                            <div
+                              style={{
+                                fontFamily: sans,
+                                fontSize: 11,
+                                color: 'rgba(0,0,0,0.40)',
+                                marginBottom: 16,
+                              }}
+                            >
+                              {commitment.trim().length} characters
+                            </div>
+                            <button
+                              type="button"
+                              onClick={handleLockVerdict}
+                              disabled={savingVerdict || commitment.trim().length < 10}
+                              style={{
+                                ...ctaButtonStyle,
+                                opacity: (savingVerdict || commitment.trim().length < 10) ? 0.4 : 1,
+                                cursor: (savingVerdict || commitment.trim().length < 10) ? 'not-allowed' : 'pointer',
+                                width: '100%',
+                              }}
+                            >
+                              {savingVerdict ? 'Saving...' : 'Lock this verdict'}
+                            </button>
+                          </div>
+
+                          {/* 4. Hallmark line */}
+                          <div
+                            style={{
+                              fontFamily: sans,
+                              fontSize: 11,
+                              fontStyle: 'italic',
+                              color: 'rgba(0,0,0,0.30)',
+                              textAlign: 'center',
+                              marginTop: 8,
+                            }}
+                          >
+                            Reviewed against the Decision Layer standard.
                           </div>
 
                         </>

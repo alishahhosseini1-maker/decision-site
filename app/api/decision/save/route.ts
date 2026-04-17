@@ -43,6 +43,7 @@ export async function POST(req: Request) {
       // deep review and notes
       deep_review: body.deep_review ?? null,
       final_thoughts: body.final_thoughts ?? null,
+      commitment: body.commitment ?? null,
 
       outcome_status: 'awaiting_outcome',
       needs_follow_up: false,
