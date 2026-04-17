@@ -22,6 +22,9 @@ type DecisionRecord = {
   trap: string | null;
   exit: string | null;
   step: string | null;
+  script: string | null;
+  tripwire: string | null;
+  failure_modes: string[] | null;
   deep_review: string | null;
   final_thoughts: string | null;
   outcome_status: string | null;
@@ -543,7 +546,7 @@ export default function DecisionSummaryPage() {
 
         let query = supabase
           .from('decisions')
-          .select('id, user_id, decision, context, score, readiness_clarity, readiness_assumptions, readiness_reversibility, readiness_risk, readiness_exit_logic, verdict, door, hinge, lock, trap, exit, step, deep_review, final_thoughts, outcome_status, needs_follow_up, created_at, dismissed_at')
+          .select('id, user_id, decision, context, score, readiness_clarity, readiness_assumptions, readiness_reversibility, readiness_risk, readiness_exit_logic, verdict, door, hinge, lock, trap, exit, step, script, tripwire, failure_modes, deep_review, final_thoughts, outcome_status, needs_follow_up, created_at, dismissed_at')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(1);
@@ -551,7 +554,7 @@ export default function DecisionSummaryPage() {
         if (id) {
           query = supabase
             .from('decisions')
-            .select('id, user_id, decision, context, score, readiness_clarity, readiness_assumptions, readiness_reversibility, readiness_risk, readiness_exit_logic, verdict, door, hinge, lock, trap, exit, step, deep_review, final_thoughts, outcome_status, needs_follow_up, created_at, dismissed_at')
+            .select('id, user_id, decision, context, score, readiness_clarity, readiness_assumptions, readiness_reversibility, readiness_risk, readiness_exit_logic, verdict, door, hinge, lock, trap, exit, step, script, tripwire, failure_modes, deep_review, final_thoughts, outcome_status, needs_follow_up, created_at, dismissed_at')
             .eq('id', id)
             .eq('user_id', user.id)
             .limit(1);
@@ -1039,6 +1042,8 @@ export default function DecisionSummaryPage() {
             <AnatomyRow label="Trap" sublabel="hidden failure risk" value={decision.trap} highlight />
             <AnatomyRow label="Exit" sublabel="escape condition" value={decision.exit} />
             <AnatomyRow label="Step" sublabel="next survivable move" value={decision.step} />
+            <AnatomyRow label="Script" sublabel="exact words to use" value={decision.script} />
+            <AnatomyRow label="Tripwire" sublabel="stop signal" value={decision.tripwire} highlight />
           </div>
         </section>
 

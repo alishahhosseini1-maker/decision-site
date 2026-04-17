@@ -68,6 +68,9 @@ type ReviewResult = {
     trap: string;
     exit: string;
     step: string;
+    script: string;
+    tripwire: string;
+    failure_modes: string[];
   };
 };
 
@@ -767,6 +770,9 @@ export default function HomePage() {
             trap: saved.reviewResult?.snapshot?.trap ?? null,
             exit: saved.reviewResult?.snapshot?.exit ?? null,
             step: saved.reviewResult?.snapshot?.step ?? null,
+            script: saved.reviewResult?.snapshot?.script ?? null,
+            tripwire: saved.reviewResult?.snapshot?.tripwire ?? null,
+            failure_modes: saved.reviewResult?.snapshot?.failure_modes ?? null,
             deep_review: saved.deepReview ?? null,
             final_thoughts: saved.finalThoughts ?? null,
             outcome_status: 'awaiting_outcome',
@@ -1173,6 +1179,9 @@ export default function HomePage() {
           trap: data.snapshot?.trap ?? null,
           exit: data.snapshot?.exit ?? null,
           step: data.snapshot?.step ?? null,
+          script: data.snapshot?.script ?? null,
+          tripwire: data.snapshot?.tripwire ?? null,
+          failure_modes: data.snapshot?.failure_modes ?? null,
           verdict: null,
           deep_review: null,
           final_thoughts: null,
@@ -1353,8 +1362,13 @@ export default function HomePage() {
           verdict,
           door: reviewResult?.snapshot?.door ?? null,
           hinge: reviewResult?.snapshot?.hinge ?? null,
+          lock: reviewResult?.snapshot?.lock ?? null,
           trap: reviewResult?.snapshot?.trap ?? null,
+          exit: reviewResult?.snapshot?.exit ?? null,
           step: reviewResult?.snapshot?.step ?? null,
+          script: reviewResult?.snapshot?.script ?? null,
+          tripwire: reviewResult?.snapshot?.tripwire ?? null,
+          failure_modes: reviewResult?.snapshot?.failure_modes ?? null,
           deep_review: deepReview ?? null,
           final_thoughts: finalThoughts ?? null,
           outcome_status: 'awaiting_outcome',

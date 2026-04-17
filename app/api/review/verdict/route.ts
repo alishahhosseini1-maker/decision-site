@@ -30,14 +30,16 @@ export async function POST(req: Request) {
 The user has already reviewed risks, seen the anatomy, and written their thoughts.
 Do not restate what they already know. Add the one thing the review has not yet said.
 
-OUTPUT STRUCTURE — return exactly this format:
+OUTPUT STRUCTURE — return exactly this format (do not include section labels in your output):
 
-VERDICT (3 sentences, no labels, no bullets):
-1. Do not [specific action] until [specific condition that has not yet been named in this review].
-2. [Read the user's notes and name the specific gap, assumption, or missing data point they have not resolved — one declarative sentence, no hedging, no psychology].
-3. When [clear, concrete condition], this becomes a survivable move.
+First, write 3 verdict sentences (no labels, no bullets, no numbers):
+- Do not [specific action] until [specific condition that has not yet been named in this review].
+- [Read the user's notes and name the specific gap, assumption, or missing data point they have not resolved — one declarative sentence, no hedging, no psychology].
+- When [clear, concrete condition], this becomes a survivable move.
 
-STEP
+Then on a new line after a blank line, add:
+
+STEP:
 Hyper-specific and executable today. Include who to contact, exactly what to ask or do, and by when. No general advice. Example: instead of "validate your re-entry assumptions" write "this week, message 3 former colleagues at FAANG-tier companies and ask specifically: what comp did people return at after an 18-month gap, and are your teams currently hiring senior ICs or freezing headcount."
 
 SCRIPT
