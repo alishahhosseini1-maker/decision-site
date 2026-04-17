@@ -502,6 +502,20 @@ function EvidenceRow({ tag, text, highlight }: { tag: string; text: string; high
 
 function AnatomyRow({ label, sublabel, value, highlight }: { label: string; sublabel: string; value?: string | null; highlight?: boolean }) {
   if (!value) return null;
+
+  // Special layout for Tripwire: full-width with label on its own line
+  if (label === 'Tripwire') {
+    return (
+      <div className="border-b border-black/6 py-3 last:border-b-0">
+        <p className={`text-[9.5px] font-medium uppercase tracking-[0.11em] ${highlight ? 'text-black/55' : 'text-black/36'}`}>
+          {label}:
+        </p>
+        <p className="text-[9.5px] text-black/28 mb-2">{sublabel}</p>
+        <p className={`text-sm leading-6 ${highlight ? 'font-medium text-black' : 'text-black/72'}`}>{value}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-[100px_1fr] items-baseline gap-0 border-b border-black/6 py-3 last:border-b-0">
       <div>
@@ -972,7 +986,7 @@ export default function DecisionSummaryPage() {
               {buildWhatsWorking(decision).map((item, i) => (
                 <div key={i} className="flex gap-3">
                   <span className="text-green-600 text-sm mt-0.5">✓</span>
-                  <p className="text-sm leading-6 text-black/75">{item}</p>
+                  <p className="text-sm leading-6 text-black/75">{renderMarkdown(item)}</p>
                 </div>
               ))}
             </div>
@@ -1047,10 +1061,9 @@ export default function DecisionSummaryPage() {
           </div>
         </section>
 
-        {/* ── COMPARISON OVER TIME ── */}
+        {/* ── RECENT DECISIONS ── */}
         <section className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-black/36">Comparison over time</p>
-          <p className="mt-1 text-xs text-black/40">A lighter historical view. Useful for trend, but secondary to the current decision.</p>
+          <p className="text-[10px] uppercase tracking-[0.18em] text-black/36">Recent decisions</p>
 
           {allComparisonRows.length === 0 ? (
             <p className="mt-4 text-sm text-black/40">No prior decisions to compare yet.</p>
