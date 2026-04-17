@@ -202,6 +202,8 @@ function buildInsight(decision?: DecisionRecord | null) {
 function buildWhatOthersMiss(decision?: DecisionRecord | null) {
   if (!decision) return '—';
 
+  console.log('[buildWhatOthersMiss] decision.what_others_miss:', decision.what_others_miss);
+
   // Use LLM-generated what_others_miss if available
   if (decision.what_others_miss?.trim()) {
     return decision.what_others_miss;
@@ -269,6 +271,8 @@ function buildWhatToDoNow(decision?: DecisionRecord | null) {
 
 function buildIfDelayed(decision?: DecisionRecord | null) {
   if (!decision) return '—';
+
+  console.log('[buildIfDelayed] decision.if_delayed:', decision.if_delayed);
 
   // Use LLM-generated if_delayed if available
   if (decision.if_delayed?.trim()) {
