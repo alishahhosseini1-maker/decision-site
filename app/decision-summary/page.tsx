@@ -577,7 +577,7 @@ export default function DecisionSummaryPage() {
 
         let query = supabase
           .from('decisions')
-          .select('id, user_id, decision, context, score, readiness_clarity, readiness_assumptions, readiness_reversibility, readiness_risk, readiness_exit_logic, verdict, door, hinge, lock, trap, exit, step, script, tripwire, failure_modes, deep_review, final_thoughts, outcome_status, needs_follow_up, created_at, dismissed_at')
+          .select('id, user_id, decision, context, score, readiness_clarity, readiness_assumptions, readiness_reversibility, readiness_risk, readiness_exit_logic, verdict, door, hinge, lock, trap, exit, step, script, tripwire, failure_modes, if_delayed, what_others_miss, deep_review, final_thoughts, outcome_status, needs_follow_up, created_at, dismissed_at')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(1);
@@ -585,7 +585,7 @@ export default function DecisionSummaryPage() {
         if (id) {
           query = supabase
             .from('decisions')
-            .select('id, user_id, decision, context, score, readiness_clarity, readiness_assumptions, readiness_reversibility, readiness_risk, readiness_exit_logic, verdict, door, hinge, lock, trap, exit, step, script, tripwire, failure_modes, deep_review, final_thoughts, outcome_status, needs_follow_up, created_at, dismissed_at')
+            .select('id, user_id, decision, context, score, readiness_clarity, readiness_assumptions, readiness_reversibility, readiness_risk, readiness_exit_logic, verdict, door, hinge, lock, trap, exit, step, script, tripwire, failure_modes, if_delayed, what_others_miss, deep_review, final_thoughts, outcome_status, needs_follow_up, created_at, dismissed_at')
             .eq('id', id)
             .eq('user_id', user.id)
             .limit(1);

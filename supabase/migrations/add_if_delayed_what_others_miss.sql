@@ -1,0 +1,3 @@
+ALTER TABLE decisions
+ADD COLUMN IF NOT EXISTS if_delayed TEXT,
+ADD COLUMN IF NOT EXISTS what_others_miss TEXT;

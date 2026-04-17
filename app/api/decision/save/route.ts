@@ -37,6 +37,8 @@ export async function POST(req: Request) {
       script: body.script ?? null,
       tripwire: body.tripwire ?? null,
       failure_modes: body.failure_modes ?? null,
+      if_delayed: body.if_delayed ?? null,
+      what_others_miss: body.what_others_miss ?? null,
 
       // deep review and notes
       deep_review: body.deep_review ?? null,
