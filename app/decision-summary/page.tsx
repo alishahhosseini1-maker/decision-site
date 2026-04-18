@@ -995,32 +995,6 @@ export default function DecisionSummaryPage() {
           </p>
         </section>
 
-        {/* ── WHAT'S WORKING / WHAT'S BREAKING ── */}
-        <section className="grid gap-6 md:grid-cols-2">
-          <div className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
-            <p className="text-[10px] uppercase tracking-[0.18em] text-black/36 mb-4">What&apos;s working</p>
-            <div className="space-y-3">
-              {buildWhatsWorking(decision).map((item, i) => (
-                <div key={i} className="flex gap-3">
-                  <span className="text-green-600 text-sm mt-0.5">✓</span>
-                  <p className="text-sm leading-6 text-black/75">{item}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
-            <p className="text-[10px] uppercase tracking-[0.18em] text-black/36 mb-4">What&apos;s breaking</p>
-            <div className="space-y-3">
-              {buildWhatsBreaking(decision).map((item, i) => (
-                <div key={i} className="flex gap-3">
-                  <span className="text-red-600 text-sm mt-0.5">✗</span>
-                  <p className="text-sm leading-6 text-black/75">{item}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* ── EVIDENCE: Threat / Hinge / Trap ── */}
         <section className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
           <p className="text-[10px] uppercase tracking-[0.18em] text-black/36 mb-1">Evidence</p>
@@ -1062,21 +1036,6 @@ export default function DecisionSummaryPage() {
             </div>
           </section>
         ) : null}
-
-        {/* ── RECORD: Decision anatomy ── */}
-        <section className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-black/36 mb-3">Decision anatomy</p>
-          <div className="border-t border-black/6">
-            <AnatomyRow label="Door" sublabel="type of decision" value={decision.door} />
-            <AnatomyRow label="Hinge" sublabel="what must be true" value={decision.hinge} highlight />
-            <AnatomyRow label="Lock" sublabel="commitment mechanism" value={decision.lock} />
-            <AnatomyRow label="Trap" sublabel="hidden failure risk" value={decision.trap} highlight />
-            <AnatomyRow label="Exit" sublabel="escape condition" value={decision.exit} />
-            <AnatomyRow label="Step" sublabel="next survivable move" value={decision.step} />
-            <AnatomyRow label="Script" sublabel="exact words to use" value={decision.script} />
-            <AnatomyRow label="Walk away if" sublabel="" value={decision.tripwire} highlight />
-          </div>
-        </section>
 
         {/* ── RECENT DECISIONS ── */}
         <section className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
