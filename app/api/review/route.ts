@@ -167,22 +167,19 @@ A hard decision with real uncertainty should score 50-65.
 Do not inflate scores to be encouraging.
 If you are unsure whether to score 72 or 68, score 68.
 
-RATIONALE FIELDS — CRITICAL SCORING REQUIREMENT:
-Each readiness rationale value MUST reference the actual decision context.
-Generic statements that could apply to any decision are WRONG outputs.
-Every rationale must include at least one of: a specific number, a named person/role, a concrete constraint, or a named action from this decision.
+RATIONALE FIELDS — CRITICAL:
+You must write a rationale for each of the 5 readiness scores. Each rationale must:
+- Name a specific number, person, named risk, or condition from THIS decision
+- Explain why THIS specific factor received THIS specific score
+- Never be advice or a recommendation
+- Never be generic — if it could appear on a different decision unchanged, it is wrong
 
-rationale.clarity - Must name what specific aspect of the outcome is unclear in THIS decision. Reference the actual goal, metric, or success condition mentioned. Wrong: "Clarity of the outcome needs more definition." Right: "Your 'profitability in 18 months' goal doesn't define the minimum monthly revenue or margin required."
-
-rationale.assumptions - Must name the specific assumption from THIS decision that needs validation. Reference actual numbers, people, or conditions the user mentioned or implied. Wrong: "Key assumptions are not yet verified." Right: "You assume your top 3 accounts will renew without talking to them about the ownership change."
-
-rationale.reversibility - Must name what specific cost, relationship, or option becomes hard to undo in THIS decision. Wrong: "The cost of reversing this decision is significant." Right: "Once you sign the 3-year lease and pay $18K in buildout costs, exiting early means forfeit."
-
-rationale.risk - Must name the specific downside mechanism in THIS decision. Reference actual stakes, constraints, or failure modes from the decision. Wrong: "The downside has not been fully mapped." Right: "If the business doesn't hit $15K/month by month 6, you're below debt service with no buffer."
-
-rationale.exitLogic - Must reference THIS decision's actual exit condition or signal. Wrong: "No clear signal defined for when to stop." Right: "You haven't named the conversion rate or churn threshold that would mean this pricing change failed."
-
-Max 15 words per rationale. Must be specific to this decision. If your rationale could apply to any decision, it is wrong and you must rewrite it.
+Examples for a job offer decision:
+- clarity: 'You have not defined what compensation number would make this worth the mortgage risk with two kids.'
+- assumptions: 'The 0.4% equity assumes a $50M+ exit — you have not calculated what that requires at Series B valuation.'
+- reversibility: 'Leaving a 3-year tenure resets your seniority track and the 1-year cliff means you get nothing if the startup fails in month 11.'
+- risk: 'The 18-month runway means the company could run out of money before your equity vests.'
+- exitLogic: 'You have no named condition that would tell you the startup is failing before you are too deep to leave cleanly.'
 
 VERDICT STANDARD:
 Your recommendedMove must create mild discomfort.
