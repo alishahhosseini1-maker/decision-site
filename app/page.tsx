@@ -1566,6 +1566,20 @@ export default function HomePage() {
   const deepReviewSections = parseDeepReviewSections(visibleDeepReview);
 
   const stripMarkdownBold = (text: string) => text.replace(/\*\*(.*?)\*\*/g, '$1').replace(/__(.*?)__/g, '$1');
+
+  const parseVerdict = (text: string | null) => {
+    if (!text) return { ruling: '', whenThisChanges: '' };
+    const parts = text.split('WHEN_THIS_CHANGES:');
+    const rulingText = parts[0].trim();
+    let whenThisChanges = '';
+    if (parts[1]) {
+      const lines = parts[1].trim().split('\n');
+      whenThisChanges = lines[0].trim();
+    }
+    return { ruling: rulingText, whenThisChanges: whenThisChanges };
+  };
+
+  const { ruling, whenThisChanges } = parseVerdict(verdict);
   const verdictParts = verdict ? verdict.split('\n\n') : [];
   const verdictTitle = stripMarkdownBold(verdictParts[0] ?? '');
   const verdictReason = stripMarkdownBold(verdictParts.slice(1).join('\n\n'));
@@ -2757,52 +2771,6 @@ export default function HomePage() {
                       />
                     </div>
 
-                    {/* Reasoning — Unpack the review */}
-                    <div
-                      style={{
-                        padding: '1.75rem 0',
-                        borderBottom: '0.5px solid rgba(0,0,0,0.09)',
-                      }}
-                    >
-                      <Z2Label>Reasoning</Z2Label>
-                      {deepLoading ? (
-                        <div style={{ fontFamily: sans, fontSize: 13, color: 'rgba(0,0,0,0.42)', padding: '8px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: '50%', background: 'rgba(0,0,0,0.18)', animation: 'pulse 1.2s ease-in-out infinite' }} />
-                          Analysing...
-                        </div>
-                      ) : deepReviewSections.length === 0 ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start' }}>
-                          {deepError && (
-                            <div style={{ fontFamily: sans, fontSize: 12, color: '#A32D2D', marginBottom: 4 }}>
-                              {deepError}
-                            </div>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => void loadDeepReview()}
-                            style={{
-                              ...lightButtonStyle,
-                              fontSize: 12.5,
-                              padding: '9px 16px',
-                            }}
-                          >
-                            {deepError ? 'Retry ↓' : 'Unpack the review ↓'}
-                          </button>
-                        </div>
-                      ) : (
-                        <div style={{ borderTop: '0.5px solid rgba(0,0,0,0.07)' }}>
-                          {deepReviewSections.map((section) => (
-                            <AccordionRow
-                              key={section.heading}
-                              heading={section.heading}
-                              lines={section.lines}
-                              isOpen={openBreakdownSections[section.heading.toLowerCase()] !== false}
-                              onToggle={() => toggleBreakdownSection(section.heading)}
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </div>
                     <div style={{ padding: '1.75rem 0' }}>
                       {/* Commit gate */}
                       <div
@@ -2886,20 +2854,6 @@ export default function HomePage() {
                         padding: '26px 26px 32px',
                       }}
                     >
-                      <div
-                        style={{
-                          fontFamily: sans,
-                          fontSize: 10,
-                          fontWeight: 500,
-                          letterSpacing: '0.14em',
-                          textTransform: 'uppercase',
-                          color: 'rgba(0,0,0,0.36)',
-                          marginBottom: '0.85rem',
-                        }}
-                      >
-                        Commitment rule
-                      </div>
-
                       {verdictLoading ? (
                         <div style={{ fontFamily: sans, fontSize: 13.5, opacity: 0.55 }}>
                           Generating final verdict...
@@ -2911,7 +2865,7 @@ export default function HomePage() {
                             style={{
                               border: '1px solid rgba(0,0,0,0.10)',
                               borderRadius: 12,
-                              background: '#fff',
+                              background: '#0a0a0a',
                               padding: 20,
                               marginBottom: 16,
                             }}
@@ -2923,7 +2877,7 @@ export default function HomePage() {
                                 fontWeight: 600,
                                 letterSpacing: '0.14em',
                                 textTransform: 'uppercase',
-                                color: 'rgba(0,0,0,0.36)',
+                                color: 'rgba(255,255,255,0.40)',
                                 marginBottom: 12,
                               }}
                             >
@@ -2935,20 +2889,25 @@ export default function HomePage() {
                                 fontSize: 15,
                                 fontWeight: 400,
                                 lineHeight: 1.75,
-                                color: '#111',
+                                color: '#fff',
                               }}
-                            >
-                              {verdictParts[0] || ''}
-                            </div>
+                              dangerouslySetInnerHTML={{
+                                __html: ruling.replace(
+                                  /(This decision is not ready to commit\.)/g,
+                                  '<span style="color: #dc2626; font-size: 17px; font-weight: 500;">$1</span>'
+                                ),
+                              }}
+                            />
                           </div>
 
                           {/* 2. WHEN THIS CHANGES card */}
-                          {verdictParts[1] && (
+                          {whenThisChanges && (
                             <div
                               style={{
                                 border: '1px solid rgba(0,0,0,0.10)',
                                 borderRadius: 12,
-                                background: '#fff',
+                                background: '#fafafa',
+                                borderLeft: '3px solid #dc2626',
                                 padding: 20,
                                 marginBottom: 16,
                               }}
@@ -2975,7 +2934,7 @@ export default function HomePage() {
                                   color: 'rgba(0,0,0,0.75)',
                                 }}
                               >
-                                {verdictParts[1]}
+                                {whenThisChanges}
                               </div>
                             </div>
                           )}
@@ -2994,7 +2953,7 @@ export default function HomePage() {
                               style={{
                                 fontFamily: sans,
                                 fontSize: 10,
-                                fontWeight: 600,
+                                fontWeight: 700,
                                 letterSpacing: '0.14em',
                                 textTransform: 'uppercase',
                                 color: 'rgba(0,0,0,0.36)',
@@ -3046,8 +3005,14 @@ export default function HomePage() {
                               onClick={handleLockVerdict}
                               disabled={savingVerdict || commitment.trim().length < 10}
                               style={{
-                                ...ctaButtonStyle,
-                                opacity: (savingVerdict || commitment.trim().length < 10) ? 0.4 : 1,
+                                fontFamily: sans,
+                                fontSize: 13,
+                                fontWeight: 500,
+                                padding: '11px 18px',
+                                borderRadius: 10,
+                                border: 'none',
+                                background: (savingVerdict || commitment.trim().length < 10) ? 'rgba(0,0,0,0.3)' : '#000',
+                                color: '#fff',
                                 cursor: (savingVerdict || commitment.trim().length < 10) ? 'not-allowed' : 'pointer',
                                 width: '100%',
                               }}
@@ -3070,127 +3035,6 @@ export default function HomePage() {
                             Reviewed against the Decision Layer standard.
                           </div>
 
-                        </>
-                      )}
-
-                      {verdict && !verdictLoading && (
-                        <>
-                          <RowDivider />
-                          {!decisionId ? (
-                            <>
-                              <div
-                                style={{
-                                  fontFamily: sans,
-                                  fontSize: 10,
-                                  fontWeight: 500,
-                                  letterSpacing: '0.12em',
-                                  textTransform: 'uppercase',
-                                  color: 'rgba(0,0,0,0.36)',
-                                  marginBottom: 8,
-                                }}
-                              >
-                                Lock your decision
-                              </div>
-                              <div
-                                style={{
-                                  fontFamily: sans,
-                                  fontSize: 13.5,
-                                  lineHeight: 1.55,
-                                  opacity: 0.65,
-                                  marginBottom: 14,
-                                }}
-                              >
-                                {!user
-                                  ? 'Decisions you don’t write down disappear. Keep this one.'
-                                  : 'Signed in. Your decision is ready to lock.'}
-                              </div>
-                              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                                <button
-                                  type="button"
-                                  onClick={handleLockVerdict}
-                                  disabled={savingVerdict}
-                                  style={{
-                                    ...ctaButtonStyle,
-                                    opacity: savingVerdict ? 0.72 : 1,
-                                    cursor: savingVerdict ? 'default' : 'pointer',
-                                  }}
-                                >
-                                  {savingVerdict ? 'Saving...' : user ? 'Lock in verdict' : 'Keep this verdict →'}
-                                </button>
-                              </div>
-                              {signInEmailSent && (
-                                <div
-                                  style={{
-                                    marginTop: 12,
-                                    borderRadius: 10,
-                                    border: '1px solid rgba(0,0,0,0.10)',
-                                    background: 'rgba(0,0,0,0.02)',
-                                    padding: '10px 14px',
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'flex-start',
-                                    gap: 10,
-                                  }}
-                                >
-                                  <div>
-                                    <div style={{ fontFamily: sans, fontSize: 13, fontWeight: 600, color: '#111', marginBottom: 3 }}>
-                                      Check your email for the sign-in link.
-                                    </div>
-                                    <div style={{ fontFamily: sans, fontSize: 12, color: 'rgba(0,0,0,0.50)', lineHeight: 1.5 }}>
-                                      Don&apos;t see it? Check your junk or spam folder.
-                                    </div>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => setSignInEmailSent(false)}
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: 'rgba(0,0,0,0.30)', padding: 0, flexShrink: 0 }}
-                                  >
-                                    ×
-                                  </button>
-                                </div>
-                              )}
-                            </>
-                          ) : (
-                            <>
-                              <div
-                                style={{
-                                  fontFamily: sans,
-                                  fontSize: 10,
-                                  fontWeight: 500,
-                                  letterSpacing: '0.12em',
-                                  textTransform: 'uppercase',
-                                  color: 'rgba(0,0,0,0.36)',
-                                  marginBottom: 8,
-                                }}
-                              >
-                                Decision locked
-                              </div>
-                              <div
-                                style={{
-                                  fontFamily: sans,
-                                  fontSize: 13.5,
-                                  lineHeight: 1.55,
-                                  opacity: 0.65,
-                                  marginBottom: 14,
-                                }}
-                              >
-                                Your decision is saved. View the full brief to see the verdict, risks, and next move.
-                              </div>
-                              <a
-                                href={`/decision-summary?id=${decisionId}`}
-                                style={{
-                                  ...ctaButtonStyle,
-                                  fontSize: 12,
-                                  padding: '10px 18px',
-                                  textDecoration: 'none',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                }}
-                              >
-                                View Decision Brief →
-                              </a>
-                            </>
-                          )}
                         </>
                       )}
                     </div>

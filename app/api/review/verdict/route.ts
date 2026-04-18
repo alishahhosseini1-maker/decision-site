@@ -32,12 +32,15 @@ Do not restate what they already know. Add the one thing the review has not yet 
 
 OUTPUT STRUCTURE — return exactly this format (do not include section labels in your output):
 
-First, write 3 verdict sentences (no labels, no bullets, no numbers):
+First, write 3 verdict sentences ending with either "This decision is ready to commit." or "This decision is not ready to commit." (no labels, no bullets, no numbers):
 - Do not [specific action] until [specific condition that has not yet been named in this review].
 - [Read the user's notes and name the specific gap, assumption, or missing data point they have not resolved — one declarative sentence, no hedging, no psychology].
-- When [clear, concrete condition], this becomes a survivable move.
+- [Final sentence ending with either "This decision is ready to commit." or "This decision is not ready to commit."]
 
 Then on a new line after a blank line, add:
+
+WHEN_THIS_CHANGES:
+One sentence only. State the single condition that would change this ruling from not ready to ready. Must be specific and measurable. Example: "When you have 6 months runway instead of 3, this becomes survivable."
 
 STEP:
 Hyper-specific and executable today. Include who to contact, exactly what to ask or do, and by when. No general advice. Example: instead of "validate your re-entry assumptions" write "this week, message 3 former colleagues at FAANG-tier companies and ask specifically: what comp did people return at after an 18-month gap, and are your teams currently hiring senior ICs or freezing headcount."
