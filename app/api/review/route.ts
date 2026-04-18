@@ -444,11 +444,11 @@ Return raw JSON only.
           'The main constraint is not strong enough yet.'
         ),
         rationale: {
-          clarity: asString(parsed?.readiness?.rationale?.clarity, 'Clarity of the outcome needs more definition.'),
-          assumptions: asString(parsed?.readiness?.rationale?.assumptions, 'Key assumptions are not yet verified.'),
-          reversibility: asString(parsed?.readiness?.rationale?.reversibility, 'The cost of reversing this decision is significant.'),
-          risk: asString(parsed?.readiness?.rationale?.risk, 'The downside has not been fully mapped.'),
-          exitLogic: asString(parsed?.readiness?.rationale?.exitLogic, 'No clear signal defined for when to stop.'),
+          clarity: asString(parsed?.readiness?.rationale?.clarity, ''),
+          assumptions: asString(parsed?.readiness?.rationale?.assumptions, ''),
+          reversibility: asString(parsed?.readiness?.rationale?.reversibility, ''),
+          risk: asString(parsed?.readiness?.rationale?.risk, ''),
+          exitLogic: asString(parsed?.readiness?.rationale?.exitLogic, ''),
         },
       },
       topline: {
