@@ -3003,7 +3003,7 @@ export default function HomePage() {
                             <button
                               type="button"
                               onClick={handleLockVerdict}
-                              disabled={savingVerdict || commitment.trim().length < 10}
+                              disabled={savingVerdict || commitment.trim().length < 10 || decisionId !== null}
                               style={{
                                 fontFamily: sans,
                                 fontSize: 13,
@@ -3011,14 +3011,50 @@ export default function HomePage() {
                                 padding: '11px 18px',
                                 borderRadius: 10,
                                 border: 'none',
-                                background: (savingVerdict || commitment.trim().length < 10) ? 'rgba(0,0,0,0.3)' : '#000',
+                                background: decisionId ? '#16a34a' : (savingVerdict || commitment.trim().length < 10) ? 'rgba(0,0,0,0.3)' : '#000',
                                 color: '#fff',
-                                cursor: (savingVerdict || commitment.trim().length < 10) ? 'not-allowed' : 'pointer',
+                                cursor: (savingVerdict || commitment.trim().length < 10 || decisionId) ? 'not-allowed' : 'pointer',
                                 width: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: 8,
                               }}
                             >
-                              {savingVerdict ? 'Saving...' : 'Lock this verdict'}
+                              {decisionId ? (
+                                <>
+                                  <span style={{ fontSize: 16 }}>✓</span>
+                                  <span>Verdict locked</span>
+                                </>
+                              ) : savingVerdict ? (
+                                'Saving...'
+                              ) : (
+                                'Lock this verdict'
+                              )}
                             </button>
+                            {decisionId && (
+                              <div
+                                style={{
+                                  marginTop: 14,
+                                  fontFamily: sans,
+                                  fontSize: 13,
+                                  textAlign: 'center',
+                                  color: 'rgba(0,0,0,0.65)',
+                                }}
+                              >
+                                Your brief is ready.{' '}
+                                <a
+                                  href={`/decision-summary?id=${decisionId}`}
+                                  style={{
+                                    color: '#0b0b0b',
+                                    fontWeight: 600,
+                                    textDecoration: 'none',
+                                  }}
+                                >
+                                  View Decision Brief →
+                                </a>
+                              </div>
+                            )}
                           </div>
 
                           {/* 4. Hallmark line */}
