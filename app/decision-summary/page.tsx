@@ -15,6 +15,11 @@ type DecisionRecord = {
   readiness_reversibility: number | null;
   readiness_risk: number | null;
   readiness_exit_logic: number | null;
+  readiness_rationale_clarity: string | null;
+  readiness_rationale_assumptions: string | null;
+  readiness_rationale_reversibility: string | null;
+  readiness_rationale_risk: string | null;
+  readiness_rationale_exit_logic: string | null;
   verdict: string | null;
   door: string | null;
   hinge: string | null;
@@ -118,39 +123,29 @@ function getProgressColor(value?: number | null) {
 }
 
 function getFactorHint(name: string, value: number | null, decision: DecisionRecord | null) {
-  const score = value ?? 0;
-  const isLow = score <= 6;
-  const isMid = score > 6 && score <= 13;
-
-  switch (name) {
-    case 'Clarity':
-      if (isLow) return 'Success criteria are vague or missing. You need to define what done looks like before committing.';
-      if (isMid) return 'Success is defined but may lack measurable specifics or clear boundaries.';
-      return 'Success criteria are clear and measurable.';
-
-    case 'Assumptions':
-      if (isLow) return 'Critical assumptions have not been validated. Test the riskiest ones before proceeding.';
-      if (isMid) return 'Some assumptions identified but validation is incomplete or superficial.';
-      return 'Key assumptions have been identified and tested.';
-
-    case 'Reversibility':
-      if (isLow) return 'High sunk costs or irreversible commitments. Make sure you can survive if this fails.';
-      if (isMid) return 'Some costs can be recovered, but reversal would be costly or painful.';
-      return 'Decision is mostly reversible with manageable costs.';
-
-    case 'Risk':
-      if (isLow) return 'Worst-case scenario is poorly understood or potentially catastrophic. Map the downside.';
-      if (isMid) return 'Downside is identified but mitigation plan may be incomplete.';
-      return 'Worst-case scenario is understood and survivable.';
-
-    case 'Exit Logic':
-      if (isLow) return 'No clear exit condition defined. You risk staying in too long if things go wrong.';
-      if (isMid) return 'Exit condition exists but may be too vague or easy to rationalize away.';
-      return 'Clear exit condition is defined and will be hard to ignore.';
-
-    default:
-      return 'Assessment based on decision specifics.';
+  // Use LLM-generated rationale if available
+  if (decision) {
+    switch (name) {
+      case 'Clarity':
+        if (decision.readiness_rationale_clarity?.trim()) return decision.readiness_rationale_clarity;
+        break;
+      case 'Assumptions':
+        if (decision.readiness_rationale_assumptions?.trim()) return decision.readiness_rationale_assumptions;
+        break;
+      case 'Reversibility':
+        if (decision.readiness_rationale_reversibility?.trim()) return decision.readiness_rationale_reversibility;
+        break;
+      case 'Risk':
+        if (decision.readiness_rationale_risk?.trim()) return decision.readiness_rationale_risk;
+        break;
+      case 'Exit Logic':
+        if (decision.readiness_rationale_exit_logic?.trim()) return decision.readiness_rationale_exit_logic;
+        break;
+    }
   }
+
+  // Fallback to empty string if no LLM-generated rationale
+  return '';
 }
 
 function splitVerdict(verdict?: string | null) {
@@ -577,7 +572,7 @@ export default function DecisionSummaryPage() {
 
         let query = supabase
           .from('decisions')
-          .select('id, user_id, decision, context, score, readiness_clarity, readiness_assumptions, readiness_reversibility, readiness_risk, readiness_exit_logic, verdict, door, hinge, lock, trap, exit, step, script, tripwire, failure_modes, if_delayed, what_others_miss, deep_review, final_thoughts, outcome_status, needs_follow_up, created_at, dismissed_at')
+          .select('id, user_id, decision, context, score, readiness_clarity, readiness_assumptions, readiness_reversibility, readiness_risk, readiness_exit_logic, readiness_rationale_clarity, readiness_rationale_assumptions, readiness_rationale_reversibility, readiness_rationale_risk, readiness_rationale_exit_logic, verdict, door, hinge, lock, trap, exit, step, script, tripwire, failure_modes, if_delayed, what_others_miss, deep_review, final_thoughts, outcome_status, needs_follow_up, created_at, dismissed_at')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(1);
@@ -585,7 +580,7 @@ export default function DecisionSummaryPage() {
         if (id) {
           query = supabase
             .from('decisions')
-            .select('id, user_id, decision, context, score, readiness_clarity, readiness_assumptions, readiness_reversibility, readiness_risk, readiness_exit_logic, verdict, door, hinge, lock, trap, exit, step, script, tripwire, failure_modes, if_delayed, what_others_miss, deep_review, final_thoughts, outcome_status, needs_follow_up, created_at, dismissed_at')
+            .select('id, user_id, decision, context, score, readiness_clarity, readiness_assumptions, readiness_reversibility, readiness_risk, readiness_exit_logic, readiness_rationale_clarity, readiness_rationale_assumptions, readiness_rationale_reversibility, readiness_rationale_risk, readiness_rationale_exit_logic, verdict, door, hinge, lock, trap, exit, step, script, tripwire, failure_modes, if_delayed, what_others_miss, deep_review, final_thoughts, outcome_status, needs_follow_up, created_at, dismissed_at')
             .eq('id', id)
             .eq('user_id', user.id)
             .limit(1);

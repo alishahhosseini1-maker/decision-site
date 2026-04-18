@@ -27,6 +27,13 @@ export async function POST(req: Request) {
       readiness_risk: body.risk ?? null,
       readiness_exit_logic: body.exitLogic ?? null,
 
+      // readiness rationale
+      readiness_rationale_clarity: body.rationale_clarity ?? null,
+      readiness_rationale_assumptions: body.rationale_assumptions ?? null,
+      readiness_rationale_reversibility: body.rationale_reversibility ?? null,
+      readiness_rationale_risk: body.rationale_risk ?? null,
+      readiness_rationale_exit_logic: body.rationale_exit_logic ?? null,
+
       // structured decision fields
       door: body.door ?? null,
       hinge: body.hinge ?? null,
