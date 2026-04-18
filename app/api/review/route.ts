@@ -337,7 +337,41 @@ READINESS LABEL — label must be exactly one of:
 
 Each readiness score must be an integer from 0 to 20.
 total must equal the sum of the five scores.
-Each rationale value is one short sentence (max 12 words) tied to the actual decision context.
+
+RATIONALE FIELDS — CRITICAL REQUIREMENT:
+Each rationale value MUST reference the actual decision context.
+Generic statements that could apply to any decision are WRONG outputs.
+Every rationale must include at least one of: a specific number, a named person/role, a concrete constraint, or a named action from this decision.
+
+rationale.clarity:
+- Must name what specific aspect of the outcome is unclear in THIS decision.
+- Reference the actual goal, metric, or success condition mentioned.
+- Wrong: "Clarity of the outcome needs more definition."
+- Right: "Your 'profitability in 18 months' goal doesn't define the minimum monthly revenue or margin required."
+
+rationale.assumptions:
+- Must name the specific assumption from THIS decision that needs validation.
+- Reference actual numbers, people, or conditions the user mentioned or implied.
+- Wrong: "Key assumptions are not yet verified."
+- Right: "You assume your top 3 accounts will renew without talking to them about the ownership change."
+
+rationale.reversibility:
+- Must name what specific cost, relationship, or option becomes hard to undo in THIS decision.
+- Wrong: "The cost of reversing this decision is significant."
+- Right: "Once you sign the 3-year lease and pay $18K in buildout costs, exiting early means forfeit."
+
+rationale.risk:
+- Must name the specific downside mechanism in THIS decision.
+- Reference actual stakes, constraints, or failure modes from the decision.
+- Wrong: "The downside has not been fully mapped."
+- Right: "If the business doesn't hit $15K/month by month 6, you're below debt service with no buffer."
+
+rationale.exitLogic:
+- Must reference THIS decision's actual exit condition or signal.
+- Wrong: "No clear signal defined for when to stop."
+- Right: "You haven't named the conversion rate or churn threshold that would mean this pricing change failed."
+
+Max 15 words per rationale. Must be specific. If it could apply to any decision, rewrite it.
 `;
 
     const userPrompt = `
