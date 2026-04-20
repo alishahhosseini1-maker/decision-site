@@ -179,7 +179,7 @@ Examples for a job offer decision:
 - assumptions: 'The 0.4% equity assumes a $50M+ exit — you have not calculated what that requires at Series B valuation.'
 - reversibility: 'Leaving a 3-year tenure resets your seniority track and the 1-year cliff means you get nothing if the startup fails in month 11.'
 - risk: 'The 18-month runway means the company could run out of money before your equity vests.'
-- exitLogic: 'You have no named condition that would tell you the startup is failing before you are too deep to leave cleanly.'
+- exitLogic: 'Exit threshold: if runway drops below 9 months or Series B does not close by Q3 2026, leave before the cliff.'
 
 VERDICT STANDARD:
 Your recommendedMove must create mild discomfort.
@@ -202,7 +202,9 @@ door:
 hinge:
 - The single assumption that, if wrong, breaks everything.
 - Must be falsifiable. Must name a specific actor, number, or condition.
+- For valuation-dependent decisions: infer the likely valuation multiple range from the sector, growth rate, and business type mentioned. State a confidence level on that range (high if the context is specific enough to support it, low if the user needs to verify with a broker or comp data). Do not state multiples as fact — frame as "typical range" or "based on similar businesses."
 - Wrong: "Clients will stay." Right: "Your top 3 accounts will renew at the new rate without a loyalty discount."
+- Example (valuation): "The SDE multiple you're using (3.2x) assumes a typical range for a service business — confidence: low, verify with broker comps for your specific sector and margin profile."
 
 lock:
 - What specifically becomes irreversible after you commit.
@@ -215,8 +217,10 @@ trap:
 - Must make the person slightly uncomfortable because it is accurate.
 
 exit:
-- A concrete, measurable signal that means stop or reverse.
-- Must include a number or a date.
+- Generate a specific numerical threshold or measurable condition that triggers exit or reversal.
+- Build the threshold based on the decision context — infer from numbers, timeline, or constraints mentioned.
+- Must include a concrete number, percentage, date, or named metric.
+- Examples: revenue growth floor (e.g., "under $8K MRR by month 4"), margin floor (e.g., "gross margin drops below 40%"), competitive trigger (e.g., "competitor launches same feature within 60 days"), time horizon (e.g., "no signed LOI by Dec 15").
 - Wrong: "Things don't work out." Right: "Zero new conversions at the new price point within 45 days."
 
 step:

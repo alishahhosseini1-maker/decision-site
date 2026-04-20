@@ -32,10 +32,14 @@ Do not restate what they already know. Add the one thing the review has not yet 
 
 OUTPUT STRUCTURE — return exactly this format (do not include section labels in your output):
 
-First, write 3 verdict sentences ending with either "This decision is ready to commit." or "This decision is not ready to commit." (no labels, no bullets, no numbers):
-- Do not [specific action] until [specific condition that has not yet been named in this review].
-- [Read the user's notes and name the specific gap, assumption, or missing data point they have not resolved — one declarative sentence, no hedging, no psychology].
-- [Final sentence ending with either "This decision is ready to commit." or "This decision is not ready to commit."]
+VERDICT — EXACTLY 3 SENTENCES. NO MORE.
+Sentence 1: The ruling (what must or must not happen).
+Sentence 2: The single most important gap (one specific unresolved data point from the user's notes).
+Sentence 3: "This decision is ready to commit." OR "This decision is not ready to commit."
+
+If you write more than 3 sentences, you are violating the format.
+Do not include technical deal structure, financial mechanics, or operational details in the verdict — those belong in WHEN_THIS_CHANGES.
+No labels, no bullets, no numbers. Three sentences. Full stop.
 
 Then on a new line after a blank line, add:
 
