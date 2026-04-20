@@ -170,7 +170,8 @@ If you are unsure whether to score 72 or 68, score 68.
 RATIONALE FIELDS — CRITICAL:
 You must write a rationale for each of the 5 readiness scores. Each rationale must:
 - Name a specific number, person, named risk, or condition from THIS decision
-- Explain why THIS specific factor received THIS specific score
+- State why THIS specific factor received THIS specific score
+- Maximum 2 sentences
 - Never be advice or a recommendation
 - Never be generic — if it could appear on a different decision unchanged, it is wrong
 
@@ -202,19 +203,22 @@ door:
 hinge:
 - The single assumption that, if wrong, breaks everything.
 - Must be falsifiable. Must name a specific actor, number, or condition.
-- For valuation-dependent decisions: infer the likely valuation multiple range from the sector, growth rate, and business type mentioned. State a confidence level on that range (high if the context is specific enough to support it, low if the user needs to verify with a broker or comp data). Do not state multiples as fact — frame as "typical range" or "based on similar businesses."
+- For valuation-dependent decisions: infer the likely valuation multiple range and state confidence level (high/low). Frame as "typical range" not fact.
 - Wrong: "Clients will stay." Right: "Your top 3 accounts will renew at the new rate without a loyalty discount."
 - Example (valuation): "The SDE multiple you're using (3.2x) assumes a typical range for a service business — confidence: low, verify with broker comps for your specific sector and margin profile."
+- HARD LIMIT: Maximum 2 sentences. If you write more, you are violating the format.
 
 lock:
 - What specifically becomes irreversible after you commit.
 - Name the actual thing: the relationship, the positioning, the option that disappears.
+- Maximum 2 sentences.
 
 trap:
 - Name a specific psychological pattern, not a circumstance.
 - Patterns: sunk cost protection, identity threat disguised as strategy, urgency manufactured by external pressure, optionality hoarding, fear of inaction reframed as boldness.
 - Must name the pattern AND its specific consequence in this decision.
 - Must make the person slightly uncomfortable because it is accurate.
+- Maximum 2 sentences.
 
 exit:
 - Generate a specific numerical threshold or measurable condition that triggers exit or reversal.
@@ -222,11 +226,13 @@ exit:
 - Must include a concrete number, percentage, date, or named metric.
 - Examples: revenue growth floor (e.g., "under $8K MRR by month 4"), margin floor (e.g., "gross margin drops below 40%"), competitive trigger (e.g., "competitor launches same feature within 60 days"), time horizon (e.g., "no signed LOI by Dec 15").
 - Wrong: "Things don't work out." Right: "Zero new conversions at the new price point within 45 days."
+- Maximum 2 sentences.
 
 step:
 - Hyper-specific. Executable today or this week.
 - Must name: who to contact or what to do, exactly what to ask or test, and by when.
 - Wrong: "Validate your assumptions." Right: "This week, pull the last 12 months of client revenue by account, rank them by concentration, and calculate what your SDE looks like if the top 2 accounts leave in year one."
+- Maximum 2 sentences.
 
 script:
 - The exact words to say or send. Copy-pasteable. Verbatim ready.
@@ -238,6 +244,7 @@ walk_away_if:
 - One named condition with a specific date or timeframe.
 - If this condition is true by this date, the thesis is broken and you must stop.
 - Wrong: "If it doesn't feel right." Right: "If you cannot get a signed operating agreement with your co-founder before the closing date, do not proceed regardless of how good the business looks."
+- Maximum 1 sentence.
 
 failure_modes:
 - 2-3 specific ways this exact category of decision fails in reality.
@@ -252,6 +259,7 @@ if_delayed:
 - Wrong: "Waiting makes this harder." Right: "If you wait 2 weeks, your 60-day lease negotiation window closes and you lose the $800/month rate — the next available space is $1,400."
 - Wrong: "Delay compounds uncertainty." Right: "Each week you delay burns $8K in runway while your top competitor is 3 weeks from launching the same feature."
 - Must be distinct from trap. Focus on time-dependent degradation, not psychological patterns.
+- Maximum 2 sentences.
 
 what_others_miss:
 - Surface something genuinely non-obvious that is not already stated in trap, hinge, or primaryRisk.
@@ -264,11 +272,13 @@ primaryRisk:
 - The specific mechanism of failure. Causal. Named.
 - Must include: what breaks, why it breaks, what the consequence is.
 - Wrong: "Revenue may decline." Right: "Your SDE projection assumes client relationships transfer to a new owner with no industry experience — if even one anchor account leaves in year one, you are below debt service."
+- Maximum 2 sentences.
 
 mustBeTrue:
 - The single most important assumption for this decision to survive.
 - Falsifiable. Named actor, number, or condition.
 - Wrong: "Demand exists." Right: "At least 4 of your current 6 retainer clients will stay at $2,500/month after the ownership transition."
+- Maximum 1 sentence.
 
 recommendedMove:
 - EXACTLY ONE SENTENCE. 20 words or fewer. Hard limit.

@@ -41,6 +41,12 @@ If you write more than 3 sentences, you are violating the format.
 Do not include technical deal structure, financial mechanics, or operational details in the verdict — those belong in WHEN_THIS_CHANGES.
 No labels, no bullets, no numbers. Three sentences. Full stop.
 
+Example verdict (business acquisition):
+Do not close on this business until you verify the client concentration risk. You have not validated whether the top 3 accounts representing 65% of revenue will stay after the ownership transition. This decision is not ready to commit.
+
+Example verdict (job offer):
+Accept the offer only after you define your minimum acceptable equity outcome. You have not calculated what percentage ownership you need for this to outperform your current W-2 path over 4 years. This decision is not ready to commit.
+
 Then on a new line after a blank line, add:
 
 WHEN_THIS_CHANGES:

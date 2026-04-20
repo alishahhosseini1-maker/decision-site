@@ -69,14 +69,14 @@ Return only valid JSON with this exact shape:
 }
 
 Rules:
-- topSignal: one sharp sentence describing the primary risk signal leadership should see first. It should feel urgent and concrete, not generic.
-- decision: answer "what should leadership decide right now?" in one concise sentence. If no major decision is required, return the clearest next call.
-- tradeoff: explain the core tradeoff in one concise sentence.
-- recommendation: give the clearest recommended move in one concise sentence.
+- topSignal: one sharp sentence describing the primary risk signal leadership should see first. It should feel urgent and concrete, not generic. Maximum 1 sentence.
+- decision: answer "what should leadership decide right now?" in one concise sentence. If no major decision is required, return the clearest next call. Maximum 1 sentence.
+- tradeoff: state the core tradeoff in one concise sentence. Maximum 1 sentence.
+- recommendation: give the clearest recommended move in one concise sentence. Maximum 1 sentence.
 - priority: rank the most important issues in order, highest first.
 - owners: assign likely owners by function or role, not person names unless obvious from the input.
 - timeline: break action into near-term timing such as "Today:", "This week:", "Next 2 weeks:".
-- overallSummary: 2-3 sentences explaining what leadership is about to miss if they only skim this. It should feel sharper than a recap.
+- overallSummary: state what leadership is about to miss if they only skim this. It should feel sharper than a recap. Maximum 2 sentences.
 - working: only include positive signals that matter.
 - breaking: include real breakdowns or friction points.
 - risks: include forward-looking risks. These should answer what gets worse if nothing changes.

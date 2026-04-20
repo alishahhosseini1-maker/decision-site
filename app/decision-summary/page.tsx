@@ -982,23 +982,32 @@ export default function DecisionSummaryPage() {
           </div>
 
           {/* IF DELAYED */}
-          <div className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
-            <p className="text-[10px] uppercase tracking-[0.18em] text-black/36">If delayed</p>
+          <details className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
+            <summary className="cursor-pointer text-[10px] uppercase tracking-[0.18em] text-black/36 flex justify-between items-center list-none">
+              If delayed
+              <span className="text-base text-black/28">▼</span>
+            </summary>
             <p className="mt-3 text-sm leading-7 text-black/75">{buildIfDelayed(decision)}</p>
-          </div>
+          </details>
         </section>
 
         {/* ── WHAT OTHERS MAY MISS ── */}
-        <section className="rounded-[20px] bg-black p-6 text-white shadow-[0_10px_24px_rgba(0,0,0,0.16)]">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-white/50">What others may miss</p>
+        <details className="rounded-[20px] bg-black p-6 text-white shadow-[0_10px_24px_rgba(0,0,0,0.16)]">
+          <summary className="cursor-pointer text-[10px] uppercase tracking-[0.18em] text-white/50 flex justify-between items-center list-none">
+            What others may miss
+            <span className="text-base text-white/40">▼</span>
+          </summary>
           <p className="mt-3 text-base font-medium italic leading-7 text-white">
             {buildWhatOthersMiss(decision)}
           </p>
-        </section>
+        </details>
 
         {/* ── EVIDENCE: Threat / Hinge / Trap ── */}
-        <section className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-black/36 mb-1">Evidence</p>
+        <details className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
+          <summary className="cursor-pointer text-[10px] uppercase tracking-[0.18em] text-black/36 flex justify-between items-center list-none">
+            Evidence
+            <span className="text-base text-black/28">▼</span>
+          </summary>
           <div className="border-t border-black/6 mt-3">
             {decision.hinge ? (
               <EvidenceRow tag="The hinge" text={decision.hinge} highlight />
@@ -1008,7 +1017,7 @@ export default function DecisionSummaryPage() {
             ) : null}
 
           </div>
-        </section>
+        </details>
 
         {/* ── REASONING (accordion, collapsed by default) ── */}
         {deepSections.length > 0 ? (
@@ -1030,17 +1039,23 @@ export default function DecisionSummaryPage() {
 
         {/* ── YOUR NOTES ── */}
         {decision.final_thoughts ? (
-          <section className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
-            <p className="text-[10px] uppercase tracking-[0.18em] text-black/36">Your notes</p>
+          <details className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
+            <summary className="cursor-pointer text-[10px] uppercase tracking-[0.18em] text-black/36 flex justify-between items-center list-none">
+              Your notes
+              <span className="text-base text-black/28">▼</span>
+            </summary>
             <div className="mt-3 border-l-2 border-black/12 pl-4">
               <p className="whitespace-pre-wrap text-sm leading-7 text-black/65">{decision.final_thoughts}</p>
             </div>
-          </section>
+          </details>
         ) : null}
 
         {/* ── RECENT DECISIONS ── */}
-        <section className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-black/36">Recent decisions</p>
+        <details className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
+          <summary className="cursor-pointer text-[10px] uppercase tracking-[0.18em] text-black/36 flex justify-between items-center list-none">
+            Recent decisions
+            <span className="text-base text-black/28">▼</span>
+          </summary>
 
           {allComparisonRows.length === 0 ? (
             <p className="mt-4 text-sm text-black/40">No prior decisions to compare yet.</p>
@@ -1081,7 +1096,7 @@ export default function DecisionSummaryPage() {
               })}
             </div>
           )}
-        </section>
+        </details>
 
         {/* ── Footer ── */}
         <footer className="pt-1 text-[11px] text-black/35">
