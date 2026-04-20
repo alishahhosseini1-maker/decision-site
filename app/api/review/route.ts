@@ -211,6 +211,7 @@ hinge:
 lock:
 - What specifically becomes irreversible after you commit.
 - Name the actual thing: the relationship, the positioning, the option that disappears.
+- For asset sales: the first sentence must quantify what is permanently lost in dollar terms based on the context provided (e.g., "You permanently give up $180K/year in net rental income from a property you could hold for 20+ years").
 - Maximum 2 sentences.
 
 trap:
