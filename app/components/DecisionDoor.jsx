@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 
-export default function DecisionDoor({ reviewResult, onStepChange, decisionText, hingeScore }) {
+export default function DecisionDoor({ reviewResult, onStepChange, decisionText, verdictLine, hingeScore }) {
   const [current, setCurrent] = useState(-1);
 
   // Get score color matching the main results page
