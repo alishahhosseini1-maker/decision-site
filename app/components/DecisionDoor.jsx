@@ -238,7 +238,7 @@ export default function DecisionDoor({ reviewResult, onStepChange, decisionText,
           background: rgba(0, 0, 0, 0.36);
         }
         .dd-reveal {
-          padding: 18px 20px 20px;
+          padding: 20px 20px 28px;
           border-top: 0.5px solid rgba(255, 255, 255, 0.08);
           display: none;
           background: #181614;
@@ -260,7 +260,7 @@ export default function DecisionDoor({ reviewResult, onStepChange, decisionText,
           font-weight: 500;
           color: #F1EFE8;
           line-height: 1.4;
-          margin-bottom: 8px;
+          margin-bottom: 14px;
         }
         .dd-body {
           font-size: 13px;
