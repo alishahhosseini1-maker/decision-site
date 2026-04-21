@@ -2629,7 +2629,7 @@ export default function HomePage() {
                       marginBottom: 20,
                       fontFamily: sans,
                     }}>
-                      Now read what's on the other side.
+                      Now read what&apos;s on the other side.
                     </div>
                   )}
 
