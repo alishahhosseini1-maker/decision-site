@@ -70,4 +70,10 @@ body {
   .verdict-section-padding {
     padding: 18px 18px 24px;
   }
+
+  /* 🚪 Door full-width on mobile */
+  .door-container-mobile-full-width {
+    margin-left: -24px;
+    margin-right: -24px;
+  }
 }

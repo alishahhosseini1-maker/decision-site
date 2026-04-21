@@ -2507,6 +2507,7 @@ export default function HomePage() {
                               letterSpacing: '0.12em',
                               textTransform: 'uppercase',
                               color: '#888780',
+                              whiteSpace: 'nowrap',
                             }}
                           >
                             Decision Quality
@@ -2597,7 +2598,7 @@ export default function HomePage() {
                         </div>
 
                         {/* Decision Door visualization */}
-                        <div style={{ marginTop: '1rem' }}>
+                        <div className="door-container-mobile-full-width" style={{ marginTop: '1rem' }}>
                           <DecisionDoor
                             reviewResult={reviewResult}
                             onStepChange={setDoorStep}
