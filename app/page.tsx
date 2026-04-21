@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { supabase } from './lib/supabase';
+import DecisionDoor from './components/DecisionDoor';
 
 type Mode = 'solo' | 'team';
 
@@ -533,6 +534,7 @@ export default function HomePage() {
   const [decision, setDecision] = useState('');
   const [context, setContext] = useState('');
   const [showThinContextWarning, setShowThinContextWarning] = useState(false);
+  const [doorStep, setDoorStep] = useState(-1);
 
   const [teamTitle, setTeamTitle] = useState('');
   const [teamPrompt, setTeamPrompt] = useState('');
@@ -2437,8 +2439,6 @@ export default function HomePage() {
                       <div
                         style={{
                           marginBottom: '2rem',
-                          paddingBottom: '2rem',
-                          borderBottom: '0.5px solid rgba(0,0,0,0.09)',
                         }}
                       >
                         <div
@@ -2484,6 +2484,9 @@ export default function HomePage() {
                       {/* Pre-commit Score Card */}
                       <div
                         style={{
+                          background: 'var(--color-background-primary)',
+                          borderRadius: 16,
+                          padding: '24px',
                           marginBottom: '2rem',
                         }}
                       >
@@ -2503,7 +2506,7 @@ export default function HomePage() {
                               fontWeight: 700,
                               letterSpacing: '0.12em',
                               textTransform: 'uppercase',
-                              color: 'rgba(0,0,0,0.42)',
+                              color: '#888780',
                             }}
                           >
                             Decision Quality
@@ -2542,7 +2545,7 @@ export default function HomePage() {
                             <span
                               style={{
                                 fontSize: 'clamp(1.5rem, 4vw, 28px)',
-                                color: 'rgba(0,0,0,0.36)',
+                                color: '#888780',
                                 fontWeight: 400,
                                 lineHeight: 1,
                               }}
@@ -2553,7 +2556,7 @@ export default function HomePage() {
                           <div
                             style={{
                               fontSize: 12.5,
-                              color: 'rgba(0,0,0,0.55)',
+                              color: 'var(--color-text-secondary)',
                               marginTop: '0.6rem',
                             }}
                           >
@@ -2565,7 +2568,7 @@ export default function HomePage() {
                         <div
                           style={{
                             height: 3,
-                            background: 'rgba(0,0,0,0.08)',
+                            background: 'rgba(255,255,255,0.12)',
                             borderRadius: 999,
                             overflow: 'hidden',
                             marginBottom: '2rem',
@@ -2581,282 +2584,278 @@ export default function HomePage() {
                           />
                         </div>
 
-                        {/* Combined scoring model + anatomy dropdown */}
-                        <details
-                          style={{
-                            borderTop: '0.5px solid rgba(0,0,0,0.09)',
-                            marginTop: '0',
-                          }}
-                        >
-                          <summary
-                            style={{
-                              cursor: 'pointer',
-                              listStyle: 'none',
-                              fontSize: 12.5,
-                              fontWeight: 600,
-                              color: 'rgba(0,0,0,0.72)',
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              background: 'rgba(0,0,0,0.035)',
-                              border: '1px solid rgba(0,0,0,0.10)',
-                              borderRadius: 6,
-                              padding: '10px 14px',
-                              marginTop: '1rem',
-                            }}
-                          >
-                            Why {scoreTotal ?? '—'}/100? See the breakdown
-                            <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.45)' }}>▼</span>
-                          </summary>
-                          <div style={{ marginTop: '0.75rem' }}>
-                            {([
-                              { label: 'Door',  sub: 'Clarity',        value: reviewResult.snapshot.door,  score: reviewResult.readiness?.clarity,       rationale: reviewResult.readiness?.rationale?.clarity        ?? null },
-                              { label: 'Hinge', sub: 'Assumptions',    value: reviewResult.snapshot.hinge, score: reviewResult.readiness?.assumptions,   rationale: reviewResult.readiness?.rationale?.assumptions    ?? null },
-                              { label: 'Locks', sub: 'Reversibility',  value: reviewResult.snapshot.lock,  score: reviewResult.readiness?.reversibility, rationale: reviewResult.readiness?.rationale?.reversibility  ?? null },
-                              { label: 'Trap',  sub: 'Risk',           value: reviewResult.snapshot.trap,  score: reviewResult.readiness?.risk,          rationale: reviewResult.readiness?.rationale?.risk           ?? null },
-                              { label: 'Exit',  sub: 'Exit logic',     value: reviewResult.snapshot.exit,  score: reviewResult.readiness?.exitLogic,     rationale: reviewResult.readiness?.rationale?.exitLogic      ?? null },
-                            ] as { label: string; sub: string; value: string; score: number | undefined; rationale: string | null }[]).map((row, i, arr) => (
-                              <div
-                                key={row.label}
-                                style={{
-                                  display: 'grid',
-                                  gridTemplateColumns: '70px 1fr 52px',
-                                  padding: '18px 0',
-                                  borderBottom: i < arr.length - 1 ? '0.5px solid rgba(0,0,0,0.06)' : 'none',
-                                  alignItems: 'start',
-                                  gap: 10,
-                                }}
-                              >
-                                <div style={{ fontFamily: sans, fontSize: 9, fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase' as const, color: 'rgba(0,0,0,0.50)', paddingTop: 2 }}>
-                                  {row.label}
-                                  <div style={{ fontSize: 8.5, fontWeight: 500, letterSpacing: '0.06em', textTransform: 'none' as const, color: 'rgba(0,0,0,0.32)', marginTop: 2 }}>{row.sub}</div>
-                                </div>
-                                <div>
-                                  <div style={{ fontFamily: sans, fontSize: 12.5, color: 'rgba(0,0,0,0.72)', lineHeight: 1.6, fontWeight: 400 }}>
-                                    {row.value}
-                                  </div>
-                                  {row.rationale && (
-                                    <div style={{ fontFamily: sans, fontSize: 11, color: 'rgba(0,0,0,0.38)', lineHeight: 1.45, marginTop: 4, fontStyle: 'italic' }}>
-                                      {row.rationale}
-                                    </div>
-                                  )}
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, paddingTop: 2 }}>
-                                  <div style={{ fontSize: 11, fontWeight: 600, color: getProgressColor(row.score) }}>
-                                    {row.score ?? '—'}<span style={{ fontSize: 9.5, opacity: 0.6 }}>/20</span>
-                                  </div>
-                                  <div style={{ width: '100%', height: 3, background: 'rgba(0,0,0,0.08)', borderRadius: 999, overflow: 'hidden' }}>
-                                    <div style={{ height: '100%', width: `${((row.score ?? 0) / 20) * 100}%`, background: getProgressColor(row.score) }} />
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </details>
+                        {/* Door walkthrough intro */}
+                        <div style={{
+                          fontSize: 12,
+                          color: '#9A9890',
+                          textAlign: 'center',
+                          letterSpacing: '0.04em',
+                          marginBottom: 12,
+                          fontFamily: sans,
+                        }}>
+                          Some decisions are doors that lock behind you. Walk yours.
+                        </div>
+
+                        {/* Decision Door visualization */}
+                        <div style={{ marginTop: '1rem' }}>
+                          <DecisionDoor
+                            reviewResult={reviewResult}
+                            onStepChange={setDoorStep}
+                            decisionText={decision}
+                            verdictLine={(() => {
+                              if (!verdict) return '';
+                              const rulingPart = verdict.split('WHEN_THIS_CHANGES:')[0].trim();
+                              const firstSentence = rulingPart.split(/\.\s+/)[0] + '.';
+                              return firstSentence.length <= 80
+                                ? firstSentence
+                                : firstSentence.substring(0, 80).substring(0, firstSentence.substring(0, 80).lastIndexOf(' ')) + '...';
+                            })()}
+                            hingeScore={reviewResult.readiness?.assumptions || 0}
+                          />
+                        </div>
 
                       </div>
                     </div>
                   </div>
 
-                  {/* ── STEP ── */}
-                  <div
-                    style={{
-                      marginTop: 12,
-                      border: '1px solid rgba(0,0,0,0.10)',
-                      borderRadius: 16,
-                      background: '#fff',
-                      padding: '1.5rem 2rem',
-                      boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
-                    }}
-                  >
-                    <div style={{ fontFamily: sans, fontSize: 9, fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase' as const, color: 'rgba(0,0,0,0.36)', marginBottom: 8 }}>Step <span style={{ fontSize: 8.5, fontWeight: 500, letterSpacing: '0.06em', textTransform: 'none' as const, color: 'rgba(0,0,0,0.28)' }}>· Next move</span></div>
-                    <div style={{ fontFamily: sans, fontSize: 14.5, lineHeight: 1.65, color: '#0b0b0b', fontWeight: 500 }}>{reviewResult.snapshot.step}</div>
-                  </div>
+                  {/* Transition text after walkthrough */}
+                  {doorStep === 5 && (
+                    <div style={{
+                      fontSize: 12,
+                      color: '#9A9890',
+                      fontStyle: 'italic',
+                      textAlign: 'center',
+                      marginTop: 20,
+                      marginBottom: 20,
+                      fontFamily: sans,
+                    }}>
+                      Now read what's on the other side.
+                    </div>
+                  )}
 
-                  {/* ── HOW TO STRENGTHEN ── */}
-                  {reviewResult.readiness.total < 50 && (() => {
-                    const addSuggestions: Record<string, string> = {
-                      clarity: 'Add: what a successful outcome looks like — a number, a date, or a measurable condition.',
-                      assumptions: 'Add: the key assumption you haven\'t verified and how you\'d confirm it within a week.',
-                      reversibility: 'Add: the exact cost, penalty, or process to undo this if your core assumption breaks.',
-                      risk: 'Add: the failure mode you\'d least want to explain, and the floor you can absorb if it happens.',
-                      exitLogic: 'Add: the specific signal or threshold that would tell you to stop before you\'ve gone too far.',
-                    };
-                    const fieldDefs = [
-                      { key: 'clarity' as const, label: 'Door · Clarity' },
-                      { key: 'assumptions' as const, label: 'Hinge · Assumptions' },
-                      { key: 'reversibility' as const, label: 'Locks · Reversibility' },
-                      { key: 'risk' as const, label: 'Trap · Risk' },
-                      { key: 'exitLogic' as const, label: 'Exit · Exit logic' },
-                    ];
-                    const bottomThree = [...fieldDefs]
-                      .sort((a, b) => (reviewResult.readiness[a.key] ?? 0) - (reviewResult.readiness[b.key] ?? 0))
-                      .slice(0, 3);
-                    return (
-                      <div
-                        style={{
-                          marginTop: 12,
-                          border: '1px solid rgba(185,28,28,0.14)',
-                          borderRadius: 16,
-                          background: 'rgba(185,28,28,0.025)',
-                          padding: '1.5rem 2rem',
-                          boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
-                        }}
-                      >
-                        <div style={{ fontFamily: sans, fontSize: 10, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: 'rgba(0,0,0,0.36)', marginBottom: 16 }}>How to strengthen this decision</div>
-                        <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 16 }}>
-                          {bottomThree.map((field) => (
-                            <div key={field.key}>
-                              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
-                                <span style={{ fontFamily: sans, fontSize: 12.5, fontWeight: 700, color: '#0b0b0b' }}>{field.label}</span>
-                                <span style={{ fontFamily: sans, fontSize: 11, color: 'rgba(0,0,0,0.38)' }}>{reviewResult.readiness[field.key]}/20</span>
-                              </div>
-                              {reviewResult.readiness.rationale?.[field.key] && (
-                                <div style={{ fontFamily: sans, fontSize: 12.5, fontStyle: 'italic', color: 'rgba(0,0,0,0.46)', lineHeight: 1.6, marginBottom: 4 }}>
-                                  {reviewResult.readiness.rationale[field.key]}
-                                </div>
-                              )}
-                              <div style={{ fontFamily: sans, fontSize: 12.5, color: 'rgba(0,0,0,0.62)', lineHeight: 1.6 }}>
-                                {addSuggestions[field.key]}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                            setTimeout(() => {
-                              if (contextDetailsRef.current) contextDetailsRef.current.open = true;
-                              contextInputRef.current?.focus();
-                            }, 400);
-                          }}
-                          style={{
-                            marginTop: 20,
-                            background: 'none',
-                            border: '1px solid rgba(185,28,28,0.28)',
-                            borderRadius: 8,
-                            padding: '7px 14px',
-                            fontFamily: sans,
-                            fontSize: 13,
-                            fontWeight: 600,
-                            color: '#b91c1c',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          Revise and re-run →
-                        </button>
-                      </div>
-                    );
-                  })()}
-
-                  {/* ── ZONE 2: THE EVIDENCE ── */}
-                  <div
-                    style={{
-                      marginTop: 12,
-                      border: '1px solid rgba(0,0,0,0.10)',
-                      borderRadius: 16,
-                      background: 'rgba(0,0,0,0.018)',
-                      padding: '0 2.5rem',
-                      boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
-                    }}
-                  >
-
-                    {/* The threat — always visible */}
+                  {/* The threat — appears after walkthrough is complete */}
+                  {doorStep === 5 && (
                     <div
+                      className="card-padding"
                       style={{
-                        padding: '1.75rem 0',
-                        borderBottom: '0.5px solid rgba(0,0,0,0.09)',
+                        marginTop: 12,
+                        marginBottom: 12,
+                        background: 'var(--color-background-primary)',
+                        border: '0.5px solid #C0392B',
+                        borderRadius: 'var(--border-radius-lg)',
                       }}
                     >
-                      <FindingRow
-                        tag="The threat"
-                        text={reviewResult.topline.primaryRisk}
-                        variant="threat"
-                      />
+                      <div style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#A32D2D', marginBottom: 10 }}>THE THREAT</div>
+                      <div style={{ fontFamily: sans, fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-primary)', fontWeight: 500 }}>{reviewResult.topline.primaryRisk}</div>
                     </div>
+                  )}
 
-                    <div style={{ padding: '1.75rem 0' }}>
-                      {/* Commit gate */}
-                      <div
-                        style={{
-                          marginTop: '0',
-                          paddingTop: '0',
-                          textAlign: 'center',
-                        }}
-                      >
+                  {/* ── STEP ── appears after walkthrough is complete */}
+                  {doorStep === 5 && (
+                    <div
+                      id="step-card"
+                      className="card-padding"
+                      style={{
+                        marginTop: 12,
+                        marginBottom: 12,
+                        background: 'var(--color-background-primary)',
+                        border: '0.5px solid var(--color-border-tertiary)',
+                        borderRadius: 'var(--border-radius-lg)',
+                      }}
+                    >
+                      <div style={{ fontFamily: sans, marginBottom: 10, display: 'flex', alignItems: 'center' }}>
+                        <span style={{ fontSize: 11, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--color-text-tertiary)' }}>STEP</span>
+                        <span style={{ marginLeft: 8, background: '#0F6E56', color: '#9FE1CB', fontSize: 10, fontWeight: 500, padding: '2px 8px', borderRadius: 20 }}>NEXT MOVE</span>
+                      </div>
+                      <div style={{ fontFamily: sans, fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-primary)', fontWeight: 500 }}>{reviewResult.snapshot.step}</div>
+                    </div>
+                  )}
+
+                  {/* ── HOW TO STRENGTHEN ── appears after walkthrough is complete */}
+                  {doorStep === 5 && (
+                    <details className="card-padding-compact" style={{ marginTop: 12, marginBottom: 12, background: 'var(--color-background-primary)', border: '0.5px solid var(--color-border-tertiary)', borderRadius: 'var(--border-radius-lg)' }}>
+                      <summary style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--color-text-primary)', cursor: 'pointer', userSelect: 'none', padding: '4px 0' }}>
+                        How to strengthen this decision
+                      </summary>
+                      <div style={{ marginTop: 16, fontFamily: sans }}>
+                        {(() => {
+                          const items = Object.entries({
+                            clarity: { label: 'CLARITY', score: reviewResult.readiness.clarity, rationale: reviewResult.readiness.rationale?.clarity },
+                            assumptions: { label: 'ASSUMPTIONS', score: reviewResult.readiness.assumptions, rationale: reviewResult.readiness.rationale?.assumptions },
+                            reversibility: { label: 'REVERSIBILITY', score: reviewResult.readiness.reversibility, rationale: reviewResult.readiness.rationale?.reversibility },
+                            risk: { label: 'RISK', score: reviewResult.readiness.risk, rationale: reviewResult.readiness.rationale?.risk },
+                            exitLogic: { label: 'EXIT LOGIC', score: reviewResult.readiness.exitLogic, rationale: reviewResult.readiness.rationale?.exitLogic },
+                          });
+
+                          const lowestThree = items
+                            .sort(([, a], [, b]) => a.score - b.score)
+                            .slice(0, 3);
+
+                          return lowestThree.map(([key, { label, score, rationale }], index) => {
+                            // Extract first sentence from rationale
+                            const firstSentence = rationale?.split(/\.\s+/)[0] + '.' || '';
+                            const scoreColor = score <= 10 ? '#C0392B' : score <= 14 ? '#C8860A' : '#27500A';
+
+                            return (
+                              <div
+                                key={key}
+                                style={{
+                                  paddingBottom: index < 2 ? 12 : 0,
+                                  marginBottom: index < 2 ? 12 : 0,
+                                  borderBottom: index < 2 ? '0.5px solid var(--color-border-tertiary)' : 'none',
+                                  fontSize: 13,
+                                  lineHeight: 1.5,
+                                  color: 'var(--color-text-secondary)',
+                                }}
+                              >
+                                <span style={{ color: 'var(--color-text-primary)', fontWeight: 500 }}>{label}</span>
+                                <span style={{ color: 'var(--color-text-secondary)', opacity: 0.6 }}> · </span>
+                                <span style={{ color: scoreColor, fontWeight: 500 }}>{score}/20</span>
+                                <span style={{ color: 'var(--color-text-secondary)', opacity: 0.6 }}> — </span>
+                                <span style={{ color: 'var(--color-text-secondary)' }}>{firstSentence}</span>
+                              </div>
+                            );
+                          });
+                        })()}
+                      </div>
+                    </details>
+                  )}
+
+                  {/* ── LAST CHECKPOINT ── appears after step is revealed (step 5) */}
+                  {doorStep >= 5 && (
+                    <div
+                      className="card-padding-compact"
+                      style={{
+                        marginTop: 12,
+                        background: '#0E0C0A',
+                        borderRadius: 'var(--border-radius-lg)',
+                      }}
+                    >
+                      <div style={{ padding: '1.75rem 0' }}>
+                        {/* Commit gate */}
                         <div
                           style={{
-                            fontFamily: sans,
-                            fontSize: 10,
-                            fontWeight: 500,
-                            letterSpacing: '0.16em',
-                            textTransform: 'uppercase',
-                            color: 'rgba(0,0,0,0.30)',
-                            marginBottom: 6,
+                            marginTop: '0',
+                            paddingTop: '0',
+                            textAlign: 'center',
                           }}
                         >
-                          Last checkpoint
-                        </div>
-                        <div
-                          style={{
-                            fontFamily: serif,
-                            fontSize: 20,
-                            fontWeight: 400,
-                            color: '#111',
-                            marginBottom: '1.75rem',
-                            lineHeight: 1.3,
-                          }}
-                        >
-                          Before you commit.
-                        </div>
-                        <button
-                          type="button"
-                          onClick={handleGenerateVerdict}
-                          disabled={verdictLoading}
-                          style={{
-                            fontFamily: sans,
-                            fontSize: 12.5,
-                            fontWeight: 500,
-                            letterSpacing: '0.07em',
-                            textTransform: 'uppercase',
-                            background: '#0b0b0b',
-                            color: '#fff',
-                            border: 'none',
-                            padding: '14px 32px',
-                            borderRadius: 2,
-                            cursor: verdictLoading ? 'default' : 'pointer',
-                            opacity: verdictLoading ? 0.42 : 1,
-                            transition: 'opacity 0.15s ease',
-                          }}
-                        >
-                          {verdictLoading ? 'Generating...' : 'Generate final verdict'}
-                        </button>
-                        <div
-                          style={{
-                            marginTop: 10,
-                            fontFamily: sans,
-                            fontSize: 11,
-                            color: 'rgba(0,0,0,0.30)',
-                            letterSpacing: '0.02em',
-                          }}
-                        >
-                          Verdict saves automatically after generation.
+                          <div
+                            style={{
+                              fontFamily: sans,
+                              fontSize: 10,
+                              fontWeight: 500,
+                              letterSpacing: '0.16em',
+                              textTransform: 'uppercase',
+                              color: '#888780',
+                              marginBottom: 6,
+                            }}
+                          >
+                            LAST CHECKPOINT
+                          </div>
+                          <div
+                            style={{
+                              fontFamily: sans,
+                              fontSize: 16,
+                              fontWeight: 500,
+                              color: '#D3D1C7',
+                              marginBottom: '1.75rem',
+                              lineHeight: 1.3,
+                            }}
+                          >
+                            Before you commit.
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleGenerateVerdict}
+                            disabled={verdictLoading}
+                            style={{
+                              width: '100%',
+                              fontFamily: sans,
+                              fontSize: 12.5,
+                              fontWeight: 500,
+                              letterSpacing: '0.07em',
+                              textTransform: 'uppercase',
+                              background: '#F1EFE8',
+                              color: '#1E1C1A',
+                              border: 'none',
+                              padding: 16,
+                              borderRadius: 8,
+                              cursor: verdictLoading ? 'default' : 'pointer',
+                              opacity: verdictLoading ? 0.42 : 1,
+                              transition: 'opacity 0.15s ease',
+                            }}
+                          >
+                            {verdictLoading ? 'Generating...' : 'GENERATE FINAL VERDICT'}
+                          </button>
+                          <div
+                            style={{
+                              marginTop: 10,
+                              fontFamily: sans,
+                              fontSize: 11,
+                              color: '#888780',
+                              letterSpacing: '0.02em',
+                              textAlign: 'center',
+                            }}
+                          >
+                            Verdict saves automatically after generation.
+                          </div>
+                          {/* Action buttons */}
+                          <div style={{ marginTop: 16, display: 'flex', gap: 10, justifyContent: 'center' }}>
+                            <button
+                              type="button"
+                              onClick={() => window.location.reload()}
+                              style={{
+                                fontFamily: sans,
+                                fontSize: 11,
+                                fontWeight: 500,
+                                letterSpacing: '0.05em',
+                                background: 'transparent',
+                                color: '#888780',
+                                border: '1px solid rgba(136,135,128,0.3)',
+                                padding: '10px 16px',
+                                borderRadius: 6,
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease',
+                              }}
+                            >
+                              Revise and re-run →
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => alert('Share feature coming soon')}
+                              style={{
+                                fontFamily: sans,
+                                fontSize: 11,
+                                fontWeight: 500,
+                                letterSpacing: '0.05em',
+                                background: 'transparent',
+                                color: '#888780',
+                                border: '1px solid rgba(136,135,128,0.3)',
+                                padding: '10px 16px',
+                                borderRadius: 6,
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease',
+                              }}
+                            >
+                              Share this review →
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* ── Final verdict card ── */}
                   {verdictRequested && (
                     <div
                       ref={verdictRef}
+                      className="verdict-section-padding"
                       style={{
                         marginTop: 14,
                         border: '1px solid rgba(0,0,0,0.10)',
                         borderRadius: 16,
                         background: '#fff',
-                        padding: '26px 26px 32px',
                       }}
                     >
                       {verdictLoading ? (
@@ -2867,11 +2866,11 @@ export default function HomePage() {
                         <>
                           {/* 1. FINAL VERDICT card */}
                           <div
+                            className="card-padding"
                             style={{
                               border: '1px solid rgba(0,0,0,0.10)',
                               borderRadius: 12,
-                              background: '#0a0a0a',
-                              padding: 20,
+                              background: '#111110',
                               marginBottom: 16,
                             }}
                           >
@@ -2908,12 +2907,11 @@ export default function HomePage() {
                           {/* 2. WHEN THIS CHANGES card */}
                           {whenThisChanges && (
                             <div
+                              className="card-padding"
                               style={{
-                                border: '1px solid rgba(0,0,0,0.10)',
+                                border: '0.5px solid rgba(255,255,255,0.1)',
                                 borderRadius: 12,
-                                background: '#fafafa',
-                                borderLeft: '3px solid #dc2626',
-                                padding: 20,
+                                background: '#1A1A18',
                                 marginBottom: 16,
                               }}
                             >
@@ -2924,7 +2922,7 @@ export default function HomePage() {
                                   fontWeight: 600,
                                   letterSpacing: '0.14em',
                                   textTransform: 'uppercase',
-                                  color: 'rgba(0,0,0,0.36)',
+                                  color: '#888780',
                                   marginBottom: 12,
                                 }}
                               >
@@ -2936,7 +2934,7 @@ export default function HomePage() {
                                   fontSize: 14,
                                   fontWeight: 400,
                                   lineHeight: 1.6,
-                                  color: 'rgba(0,0,0,0.75)',
+                                  color: '#F1EFE8',
                                 }}
                               >
                                 {whenThisChanges}
@@ -2946,11 +2944,11 @@ export default function HomePage() {
 
                           {/* 3. Commitment card */}
                           <div
+                            className="card-padding"
                             style={{
-                              border: '1px solid rgba(0,0,0,0.10)',
+                              border: '1px solid #444441',
                               borderRadius: 12,
-                              background: '#fff',
-                              padding: 20,
+                              background: '#1A1A18',
                               marginBottom: 16,
                             }}
                           >
@@ -2961,7 +2959,7 @@ export default function HomePage() {
                                 fontWeight: 700,
                                 letterSpacing: '0.14em',
                                 textTransform: 'uppercase',
-                                color: 'rgba(0,0,0,0.36)',
+                                color: '#888780',
                                 marginBottom: 8,
                               }}
                             >
@@ -2971,7 +2969,8 @@ export default function HomePage() {
                               style={{
                                 fontFamily: sans,
                                 fontSize: 12,
-                                color: 'rgba(0,0,0,0.50)',
+                                color: '#F1EFE8',
+                                opacity: 0.7,
                                 marginBottom: 12,
                               }}
                             >
@@ -2988,18 +2987,20 @@ export default function HomePage() {
                                 fontSize: 14,
                                 lineHeight: 1.6,
                                 padding: '12px 14px',
-                                border: '1px solid rgba(0,0,0,0.12)',
+                                border: '1px solid #444441',
                                 borderRadius: 8,
                                 resize: 'vertical',
                                 outline: 'none',
                                 marginBottom: 8,
+                                background: '#2A2A28',
+                                color: '#FFFFFF',
                               }}
                             />
                             <div
                               style={{
                                 fontFamily: sans,
                                 fontSize: 11,
-                                color: 'rgba(0,0,0,0.40)',
+                                color: '#888780',
                                 marginBottom: 16,
                               }}
                             >
@@ -3016,8 +3017,8 @@ export default function HomePage() {
                                 padding: '11px 18px',
                                 borderRadius: 10,
                                 border: 'none',
-                                background: decisionId ? '#16a34a' : (savingVerdict || commitment.trim().length < 10) ? 'rgba(0,0,0,0.3)' : '#000',
-                                color: '#fff',
+                                background: decisionId ? '#16a34a' : (savingVerdict || commitment.trim().length < 10) ? '#444441' : '#F1EFE8',
+                                color: decisionId ? '#fff' : (savingVerdict || commitment.trim().length < 10) ? '#888780' : '#1E1C1A',
                                 cursor: (savingVerdict || commitment.trim().length < 10 || decisionId) ? 'not-allowed' : 'pointer',
                                 width: '100%',
                                 display: 'flex',
@@ -3352,20 +3353,6 @@ export default function HomePage() {
               fontFamily: sans,
             }}
           >
-            <div
-              style={{
-                marginBottom: 8,
-                fontFamily: serif,
-                fontSize: 15,
-                fontStyle: 'italic',
-                fontWeight: 400,
-                color: '#111',
-                opacity: 0.55,
-              }}
-            >
-              Before you commit.
-            </div>
-
             © 2026 Decision Layer ·{' '}
             <a href="/privacy" style={{ color: '#777', textDecoration: 'none' }}>
               Privacy

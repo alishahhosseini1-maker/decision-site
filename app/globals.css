@@ -6,6 +6,13 @@
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
+
+  --color-background-primary: #FFFFFF;
+  --color-border-tertiary: #E5E3DC;
+  --border-radius-lg: 12px;
+  --color-text-primary: #0E0C0A;
+  --color-text-secondary: #4A4845;
+  --color-text-tertiary: #9A9890;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -35,5 +42,32 @@ body {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* 📱 Responsive card padding */
+.card-padding {
+  padding: 20px;
+}
+
+.card-padding-compact {
+  padding: 18px;
+}
+
+.verdict-section-padding {
+  padding: 26px 26px 32px;
+}
+
+@media (max-width: 480px) {
+  .card-padding {
+    padding: 16px;
+  }
+
+  .card-padding-compact {
+    padding: 14px;
+  }
+
+  .verdict-section-padding {
+    padding: 18px 18px 24px;
   }
 }
