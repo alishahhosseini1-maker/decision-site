@@ -2585,6 +2585,22 @@ export default function HomePage() {
                           />
                         </div>
 
+                        {/* The threat — appears after score */}
+                        <div
+                          id="threat-card"
+                          className="card-padding"
+                          style={{
+                            marginTop: 12,
+                            marginBottom: 12,
+                            background: 'var(--color-background-primary)',
+                            border: '0.5px solid #C0392B',
+                            borderRadius: 'var(--border-radius-lg)',
+                          }}
+                        >
+                          <div style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#A32D2D', marginBottom: 10 }}>THE THREAT</div>
+                          <div style={{ fontFamily: sans, fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-primary)', fontWeight: 500 }}>{reviewResult.topline.primaryRisk}</div>
+                        </div>
+
                         {/* Door walkthrough intro */}
                         <div style={{
                           fontSize: 12,
@@ -2659,25 +2675,6 @@ export default function HomePage() {
                       Now read what&apos;s on the other side.
                     </div>
                   )}
-
-                  {/* The threat — appears after walkthrough is complete */}
-                  {doorStep === 5 && (
-                    <div
-                      id="threat-card"
-                      className="card-padding"
-                      style={{
-                        marginTop: 12,
-                        marginBottom: 12,
-                        background: 'var(--color-background-primary)',
-                        border: '0.5px solid #C0392B',
-                        borderRadius: 'var(--border-radius-lg)',
-                      }}
-                    >
-                      <div style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#A32D2D', marginBottom: 10 }}>THE THREAT</div>
-                      <div style={{ fontFamily: sans, fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-primary)', fontWeight: 500 }}>{reviewResult.topline.primaryRisk}</div>
-                    </div>
-                  )}
-
                   {/* ── STEP ── appears after walkthrough is complete */}
                   {doorStep === 5 && (
                     <div
