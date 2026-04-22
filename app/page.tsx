@@ -3008,17 +3008,17 @@ export default function HomePage() {
                               style={{
                                 fontFamily: sans,
                                 fontSize: 12,
-                                color: '#F1EFE8',
-                                opacity: 0.7,
+                                color: '#9A9890',
+                                fontStyle: 'italic',
                                 marginBottom: 12,
                               }}
                             >
-                              You cannot lock this verdict without answering.
+                              People who write down their next step are 3x more likely to follow through.
                             </div>
                             <textarea
                               value={commitment}
                               onChange={(e) => setCommitment(e.target.value)}
-                              placeholder="I'm going to..."
+                              placeholder="This week I will specifically..."
                               rows={4}
                               style={{
                                 width: '100%',
