@@ -3048,7 +3048,7 @@ export default function HomePage() {
                             <button
                               type="button"
                               onClick={handleLockVerdict}
-                              disabled={savingVerdict || commitment.trim().length < 10 || decisionId !== null}
+                              disabled={savingVerdict || commitment.trim().length === 0 || decisionId !== null}
                               style={{
                                 fontFamily: sans,
                                 fontSize: 13,
@@ -3056,10 +3056,11 @@ export default function HomePage() {
                                 padding: '11px 18px',
                                 borderRadius: 10,
                                 border: 'none',
-                                background: decisionId ? '#16a34a' : (savingVerdict || commitment.trim().length < 10) ? '#444441' : '#F1EFE8',
-                                color: decisionId ? '#fff' : (savingVerdict || commitment.trim().length < 10) ? '#888780' : '#1E1C1A',
-                                cursor: (savingVerdict || commitment.trim().length < 10 || decisionId) ? 'not-allowed' : 'pointer',
+                                background: decisionId ? '#16a34a' : commitment.trim().length === 0 ? '#2A2826' : '#0E0C0A',
+                                color: decisionId ? '#fff' : commitment.trim().length === 0 ? '#888780' : '#FFFFFF',
+                                cursor: (savingVerdict || commitment.trim().length === 0 || decisionId) ? 'not-allowed' : 'pointer',
                                 width: '100%',
+                                transition: 'all 0.2s ease',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
