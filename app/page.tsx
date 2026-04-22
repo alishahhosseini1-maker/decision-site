@@ -536,6 +536,9 @@ export default function HomePage() {
   const [showThinContextWarning, setShowThinContextWarning] = useState(false);
   const [doorStep, setDoorStep] = useState(-1);
 
+  // Payment tier - TODO: Replace with actual payment logic
+  const isPaidUser = false;
+
   const [teamTitle, setTeamTitle] = useState('');
   const [teamPrompt, setTeamPrompt] = useState('');
   const [teamDeadline, setTeamDeadline] = useState('');
@@ -2585,59 +2588,86 @@ export default function HomePage() {
                           />
                         </div>
 
-                        {/* Door walkthrough intro */}
-                        <div style={{
-                          fontSize: 12,
-                          color: '#9A9890',
-                          textAlign: 'center',
-                          letterSpacing: '0.04em',
-                          marginBottom: 12,
-                          fontFamily: sans,
-                        }}>
-                          Some decisions are doors that lock behind you. Walk yours.
-                        </div>
-
-                        {/* Decision Door visualization */}
-                        <div className="door-container-mobile-full-width" style={{ marginTop: '1rem' }}>
-                          <DecisionDoor
-                            reviewResult={reviewResult}
-                            onStepChange={setDoorStep}
-                            decisionText={decision}
-                            verdictLine={(() => {
-                              if (!verdict) return '';
-                              const rulingPart = verdict.split('WHEN_THIS_CHANGES:')[0].trim();
-                              const firstSentence = rulingPart.split(/\.\s+/)[0] + '.';
-                              return firstSentence.length <= 80
-                                ? firstSentence
-                                : firstSentence.substring(0, 80).substring(0, firstSentence.substring(0, 80).lastIndexOf(' ')) + '...';
-                            })()}
-                            hingeScore={reviewResult.readiness?.assumptions || 0}
-                          />
-                        </div>
-
-                        {/* Skip to findings link */}
-                        {doorStep < 5 && (
-                          <div
-                            onClick={() => {
-                              setDoorStep(5);
-                              setTimeout(() => {
-                                document.getElementById('threat-card')?.scrollIntoView({
-                                  behavior: 'smooth',
-                                  block: 'start'
-                                });
-                              }, 100);
-                            }}
-                            style={{
+                        {isPaidUser ? (
+                          <>
+                            {/* Door walkthrough intro */}
+                            <div style={{
                               fontSize: 12,
                               color: '#9A9890',
                               textAlign: 'center',
-                              cursor: 'pointer',
-                              display: 'block',
-                              marginTop: 8,
+                              letterSpacing: '0.04em',
+                              marginBottom: 12,
                               fontFamily: sans,
+                            }}>
+                              Some decisions are doors that lock behind you. Walk yours.
+                            </div>
+
+                            {/* Decision Door visualization */}
+                            <div className="door-container-mobile-full-width" style={{ marginTop: '1rem' }}>
+                              <DecisionDoor
+                                reviewResult={reviewResult}
+                                onStepChange={setDoorStep}
+                                decisionText={decision}
+                                verdictLine={(() => {
+                                  if (!verdict) return '';
+                                  const rulingPart = verdict.split('WHEN_THIS_CHANGES:')[0].trim();
+                                  const firstSentence = rulingPart.split(/\.\s+/)[0] + '.';
+                                  return firstSentence.length <= 80
+                                    ? firstSentence
+                                    : firstSentence.substring(0, 80).substring(0, firstSentence.substring(0, 80).lastIndexOf(' ')) + '...';
+                                })()}
+                                hingeScore={reviewResult.readiness?.assumptions || 0}
+                              />
+                            </div>
+
+                            {/* Skip to findings link */}
+                            {doorStep < 5 && (
+                              <div
+                                onClick={() => {
+                                  setDoorStep(5);
+                                  setTimeout(() => {
+                                    document.getElementById('threat-card')?.scrollIntoView({
+                                      behavior: 'smooth',
+                                      block: 'start'
+                                    });
+                                  }, 100);
+                                }}
+                                style={{
+                                  fontSize: 12,
+                                  color: '#9A9890',
+                                  textAlign: 'center',
+                                  cursor: 'pointer',
+                                  display: 'block',
+                                  marginTop: 8,
+                                  fontFamily: sans,
+                                }}
+                              >
+                                Go straight to findings ↓
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          /* Locked placeholder for free tier */
+                          <div
+                            className="card-padding"
+                            style={{
+                              marginTop: 12,
+                              marginBottom: 12,
+                              background: 'var(--color-background-primary)',
+                              border: '0.5px solid var(--color-border-tertiary)',
+                              borderRadius: 'var(--border-radius-lg)',
+                              textAlign: 'center',
                             }}
                           >
-                            Go straight to findings ↓
+                            <div style={{
+                              fontFamily: sans,
+                              fontSize: 13,
+                              lineHeight: 1.6,
+                              color: 'var(--color-text-secondary)',
+                              fontWeight: 400,
+                            }}>
+                              Full decision anatomy — Door, Hinge, Lock, Exit, Trap — unlocked with your review.
+                            </div>
                           </div>
                         )}
 
