@@ -2791,7 +2791,18 @@ export default function HomePage() {
                               lineHeight: 1.3,
                             }}
                           >
-                            Before you commit.
+                            One more step before you decide.
+                          </div>
+                          <div
+                            style={{
+                              fontFamily: sans,
+                              fontSize: 11,
+                              color: '#9A9890',
+                              textAlign: 'center',
+                              marginBottom: 12,
+                            }}
+                          >
+                            The pre-commit score flags the gaps. The final analysis locks in your path forward.
                           </div>
                           <button
                             type="button"
@@ -2814,7 +2825,7 @@ export default function HomePage() {
                               transition: 'opacity 0.15s ease',
                             }}
                           >
-                            {verdictLoading ? 'Generating...' : 'GENERATE FINAL VERDICT'}
+                            {verdictLoading ? 'Generating...' : 'Get My Full Analysis →'}
                           </button>
                           <div
                             style={{
