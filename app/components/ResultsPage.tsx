@@ -50,7 +50,36 @@ export default function ResultsPage({
     return '#0F6E56';                       // Green - Strong
   };
 
+  // Dynamic pill styling based on score thresholds
+  const getPillMeta = (score: number) => {
+    if (score < 50) return {
+      color: '#A32D2D',
+      background: '#FCEBEB',
+      border: 'rgba(163,45,45,0.20)',
+      label: 'Not ready to commit',
+    };
+    if (score < 65) return {
+      color: '#854F0B',
+      background: '#FAEEDA',
+      border: 'rgba(133,79,11,0.20)',
+      label: 'Smaller step needed',
+    };
+    if (score < 80) return {
+      color: '#5C4B00',
+      background: '#FBF5DC',
+      border: 'rgba(92,75,0,0.20)',
+      label: 'Proceed with caution',
+    };
+    return {
+      color: '#0F6E56',
+      background: '#E1F5EE',
+      border: 'rgba(15,110,86,0.20)',
+      label: 'Ready to commit',
+    };
+  };
+
   const scoreColor = getScoreColor(scoreTotal);
+  const pillMeta = getPillMeta(scoreTotal);
 
   return (
     <div style={{ marginTop: 16 }}>
@@ -112,8 +141,8 @@ export default function ResultsPage({
                 gap: 8,
                 padding: '8px 14px',
                 borderRadius: 999,
-                background: 'rgba(220, 38, 38, 0.08)',
-                border: '1px solid rgba(220, 38, 38, 0.2)',
+                background: pillMeta.background,
+                border: `1px solid ${pillMeta.border}`,
               }}
             >
               <div
@@ -121,7 +150,7 @@ export default function ResultsPage({
                   width: 6,
                   height: 6,
                   borderRadius: '50%',
-                  background: '#dc2626',
+                  background: pillMeta.color,
                 }}
               />
               <span
@@ -129,11 +158,11 @@ export default function ResultsPage({
                   fontFamily: sans,
                   fontSize: 11,
                   fontWeight: 600,
-                  color: '#dc2626',
+                  color: pillMeta.color,
                   letterSpacing: '0.02em',
                 }}
               >
-                Not ready to commit
+                {pillMeta.label}
               </span>
             </div>
           </div>
