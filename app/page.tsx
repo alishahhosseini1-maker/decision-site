@@ -2613,7 +2613,7 @@ export default function HomePage() {
                               marginBottom: 6,
                             }}
                           >
-                            LAST CHECKPOINT
+                            BEFORE YOU DECIDE
                           </div>
                           <div
                             style={{
@@ -2625,18 +2625,7 @@ export default function HomePage() {
                               lineHeight: 1.3,
                             }}
                           >
-                            One more step before you decide.
-                          </div>
-                          <div
-                            style={{
-                              fontFamily: sans,
-                              fontSize: 11,
-                              color: '#9A9890',
-                              textAlign: 'center',
-                              marginBottom: 12,
-                            }}
-                          >
-                            The pre-commit score flags the gaps. The final analysis locks in your path forward.
+                            Your score is {scoreTotal ?? '—'}. Here&apos;s exactly why — and the one move that changes it.
                           </div>
                           <button
                             type="button"
@@ -2659,49 +2648,8 @@ export default function HomePage() {
                               transition: 'opacity 0.15s ease',
                             }}
                           >
-                            {verdictLoading ? 'Generating...' : 'Get My Full Analysis →'}
+                            {verdictLoading ? 'Generating...' : 'Show me the full analysis →'}
                           </button>
-                          {/* Action buttons */}
-                          <div style={{ marginTop: 16, display: 'flex', gap: 10, justifyContent: 'center' }}>
-                            <button
-                              type="button"
-                              onClick={() => window.location.reload()}
-                              style={{
-                                fontFamily: sans,
-                                fontSize: 11,
-                                fontWeight: 500,
-                                letterSpacing: '0.05em',
-                                background: 'transparent',
-                                color: '#888780',
-                                border: '1px solid rgba(136,135,128,0.3)',
-                                padding: '10px 16px',
-                                borderRadius: 6,
-                                cursor: 'pointer',
-                                transition: 'all 0.15s ease',
-                              }}
-                            >
-                              Revise and re-run →
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => alert('Share feature coming soon')}
-                              style={{
-                                fontFamily: sans,
-                                fontSize: 11,
-                                fontWeight: 500,
-                                letterSpacing: '0.05em',
-                                background: 'transparent',
-                                color: '#888780',
-                                border: '1px solid rgba(136,135,128,0.3)',
-                                padding: '10px 16px',
-                                borderRadius: 6,
-                                cursor: 'pointer',
-                                transition: 'all 0.15s ease',
-                              }}
-                            >
-                              Share this review →
-                            </button>
-                          </div>
                         </div>
                       </div>
                     </div>
