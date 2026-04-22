@@ -2564,53 +2564,37 @@ export default function HomePage() {
                             Pre-commit score
                           </div>
                         </div>
-
-                        {/* Progress bar */}
-                        <div
-                          style={{
-                            height: 3,
-                            background: 'rgba(255,255,255,0.12)',
-                            borderRadius: 999,
-                            overflow: 'hidden',
-                            marginBottom: 0,
-                          }}
-                        >
-                          <div
-                            style={{
-                              height: '100%',
-                              width: `${scoreTotal ?? 0}%`,
-                              background: meta.color,
-                              transition: 'width 0.3s ease',
-                            }}
-                          />
-                        </div>
                       </div>
+                    </div>
+                  </div>
 
-                      {/* The threat — appears after score */}
-                      <div
-                        id="threat-card"
-                        className="card-padding"
-                        style={{
-                          marginTop: '2rem',
-                          marginBottom: '2rem',
-                          background: 'var(--color-background-primary)',
-                          border: '0.5px solid #C0392B',
-                          borderRadius: 'var(--border-radius-lg)',
-                        }}
-                      >
-                        <div style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#A32D2D', marginBottom: 10 }}>THE THREAT</div>
-                        <div style={{ fontFamily: sans, fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-primary)', fontWeight: 500 }}>{reviewResult.topline.primaryRisk}</div>
-                      </div>
+                  {/* The threat — separate standalone card */}
+                  <div
+                    id="threat-card"
+                    className="card-padding"
+                    style={{
+                      marginTop: '2rem',
+                      marginBottom: '2rem',
+                      background: 'var(--color-background-primary)',
+                      border: '0.5px solid var(--color-border-tertiary)',
+                      borderRadius: 'var(--border-radius-lg)',
+                    }}
+                  >
+                    <div style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#A32D2D', marginBottom: 10 }}>THE THREAT</div>
+                    <div style={{ fontFamily: sans, fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-primary)', fontWeight: 500 }}>{reviewResult.topline.primaryRisk}</div>
+                  </div>
 
-                      <div
-                        style={{
-                          background: 'var(--color-background-primary)',
-                          borderRadius: 16,
-                          padding: '24px',
-                          marginBottom: '2rem',
-                        }}
-                      >
-                        {/* Door walkthrough intro */}
+                  <div
+                    style={{
+                      border: '1px solid rgba(0,0,0,0.10)',
+                      borderRadius: 16,
+                      background: '#fff',
+                      padding: '2.5rem 2.5rem 2.5rem',
+                      boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+                      marginTop: '2rem',
+                    }}
+                  >
+                    {/* Door walkthrough intro */}
                         <div style={{
                           fontSize: 12,
                           color: '#9A9890',
@@ -2665,10 +2649,7 @@ export default function HomePage() {
                             Go straight to findings ↓
                           </div>
                         )}
-
                       </div>
-                    </div>
-                  </div>
 
                   {/* Transition text after walkthrough */}
                   {doorStep === 5 && (
