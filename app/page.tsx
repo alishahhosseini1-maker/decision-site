@@ -2584,16 +2584,15 @@ export default function HomePage() {
                     <div style={{ fontFamily: sans, fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-primary)', fontWeight: 500 }}>{reviewResult.topline.primaryRisk}</div>
                   </div>
 
-                  {/* ── LAST CHECKPOINT ── appears after step is revealed (step 5) */}
-                  {doorStep >= 5 && (
-                    <div
-                      className="card-padding-compact"
-                      style={{
-                        marginTop: 12,
-                        background: '#0E0C0A',
-                        borderRadius: 'var(--border-radius-lg)',
-                      }}
-                    >
+                  {/* ── LAST CHECKPOINT ── always visible */}
+                  <div
+                    className="card-padding-compact"
+                    style={{
+                      marginTop: 12,
+                      background: '#0E0C0A',
+                      borderRadius: 'var(--border-radius-lg)',
+                    }}
+                  >
                       <div style={{ padding: '1.75rem 0' }}>
                         {/* Commit gate */}
                         <div
@@ -2706,7 +2705,6 @@ export default function HomePage() {
                         </div>
                       </div>
                     </div>
-                  )}
 
                   {verdictRequested && (
                   <div
