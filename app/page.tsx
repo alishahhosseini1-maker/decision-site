@@ -2584,6 +2584,130 @@ export default function HomePage() {
                     <div style={{ fontFamily: sans, fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-primary)', fontWeight: 500 }}>{reviewResult.topline.primaryRisk}</div>
                   </div>
 
+                  {/* ── LAST CHECKPOINT ── appears after step is revealed (step 5) */}
+                  {doorStep >= 5 && (
+                    <div
+                      className="card-padding-compact"
+                      style={{
+                        marginTop: 12,
+                        background: '#0E0C0A',
+                        borderRadius: 'var(--border-radius-lg)',
+                      }}
+                    >
+                      <div style={{ padding: '1.75rem 0' }}>
+                        {/* Commit gate */}
+                        <div
+                          style={{
+                            marginTop: '0',
+                            paddingTop: '0',
+                            textAlign: 'center',
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontFamily: sans,
+                              fontSize: 10,
+                              fontWeight: 500,
+                              letterSpacing: '0.16em',
+                              textTransform: 'uppercase',
+                              color: '#888780',
+                              marginBottom: 6,
+                            }}
+                          >
+                            LAST CHECKPOINT
+                          </div>
+                          <div
+                            style={{
+                              fontFamily: sans,
+                              fontSize: 16,
+                              fontWeight: 500,
+                              color: '#D3D1C7',
+                              marginBottom: '1.75rem',
+                              lineHeight: 1.3,
+                            }}
+                          >
+                            One more step before you decide.
+                          </div>
+                          <div
+                            style={{
+                              fontFamily: sans,
+                              fontSize: 11,
+                              color: '#9A9890',
+                              textAlign: 'center',
+                              marginBottom: 12,
+                            }}
+                          >
+                            The pre-commit score flags the gaps. The final analysis locks in your path forward.
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleGenerateVerdict}
+                            disabled={verdictLoading}
+                            style={{
+                              width: '100%',
+                              fontFamily: sans,
+                              fontSize: 12.5,
+                              fontWeight: 500,
+                              letterSpacing: '0.07em',
+                              textTransform: 'uppercase',
+                              background: '#F1EFE8',
+                              color: '#1E1C1A',
+                              border: 'none',
+                              padding: 16,
+                              borderRadius: 8,
+                              cursor: verdictLoading ? 'default' : 'pointer',
+                              opacity: verdictLoading ? 0.42 : 1,
+                              transition: 'opacity 0.15s ease',
+                            }}
+                          >
+                            {verdictLoading ? 'Generating...' : 'Get My Full Analysis →'}
+                          </button>
+                          {/* Action buttons */}
+                          <div style={{ marginTop: 16, display: 'flex', gap: 10, justifyContent: 'center' }}>
+                            <button
+                              type="button"
+                              onClick={() => window.location.reload()}
+                              style={{
+                                fontFamily: sans,
+                                fontSize: 11,
+                                fontWeight: 500,
+                                letterSpacing: '0.05em',
+                                background: 'transparent',
+                                color: '#888780',
+                                border: '1px solid rgba(136,135,128,0.3)',
+                                padding: '10px 16px',
+                                borderRadius: 6,
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease',
+                              }}
+                            >
+                              Revise and re-run →
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => alert('Share feature coming soon')}
+                              style={{
+                                fontFamily: sans,
+                                fontSize: 11,
+                                fontWeight: 500,
+                                letterSpacing: '0.05em',
+                                background: 'transparent',
+                                color: '#888780',
+                                border: '1px solid rgba(136,135,128,0.3)',
+                                padding: '10px 16px',
+                                borderRadius: 6,
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease',
+                              }}
+                            >
+                              Share this review →
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div
                     style={{
                       border: '1px solid rgba(0,0,0,0.10)',
@@ -2734,130 +2858,6 @@ export default function HomePage() {
                         })()}
                       </div>
                     </details>
-                  )}
-
-                  {/* ── LAST CHECKPOINT ── appears after step is revealed (step 5) */}
-                  {doorStep >= 5 && (
-                    <div
-                      className="card-padding-compact"
-                      style={{
-                        marginTop: 12,
-                        background: '#0E0C0A',
-                        borderRadius: 'var(--border-radius-lg)',
-                      }}
-                    >
-                      <div style={{ padding: '1.75rem 0' }}>
-                        {/* Commit gate */}
-                        <div
-                          style={{
-                            marginTop: '0',
-                            paddingTop: '0',
-                            textAlign: 'center',
-                          }}
-                        >
-                          <div
-                            style={{
-                              fontFamily: sans,
-                              fontSize: 10,
-                              fontWeight: 500,
-                              letterSpacing: '0.16em',
-                              textTransform: 'uppercase',
-                              color: '#888780',
-                              marginBottom: 6,
-                            }}
-                          >
-                            LAST CHECKPOINT
-                          </div>
-                          <div
-                            style={{
-                              fontFamily: sans,
-                              fontSize: 16,
-                              fontWeight: 500,
-                              color: '#D3D1C7',
-                              marginBottom: '1.75rem',
-                              lineHeight: 1.3,
-                            }}
-                          >
-                            One more step before you decide.
-                          </div>
-                          <div
-                            style={{
-                              fontFamily: sans,
-                              fontSize: 11,
-                              color: '#9A9890',
-                              textAlign: 'center',
-                              marginBottom: 12,
-                            }}
-                          >
-                            The pre-commit score flags the gaps. The final analysis locks in your path forward.
-                          </div>
-                          <button
-                            type="button"
-                            onClick={handleGenerateVerdict}
-                            disabled={verdictLoading}
-                            style={{
-                              width: '100%',
-                              fontFamily: sans,
-                              fontSize: 12.5,
-                              fontWeight: 500,
-                              letterSpacing: '0.07em',
-                              textTransform: 'uppercase',
-                              background: '#F1EFE8',
-                              color: '#1E1C1A',
-                              border: 'none',
-                              padding: 16,
-                              borderRadius: 8,
-                              cursor: verdictLoading ? 'default' : 'pointer',
-                              opacity: verdictLoading ? 0.42 : 1,
-                              transition: 'opacity 0.15s ease',
-                            }}
-                          >
-                            {verdictLoading ? 'Generating...' : 'Get My Full Analysis →'}
-                          </button>
-                          {/* Action buttons */}
-                          <div style={{ marginTop: 16, display: 'flex', gap: 10, justifyContent: 'center' }}>
-                            <button
-                              type="button"
-                              onClick={() => window.location.reload()}
-                              style={{
-                                fontFamily: sans,
-                                fontSize: 11,
-                                fontWeight: 500,
-                                letterSpacing: '0.05em',
-                                background: 'transparent',
-                                color: '#888780',
-                                border: '1px solid rgba(136,135,128,0.3)',
-                                padding: '10px 16px',
-                                borderRadius: 6,
-                                cursor: 'pointer',
-                                transition: 'all 0.15s ease',
-                              }}
-                            >
-                              Revise and re-run →
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => alert('Share feature coming soon')}
-                              style={{
-                                fontFamily: sans,
-                                fontSize: 11,
-                                fontWeight: 500,
-                                letterSpacing: '0.05em',
-                                background: 'transparent',
-                                color: '#888780',
-                                border: '1px solid rgba(136,135,128,0.3)',
-                                padding: '10px 16px',
-                                borderRadius: 6,
-                                cursor: 'pointer',
-                                transition: 'all 0.15s ease',
-                              }}
-                            >
-                              Share this review →
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
                   )}
 
                   {/* ── Final verdict card ── */}
