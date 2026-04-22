@@ -2486,7 +2486,7 @@ export default function HomePage() {
                         style={{
                           background: 'var(--color-background-primary)',
                           borderRadius: 16,
-                          padding: '24px 24px 0',
+                          padding: '24px',
                           marginBottom: 0,
                         }}
                       >
