@@ -2593,7 +2593,7 @@ export default function HomePage() {
                       borderRadius: 'var(--border-radius-lg)',
                     }}
                   >
-                      <div style={{ padding: '1.75rem 0' }}>
+                      <div style={{ padding: '3rem 0' }}>
                         {/* Commit gate */}
                         <div
                           style={{
@@ -2610,7 +2610,7 @@ export default function HomePage() {
                               letterSpacing: '0.16em',
                               textTransform: 'uppercase',
                               color: '#888780',
-                              marginBottom: 6,
+                              marginBottom: 16,
                             }}
                           >
                             BEFORE YOU DECIDE
@@ -2621,7 +2621,7 @@ export default function HomePage() {
                               fontSize: 16,
                               fontWeight: 500,
                               color: '#D3D1C7',
-                              marginBottom: '1rem',
+                              marginBottom: '1.5rem',
                               lineHeight: 1.3,
                             }}
                           >
@@ -2629,18 +2629,32 @@ export default function HomePage() {
                           </div>
                           <div
                             style={{
+                              height: '1px',
+                              background: 'rgba(255,255,255,0.1)',
+                              marginBottom: '1.5rem',
+                            }}
+                          />
+                          <div
+                            style={{
                               fontFamily: sans,
-                              fontSize: 13,
-                              color: '#9A9890',
-                              lineHeight: 1.6,
-                              marginBottom: '1.75rem',
+                              fontSize: 15,
+                              color: '#E5E3DC',
+                              lineHeight: 1.8,
+                              marginBottom: '2rem',
                               textAlign: 'left',
                             }}
                           >
-                            <div style={{ marginBottom: '0.5rem' }}>→ Why your score is <span style={{ color: meta.color }}>{scoreTotal ?? '—'}</span> — the exact gaps, ranked</div>
-                            <div style={{ marginBottom: '0.5rem' }}>→ The one move to make before you commit</div>
+                            <div style={{ marginBottom: '0.75rem' }}>→ Why your score is <span style={{ color: meta.color }}>{scoreTotal ?? '—'}</span> — the exact gaps, ranked</div>
+                            <div style={{ marginBottom: '0.75rem' }}>→ The one move to make before you commit</div>
                             <div>→ The condition that makes this decision safe to execute</div>
                           </div>
+                          <div
+                            style={{
+                              height: '1px',
+                              background: 'rgba(255,255,255,0.1)',
+                              marginBottom: '1.5rem',
+                            }}
+                          />
                           <button
                             type="button"
                             onClick={handleGenerateVerdict}
@@ -2655,7 +2669,7 @@ export default function HomePage() {
                               background: '#F1EFE8',
                               color: '#1E1C1A',
                               border: 'none',
-                              padding: 16,
+                              padding: 20,
                               borderRadius: 8,
                               cursor: verdictLoading ? 'default' : 'pointer',
                               opacity: verdictLoading ? 0.42 : 1,
