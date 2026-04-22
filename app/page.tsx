@@ -2530,7 +2530,7 @@ export default function HomePage() {
                         </div>
 
                         {/* Hero score */}
-                        <div style={{ marginBottom: '1.5rem' }}>
+                        <div style={{ marginBottom: 0 }}>
                           <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem' }}>
                             <span
                               style={{
@@ -2576,7 +2576,7 @@ export default function HomePage() {
                       marginTop: '2rem',
                       marginBottom: '2rem',
                       background: 'var(--color-background-primary)',
-                      border: '0.5px solid var(--color-border-tertiary)',
+                      border: '0.5px solid #A32D2D',
                       borderRadius: 'var(--border-radius-lg)',
                     }}
                   >
