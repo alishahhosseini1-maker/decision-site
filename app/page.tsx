@@ -1308,10 +1308,6 @@ export default function HomePage() {
         verdictRequested: true,
         verdict: nextVerdict,
       });
-
-      setTimeout(() => {
-        verdictRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 50);
     } catch {
       const fallbackVerdict = 'Not ready yet\n\nSomething went wrong. Try again.';
       setVerdict(fallbackVerdict);
