@@ -2408,7 +2408,7 @@ export default function HomePage() {
                       border: '1px solid rgba(0,0,0,0.10)',
                       borderRadius: 16,
                       background: '#fff',
-                      padding: '2.5rem 2.5rem 1rem',
+                      padding: '2.5rem 2.5rem 0',
                       boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
                     }}
                   >
@@ -2487,7 +2487,7 @@ export default function HomePage() {
                           background: 'var(--color-background-primary)',
                           borderRadius: 16,
                           padding: '24px 24px 0',
-                          marginBottom: '2rem',
+                          marginBottom: 0,
                         }}
                       >
                         {/* Header */}
