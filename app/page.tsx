@@ -2691,15 +2691,24 @@ export default function HomePage() {
                     }}
                   >
                     {/* Door walkthrough intro */}
-                        <div style={{
-                          fontSize: 12,
-                          color: '#9A9890',
-                          textAlign: 'center',
-                          letterSpacing: '0.04em',
-                          marginBottom: 12,
-                          fontFamily: sans,
-                        }}>
-                          Some decisions are doors that lock behind you. Walk yours.
+                        <div style={{ textAlign: 'center', marginBottom: 20 }}>
+                          <div style={{
+                            fontFamily: sans,
+                            fontSize: 16,
+                            fontWeight: 600,
+                            color: 'var(--color-text-primary)',
+                            marginBottom: 8,
+                          }}>
+                            Your decision has 5 layers.
+                          </div>
+                          <div style={{
+                            fontFamily: sans,
+                            fontSize: 12,
+                            color: '#9A9890',
+                            lineHeight: 1.4,
+                          }}>
+                            Door · Hinge · Lock · Exit · Trap — tap to walk through each one.
+                          </div>
                         </div>
 
                         {/* Decision Door visualization */}
@@ -2720,46 +2729,29 @@ export default function HomePage() {
                           />
                         </div>
 
-                        {/* Skip to findings link */}
-                        {doorStep < 5 && (
-                          <div
-                            onClick={() => {
-                              setDoorStep(5);
-                              setTimeout(() => {
-                                document.getElementById('threat-card')?.scrollIntoView({
-                                  behavior: 'smooth',
-                                  block: 'start'
-                                });
-                              }, 100);
-                            }}
-                            style={{
-                              fontSize: 12,
-                              color: '#9A9890',
-                              textAlign: 'center',
-                              cursor: 'pointer',
-                              display: 'block',
-                              marginTop: 8,
-                              fontFamily: sans,
-                            }}
-                          >
-                            Go straight to findings ↓
-                          </div>
-                        )}
                       </div>
                   )}
 
-                  {/* Transition text after walkthrough */}
+                  {/* Skip walkthrough link */}
                   {verdictRequested && (
-                    <div style={{
-                      fontSize: 12,
-                      color: '#9A9890',
-                      fontStyle: 'italic',
-                      textAlign: 'center',
-                      marginTop: 20,
-                      marginBottom: 20,
-                      fontFamily: sans,
-                    }}>
-                      Now read what&apos;s on the other side.
+                    <div
+                      onClick={() => {
+                        document.getElementById('step-card')?.scrollIntoView({
+                          behavior: 'smooth',
+                          block: 'start'
+                        });
+                      }}
+                      style={{
+                        fontSize: 12,
+                        color: '#9A9890',
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        marginTop: 16,
+                        marginBottom: 16,
+                        fontFamily: sans,
+                      }}
+                    >
+                      Skip walkthrough ↓
                     </div>
                   )}
                   {/* ── STEP ── appears after walkthrough is complete */}

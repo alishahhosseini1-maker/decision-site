@@ -350,8 +350,8 @@ export default function DecisionDoor({ reviewResult, onStepChange, decisionText,
           }
         }
         @keyframes beginBarPulse {
-          0%, 100% { opacity: 0.75; }
-          50% { opacity: 1; }
+          0%, 100% { opacity: 0.85; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.08); }
         }
         @keyframes completionPulse {
           0% { transform: scale(1); }
@@ -704,16 +704,16 @@ export default function DecisionDoor({ reviewResult, onStepChange, decisionText,
               <circle
                 cx="324"
                 cy="281"
-                r="28"
+                r="40"
                 fill="#1D9E75"
                 opacity="0.9"
-                style={{ animation: 'beginBarPulse 2s ease-in-out infinite' }}
+                style={{ animation: 'beginBarPulse 2s ease-in-out infinite', transformOrigin: 'center' }}
               />
               {/* Text */}
-              <text x="324" y="278" textAnchor="middle" fontSize="11" fontWeight="500" fill="#FFFFFF">
+              <text x="324" y="278" textAnchor="middle" fontSize="13" fontWeight="600" fill="#FFFFFF">
                 Tap
               </text>
-              <text x="324" y="290" textAnchor="middle" fontSize="11" fontWeight="500" fill="#FFFFFF">
+              <text x="324" y="292" textAnchor="middle" fontSize="13" fontWeight="600" fill="#FFFFFF">
                 to begin
               </text>
             </g>
