@@ -2999,127 +2999,129 @@ export default function HomePage() {
                             </div>
                           )}
 
-                          {/* 3. Commitment card */}
-                          <div
-                            className="card-padding"
-                            style={{
-                              border: '1px solid #444441',
-                              borderRadius: 12,
-                              background: '#1A1A18',
-                              marginBottom: 16,
-                            }}
-                          >
+                          {/* 3. Commitment card - Paid tier only */}
+                          {isPaidUser && (
                             <div
+                              className="card-padding"
                               style={{
-                                fontFamily: sans,
-                                fontSize: 10,
-                                fontWeight: 700,
-                                letterSpacing: '0.14em',
-                                textTransform: 'uppercase',
-                                color: '#888780',
-                                marginBottom: 8,
-                              }}
-                            >
-                              What are you doing in the next 48 hours?
-                            </div>
-                            <div
-                              style={{
-                                fontFamily: sans,
-                                fontSize: 12,
-                                color: '#9A9890',
-                                fontStyle: 'italic',
-                                marginBottom: 12,
-                              }}
-                            >
-                              People who write down their next step are 3x more likely to follow through.
-                            </div>
-                            <textarea
-                              value={commitment}
-                              onChange={(e) => setCommitment(e.target.value)}
-                              placeholder="This week I will specifically..."
-                              rows={4}
-                              style={{
-                                width: '100%',
-                                fontFamily: sans,
-                                fontSize: 14,
-                                lineHeight: 1.6,
-                                padding: '12px 14px',
                                 border: '1px solid #444441',
-                                borderRadius: 8,
-                                resize: 'vertical',
-                                outline: 'none',
-                                marginBottom: 8,
-                                background: '#2A2A28',
-                                color: '#FFFFFF',
-                              }}
-                            />
-                            <div
-                              style={{
-                                fontFamily: sans,
-                                fontSize: 11,
-                                color: '#888780',
+                                borderRadius: 12,
+                                background: '#1A1A18',
                                 marginBottom: 16,
                               }}
                             >
-                              {commitment.trim().length} characters
-                            </div>
-                            <button
-                              type="button"
-                              onClick={handleLockVerdict}
-                              disabled={savingVerdict || commitment.trim().length === 0 || decisionId !== null}
-                              style={{
-                                fontFamily: sans,
-                                fontSize: 13,
-                                fontWeight: 500,
-                                padding: '11px 18px',
-                                borderRadius: 10,
-                                border: 'none',
-                                background: decisionId ? '#16a34a' : commitment.trim().length === 0 ? '#2A2826' : '#0E0C0A',
-                                color: decisionId ? '#fff' : commitment.trim().length === 0 ? '#888780' : '#FFFFFF',
-                                cursor: (savingVerdict || commitment.trim().length === 0 || decisionId) ? 'not-allowed' : 'pointer',
-                                width: '100%',
-                                transition: 'all 0.2s ease',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: 8,
-                              }}
-                            >
-                              {decisionId ? (
-                                <>
-                                  <span style={{ fontSize: 16 }}>✓</span>
-                                  <span>Verdict locked</span>
-                                </>
-                              ) : savingVerdict ? (
-                                'Saving...'
-                              ) : (
-                                'Lock this verdict'
-                              )}
-                            </button>
-                            {decisionId && (
                               <div
                                 style={{
-                                  marginTop: 14,
                                   fontFamily: sans,
-                                  fontSize: 13,
-                                  textAlign: 'center',
-                                  color: 'rgba(0,0,0,0.65)',
+                                  fontSize: 10,
+                                  fontWeight: 700,
+                                  letterSpacing: '0.14em',
+                                  textTransform: 'uppercase',
+                                  color: '#888780',
+                                  marginBottom: 8,
                                 }}
                               >
-                                Your brief is ready.{' '}
-                                <a
-                                  href={`/decision-summary?id=${decisionId}`}
+                                Commit this decision before you act.
+                              </div>
+                              <div
+                                style={{
+                                  fontFamily: sans,
+                                  fontSize: 12,
+                                  color: '#9A9890',
+                                  fontStyle: 'italic',
+                                  marginBottom: 12,
+                                }}
+                              >
+                                People who write down their next step are 3x more likely to follow through.
+                              </div>
+                              <textarea
+                                value={commitment}
+                                onChange={(e) => setCommitment(e.target.value)}
+                                placeholder="This week I will specifically..."
+                                rows={4}
+                                style={{
+                                  width: '100%',
+                                  fontFamily: sans,
+                                  fontSize: 14,
+                                  lineHeight: 1.6,
+                                  padding: '12px 14px',
+                                  border: '1px solid #444441',
+                                  borderRadius: 8,
+                                  resize: 'vertical',
+                                  outline: 'none',
+                                  marginBottom: 8,
+                                  background: '#2A2A28',
+                                  color: '#FFFFFF',
+                                }}
+                              />
+                              <div
+                                style={{
+                                  fontFamily: sans,
+                                  fontSize: 11,
+                                  color: '#888780',
+                                  marginBottom: 16,
+                                }}
+                              >
+                                {commitment.trim().length} characters
+                              </div>
+                              <button
+                                type="button"
+                                onClick={handleLockVerdict}
+                                disabled={savingVerdict || commitment.trim().length === 0 || decisionId !== null}
+                                style={{
+                                  fontFamily: sans,
+                                  fontSize: 13,
+                                  fontWeight: 500,
+                                  padding: '11px 18px',
+                                  borderRadius: 10,
+                                  border: 'none',
+                                  background: decisionId ? '#16a34a' : commitment.trim().length === 0 ? '#2A2826' : '#0E0C0A',
+                                  color: decisionId ? '#fff' : commitment.trim().length === 0 ? '#888780' : '#FFFFFF',
+                                  cursor: (savingVerdict || commitment.trim().length === 0 || decisionId) ? 'not-allowed' : 'pointer',
+                                  width: '100%',
+                                  transition: 'all 0.2s ease',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: 8,
+                                }}
+                              >
+                                {decisionId ? (
+                                  <>
+                                    <span style={{ fontSize: 16 }}>✓</span>
+                                    <span>Decision committed</span>
+                                  </>
+                                ) : savingVerdict ? (
+                                  'Saving...'
+                                ) : (
+                                  'Commit this decision'
+                                )}
+                              </button>
+                              {decisionId && (
+                                <div
                                   style={{
-                                    color: '#0b0b0b',
-                                    fontWeight: 600,
-                                    textDecoration: 'none',
+                                    marginTop: 14,
+                                    fontFamily: sans,
+                                    fontSize: 13,
+                                    textAlign: 'center',
+                                    color: 'rgba(0,0,0,0.65)',
                                   }}
                                 >
-                                  View Decision Brief →
-                                </a>
-                              </div>
-                            )}
-                          </div>
+                                  Your brief is ready.{' '}
+                                  <a
+                                    href={`/decision-summary?id=${decisionId}`}
+                                    style={{
+                                      color: '#0b0b0b',
+                                      fontWeight: 600,
+                                      textDecoration: 'none',
+                                    }}
+                                  >
+                                    View Decision Brief →
+                                  </a>
+                                </div>
+                              )}
+                            </div>
+                          )}
 
                           {/* 4. Hallmark line */}
                           <div
