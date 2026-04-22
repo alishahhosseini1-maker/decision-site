@@ -5,6 +5,7 @@ import React from 'react';
 type ResultsPageProps = {
   reviewResult: any;
   isPaidUser: boolean;
+  setIsPaidUser: (value: boolean) => void;
   scoreTotal: number;
   meta: {
     color: string;
@@ -26,6 +27,7 @@ type ResultsPageProps = {
 export default function ResultsPage({
   reviewResult,
   isPaidUser,
+  setIsPaidUser,
   scoreTotal,
   meta,
   sans,
@@ -398,6 +400,7 @@ export default function ResultsPage({
             {/* $99 button */}
             <button
               type="button"
+              onClick={() => setIsPaidUser(true)}
               style={{
                 width: '100%',
                 fontFamily: sans,
@@ -435,6 +438,24 @@ export default function ResultsPage({
             boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
           }}
         >
+          {/* Test mode banner */}
+          <div
+            style={{
+              background: '#dc2626',
+              color: '#FFFFFF',
+              padding: '12px 20px',
+              borderRadius: 8,
+              marginBottom: '2rem',
+              fontFamily: sans,
+              fontSize: 13,
+              fontWeight: 600,
+              textAlign: 'center',
+              letterSpacing: '0.05em',
+            }}
+          >
+            TEST MODE — payment not processed
+          </div>
+
           {/* 1. Header */}
           <div
             style={{

@@ -537,8 +537,8 @@ export default function HomePage() {
   const [showThinContextWarning, setShowThinContextWarning] = useState(false);
   const [doorStep, setDoorStep] = useState(-1);
 
-  // Payment tier - TODO: Replace with actual payment logic
-  const isPaidUser = false;
+  // Payment tier - Test mode bypass for local testing
+  const [isPaidUser, setIsPaidUser] = useState(false);
 
   const [teamTitle, setTeamTitle] = useState('');
   const [teamPrompt, setTeamPrompt] = useState('');
@@ -2409,6 +2409,7 @@ export default function HomePage() {
                   <ResultsPage
                     reviewResult={reviewResult}
                     isPaidUser={isPaidUser}
+                    setIsPaidUser={setIsPaidUser}
                     scoreTotal={scoreTotal}
                     meta={meta}
                     sans={sans}
