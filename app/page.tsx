@@ -2791,7 +2791,7 @@ export default function HomePage() {
                               lineHeight: 1.3,
                             }}
                           >
-                            One more step before you decide.
+                            You have a diagnosis. What's locked is the move.
                           </div>
                           <div
                             style={{
@@ -2802,7 +2802,7 @@ export default function HomePage() {
                               marginBottom: 12,
                             }}
                           >
-                            The pre-commit score flags the gaps. The final analysis locks in your path forward.
+                            Three gaps are dragging your score down. What's locked: the exact move, the ranked gaps, and the condition that flips this from risky to executable.
                           </div>
                           <button
                             type="button"
@@ -2825,7 +2825,7 @@ export default function HomePage() {
                               transition: 'opacity 0.15s ease',
                             }}
                           >
-                            {verdictLoading ? 'Generating...' : 'Get My Full Analysis →'}
+                            {verdictLoading ? 'Generating...' : 'Unlock the move — $99 →'}
                           </button>
                           {/* Action buttons */}
                           <div style={{ marginTop: 16, display: 'flex', gap: 10, justifyContent: 'center' }}>
