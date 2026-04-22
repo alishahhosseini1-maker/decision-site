@@ -2708,6 +2708,7 @@ export default function HomePage() {
                     </div>
                   )}
 
+                  {verdictRequested && (
                   <div
                     style={{
                       border: '1px solid rgba(0,0,0,0.10)',
@@ -2774,9 +2775,10 @@ export default function HomePage() {
                           </div>
                         )}
                       </div>
+                  )}
 
                   {/* Transition text after walkthrough */}
-                  {doorStep === 5 && (
+                  {verdictRequested && (
                     <div style={{
                       fontSize: 12,
                       color: '#9A9890',
@@ -2790,7 +2792,7 @@ export default function HomePage() {
                     </div>
                   )}
                   {/* ── STEP ── appears after walkthrough is complete */}
-                  {doorStep === 5 && (
+                  {verdictRequested && (
                     <div
                       id="step-card"
                       className="card-padding"
@@ -2811,7 +2813,7 @@ export default function HomePage() {
                   )}
 
                   {/* ── HOW TO STRENGTHEN ── appears after walkthrough is complete */}
-                  {doorStep === 5 && (
+                  {verdictRequested && (
                     <details className="card-padding-compact" style={{ marginTop: 12, marginBottom: 12, background: 'var(--color-background-primary)', border: '0.5px solid var(--color-border-tertiary)', borderRadius: 'var(--border-radius-lg)' }}>
                       <summary style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--color-text-primary)', cursor: 'pointer', userSelect: 'none', padding: '4px 0' }}>
                         How to strengthen this decision
