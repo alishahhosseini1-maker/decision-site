@@ -39,7 +39,8 @@ export default function ResultsPage({
   whenThisChanges,
 }: ResultsPageProps) {
 
-  const amberColor = meta.color; // Use existing amber from score
+  // Fixed amber/gold color - warm brownish-gold tone
+  const amberColor = '#C8860A';
 
   return (
     <div style={{ marginTop: 16 }}>
