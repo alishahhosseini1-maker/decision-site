@@ -2615,32 +2615,35 @@ export default function HomePage() {
                           />
                         </div>
 
+                        {/* Skip to findings link */}
+                        {doorStep < 5 && (
+                          <div
+                            onClick={() => {
+                              setDoorStep(5);
+                              setTimeout(() => {
+                                document.getElementById('threat-card')?.scrollIntoView({
+                                  behavior: 'smooth',
+                                  block: 'start'
+                                });
+                              }, 100);
+                            }}
+                            style={{
+                              fontSize: 12,
+                              color: '#9A9890',
+                              textAlign: 'center',
+                              cursor: 'pointer',
+                              display: 'block',
+                              marginTop: 8,
+                              fontFamily: sans,
+                            }}
+                          >
+                            Go straight to findings ↓
+                          </div>
+                        )}
+
                       </div>
                     </div>
                   </div>
-
-                  {/* Skip to findings link */}
-                  {doorStep === 5 && (
-                    <div
-                      onClick={() => {
-                        document.getElementById('threat-card')?.scrollIntoView({
-                          behavior: 'smooth',
-                          block: 'start'
-                        });
-                      }}
-                      style={{
-                        fontSize: 12,
-                        color: '#9A9890',
-                        textAlign: 'center',
-                        cursor: 'pointer',
-                        display: 'block',
-                        marginTop: 8,
-                        fontFamily: sans,
-                      }}
-                    >
-                      Go straight to findings ↓
-                    </div>
-                  )}
 
                   {/* Transition text after walkthrough */}
                   {doorStep === 5 && (
