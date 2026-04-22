@@ -2619,6 +2619,29 @@ export default function HomePage() {
                     </div>
                   </div>
 
+                  {/* Skip to findings link */}
+                  {doorStep === 5 && (
+                    <div
+                      onClick={() => {
+                        document.getElementById('threat-card')?.scrollIntoView({
+                          behavior: 'smooth',
+                          block: 'start'
+                        });
+                      }}
+                      style={{
+                        fontSize: 12,
+                        color: '#9A9890',
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        display: 'block',
+                        marginTop: 8,
+                        fontFamily: sans,
+                      }}
+                    >
+                      Go straight to findings ↓
+                    </div>
+                  )}
+
                   {/* Transition text after walkthrough */}
                   {doorStep === 5 && (
                     <div style={{
@@ -2637,6 +2660,7 @@ export default function HomePage() {
                   {/* The threat — appears after walkthrough is complete */}
                   {doorStep === 5 && (
                     <div
+                      id="threat-card"
                       className="card-padding"
                       style={{
                         marginTop: 12,
