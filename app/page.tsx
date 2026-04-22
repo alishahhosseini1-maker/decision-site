@@ -2827,18 +2827,6 @@ export default function HomePage() {
                           >
                             {verdictLoading ? 'Generating...' : 'Get My Full Analysis →'}
                           </button>
-                          <div
-                            style={{
-                              marginTop: 10,
-                              fontFamily: sans,
-                              fontSize: 11,
-                              color: '#888780',
-                              letterSpacing: '0.02em',
-                              textAlign: 'center',
-                            }}
-                          >
-                            Verdict saves automatically after generation.
-                          </div>
                           {/* Action buttons */}
                           <div style={{ marginTop: 16, display: 'flex', gap: 10, justifyContent: 'center' }}>
                             <button
