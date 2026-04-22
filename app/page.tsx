@@ -2572,7 +2572,7 @@ export default function HomePage() {
                             background: 'rgba(255,255,255,0.12)',
                             borderRadius: 999,
                             overflow: 'hidden',
-                            marginBottom: '2rem',
+                            marginBottom: 0,
                           }}
                         >
                           <div
@@ -2584,23 +2584,32 @@ export default function HomePage() {
                             }}
                           />
                         </div>
+                      </div>
 
-                        {/* The threat — appears after score */}
-                        <div
-                          id="threat-card"
-                          className="card-padding"
-                          style={{
-                            marginTop: 12,
-                            marginBottom: 12,
-                            background: 'var(--color-background-primary)',
-                            border: '0.5px solid #C0392B',
-                            borderRadius: 'var(--border-radius-lg)',
-                          }}
-                        >
-                          <div style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#A32D2D', marginBottom: 10 }}>THE THREAT</div>
-                          <div style={{ fontFamily: sans, fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-primary)', fontWeight: 500 }}>{reviewResult.topline.primaryRisk}</div>
-                        </div>
+                      {/* The threat — appears after score */}
+                      <div
+                        id="threat-card"
+                        className="card-padding"
+                        style={{
+                          marginTop: '2rem',
+                          marginBottom: '2rem',
+                          background: 'var(--color-background-primary)',
+                          border: '0.5px solid #C0392B',
+                          borderRadius: 'var(--border-radius-lg)',
+                        }}
+                      >
+                        <div style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#A32D2D', marginBottom: 10 }}>THE THREAT</div>
+                        <div style={{ fontFamily: sans, fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-primary)', fontWeight: 500 }}>{reviewResult.topline.primaryRisk}</div>
+                      </div>
 
+                      <div
+                        style={{
+                          background: 'var(--color-background-primary)',
+                          borderRadius: 16,
+                          padding: '24px',
+                          marginBottom: '2rem',
+                        }}
+                      >
                         {/* Door walkthrough intro */}
                         <div style={{
                           fontSize: 12,
