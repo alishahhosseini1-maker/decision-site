@@ -2621,11 +2621,25 @@ export default function HomePage() {
                               fontSize: 16,
                               fontWeight: 500,
                               color: '#D3D1C7',
-                              marginBottom: '1.75rem',
+                              marginBottom: '1rem',
                               lineHeight: 1.3,
                             }}
                           >
-                            Your score is {scoreTotal ?? '—'}. Here&apos;s exactly why — and the one move that changes it.
+                            Your score is {scoreTotal ?? '—'}. Here&apos;s everything behind it.
+                          </div>
+                          <div
+                            style={{
+                              fontFamily: sans,
+                              fontSize: 13,
+                              color: '#9A9890',
+                              lineHeight: 1.6,
+                              marginBottom: '1.75rem',
+                              textAlign: 'left',
+                            }}
+                          >
+                            <div style={{ marginBottom: '0.5rem' }}>→ Why your score is {scoreTotal ?? '—'} — the exact gaps, ranked</div>
+                            <div style={{ marginBottom: '0.5rem' }}>→ The one move to make before you commit</div>
+                            <div>→ The condition that makes this decision safe to execute</div>
                           </div>
                           <button
                             type="button"
