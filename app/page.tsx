@@ -2493,7 +2493,7 @@ export default function HomePage() {
                             justifyContent: 'space-between',
                             alignItems: 'center',
                             gap: '1rem',
-                            marginBottom: '1.5rem',
+                            marginBottom: '2rem',
                           }}
                         >
                           <div
@@ -2526,8 +2526,8 @@ export default function HomePage() {
                         </div>
 
                         {/* Hero score */}
-                        <div style={{ marginBottom: 0 }}>
-                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem' }}>
+                        <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem', justifyContent: 'center' }}>
                             <span
                               style={{
                                 fontSize: 'clamp(2.25rem, 8vw, 44px)',
