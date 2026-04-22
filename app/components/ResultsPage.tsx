@@ -39,8 +39,18 @@ export default function ResultsPage({
   whenThisChanges,
 }: ResultsPageProps) {
 
-  // Fixed amber/gold color - warm brownish-gold tone
+  // Fixed amber/gold color - warm brownish-gold tone (for paywall elements)
   const amberColor = '#C8860A';
+
+  // Dynamic score color based on score thresholds
+  const getScoreColor = (score: number) => {
+    if (score < 50) return '#A32D2D';      // Red - Needs more before you commit
+    if (score < 65) return '#854F0B';      // Dark orange - Take a smaller step
+    if (score < 80) return '#5C4B00';      // Dark amber - Proceed with caution
+    return '#0F6E56';                       // Green - Strong
+  };
+
+  const scoreColor = getScoreColor(scoreTotal);
 
   return (
     <div style={{ marginTop: 16 }}>
@@ -156,7 +166,7 @@ export default function ResultsPage({
                 fontFamily: sans,
                 fontSize: 48,
                 fontWeight: 700,
-                color: amberColor,
+                color: scoreColor,
                 lineHeight: 1,
               }}
             >
