@@ -2625,7 +2625,7 @@ export default function HomePage() {
                               lineHeight: 1.3,
                             }}
                           >
-                            Your score is <span style={{ color: meta.color }}>{scoreTotal ?? '—'}</span>. Here&apos;s everything behind it.
+                            Your score is <span style={{ color: meta.color }}>{scoreTotal ?? '—'}</span>. Here&apos;s the full picture.
                           </div>
                           <div
                             style={{
@@ -2644,9 +2644,10 @@ export default function HomePage() {
                               textAlign: 'left',
                             }}
                           >
-                            <div style={{ marginBottom: '0.75rem' }}>→ Why your score is <span style={{ color: meta.color }}>{scoreTotal ?? '—'}</span> — the exact gaps, ranked</div>
+                            <div style={{ marginBottom: '0.75rem' }}>→ Walk through your decision door — see every hinge, lock, and trap</div>
+                            <div style={{ marginBottom: '0.75rem' }}>→ The exact gaps dragging your score down, ranked</div>
                             <div style={{ marginBottom: '0.75rem' }}>→ The one move to make before you commit</div>
-                            <div>→ The condition that makes this decision safe to execute</div>
+                            <div>→ The condition that flips this from risky to executable</div>
                           </div>
                           <div
                             style={{
