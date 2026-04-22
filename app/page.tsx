@@ -2526,8 +2526,8 @@ export default function HomePage() {
                         </div>
 
                         {/* Hero score */}
-                        <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
-                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem', justifyContent: 'center' }}>
+                        <div style={{ marginBottom: '2rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem' }}>
                             <span
                               style={{
                                 fontSize: 'clamp(2.25rem, 8vw, 44px)',
