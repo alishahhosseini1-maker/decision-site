@@ -150,9 +150,12 @@ exit:
 step:
 - Hyper-specific. Executable today or this week.
 - Must name: who to contact or what to do, exactly what to ask or test, and by when.
-- Format anchor: "Your next move becomes: [specific action that creates real market signal, not opinion gathering. Must involve actual commitment — money exchanged, contract signed, decision executed — not surveys or questions about willingness.]"
-- Behavior-forcing next moves only. No surveys. No willingness-to-pay questions. No opinion gathering.
-- Wrong: "Survey 10 potential customers about pricing." Right: "List your new service at $2,500/month and send the proposal to your top 3 prospects by Friday."
+- RISK REQUIREMENT: The next move must require the user to risk something before the outcome is known.
+- Valid actions: money exchanged, contract signed, irreversible commitment made.
+- Invalid actions: surveys, asking willingness to pay, hypothetical value discussions, free pilots with no commitment.
+- If no risk is present in the proposed action, the move is invalid. Rewrite until it forces skin in the game.
+- Format anchor (output the action ONLY, do not include "Your next move becomes:" prefix): "List your new service at $2,500/month and send the proposal to your top 3 prospects by Friday."
+- Wrong: "Survey 10 customers about pricing" (no risk). Wrong: "Your next move becomes: send proposals" (includes prefix). Right: "Send binding proposals at $2,500/month to your top 3 prospects by Friday."
 - Maximum 2 sentences.
 
 script:
