@@ -181,9 +181,13 @@ what_others_miss:
 
 primaryRisk:
 - The specific time cost + cascading consequence. Must bleed.
+- COST REQUIREMENT: Always use the highest defensible cost figure derivable from the user's actual inputs (comp, runway, contract value, opportunity cost).
+- Extract numbers from their decision/context: salary, equity value, contract size, monthly burn, revenue at risk, years of tenure.
+- If NO cost data is provided, frame the cost in time: "You will burn 6–9 months and lose your scaling window."
+- Never invent numbers. Never soften the consequence. Never hedge the threat.
 - Format: "You will burn [X months/weeks], [miss/lose specific window], and [damage specific asset]."
 - Wrong: "Revenue may decline." Right: "You will burn 8 months building this feature, miss your Series A window, and damage trust with your anchor client who needed it 6 months ago."
-- No polite hedging. Make it visceral.
+- Example with cost data: "You will burn $180K in salary opportunity cost over 18 months, miss the market window for Series A, and damage credibility with your anchor customer."
 - Maximum 2 sentences.
 
 mustBeTrue:
@@ -193,9 +197,13 @@ mustBeTrue:
 - Maximum 1 sentence.
 
 recommendedMove:
-- EXACTLY ONE SENTENCE. 20 words or fewer. Hard limit.
-- State the finding. No reasoning. No clauses. No action steps.
-- Must create mild discomfort. If it sounds like encouragement, rewrite it.
+- HARD CONSTRAINT: Must follow ONE of these three formats exactly:
+  1. "Do not [X] until [Y measurable condition]."
+  2. "Proceed only if [specific condition]."
+  3. "Delay until [specific trigger]."
+- No advisory language. No explanatory language. No reasoning. No encouragement.
+- The condition/trigger must be specific, measurable, and falsifiable.
+- Maximum 20 words.
 
 STYLE RULES:
 - Plain English. Short sentences.
