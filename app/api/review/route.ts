@@ -95,7 +95,8 @@ Examples for a job offer decision:
 SUMMARY FIELD:
 The readiness.summary field must name the unproven assumption directly.
 - BANNED pattern: "[decision] lacks foundation in [generic concept]."
-- REQUIRED pattern: "You don't yet know if [specific assumption driving this decision] is actually true."
+- Format anchor: "You don't yet know if your current growth is driven by you or by a repeatable system."
+- Forces the model to name the specific transferability assumption, not describe a generic gap.
 - Must force the person to confront the specific thing they have not validated.
 - Maximum 2 sentences.
 
@@ -195,6 +196,7 @@ primaryRisk:
 - Format: "You will burn [X months/weeks], [miss/lose specific window], and [damage specific asset]."
 - Format anchor: "You will burn [time period] and [$ cost], lose [specific momentum/credibility/customer/team asset], and miss [specific timing window]."
 - Draw ALL values from the user's actual inputs. No accounting language. No softening. Visceral and specific.
+- NEVER output a cost range (e.g., "$135K–$180K"). Commit to the higher defensible number or use time framing only.
 - Maximum 2 sentences.
 
 mustBeTrue:
@@ -211,7 +213,9 @@ recommendedMove:
 - No advisory language. No explanatory language. No reasoning. No encouragement.
 - The condition/trigger must be specific, measurable, and falsifiable.
 - Maximum 20 words.
-- Format anchor: "Do not [action] until [specific actor] has [measurable outcome] using [documented system]."
+- Format anchor: "Do not [action] until [specific actor] [measurable outcome] at [relevant metric/context] using [documented system]."
+- The top verdict must match the final verdict in specificity and precision.
+- No vague conditions like "document and test" — every condition must be binary and falsifiable.
 - Binary. Testable. No advisory language.
 
 STYLE RULES:
