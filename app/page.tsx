@@ -2824,10 +2824,10 @@ export default function HomePage() {
                               textAlign: 'left',
                             }}
                           >
-                            <div style={{ marginBottom: '0.75rem' }}>→ Walk through your decision door — see every hinge, lock, and trap</div>
-                            <div style={{ marginBottom: '0.75rem' }}>→ The exact gaps dragging your score down, ranked</div>
                             <div style={{ marginBottom: '0.75rem' }}>→ The one move to make before you commit</div>
-                            <div>→ The condition that flips this from risky to executable</div>
+                            <div style={{ marginBottom: '0.75rem' }}>→ The exact gaps dragging your score down, ranked</div>
+                            <div style={{ marginBottom: '0.75rem' }}>→ The one condition you need to meet before this becomes a safe bet</div>
+                            <div>→ See exactly how your decision breaks down — every risk, lock, and way out</div>
                           </div>
                           <div
                             style={{
