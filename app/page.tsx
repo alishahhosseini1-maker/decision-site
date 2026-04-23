@@ -829,6 +829,10 @@ export default function HomePage() {
   }, [savedToast]);
 
   useEffect(() => {
+    console.log('[DEBUG] User state changed:', { user, userId: user?.id });
+  }, [user]);
+
+  useEffect(() => {
     if (!loading) {
       setLoadingMessageIndex(0);
       return;
@@ -1949,6 +1953,45 @@ export default function HomePage() {
               }}
             >
               {savedToast}
+            </div>
+          )}
+
+          {/* ── Sign-in confirmation toast ── */}
+          {signInEmailSent && (
+            <div
+              style={{
+                maxWidth: 720,
+                margin: '14px auto 0',
+                borderRadius: 12,
+                border: '1px solid rgba(59,130,246,0.18)',
+                background: 'rgba(59,130,246,0.05)',
+                padding: '10px 12px',
+                color: '#1e40af',
+                fontSize: 12.5,
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 12,
+              }}
+            >
+              <span>Check your inbox. If it&apos;s not there, check your junk or spam folder.</span>
+              <button
+                onClick={() => setSignInEmailSent(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#1e40af',
+                  cursor: 'pointer',
+                  fontSize: 16,
+                  padding: 0,
+                  lineHeight: 1,
+                  opacity: 0.7,
+                }}
+                aria-label="Dismiss"
+              >
+                ✕
+              </button>
             </div>
           )}
 
@@ -3177,6 +3220,7 @@ export default function HomePage() {
                                 borderRadius: 10,
                                 border: 'none',
                                 background: decisionId ? '#16a34a' : (user?.id && commitment.trim().length > 0) ? '#16a34a' : commitment.trim().length === 0 ? '#2A2826' : '#0E0C0A',
+                                // DEBUG: user={user}, user?.id={user?.id}, commitment.length={commitment.trim().length}
                                 color: decisionId ? '#fff' : commitment.trim().length === 0 ? '#888780' : '#FFFFFF',
                                 cursor: (savingVerdict || commitment.trim().length === 0 || decisionId) ? 'not-allowed' : 'pointer',
                                 width: '100%',
@@ -3198,20 +3242,6 @@ export default function HomePage() {
                                 'Lock this verdict'
                               )}
                             </button>
-                            {signInEmailSent && (
-                              <div
-                                style={{
-                                  marginTop: 14,
-                                  fontFamily: sans,
-                                  fontSize: 13,
-                                  textAlign: 'center',
-                                  color: 'rgba(255,255,255,0.85)',
-                                  lineHeight: 1.5,
-                                }}
-                              >
-                                Check your inbox. If it&apos;s not there, check your junk or spam folder.
-                              </div>
-                            )}
                             {decisionId && (
                               <div
                                 style={{
