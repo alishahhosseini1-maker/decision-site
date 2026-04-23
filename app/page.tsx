@@ -3209,7 +3209,7 @@ export default function HomePage() {
                                   lineHeight: 1.5,
                                 }}
                               >
-                                Check your inbox. If it's not there, check your junk or spam folder.
+                                Check your inbox. If it&apos;s not there, check your junk or spam folder.
                               </div>
                             )}
                             {decisionId && (
