@@ -3176,7 +3176,7 @@ export default function HomePage() {
                                 padding: '11px 18px',
                                 borderRadius: 10,
                                 border: 'none',
-                                background: decisionId ? '#16a34a' : commitment.trim().length === 0 ? '#2A2826' : '#0E0C0A',
+                                background: decisionId ? '#16a34a' : user && commitment.trim().length > 0 ? '#16a34a' : commitment.trim().length === 0 ? '#2A2826' : '#0E0C0A',
                                 color: decisionId ? '#fff' : commitment.trim().length === 0 ? '#888780' : '#FFFFFF',
                                 cursor: (savingVerdict || commitment.trim().length === 0 || decisionId) ? 'not-allowed' : 'pointer',
                                 width: '100%',
@@ -3198,6 +3198,20 @@ export default function HomePage() {
                                 'Lock this verdict'
                               )}
                             </button>
+                            {signInEmailSent && (
+                              <div
+                                style={{
+                                  marginTop: 14,
+                                  fontFamily: sans,
+                                  fontSize: 13,
+                                  textAlign: 'center',
+                                  color: 'rgba(0,0,0,0.65)',
+                                  lineHeight: 1.5,
+                                }}
+                              >
+                                Check your inbox. If it's not there, check your junk or spam folder.
+                              </div>
+                            )}
                             {decisionId && (
                               <div
                                 style={{
