@@ -180,9 +180,10 @@ what_others_miss:
 - Wrong: "The risk is bigger than it looks." Right: "What looks like a pricing decision is actually a signal about who you are willing to serve — raise rates and you lose access to early-stage founders who become your best referral source."
 
 primaryRisk:
-- The specific mechanism of failure. Causal. Named.
-- Must include: what breaks, why it breaks, what the consequence is.
-- Wrong: "Revenue may decline." Right: "Your SDE projection assumes client relationships transfer to a new owner with no industry experience — if even one anchor account leaves in year one, you are below debt service."
+- The specific time cost + cascading consequence. Must bleed.
+- Format: "You will burn [X months/weeks], [miss/lose specific window], and [damage specific asset]."
+- Wrong: "Revenue may decline." Right: "You will burn 8 months building this feature, miss your Series A window, and damage trust with your anchor client who needed it 6 months ago."
+- No polite hedging. Make it visceral.
 - Maximum 2 sentences.
 
 mustBeTrue:

@@ -210,12 +210,12 @@ const mono = "'DM Mono', monospace";
 
 function getScoreMeta(label?: string) {
   if (label === 'Needs more before you commit')
-    return { color: '#A32D2D', bg: '#FCEBEB', borderColor: 'rgba(163,45,45,0.20)', badge: 'INCOMPLETE' };
+    return { color: '#A32D2D', bg: '#FCEBEB', borderColor: 'rgba(163,45,45,0.20)', badge: 'NOT READY' };
   if (label === 'Take a smaller step')
-    return { color: '#854F0B', bg: '#FAEEDA', borderColor: 'rgba(133,79,11,0.20)', badge: 'SMALLER STEP' };
+    return { color: '#854F0B', bg: '#FAEEDA', borderColor: 'rgba(133,79,11,0.20)', badge: 'NOT READY' };
   if (label === 'Proceed with caution')
-    return { color: '#5C4B00', bg: '#FBF5DC', borderColor: 'rgba(92,75,0,0.20)', badge: 'WITH CAUTION' };
-  return { color: '#0F6E56', bg: '#E1F5EE', borderColor: 'rgba(15,110,86,0.20)', badge: 'STRONG' };
+    return { color: '#5C4B00', bg: '#FBF5DC', borderColor: 'rgba(92,75,0,0.20)', badge: 'CONDITIONAL' };
+  return { color: '#0F6E56', bg: '#E1F5EE', borderColor: 'rgba(15,110,86,0.20)', badge: 'READY' };
 }
 
 function getProgressColor(value?: number | null) {
@@ -2805,7 +2805,18 @@ export default function HomePage() {
                               lineHeight: 1.3,
                             }}
                           >
-                            Your score is <span style={{ color: meta.color }}>{scoreTotal ?? '—'}</span>. Here&apos;s the full picture.
+                            This decision is not ready to commit.
+                          </div>
+                          <div
+                            style={{
+                              fontFamily: sans,
+                              fontSize: 13,
+                              color: '#9A9890',
+                              marginBottom: '1.5rem',
+                              lineHeight: 1.5,
+                            }}
+                          >
+                            What&apos;s missing: the exact move, the constraint, and the condition that makes this safe.
                           </div>
                           <div
                             style={{
