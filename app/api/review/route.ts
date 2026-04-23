@@ -150,7 +150,9 @@ exit:
 step:
 - Hyper-specific. Executable today or this week.
 - Must name: who to contact or what to do, exactly what to ask or test, and by when.
-- Wrong: "Validate your assumptions." Right: "This week, pull the last 12 months of client revenue by account, rank them by concentration, and calculate what your SDE looks like if the top 2 accounts leave in year one."
+- Format anchor: "Your next move becomes: [specific action that creates real market signal, not opinion gathering. Must involve actual commitment — money exchanged, contract signed, decision executed — not surveys or questions about willingness.]"
+- Behavior-forcing next moves only. No surveys. No willingness-to-pay questions. No opinion gathering.
+- Wrong: "Survey 10 potential customers about pricing." Right: "List your new service at $2,500/month and send the proposal to your top 3 prospects by Friday."
 - Maximum 2 sentences.
 
 script:
@@ -188,16 +190,15 @@ what_others_miss:
 - Wrong: "The risk is bigger than it looks." Right: "What looks like a pricing decision is actually a signal about who you are willing to serve — raise rates and you lose access to early-stage founders who become your best referral source."
 
 primaryRisk:
-- The specific time cost + cascading consequence. Must bleed.
+- Plain-language consequence tied to the core assumption. One sentence only.
+- Format anchor: "You will spend [time] [doing X] without knowing if [core assumption] is actually true."
+- Not a repetition of the threat section. Focus on the uncertainty, not the catastrophic outcome.
 - COST REQUIREMENT: Always use the highest defensible cost figure derivable from the user's actual inputs (comp, runway, contract value, opportunity cost).
 - Extract numbers from their decision/context: salary, equity value, contract size, monthly burn, revenue at risk, years of tenure.
-- If NO cost data is provided, frame the cost in time: "You will burn 6–9 months and lose your scaling window."
+- If NO cost data is provided, frame as time spent without validation: "You will spend 6–9 months building this without knowing if anyone will actually pay for it."
 - Never invent numbers. Never soften the consequence. Never hedge the threat.
-- Format: "You will burn [X months/weeks], [miss/lose specific window], and [damage specific asset]."
-- Format anchor: "You will burn [time period] and [$ cost], lose [specific momentum/credibility/customer/team asset], and miss [specific timing window]."
-- Draw ALL values from the user's actual inputs. No accounting language. No softening. Visceral and specific.
 - NEVER output a cost range (e.g., "$135K–$180K"). Commit to the higher defensible number or use time framing only.
-- Maximum 2 sentences.
+- One sentence only.
 
 mustBeTrue:
 - The single most important assumption for this decision to survive.
