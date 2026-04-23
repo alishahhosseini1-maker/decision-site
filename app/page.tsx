@@ -835,8 +835,8 @@ export default function HomePage() {
     }
 
     const timer = window.setInterval(() => {
-      setLoadingMessageIndex((prev) => (prev + 1) % 3);
-    }, 6500);
+      setLoadingMessageIndex((prev) => (prev + 1) % 4);
+    }, 6000);
 
     return () => window.clearInterval(timer);
   }, [loading]);
@@ -2559,10 +2559,17 @@ export default function HomePage() {
                   }}
                 >
                   <div style={{ fontSize: 14, fontWeight: 800 }}>Review in progress...</div>
-                  <div style={{ marginTop: 6, fontSize: 13, lineHeight: 1.55, opacity: 0.68 }}>
+                  <div style={{
+                    marginTop: 6,
+                    fontSize: 13,
+                    lineHeight: 1.55,
+                    opacity: 0.68,
+                    transition: 'opacity 0.5s ease-in-out'
+                  }}>
                     {loadingMessageIndex === 0 && 'Structuring the decision, testing the main assumption, and checking whether this looks ready to commit.'}
                     {loadingMessageIndex === 1 && 'Stress-testing the irreversibility and sizing the downside.'}
-                    {loadingMessageIndex === 2 && 'Finalizing the verdict.'}
+                    {loadingMessageIndex === 2 && 'Identifying the trap — the thing most people miss before they commit.'}
+                    {loadingMessageIndex === 3 && 'Finalizing the verdict.'}
                   </div>
                 </div>
               )}
