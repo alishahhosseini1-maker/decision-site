@@ -40,6 +40,11 @@ type OpenDecisionPreview = {
 };
 
 type ReviewResult = {
+  pattern: {
+    type: string;
+    rationale: string;
+    reversibility: 'low' | 'medium' | 'high';
+  };
   readiness: {
     clarity: number;
     assumptions: number;
@@ -1159,11 +1164,164 @@ export default function HomePage() {
         body: JSON.stringify({ decision, context }),
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data?.error || 'API request failed');
+      if (!res.ok || !res.body) {
+        throw new Error('Stream failed');
       }
+
+      // Read the stream
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let content = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        content += decoder.decode(value, { stream: true });
+      }
+
+      if (!content.trim()) {
+        throw new Error('No content returned from Claude.');
+      }
+
+      // Extract JSON from response (moved from backend)
+      const extractJsonObject = (text: string): string => {
+        let jsonText = text.trim();
+
+        if (jsonText.includes('```')) {
+          jsonText = jsonText.replace(/```json/g, '').replace(/```/g, '').trim();
+        }
+
+        const firstBrace = jsonText.indexOf('{');
+        const lastBrace = jsonText.lastIndexOf('}');
+
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+          jsonText = jsonText.slice(firstBrace, lastBrace + 1);
+        }
+
+        return jsonText;
+      };
+
+      const jsonText = extractJsonObject(content);
+      let parsed: any;
+
+      try {
+        parsed = JSON.parse(jsonText);
+      } catch {
+        console.error('[review] Claude raw output:', content);
+        throw new Error('Claude returned invalid JSON.');
+      }
+
+      // Validation helpers (moved from backend)
+      const allowedPatternTypes = new Set<string>([
+        'Reversible experiment',
+        'Capital allocation',
+        'Identity / career move',
+        'Strategic lock-in',
+        'Irreversible commitment',
+      ]);
+
+      const clampScore = (value: unknown): number => {
+        if (!Number.isInteger(value)) return 0;
+        return Math.max(0, Math.min(20, value as number));
+      };
+
+      const asString = (value: unknown, fallback: string = ''): string => {
+        return typeof value === 'string' ? value : fallback;
+      };
+
+      const asStringArray = (value: unknown): string[] => {
+        if (Array.isArray(value)) {
+          return value.filter((item) => typeof item === 'string');
+        }
+        return [];
+      };
+
+      const asReversibility = (value: unknown): 'low' | 'medium' | 'high' => {
+        return value === 'low' || value === 'medium' || value === 'high'
+          ? value
+          : 'medium';
+      };
+
+      // Build safe result (moved from backend)
+      type LabelType = 'Needs more before you commit' | 'Take a smaller step' | 'Proceed with caution' | 'Strong to commit';
+
+      const safeResult: ReviewResult = {
+        pattern: {
+          type: allowedPatternTypes.has(parsed?.pattern?.type)
+            ? parsed.pattern.type
+            : 'Reversible experiment',
+          rationale: asString(parsed?.pattern?.rationale),
+          reversibility: asReversibility(parsed?.pattern?.reversibility),
+        },
+        readiness: {
+          clarity: clampScore(parsed?.readiness?.clarity),
+          assumptions: clampScore(parsed?.readiness?.assumptions),
+          reversibility: clampScore(parsed?.readiness?.reversibility),
+          risk: clampScore(parsed?.readiness?.risk),
+          exitLogic: clampScore(parsed?.readiness?.exitLogic),
+          total: 0,
+          label: 'Take a smaller step' as LabelType,
+          summary: asString(
+            parsed?.readiness?.summary,
+            'The main constraint is not strong enough yet.'
+          ),
+          rationale: {
+            clarity: asString(parsed?.readiness?.rationale?.clarity, ''),
+            assumptions: asString(parsed?.readiness?.rationale?.assumptions, ''),
+            reversibility: asString(parsed?.readiness?.rationale?.reversibility, ''),
+            risk: asString(parsed?.readiness?.rationale?.risk, ''),
+            exitLogic: asString(parsed?.readiness?.rationale?.exitLogic, ''),
+          },
+        },
+        topline: {
+          primaryRisk: asString(
+            parsed?.topline?.primaryRisk,
+            'The main failure risk is still unresolved.'
+          ),
+          mustBeTrue: asString(
+            parsed?.topline?.mustBeTrue,
+            'A key condition must be proven before committing.'
+          ),
+          recommendedMove: asString(
+            parsed?.topline?.recommendedMove,
+            'Take one smaller step that tests the main assumption first.'
+          ),
+        },
+        snapshot: {
+          door: asString(parsed?.snapshot?.door),
+          hinge: asString(parsed?.snapshot?.hinge),
+          lock: asString(parsed?.snapshot?.lock),
+          trap: asString(parsed?.snapshot?.trap),
+          exit: asString(parsed?.snapshot?.exit),
+          step: asString(parsed?.snapshot?.step),
+          script: asString(parsed?.snapshot?.script),
+          tripwire: asString(parsed?.snapshot?.walk_away_if),
+          failure_modes: asStringArray(parsed?.snapshot?.failure_modes),
+          if_delayed: asString(parsed?.snapshot?.if_delayed),
+          what_others_miss: asString(parsed?.snapshot?.what_others_miss),
+        },
+      };
+
+      const calculatedTotal =
+        safeResult.readiness.clarity +
+        safeResult.readiness.assumptions +
+        safeResult.readiness.reversibility +
+        safeResult.readiness.risk +
+        safeResult.readiness.exitLogic;
+
+      safeResult.readiness.total = calculatedTotal;
+
+      if (calculatedTotal < 50) {
+        safeResult.readiness.label = 'Needs more before you commit';
+      } else if (calculatedTotal < 65) {
+        safeResult.readiness.label = 'Take a smaller step';
+      } else if (calculatedTotal < 80) {
+        safeResult.readiness.label = 'Proceed with caution';
+      } else {
+        safeResult.readiness.label = 'Strong to commit';
+      }
+
+      const data = safeResult;
 
       setReviewResult(data);
 
