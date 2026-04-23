@@ -2793,7 +2793,7 @@ export default function HomePage() {
                               marginBottom: 16,
                             }}
                           >
-                            BEFORE YOU DECIDE
+                            BEFORE YOU COMMIT
                           </div>
                           <div
                             style={{
@@ -2805,7 +2805,7 @@ export default function HomePage() {
                               lineHeight: 1.3,
                             }}
                           >
-                            This decision is not ready to commit.
+                            If you proceed now, you are guessing.
                           </div>
                           <div
                             style={{
@@ -2816,7 +2816,7 @@ export default function HomePage() {
                               lineHeight: 1.5,
                             }}
                           >
-                            What&apos;s missing: the exact move, the constraint, and the condition that makes this safe.
+                            What&apos;s missing: the condition that makes this survivable.
                           </div>
                           <div
                             style={{
@@ -2835,10 +2835,9 @@ export default function HomePage() {
                               textAlign: 'left',
                             }}
                           >
-                            <div style={{ marginBottom: '0.75rem' }}>→ The one move to make before you commit</div>
-                            <div style={{ marginBottom: '0.75rem' }}>→ The exact gaps dragging your score down, ranked</div>
-                            <div style={{ marginBottom: '0.75rem' }}>→ The one condition you need to meet before this becomes a safe bet</div>
-                            <div>→ See exactly how your decision breaks down — every risk, lock, and way out</div>
+                            <div style={{ marginBottom: '0.75rem' }}>→ The exact move to make before you commit</div>
+                            <div style={{ marginBottom: '0.75rem' }}>→ The one assumption this decision depends on</div>
+                            <div>→ The condition that must be true for this to work</div>
                           </div>
                           <div
                             style={{
