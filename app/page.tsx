@@ -555,6 +555,7 @@ export default function HomePage() {
   const [decisionError, setDecisionError] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(false);
+  const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
   const [apiError, setApiError] = useState<string | null>(null);
   const [reviewResult, setReviewResult] = useState<ReviewResult | null>(null);
 
@@ -826,6 +827,19 @@ export default function HomePage() {
 
     return () => window.clearTimeout(timer);
   }, [savedToast]);
+
+  useEffect(() => {
+    if (!loading) {
+      setLoadingMessageIndex(0);
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      setLoadingMessageIndex((prev) => (prev + 1) % 3);
+    }, 6500);
+
+    return () => window.clearInterval(timer);
+  }, [loading]);
 
   useEffect(() => {
     let cancelled = false;
@@ -2546,8 +2560,9 @@ export default function HomePage() {
                 >
                   <div style={{ fontSize: 14, fontWeight: 800 }}>Review in progress...</div>
                   <div style={{ marginTop: 6, fontSize: 13, lineHeight: 1.55, opacity: 0.68 }}>
-                    Structuring the decision, testing the main assumption, and checking whether this
-                    looks ready to commit.
+                    {loadingMessageIndex === 0 && 'Structuring the decision, testing the main assumption, and checking whether this looks ready to commit.'}
+                    {loadingMessageIndex === 1 && 'Stress-testing the irreversibility and sizing the downside.'}
+                    {loadingMessageIndex === 2 && 'Finalizing the verdict.'}
                   </div>
                 </div>
               )}
