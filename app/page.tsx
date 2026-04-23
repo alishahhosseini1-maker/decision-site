@@ -1956,45 +1956,6 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* ── Sign-in confirmation toast ── */}
-          {signInEmailSent && (
-            <div
-              style={{
-                maxWidth: 720,
-                margin: '14px auto 0',
-                borderRadius: 12,
-                border: '1px solid rgba(59,130,246,0.18)',
-                background: 'rgba(59,130,246,0.05)',
-                padding: '10px 12px',
-                color: '#1e40af',
-                fontSize: 12.5,
-                fontWeight: 700,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 12,
-              }}
-            >
-              <span>Check your inbox. If it&apos;s not there, check your junk or spam folder.</span>
-              <button
-                onClick={() => setSignInEmailSent(false)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#1e40af',
-                  cursor: 'pointer',
-                  fontSize: 16,
-                  padding: 0,
-                  lineHeight: 1,
-                  opacity: 0.7,
-                }}
-                aria-label="Dismiss"
-              >
-                ✕
-              </button>
-            </div>
-          )}
-
           {/* ── Open loops + latest team session ── */}
           {user &&
             (loadingOpenDecisions ||
@@ -3219,8 +3180,7 @@ export default function HomePage() {
                                 padding: '11px 18px',
                                 borderRadius: 10,
                                 border: 'none',
-                                background: decisionId ? '#16a34a' : (user?.id && commitment.trim().length > 0) ? '#16a34a' : commitment.trim().length === 0 ? '#2A2826' : '#0E0C0A',
-                                // DEBUG: user={user}, user?.id={user?.id}, commitment.length={commitment.trim().length}
+                                background: decisionId ? '#16a34a' : (Boolean(user) && commitment.trim().length > 0) ? '#16a34a' : commitment.trim().length === 0 ? '#2A2826' : '#0E0C0A',
                                 color: decisionId ? '#fff' : commitment.trim().length === 0 ? '#888780' : '#FFFFFF',
                                 cursor: (savingVerdict || commitment.trim().length === 0 || decisionId) ? 'not-allowed' : 'pointer',
                                 width: '100%',
@@ -3242,6 +3202,41 @@ export default function HomePage() {
                                 'Lock this verdict'
                               )}
                             </button>
+                            {signInEmailSent && (
+                              <div
+                                style={{
+                                  marginTop: 12,
+                                  borderRadius: 8,
+                                  border: '1px solid #444441',
+                                  background: '#2A2A28',
+                                  padding: '10px 12px',
+                                  color: '#FFFFFF',
+                                  fontSize: 12,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  gap: 12,
+                                }}
+                              >
+                                <span>Check your inbox. If it&apos;s not there, check your junk or spam folder.</span>
+                                <button
+                                  onClick={() => setSignInEmailSent(false)}
+                                  style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#FFFFFF',
+                                    cursor: 'pointer',
+                                    fontSize: 16,
+                                    padding: 0,
+                                    lineHeight: 1,
+                                    opacity: 0.6,
+                                  }}
+                                  aria-label="Dismiss"
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            )}
                             {decisionId && (
                               <div
                                 style={{
