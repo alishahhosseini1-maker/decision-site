@@ -3444,7 +3444,7 @@ export default function HomePage() {
                                     fontFamily: sans,
                                     fontSize: 13,
                                     fontWeight: 600,
-                                    color: '#1A3A2A',
+                                    color: '#0E0C0A',
                                     background: '#ffffff',
                                     padding: '8px 16px',
                                     borderRadius: 20,
