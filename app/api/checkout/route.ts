@@ -13,14 +13,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Decision ID required' }, { status: 400 });
     }
 
-    // decisionId can be either a UUID (from decisions.id) or a requestKey
-    // Both are valid identifiers for the decision
+    // Validate required environment variables
+    if (!process.env.STRIPE_PRICE_ID) {
+      console.error('[checkout] STRIPE_PRICE_ID not set');
+      return NextResponse.json({ error: 'Payment configuration error - missing price ID' }, { status: 500 });
+    }
+
+    if (!process.env.NEXT_PUBLIC_APP_URL) {
+      console.error('[checkout] NEXT_PUBLIC_APP_URL not set');
+      return NextResponse.json({ error: 'Payment configuration error - missing app URL' }, { status: 500 });
+    }
+
+    console.log('[checkout] Creating session with price:', process.env.STRIPE_PRICE_ID);
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       line_items: [
         {
-          price: process.env.STRIPE_PRICE_ID!,
+          price: process.env.STRIPE_PRICE_ID,
           quantity: 1,
         },
       ],
@@ -32,9 +42,14 @@ export async function POST(req: Request) {
       },
     });
 
+    console.log('[checkout] Session created successfully:', session.id);
     return NextResponse.json({ url: session.url });
-  } catch (err) {
+  } catch (err: any) {
     console.error('[checkout] Error:', err);
-    return NextResponse.json({ error: 'Checkout failed' }, { status: 500 });
+    console.error('[checkout] Error details:', err.message, err.type, err.code);
+    return NextResponse.json({
+      error: 'Checkout failed',
+      details: err.message || 'Unknown error'
+    }, { status: 500 });
   }
 }
