@@ -2785,67 +2785,39 @@ export default function HomePage() {
                           <div
                             style={{
                               fontFamily: sans,
-                              fontSize: 10,
-                              fontWeight: 500,
-                              letterSpacing: '0.16em',
-                              textTransform: 'uppercase',
-                              color: '#888780',
-                              marginBottom: 16,
+                              fontSize: 18,
+                              fontWeight: 700,
+                              letterSpacing: '0.02em',
+                              color: '#D3D1C7',
+                              marginBottom: '1.25rem',
+                              lineHeight: 1.2,
                             }}
                           >
-                            BEFORE YOU COMMIT
+                            THIS IS WHERE PEOPLE GUESS.
                           </div>
                           <div
                             style={{
                               fontFamily: sans,
-                              fontSize: 16,
-                              fontWeight: 500,
+                              fontSize: 15,
+                              fontWeight: 400,
                               color: '#D3D1C7',
-                              marginBottom: '1.5rem',
-                              lineHeight: 1.3,
+                              marginBottom: '1.25rem',
+                              lineHeight: 1.6,
                             }}
                           >
-                            If you proceed now, you are guessing.
+                            Not advice. Not a template. Not someone else&apos;s playbook. The exact move, the precise condition, and the single assumption that determines whether this decision works or becomes your most expensive lesson.
                           </div>
                           <div
                             style={{
                               fontFamily: sans,
                               fontSize: 13,
+                              fontWeight: 500,
                               color: '#9A9890',
-                              marginBottom: '1.5rem',
-                              lineHeight: 1.5,
-                            }}
-                          >
-                            What&apos;s missing: the condition that makes this survivable.
-                          </div>
-                          <div
-                            style={{
-                              height: '1px',
-                              background: 'rgba(255,255,255,0.1)',
-                              marginBottom: '1.5rem',
-                            }}
-                          />
-                          <div
-                            style={{
-                              fontFamily: sans,
-                              fontSize: 15,
-                              color: '#E5E3DC',
-                              lineHeight: 1.8,
                               marginBottom: '2rem',
-                              textAlign: 'left',
                             }}
                           >
-                            <div style={{ marginBottom: '0.75rem' }}>→ The exact move to make before you commit</div>
-                            <div style={{ marginBottom: '0.75rem' }}>→ The one assumption this decision depends on</div>
-                            <div>→ The condition that must be true for this to work</div>
+                            Don&apos;t guess.
                           </div>
-                          <div
-                            style={{
-                              height: '1px',
-                              background: 'rgba(255,255,255,0.1)',
-                              marginBottom: '1.5rem',
-                            }}
-                          />
                           <button
                             type="button"
                             onClick={handleGenerateVerdict}
@@ -2853,22 +2825,39 @@ export default function HomePage() {
                             style={{
                               width: '100%',
                               fontFamily: sans,
-                              fontSize: 12.5,
-                              fontWeight: 500,
-                              letterSpacing: '0.07em',
-                              textTransform: 'uppercase',
+                              fontSize: 14,
+                              fontWeight: 600,
                               background: '#F1EFE8',
                               color: '#1E1C1A',
                               border: 'none',
-                              padding: 20,
+                              padding: '18px 24px',
                               borderRadius: 8,
                               cursor: verdictLoading ? 'default' : 'pointer',
                               opacity: verdictLoading ? 0.42 : 1,
                               transition: 'opacity 0.15s ease',
                             }}
                           >
-                            {verdictLoading ? 'Generating...' : 'Show me the full analysis →'}
+                            {verdictLoading ? 'Generating...' : 'UNLOCK THIS DECISION → $99'}
                           </button>
+                          <div
+                            style={{
+                              height: '1px',
+                              background: 'rgba(255,255,255,0.15)',
+                              margin: '1.5rem 0',
+                            }}
+                          />
+                          <div
+                            style={{
+                              fontFamily: sans,
+                              fontSize: 12,
+                              fontStyle: 'italic',
+                              color: '#888780',
+                              textAlign: 'center',
+                              lineHeight: 1.5,
+                            }}
+                          >
+                            If this isn&apos;t more specific than anything else you&apos;ve tried, we&apos;ll refund every dollar. No questions asked.
+                          </div>
                         </div>
                       </div>
                     </div>
