@@ -20,7 +20,7 @@ export async function POST(req: Request) {
       mode: 'payment',
       line_items: [
         {
-          price: 'price_1TPbDVIBIU5w4XyQpSqS61sH',
+          price: process.env.STRIPE_PRICE_ID!,
           quantity: 1,
         },
       ],
