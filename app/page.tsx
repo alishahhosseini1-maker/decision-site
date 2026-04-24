@@ -698,6 +698,9 @@ export default function HomePage() {
 
             setIsUnlocked(true);
 
+            // Store payment verification flag for future page loads
+            localStorage.setItem('payment_verified', 'true');
+
             // Scroll to unlocked content
             setTimeout(() => {
               snapshotRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -715,6 +718,14 @@ export default function HomePage() {
         return;
       } else {
         console.log('[Verification] No session_id in URL, skipping payment verification');
+      }
+
+      // Check unlock status from localStorage first
+      const paymentVerified = localStorage.getItem('payment_verified');
+      if (paymentVerified === 'true') {
+        console.log('[Verification] Payment verified from localStorage');
+        setIsUnlocked(true);
+        return;
       }
 
       // Check unlock status from Supabase
