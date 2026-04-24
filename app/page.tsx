@@ -572,6 +572,14 @@ export default function HomePage() {
   const [savedToast, setSavedToast] = useState<string | null>(null);
   const [revealStage, setRevealStage] = useState(0);
   const [reflectionPrompts, setReflectionPrompts] = useState<string[]>([]);
+  // Separate state for unlock flow - completely independent from analysis
+  const [unlockInProgress, setUnlockInProgress] = useState(false);
+
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [verifyingPayment, setVerifyingPayment] = useState(false);
+  const [showSignupPrompt, setShowSignupPrompt] = useState(false);
+  const [paymentEmail, setPaymentEmail] = useState<string | null>(null);
+  const [unlockEmail, setUnlockEmail] = useState('');
 
   const [decisionId, setDecisionId] = useState<string | null>(null);
   const [requestKey, setRequestKey] = useState<string>(() => crypto.randomUUID());
@@ -634,7 +642,112 @@ export default function HomePage() {
     setTimeout(() => {
       decisionInputRef.current?.focus();
     }, 50);
+
+    // Payment verification and unlock check
+    const verifyAndCheckUnlock = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const sessionId = params.get('session_id');
+
+      // Verify payment if session_id present
+      if (sessionId) {
+        setVerifyingPayment(true);
+        try {
+          const res = await fetch('/api/checkout/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionId }),
+          });
+
+          const data = await res.json();
+
+          if (res.ok && data.verified) {
+            console.log('[Verification] Payment verified successfully');
+
+            // Remove session_id from URL
+            window.history.replaceState({}, '', window.location.pathname);
+
+            // Restore decision data from localStorage
+            try {
+              const raw = localStorage.getItem(STORAGE.pendingSoloReview);
+              if (raw) {
+                const saved = JSON.parse(raw) as PendingSoloReview;
+                setDecision(saved.decision ?? '');
+                setContext(saved.context ?? '');
+                setReviewResult(saved.reviewResult ?? null);
+                setDeepReview(saved.deepReview ?? null);
+                setFinalThoughts(saved.finalThoughts ?? '');
+                setVerdictRequested(Boolean(saved.verdictRequested));
+                setVerdict(saved.verdict ?? null);
+                setRevealStage(saved.revealStage ?? 0);
+                setReflectionPrompts(saved.reflectionPrompts ?? []);
+                if (saved.requestKey) setRequestKey(saved.requestKey);
+                setHasStarted(true);
+              } else {
+                console.warn('[Verification] No decision data found in localStorage');
+                alert('Decision data not found. Please return to the analysis page and try again.');
+              }
+            } catch (err) {
+              console.error('[Verification] Failed to restore decision data:', err);
+            }
+
+            // Show signup prompt if no account exists
+            if (!data.hasAccount && data.email) {
+              setPaymentEmail(data.email);
+              setShowSignupPrompt(true);
+            }
+
+            setIsUnlocked(true);
+
+            // Scroll to unlocked content
+            setTimeout(() => {
+              snapshotRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 300);
+          } else {
+            console.error('[Verification] Payment verification failed');
+          }
+        } catch (err) {
+          console.error('[Verification] Error verifying payment:', err);
+        } finally {
+          setVerifyingPayment(false);
+        }
+
+        // Skip Supabase check after payment verification
+        return;
+      } else {
+        console.log('[Verification] No session_id in URL, skipping payment verification');
+      }
+
+      // Check unlock status from Supabase
+      const pathParts = window.location.pathname.split('/');
+      const decId = pathParts[pathParts.length - 1];
+      console.log('[Verification] Checking Supabase unlock status for decId:', decId);
+      if (!decId || decId === 'decision') return;
+
+      // Check by decision_id only (no user filter for anonymous payments)
+      const { data } = await supabase
+        .from('decision_payments')
+        .select('id')
+        .eq('decision_id', decId)
+        .single();
+
+      console.log('[Verification] Supabase payment check result:', !!data);
+      setIsUnlocked(!!data);
+    };
+
+    verifyAndCheckUnlock();
   }, []);
+
+  // Auto-generate verdict when unlocked
+  useEffect(() => {
+    if (unlockInProgress) return;
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('session_id')) return;
+
+    if (isUnlocked && !verdict && !verdictLoading && reviewResult) {
+      handleGenerateVerdict();
+    }
+  }, [isUnlocked, verdict, verdictLoading, reviewResult]);
 
   useEffect(() => {
     const hydratePendingSoloReview = () => {
@@ -1147,6 +1260,19 @@ export default function HomePage() {
   };
 
   const beginReview = async () => {
+    // Skip if returning from Stripe payment
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('session_id')) {
+      console.log('[beginReview] Skipping - session_id detected, user returning from payment');
+      return;
+    }
+
+    // Skip if unlock is in progress
+    if (unlockInProgress) {
+      console.log('[beginReview] Blocked - unlock in progress');
+      return;
+    }
+
     const err = validateDecision();
     if (err) {
       setDecisionError(err);
@@ -1343,47 +1469,7 @@ export default function HomePage() {
 
       setReviewResult(data);
 
-      // Fire-and-forget: capture row immediately so anonymous users are recorded
-      void fetch('/api/decision/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          decision,
-          context,
-          score: data.readiness?.total ?? null,
-          clarity: data.readiness?.clarity ?? null,
-          assumptions: data.readiness?.assumptions ?? null,
-          reversibility: data.readiness?.reversibility ?? null,
-          risk: data.readiness?.risk ?? null,
-          exitLogic: data.readiness?.exitLogic ?? null,
-          door: data.snapshot?.door ?? null,
-          hinge: data.snapshot?.hinge ?? null,
-          lock: data.snapshot?.lock ?? null,
-          trap: data.snapshot?.trap ?? null,
-          exit: data.snapshot?.exit ?? null,
-          step: data.snapshot?.step ?? null,
-          script: data.snapshot?.script ?? null,
-          tripwire: data.snapshot?.tripwire ?? null,
-          failure_modes: data.snapshot?.failure_modes ?? null,
-          if_delayed: data.snapshot?.if_delayed ?? null,
-          what_others_miss: data.snapshot?.what_others_miss ?? null,
-          verdict: null,
-          deep_review: null,
-          final_thoughts: null,
-          userId: user?.id ?? null,
-          requestKey: newRequestKey,
-        }),
-      }).catch(() => { /* best-effort, ignore */ });
-
-      const iso = new Date().toISOString();
-      setLastUsedAt(iso);
-
-      try {
-        localStorage.setItem(STORAGE.lastUsed, iso);
-      } catch {
-        // ignore
-      }
-
+      // Persist to localStorage immediately BEFORE any async operations
       persistSoloReviewLocally({
         decision,
         context,
@@ -1396,6 +1482,71 @@ export default function HomePage() {
         reflectionPrompts: [],
         requestKey: newRequestKey,
       });
+      console.log('[Save] Decision data saved to localStorage');
+
+      // Save immediately and capture decision ID for checkout
+      const saveDecision = async () => {
+        try {
+          console.log('[Save] Saving decision to Supabase...');
+          const res = await fetch('/api/decision/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              decision,
+              context,
+              score: data.readiness?.total ?? null,
+              clarity: data.readiness?.clarity ?? null,
+              assumptions: data.readiness?.assumptions ?? null,
+              reversibility: data.readiness?.reversibility ?? null,
+              risk: data.readiness?.risk ?? null,
+              exitLogic: data.readiness?.exitLogic ?? null,
+              door: data.snapshot?.door ?? null,
+              hinge: data.snapshot?.hinge ?? null,
+              lock: data.snapshot?.lock ?? null,
+              trap: data.snapshot?.trap ?? null,
+              exit: data.snapshot?.exit ?? null,
+              step: data.snapshot?.step ?? null,
+              script: data.snapshot?.script ?? null,
+              tripwire: data.snapshot?.tripwire ?? null,
+              failure_modes: data.snapshot?.failure_modes ?? null,
+              if_delayed: data.snapshot?.if_delayed ?? null,
+              what_others_miss: data.snapshot?.what_others_miss ?? null,
+              verdict: null,
+              deep_review: null,
+              final_thoughts: null,
+              userId: user?.id ?? null,
+              requestKey: newRequestKey,
+            }),
+          });
+
+          if (res.ok) {
+            const saveData = await res.json();
+            if (saveData?.id) {
+              console.log('[Save] Decision saved with ID:', saveData.id);
+              setDecisionId(saveData.id);
+            } else {
+              console.warn('[Save] No ID returned from save');
+            }
+          } else {
+            console.error('[Save] Save request failed with status:', res.status);
+          }
+        } catch (err) {
+          console.error('Failed to save decision:', err);
+          // Non-blocking - user can still unlock even if save fails
+        }
+      };
+
+      // Don't await - let it run in background, but localStorage is already saved
+      saveDecision().catch(console.error);
+
+      const iso = new Date().toISOString();
+      setLastUsedAt(iso);
+
+      try {
+        localStorage.setItem(STORAGE.lastUsed, iso);
+      } catch {
+        // ignore
+      }
       setRevealStage(0);
       setReflectionPrompts([]);
 
@@ -1444,6 +1595,38 @@ export default function HomePage() {
       setDeepReview(null);
     } finally {
       setDeepLoading(false);
+    }
+  };
+
+  const handleUnlock = async () => {
+    setUnlockInProgress(true);
+
+    if (!decisionId) {
+      console.warn('[Unlock] Decision ID not available, using requestKey');
+    }
+
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          decisionId: decisionId || requestKey
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        console.error('[Unlock] No checkout URL returned');
+        setUnlockInProgress(false);
+        alert('Failed to create checkout session.');
+      }
+    } catch (err) {
+      console.error('[Unlock] Checkout failed:', err);
+      setUnlockInProgress(false);
+      alert('Checkout failed. Please try again.');
     }
   };
 
@@ -2764,7 +2947,9 @@ export default function HomePage() {
                     <div style={{ fontFamily: sans, fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-primary)', fontWeight: 500 }}>{reviewResult.topline.primaryRisk}</div>
                   </div>
 
-                  {/* ── LAST CHECKPOINT ── always visible */}
+                  {/* ── LAST CHECKPOINT / PAYWALL ── show only when locked */}
+                  {/* CRITICAL: Only show if NOT unlocked - isUnlocked is the single source of truth */}
+                  {!isUnlocked && reviewResult && (
                   <div
                     className="card-padding-compact"
                     style={{
@@ -2820,8 +3005,8 @@ export default function HomePage() {
                           </div>
                           <button
                             type="button"
-                            onClick={handleGenerateVerdict}
-                            disabled={verdictLoading}
+                            onClick={handleUnlock}
+                            disabled={unlockInProgress || verifyingPayment}
                             style={{
                               width: '100%',
                               fontFamily: sans,
@@ -2832,12 +3017,13 @@ export default function HomePage() {
                               border: 'none',
                               padding: '18px 24px',
                               borderRadius: 8,
-                              cursor: verdictLoading ? 'default' : 'pointer',
-                              opacity: verdictLoading ? 0.42 : 1,
+                              cursor: (unlockInProgress || verifyingPayment) ? 'default' : 'pointer',
+                              opacity: (unlockInProgress || verifyingPayment) ? 0.42 : 1,
                               transition: 'opacity 0.15s ease',
                             }}
                           >
-                            {verdictLoading ? 'Generating...' : 'UNLOCK THIS DECISION → $99'}
+                            {/* CRITICAL: Never show analysis loading states here */}
+                            {unlockInProgress ? 'Redirecting to checkout...' : verifyingPayment ? 'Verifying payment...' : 'UNLOCK THIS DECISION → $99'}
                           </button>
                           <div
                             style={{
@@ -2861,8 +3047,9 @@ export default function HomePage() {
                         </div>
                       </div>
                     </div>
+                  )}
 
-                  {verdictRequested && (
+                  {isUnlocked && (
                   <div
                     style={{
                       border: '1px solid rgba(0,0,0,0.10)',
@@ -2916,7 +3103,7 @@ export default function HomePage() {
                   )}
 
                   {/* ── STEP ── appears after walkthrough is complete */}
-                  {verdictRequested && (
+                  {isUnlocked && (
                     <div
                       id="step-card"
                       className="card-padding"
@@ -2937,7 +3124,7 @@ export default function HomePage() {
                   )}
 
                   {/* ── HOW TO STRENGTHEN ── appears after walkthrough is complete */}
-                  {verdictRequested && (
+                  {isUnlocked && (
                     <details className="card-padding-compact" style={{ marginTop: 12, marginBottom: 12, background: 'var(--color-background-primary)', border: '0.5px solid var(--color-border-tertiary)', borderRadius: 'var(--border-radius-lg)' }}>
                       <summary style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--color-text-primary)', cursor: 'pointer', userSelect: 'none', padding: '4px 0' }}>
                         How to strengthen this decision
@@ -2987,7 +3174,7 @@ export default function HomePage() {
                   )}
 
                   {/* ── Final verdict card ── */}
-                  {verdictRequested && (
+                  {isUnlocked && (
                     <div
                       ref={verdictRef}
                       className="verdict-section-padding"
@@ -3602,6 +3789,123 @@ export default function HomePage() {
           </footer>
 
         </main>
+
+        {/* Post-payment signup prompt */}
+        {showSignupPrompt && paymentEmail && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0,0,0,0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 9999,
+            }}
+          >
+            <div
+              style={{
+                background: '#fff',
+                borderRadius: 16,
+                padding: '2rem',
+                maxWidth: 480,
+                margin: '0 20px',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+              }}
+            >
+              <div style={{ fontFamily: serif, fontSize: 24, marginBottom: 12 }}>
+                Payment successful
+              </div>
+              <div style={{ fontFamily: sans, fontSize: 14, lineHeight: 1.6, color: '#666', marginBottom: 20 }}>
+                Create an account to save and access your unlocked decision anytime.
+              </div>
+              <input
+                type="email"
+                value={unlockEmail || paymentEmail}
+                onChange={(e) => setUnlockEmail(e.target.value)}
+                placeholder="Your email"
+                style={{
+                  width: '100%',
+                  padding: 12,
+                  borderRadius: 8,
+                  border: '1px solid #ddd',
+                  fontFamily: sans,
+                  fontSize: 14,
+                  marginBottom: 12,
+                  boxSizing: 'border-box',
+                }}
+              />
+              <button
+                onClick={async () => {
+                  const emailToUse = unlockEmail || paymentEmail;
+                  const { error } = await supabase.auth.signInWithOtp({
+                    email: emailToUse,
+                    options: {
+                      emailRedirectTo: window.location.href,
+                    },
+                  });
+                  if (!error) {
+                    alert(`Check ${emailToUse} for your sign-in link`);
+                    setShowSignupPrompt(false);
+
+                    // Wait for auth state change, then link decision
+                    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+                      if (event === 'SIGNED_IN' && session?.user && decisionId) {
+                        try {
+                          await fetch('/api/decision/link-user', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              decisionId,
+                              userId: session.user.id
+                            }),
+                          });
+                        } catch (err) {
+                          console.error('Failed to link decision:', err);
+                        }
+                        subscription.unsubscribe();
+                      }
+                    });
+                  }
+                }}
+                style={{
+                  width: '100%',
+                  padding: 12,
+                  borderRadius: 8,
+                  border: 'none',
+                  background: '#0E0C0A',
+                  color: '#fff',
+                  fontFamily: sans,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  marginBottom: 8,
+                }}
+              >
+                Create account
+              </button>
+              <button
+                onClick={() => setShowSignupPrompt(false)}
+                style={{
+                  width: '100%',
+                  padding: 12,
+                  borderRadius: 8,
+                  border: 'none',
+                  background: 'transparent',
+                  color: '#666',
+                  fontFamily: sans,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                }}
+              >
+                Skip for now
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
