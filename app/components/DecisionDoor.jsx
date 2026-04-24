@@ -218,24 +218,28 @@ export default function DecisionDoor({ reviewResult, onStepChange, decisionText,
         }
         .dd-dots-row {
           display: flex;
-          gap: 7px;
+          gap: 10px;
           justify-content: center;
           padding: 10px 0 6px;
           background: #181614;
         }
         .dd-dot {
-          width: 7px;
-          height: 7px;
+          width: 8px;
+          height: 8px;
           border-radius: 50%;
-          background: rgba(0, 0, 0, 0.12);
+          background: #666462;
           transition: background 0.3s, transform 0.3s;
+          cursor: pointer;
+        }
+        .dd-dot:hover:not(.active) {
+          background: #999795;
         }
         .dd-dot.active {
-          background: rgba(0, 0, 0, 0.72);
+          background: #FFFFFF;
           transform: scale(1.3);
         }
         .dd-dot.done {
-          background: rgba(0, 0, 0, 0.36);
+          background: #666462;
         }
         .dd-reveal {
           padding: 20px 20px 28px;
@@ -752,6 +756,7 @@ export default function DecisionDoor({ reviewResult, onStepChange, decisionText,
             <div
               key={i}
               className={`dd-dot ${i === current ? 'active' : i < current ? 'done' : ''}`}
+              onClick={() => setDoorStep(i)}
             />
           ))}
         </div>
