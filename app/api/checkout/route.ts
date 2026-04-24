@@ -19,16 +19,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Payment configuration error - missing price ID' }, { status: 500 });
     }
 
-    if (!process.env.NEXT_PUBLIC_APP_URL) {
-      console.error('[checkout] NEXT_PUBLIC_APP_URL not set');
+    // Use APP_URL for server-side (not NEXT_PUBLIC_APP_URL which is for client-side)
+    const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL;
+    if (!appUrl) {
+      console.error('[checkout] APP_URL not set');
       return NextResponse.json({ error: 'Payment configuration error - missing app URL' }, { status: 500 });
     }
 
-    console.log('[checkout] Environment check:');
-    console.log('[checkout] STRIPE_PRICE_ID:', process.env.STRIPE_PRICE_ID);
-    console.log('[checkout] NEXT_PUBLIC_APP_URL:', process.env.NEXT_PUBLIC_APP_URL);
-    console.log('[checkout] Success URL will be:', `${process.env.NEXT_PUBLIC_APP_URL}/?session_id={CHECKOUT_SESSION_ID}`);
-    console.log('[checkout] Cancel URL will be:', `${process.env.NEXT_PUBLIC_APP_URL}/`);
+    console.log('[checkout] Using APP_URL:', appUrl);
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
@@ -39,8 +37,8 @@ export async function POST(req: Request) {
         },
       ],
       customer_creation: 'always',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/`,
+      success_url: `${appUrl}/?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${appUrl}/`,
       metadata: {
         decision_id: decisionId,
       },
