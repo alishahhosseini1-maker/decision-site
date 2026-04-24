@@ -923,7 +923,7 @@ export default function DecisionSummaryPage() {
           {/* Scoring model dropdown */}
           <details className="border-t border-black/9 pt-3">
             <summary className="cursor-pointer text-sm font-semibold text-black/72 flex justify-between items-center list-none">
-              DECISION QUALITY
+              Score breakdown
               <span className="text-base text-black/28">▼</span>
             </summary>
             <div className="mt-4 space-y-2">
@@ -983,7 +983,7 @@ export default function DecisionSummaryPage() {
 
           {/* IF DELAYED */}
           {decision.if_delayed?.trim() ? (
-          <details className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
+          <details open className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
             <summary className="cursor-pointer text-[10px] uppercase tracking-[0.18em] text-black/36 flex justify-between items-center list-none">
               IF YOU WAIT
               <span className="text-base text-black/28">▼</span>
