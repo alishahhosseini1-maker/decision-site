@@ -3220,43 +3220,6 @@ export default function HomePage() {
                             />
                           </div>
 
-                          {/* IF YOU IGNORE THIS block */}
-                          <div
-                            className="card-padding"
-                            style={{
-                              border: '0.5px solid rgba(255,255,255,0.1)',
-                              borderRadius: 12,
-                              background: '#1A1A18',
-                              marginBottom: 16,
-                            }}
-                          >
-                            <div>
-                              <div
-                                style={{
-                                  fontFamily: sans,
-                                  fontSize: 10,
-                                  fontWeight: 600,
-                                  letterSpacing: '0.14em',
-                                  textTransform: 'uppercase',
-                                  color: '#dc2626',
-                                  marginBottom: 8,
-                                }}
-                              >
-                                If You Ignore This
-                              </div>
-                              <div
-                                style={{
-                                  fontFamily: sans,
-                                  fontSize: 14,
-                                  lineHeight: 1.6,
-                                  color: '#F1EFE8',
-                                }}
-                              >
-                                {reviewResult.topline.primaryRisk}
-                              </div>
-                            </div>
-                          </div>
-
                           {/* 2. WHEN THIS CHANGES card */}
                           {whenThisChanges && (
                             <div
