@@ -2915,28 +2915,6 @@ export default function HomePage() {
                       </div>
                   )}
 
-                  {/* Skip walkthrough link */}
-                  {verdictRequested && (
-                    <div
-                      onClick={() => {
-                        document.getElementById('step-card')?.scrollIntoView({
-                          behavior: 'smooth',
-                          block: 'start'
-                        });
-                      }}
-                      style={{
-                        fontSize: 12,
-                        color: '#9A9890',
-                        textAlign: 'center',
-                        cursor: 'pointer',
-                        marginTop: 16,
-                        marginBottom: 16,
-                        fontFamily: sans,
-                      }}
-                    >
-                      Skip walkthrough ↓
-                    </div>
-                  )}
                   {/* ── STEP ── appears after walkthrough is complete */}
                   {verdictRequested && (
                     <div
