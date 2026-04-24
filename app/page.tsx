@@ -3414,8 +3414,7 @@ export default function HomePage() {
                                   padding: '16px 20px',
                                   textDecoration: 'none',
                                   cursor: 'pointer',
-                                  opacity: 0,
-                                  animation: 'fadeIn 300ms ease-out forwards',
+                                  animation: 'fadeInUp 300ms ease-out forwards',
                                 }}
                               >
                                 <div>
@@ -3456,20 +3455,6 @@ export default function HomePage() {
                                 </div>
                               </a>
                             )}
-                          </div>
-
-                          {/* 4. Hallmark line */}
-                          <div
-                            style={{
-                              fontFamily: sans,
-                              fontSize: 11,
-                              fontStyle: 'italic',
-                              color: 'rgba(0,0,0,0.30)',
-                              textAlign: 'center',
-                              marginTop: 8,
-                            }}
-                          >
-                            Reviewed against the Decision Layer standard.
                           </div>
 
                         </>
