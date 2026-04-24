@@ -2978,7 +2978,7 @@ export default function HomePage() {
                               lineHeight: 1.2,
                             }}
                           >
-                            THIS IS WHERE PEOPLE GUESS.
+                            Don&apos;t guess.
                           </div>
                           <div
                             style={{
@@ -2986,22 +2986,11 @@ export default function HomePage() {
                               fontSize: 15,
                               fontWeight: 400,
                               color: '#D3D1C7',
-                              marginBottom: '1.25rem',
+                              marginBottom: '2rem',
                               lineHeight: 1.6,
                             }}
                           >
                             Not advice. Not a template. Not someone else&apos;s playbook. The exact move, the precise condition, and the single assumption that determines whether this decision works or becomes your most expensive lesson.
-                          </div>
-                          <div
-                            style={{
-                              fontFamily: sans,
-                              fontSize: 13,
-                              fontWeight: 500,
-                              color: '#9A9890',
-                              marginBottom: '2rem',
-                            }}
-                          >
-                            Don&apos;t guess.
                           </div>
                           <button
                             type="button"
