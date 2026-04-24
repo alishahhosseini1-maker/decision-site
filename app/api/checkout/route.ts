@@ -37,6 +37,7 @@ export async function POST(req: Request) {
         },
       ],
       customer_creation: 'always',
+      allow_promotion_codes: true,
       success_url: `${appUrl}/?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/`,
       metadata: {
