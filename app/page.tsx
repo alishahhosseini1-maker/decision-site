@@ -3402,27 +3402,59 @@ export default function HomePage() {
                               </div>
                             )}
                             {decisionId && (
-                              <div
+                              <a
+                                href={`/decision-summary?id=${decisionId}`}
                                 style={{
-                                  marginTop: 14,
-                                  fontFamily: sans,
-                                  fontSize: 13,
-                                  textAlign: 'center',
-                                  color: 'rgba(0,0,0,0.65)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  marginTop: 16,
+                                  background: '#1A3A2A',
+                                  borderRadius: 12,
+                                  padding: '16px 20px',
+                                  textDecoration: 'none',
+                                  cursor: 'pointer',
+                                  opacity: 0,
+                                  animation: 'fadeIn 300ms ease-out forwards',
                                 }}
                               >
-                                Your brief is ready.{' '}
-                                <a
-                                  href={`/decision-summary?id=${decisionId}`}
+                                <div>
+                                  <div
+                                    style={{
+                                      fontFamily: sans,
+                                      fontSize: 15,
+                                      fontWeight: 700,
+                                      color: '#ffffff',
+                                      marginBottom: 4,
+                                    }}
+                                  >
+                                    Your Decision Brief is ready.
+                                  </div>
+                                  <div
+                                    style={{
+                                      fontFamily: sans,
+                                      fontSize: 12,
+                                      color: '#86EFAC',
+                                    }}
+                                  >
+                                    View your full breakdown, next move, and what to say.
+                                  </div>
+                                </div>
+                                <div
                                   style={{
-                                    color: '#0b0b0b',
+                                    fontFamily: sans,
+                                    fontSize: 13,
                                     fontWeight: 600,
-                                    textDecoration: 'none',
+                                    color: '#1A3A2A',
+                                    background: '#ffffff',
+                                    padding: '8px 16px',
+                                    borderRadius: 20,
+                                    whiteSpace: 'nowrap',
                                   }}
                                 >
-                                  View Decision Brief →
-                                </a>
-                              </div>
+                                  Open Brief →
+                                </div>
+                              </a>
                             )}
                           </div>
 
