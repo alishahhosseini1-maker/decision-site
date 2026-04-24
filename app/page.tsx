@@ -3231,7 +3231,7 @@ export default function HomePage() {
                             />
                           </div>
 
-                          {/* IF YOU IGNORE THIS / WHAT THIS CHANGES block */}
+                          {/* IF YOU IGNORE THIS block */}
                           <div
                             className="card-padding"
                             style={{
@@ -3241,7 +3241,7 @@ export default function HomePage() {
                               marginBottom: 16,
                             }}
                           >
-                            <div style={{ marginBottom: 16 }}>
+                            <div>
                               <div
                                 style={{
                                   fontFamily: sans,
@@ -3264,31 +3264,6 @@ export default function HomePage() {
                                 }}
                               >
                                 {reviewResult.topline.primaryRisk}
-                              </div>
-                            </div>
-                            <div>
-                              <div
-                                style={{
-                                  fontFamily: sans,
-                                  fontSize: 10,
-                                  fontWeight: 600,
-                                  letterSpacing: '0.14em',
-                                  textTransform: 'uppercase',
-                                  color: '#888780',
-                                  marginBottom: 8,
-                                }}
-                              >
-                                What This Changes
-                              </div>
-                              <div
-                                style={{
-                                  fontFamily: sans,
-                                  fontSize: 14,
-                                  lineHeight: 1.6,
-                                  color: '#F1EFE8',
-                                }}
-                              >
-                                Your next move becomes: {reviewResult.snapshot.step}
                               </div>
                             </div>
                           </div>
