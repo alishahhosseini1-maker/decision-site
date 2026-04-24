@@ -3132,11 +3132,11 @@ export default function HomePage() {
                       <div style={{ marginTop: 16, fontFamily: sans }}>
                         {(() => {
                           const items = Object.entries({
-                            clarity: { label: 'CLARITY', score: reviewResult.readiness.clarity, rationale: reviewResult.readiness.rationale?.clarity },
-                            assumptions: { label: 'ASSUMPTIONS', score: reviewResult.readiness.assumptions, rationale: reviewResult.readiness.rationale?.assumptions },
-                            reversibility: { label: 'REVERSIBILITY', score: reviewResult.readiness.reversibility, rationale: reviewResult.readiness.rationale?.reversibility },
-                            risk: { label: 'RISK', score: reviewResult.readiness.risk, rationale: reviewResult.readiness.rationale?.risk },
-                            exitLogic: { label: 'EXIT LOGIC', score: reviewResult.readiness.exitLogic, rationale: reviewResult.readiness.rationale?.exitLogic },
+                            clarity: { label: 'Clarity', score: reviewResult.readiness.clarity, rationale: reviewResult.readiness.rationale?.clarity },
+                            assumptions: { label: 'Assumptions', score: reviewResult.readiness.assumptions, rationale: reviewResult.readiness.rationale?.assumptions },
+                            reversibility: { label: 'Reversibility', score: reviewResult.readiness.reversibility, rationale: reviewResult.readiness.rationale?.reversibility },
+                            risk: { label: 'Risk', score: reviewResult.readiness.risk, rationale: reviewResult.readiness.rationale?.risk },
+                            exitLogic: { label: 'Exit Logic', score: reviewResult.readiness.exitLogic, rationale: reviewResult.readiness.rationale?.exitLogic },
                           });
 
                           const lowestThree = items

@@ -863,7 +863,7 @@ export default function DecisionSummaryPage() {
 
         {/* ── SIGNAL: What matters now ── */}
         <section className="rounded-[20px] border-l-4 border-l-black border border-black/6 bg-[#f1f1ec] p-8 shadow-sm">
-          <p className="text-[10px] uppercase tracking-[0.22em] text-black/36">What matters now</p>
+          <p className="text-[10px] uppercase tracking-[0.22em] text-[#A32D2D]">THE THREAT</p>
           <h2 className="mt-3 text-2xl font-semibold leading-snug tracking-tight text-black md:text-[1.65rem]">
             {buildInsight(decision)}
           </h2>
@@ -879,7 +879,7 @@ export default function DecisionSummaryPage() {
             <p className="mt-3 text-sm leading-7 text-black/75">{decision.decision}</p>
           </div>
           <div className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
-            <p className="text-[10px] uppercase tracking-[0.18em] text-black/36">What to do now</p>
+            <p className="text-[10px] uppercase tracking-[0.18em] text-black/36">NEXT MOVE</p>
             <p className="mt-3 text-sm leading-7 text-black/80 font-semibold">{buildWhatToDoNow(decision)}</p>
           </div>
         </section>
@@ -904,7 +904,7 @@ export default function DecisionSummaryPage() {
               </span>
               <span className="text-2xl text-black/36 font-normal">/ 100</span>
             </div>
-            <div className="text-sm text-black/55 mt-2">Readiness score</div>
+            <div className="text-sm text-black/55 mt-2">Pre-commit score</div>
           </div>
 
           {/* Progress bar */}
@@ -923,7 +923,7 @@ export default function DecisionSummaryPage() {
           {/* Scoring model dropdown */}
           <details className="border-t border-black/9 pt-3">
             <summary className="cursor-pointer text-sm font-semibold text-black/72 flex justify-between items-center list-none">
-              Scoring model
+              DECISION QUALITY
               <span className="text-base text-black/28">▼</span>
             </summary>
             <div className="mt-4 space-y-2">
@@ -982,13 +982,15 @@ export default function DecisionSummaryPage() {
           </div>
 
           {/* IF DELAYED */}
+          {decision.if_delayed?.trim() ? (
           <details className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
             <summary className="cursor-pointer text-[10px] uppercase tracking-[0.18em] text-black/36 flex justify-between items-center list-none">
-              If delayed
+              IF YOU WAIT
               <span className="text-base text-black/28">▼</span>
             </summary>
             <p className="mt-3 text-sm leading-7 text-black/75">{buildIfDelayed(decision)}</p>
           </details>
+          ) : null}
         </section>
 
         {/* ── WHAT OTHERS MAY MISS ── */}
@@ -1002,6 +1004,28 @@ export default function DecisionSummaryPage() {
           </p>
         </details>
 
+        {/* ── WHAT TO SAY (SCRIPT) ── */}
+        {decision.script?.trim() ? (
+          <details className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
+            <summary className="cursor-pointer text-[10px] uppercase tracking-[0.18em] text-black/36 flex justify-between items-center list-none">
+              WHAT TO SAY
+              <span className="text-base text-black/28">▼</span>
+            </summary>
+            <p className="mt-3 text-sm leading-7 text-black/75 italic">{decision.script}</p>
+          </details>
+        ) : null}
+
+        {/* ── WALK AWAY IF ── */}
+        {decision.tripwire?.trim() ? (
+          <details className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
+            <summary className="cursor-pointer text-[10px] uppercase tracking-[0.18em] text-black/36 flex justify-between items-center list-none">
+              WALK AWAY IF
+              <span className="text-base text-black/28">▼</span>
+            </summary>
+            <p className="mt-3 text-sm leading-7 text-black/75 font-semibold">{decision.tripwire}</p>
+          </details>
+        ) : null}
+
         {/* ── EVIDENCE: Threat / Hinge / Trap ── */}
         <details className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
           <summary className="cursor-pointer text-[10px] uppercase tracking-[0.18em] text-black/36 flex justify-between items-center list-none">
@@ -1009,13 +1033,21 @@ export default function DecisionSummaryPage() {
             <span className="text-base text-black/28">▼</span>
           </summary>
           <div className="border-t border-black/6 mt-3">
+            {decision.door ? (
+              <EvidenceRow tag="The decision" text={decision.door} />
+            ) : null}
             {decision.hinge ? (
               <EvidenceRow tag="The hinge" text={decision.hinge} highlight />
+            ) : null}
+            {decision.lock ? (
+              <EvidenceRow tag="What can't be undone" text={decision.lock} />
+            ) : null}
+            {decision.exit ? (
+              <EvidenceRow tag="Exit condition" text={decision.exit} />
             ) : null}
             {decision.trap ? (
               <EvidenceRow tag="Hidden trap" text={decision.trap} />
             ) : null}
-
           </div>
         </details>
 
