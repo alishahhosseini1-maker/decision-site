@@ -2958,7 +2958,7 @@ export default function HomePage() {
                       borderRadius: 'var(--border-radius-lg)',
                     }}
                   >
-                      <div style={{ padding: '3rem 0' }}>
+                      <div style={{ padding: '2.5rem 0 3rem' }}>
                         {/* Commit gate */}
                         <div
                           style={{
@@ -2970,11 +2970,11 @@ export default function HomePage() {
                           <div
                             style={{
                               fontFamily: sans,
-                              fontSize: 18,
+                              fontSize: 26,
                               fontWeight: 700,
                               letterSpacing: '0.02em',
-                              color: '#D3D1C7',
-                              marginBottom: '1.25rem',
+                              color: '#F1EFE8',
+                              marginBottom: '1.5rem',
                               lineHeight: 1.2,
                             }}
                           >
