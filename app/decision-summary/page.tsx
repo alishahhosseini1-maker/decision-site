@@ -994,7 +994,7 @@ export default function DecisionSummaryPage() {
         </section>
 
         {/* ── WHAT OTHERS MAY MISS ── */}
-        <details className="rounded-[20px] bg-black p-6 text-white shadow-[0_10px_24px_rgba(0,0,0,0.16)]">
+        <details open className="rounded-[20px] bg-black p-6 text-white shadow-[0_10px_24px_rgba(0,0,0,0.16)]">
           <summary className="cursor-pointer text-[10px] uppercase tracking-[0.18em] text-white/50 flex justify-between items-center list-none">
             What others may miss
             <span className="text-base text-white/40">▼</span>
