@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
+import { fetchPerplexityEvidence } from '@/app/lib/perplexity';
 
 export const runtime = 'nodejs';
 
@@ -17,6 +18,12 @@ export async function POST(req: Request) {
 
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+    // Fetch external evidence from Perplexity (silent fail, compressed version only)
+    const evidence = await fetchPerplexityEvidence(decision, context);
+    const externalSignalsLine = evidence
+      ? `\nRecent market signals: ${evidence.compressed}\n`
+      : '';
+
     const prompt = `You are a senior operator doing a pre-commitment review.
 You have seen this decision fail before. You know exactly what kills it.
 Your job is not to encourage. Your job is to name what most people miss.
@@ -24,6 +31,7 @@ Be specific to THIS decision. Every sentence must only make sense for this exact
 
 Decision: ${decision}
 Context: ${context || 'None provided'}
+${externalSignalsLine}
 Key hinge: ${hinge || 'Not provided'}
 Hidden trap: ${trap || 'Not provided'}
 

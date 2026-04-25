@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
+import { fetchPerplexityEvidence } from '@/app/lib/perplexity';
 
 export async function GET() {
   return NextResponse.json({
@@ -35,6 +36,12 @@ export async function POST(req: Request) {
 
     const anthropic = new Anthropic({ apiKey });
 
+    // Fetch external evidence from Perplexity (silent fail)
+    const evidence = await fetchPerplexityEvidence(decision, context);
+    const externalSignalsSection = evidence
+      ? `\nEXTERNAL SIGNALS (incorporate into PAIRES scoring, especially Evidence dimension):\n${evidence.content}\n`
+      : '';
+
     const systemPrompt = `
 You are a senior decision analyst at a firm that has reviewed hundreds of high-stakes commitments across hiring, capital allocation, partnerships, and strategic pivots.
 
@@ -56,6 +63,8 @@ YOUR PRIMARY OBLIGATION:
 Find the load-bearing assumption the person has not tested.
 Name the psychological pattern driving urgency.
 State clearly whether this decision is ready to commit.
+
+${externalSignalsSection}
 
 SEARCH BEHAVIOR:
 Before scoring, mentally run these checks against the decision:
