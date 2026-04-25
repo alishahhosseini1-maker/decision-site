@@ -37,10 +37,18 @@ export async function POST(req: Request) {
     const anthropic = new Anthropic({ apiKey });
 
     // Fetch external evidence from Perplexity (silent fail)
+    console.log('[review] Calling Perplexity for external evidence...');
     const evidence = await fetchPerplexityEvidence(decision, context);
     const externalSignalsSection = evidence
       ? `\nEXTERNAL SIGNALS (incorporate into PAIRES scoring, especially Evidence dimension):\n${evidence.content}\n`
       : '';
+
+    if (evidence) {
+      console.log('[review] ✓ External signals will be injected into Claude prompt');
+      console.log('[review] Signals block:', externalSignalsSection.substring(0, 200) + '...');
+    } else {
+      console.log('[review] ✗ No external signals - proceeding without Perplexity data');
+    }
 
     const systemPrompt = `
 You are a senior decision analyst at a firm that has reviewed hundreds of high-stakes commitments across hiring, capital allocation, partnerships, and strategic pivots.

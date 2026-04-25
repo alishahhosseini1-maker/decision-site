@@ -14,9 +14,16 @@ export async function fetchPerplexityEvidence(
     return null;
   }
 
+  console.log('[perplexity] ========================================');
+  console.log('[perplexity] FETCHING EVIDENCE');
+  console.log('[perplexity] Decision:', decision.substring(0, 100) + '...');
+  console.log('[perplexity] Context:', context.substring(0, 100) + '...');
+
   try {
     const query = `Real-world signals for decision: "${decision}". Context: ${context}.
 Return 3-5 sentences covering: (1) recent comparable outcomes or failures in the last 90 days, (2) current market risks or headwinds, (3) credible data points (costs, timelines, failure rates) relevant to this decision type. Include source URLs.`;
+
+    console.log('[perplexity] Query constructed, calling API...');
 
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
@@ -48,9 +55,16 @@ Return 3-5 sentences covering: (1) recent comparable outcomes or failures in the
       return null;
     }
 
+    console.log('[perplexity] ✓ SUCCESS - Evidence received');
+    console.log('[perplexity] Full content:');
+    console.log('[perplexity]', fullContent);
+    console.log('[perplexity] ========================================');
+
     // Extract first 2 sentences for compressed version
     const sentences = fullContent.match(/[^.!?]+[.!?]+/g) || [];
     const compressed = sentences.slice(0, 2).join(' ').trim();
+
+    console.log('[perplexity] Compressed version:', compressed);
 
     return {
       content: fullContent,
