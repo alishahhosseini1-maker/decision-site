@@ -14,6 +14,12 @@ export async function POST(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
+    // Calculate follow-up dates
+    const now = new Date();
+    const follow30 = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const follow60 = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000);
+    const follow90 = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
+
     const insertPayload = {
       decision: body.decision,
       context: body.context,
@@ -55,6 +61,9 @@ export async function POST(req: Request) {
       outcome_status: 'awaiting_outcome',
       needs_follow_up: false,
       exclude_from_patterns: false,
+      follow_up_30_at: follow30.toISOString(),
+      follow_up_60_at: follow60.toISOString(),
+      follow_up_90_at: follow90.toISOString(),
       user_id: body.userId || null,
       ...(body.requestKey ? { request_key: body.requestKey } : {}),
     };
