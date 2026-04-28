@@ -1366,6 +1366,9 @@ export default function HomePage() {
         throw new Error('Claude returned invalid JSON.');
       }
 
+      // Log raw scores for debugging
+      console.log('[review] Raw readiness scores from Claude:', parsed?.readiness);
+
       // Validation helpers (moved from backend)
       const allowedPatternTypes = new Set<string>([
         'Reversible experiment',
@@ -1375,8 +1378,14 @@ export default function HomePage() {
         'Irreversible commitment',
       ]);
 
-      const clampScore = (value: unknown): number => {
-        if (!Number.isInteger(value)) return 0;
+      let hadInvalidScores = false;
+
+      const clampScore = (value: unknown, fieldName: string): number => {
+        if (!Number.isInteger(value)) {
+          console.warn(`[review] Invalid score for ${fieldName}:`, value, '(defaulting to 0)');
+          hadInvalidScores = true;
+          return 0;
+        }
         return Math.max(0, Math.min(20, value as number));
       };
 
@@ -1409,11 +1418,11 @@ export default function HomePage() {
           reversibility: asReversibility(parsed?.pattern?.reversibility),
         },
         readiness: {
-          clarity: clampScore(parsed?.readiness?.clarity),
-          assumptions: clampScore(parsed?.readiness?.assumptions),
-          reversibility: clampScore(parsed?.readiness?.reversibility),
-          risk: clampScore(parsed?.readiness?.risk),
-          exitLogic: clampScore(parsed?.readiness?.exitLogic),
+          clarity: clampScore(parsed?.readiness?.clarity, 'clarity'),
+          assumptions: clampScore(parsed?.readiness?.assumptions, 'assumptions'),
+          reversibility: clampScore(parsed?.readiness?.reversibility, 'reversibility'),
+          risk: clampScore(parsed?.readiness?.risk, 'risk'),
+          exitLogic: clampScore(parsed?.readiness?.exitLogic, 'exitLogic'),
           total: 0,
           label: 'Take a smaller step' as LabelType,
           summary: asString(
@@ -1465,6 +1474,13 @@ export default function HomePage() {
         safeResult.readiness.exitLogic;
 
       safeResult.readiness.total = calculatedTotal;
+
+      // Error boundary: detect if all scores are 0 (likely parsing/API failure)
+      if (calculatedTotal === 0 && hadInvalidScores) {
+        console.error('[review] SCORING ERROR: All readiness scores are 0/invalid');
+        console.error('[review] Raw parsed object:', parsed);
+        throw new Error('Scoring failed - Claude returned invalid or missing scores. Check console for details.');
+      }
 
       if (calculatedTotal < 50) {
         safeResult.readiness.label = 'Needs more before you commit';
