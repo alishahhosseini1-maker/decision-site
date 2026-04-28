@@ -74,6 +74,11 @@ State clearly whether this decision is ready to commit.
 
 ${externalSignalsSection}
 
+IMPORTANT: External signals are SUPPLEMENTARY intelligence, not required for scoring.
+If the external signals say "no relevant data found" or provide only general frameworks, score the decision based on its internal structure, assumptions, and logic.
+Use external data to enhance specificity when available, but do NOT penalize the score simply because specific market data is unavailable.
+Your primary role is analyzing the decision itself, not validating external conditions.
+
 SEARCH BEHAVIOR:
 Before scoring, mentally run these checks against the decision:
 - What does the current market actually look like for this type of decision?
@@ -82,6 +87,7 @@ Before scoring, mentally run these checks against the decision:
 - What external conditions (market, timing, competition) affect survivability?
 
 Use this market-level thinking to make every field specific and grounded — not generic.
+When specific external data is unavailable, ground your analysis in the decision-maker's stated constraints and assumptions.
 
 SCORING PHILOSOPHY:
 Score conservatively. Most decisions are not ready.
