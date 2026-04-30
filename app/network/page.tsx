@@ -171,7 +171,7 @@ export default function NetworkPage() {
               lineHeight: 1.65,
               marginBottom: 40,
             }}>
-              Upload your connections file and answer one question. You'll receive a prioritized analysis of your top opportunities in 48 hours.
+              Upload your connections file and answer one question. You&apos;ll receive a prioritized analysis of your top opportunities in 48 hours.
             </p>
 
             {error && (
@@ -399,7 +399,7 @@ export default function NetworkPage() {
                   lineHeight: 1.45,
                   marginBottom: 14,
                 }}>
-                  What's the one business outcome you're trying to drive through your network in the <em style={{ fontStyle: 'italic', color: '#0a66c2' }}>next 90 days?</em>
+                  What&apos;s the one business outcome you&apos;re trying to drive through your network in the <em style={{ fontStyle: 'italic', color: '#0a66c2' }}>next 90 days?</em>
                 </div>
                 <textarea
                   value={outcome}
@@ -495,7 +495,7 @@ export default function NetworkPage() {
               color: '#e8e8df',
               marginBottom: 12,
             }}>
-              You're in the queue.
+              You&apos;re in the queue.
             </h2>
             <p style={{
               fontSize: 13,
@@ -503,7 +503,7 @@ export default function NetworkPage() {
               lineHeight: 1.65,
             }}>
               Your network analysis will be ready within 48 hours.<br />
-              Check your inbox — we'll send it directly.
+              Check your inbox — we&apos;ll send it directly.
             </p>
           </div>
         )}
