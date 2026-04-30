@@ -1,0 +1,514 @@
+'use client';
+
+import React, { useState } from 'react';
+import { supabase } from '../lib/supabase';
+
+export default function NetworkPage() {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [outcome, setOutcome] = useState('');
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  const handleFileChange = (file: File | null) => {
+    if (!file) return;
+
+    if (!file.name.endsWith('.csv')) {
+      setError('Please upload a CSV file');
+      setCsvFile(null);
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setError('File size must be less than 10MB');
+      setCsvFile(null);
+      return;
+    }
+    setCsvFile(file);
+    setError(null);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    handleFileChange(file);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setIsSubmitting(true);
+
+    try {
+      if (!firstName.trim() || !lastName.trim() || !email.trim() || !outcome.trim()) {
+        throw new Error('Please fill in all fields');
+      }
+
+      if (!csvFile) {
+        throw new Error('Please upload your LinkedIn CSV');
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        throw new Error('Please enter a valid email address');
+      }
+
+      const fileName = `${Date.now()}-${csvFile.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from('linkedin-csvs')
+        .upload(fileName, csvFile, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw new Error('Failed to upload CSV file');
+      }
+
+      const { data: urlData } = supabase.storage
+        .from('linkedin-csvs')
+        .getPublicUrl(fileName);
+
+      const { error: insertError } = await supabase
+        .from('network_submissions')
+        .insert({
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          email: email.trim().toLowerCase(),
+          outcome: outcome.trim(),
+          csv_url: urlData.publicUrl,
+        });
+
+      if (insertError) {
+        console.error('Insert error:', insertError);
+        throw new Error('Failed to save submission');
+      }
+
+      setSuccess(true);
+    } catch (err: any) {
+      setError(err.message || 'Something went wrong');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div style={{
+      background: '#0f0f0d',
+      color: '#e8e8df',
+      fontFamily: "'DM Mono', monospace",
+      minHeight: '100vh',
+      padding: '48px 24px 80px',
+      display: 'flex',
+      justifyContent: 'center',
+    }}>
+
+      {/* Top dots menu */}
+      <div style={{
+        position: 'fixed',
+        top: 16,
+        right: 16,
+        width: 32,
+        height: 32,
+        background: '#1a1a17',
+        border: '1px solid #2e2e28',
+        borderRadius: 6,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 3,
+        cursor: 'pointer',
+      }}>
+        <span style={{ width: 3, height: 3, background: '#888880', borderRadius: '50%' }} />
+        <span style={{ width: 3, height: 3, background: '#888880', borderRadius: '50%' }} />
+        <span style={{ width: 3, height: 3, background: '#888880', borderRadius: '50%' }} />
+      </div>
+
+      <div style={{ width: '100%', maxWidth: 480 }}>
+
+        {!success ? (
+          /* Form View */
+          <>
+            <p style={{
+              fontSize: 11,
+              fontWeight: 500,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: '#0a66c2',
+              marginBottom: 14,
+            }}>
+              Network Intelligence
+            </p>
+
+            <h1 style={{
+              fontFamily: "'DM Serif Display', serif",
+              fontSize: 32,
+              lineHeight: 1.2,
+              color: '#e8e8df',
+              marginBottom: 16,
+              fontWeight: 400,
+            }}>
+              Turn your LinkedIn network into <em style={{ fontStyle: 'italic', color: '#0a66c2' }}>paid opportunities.</em>
+            </h1>
+
+            <p style={{
+              fontSize: 13,
+              color: '#888880',
+              lineHeight: 1.65,
+              marginBottom: 40,
+            }}>
+              Upload your connections file and answer one question. You'll receive a prioritized analysis of your top opportunities in 48 hours.
+            </p>
+
+            {error && (
+              <div style={{
+                marginBottom: 24,
+                padding: '12px 16px',
+                background: 'rgba(220, 38, 38, 0.1)',
+                border: '1px solid rgba(220, 38, 38, 0.3)',
+                borderRadius: 4,
+                color: '#fca5a5',
+                fontSize: 12,
+              }}>
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit}>
+
+              {/* Name fields */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: 16,
+                marginBottom: 20,
+              }}>
+                <div>
+                  <label style={{
+                    fontSize: 11,
+                    fontWeight: 500,
+                    letterSpacing: '0.15em',
+                    textTransform: 'uppercase',
+                    color: '#888880',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    marginBottom: 7,
+                  }}>
+                    First Name <span style={{ color: '#0a66c2', fontSize: 13 }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="Alex"
+                    required
+                    style={{
+                      background: '#1a1a17',
+                      border: '1px solid #2e2e28',
+                      borderRadius: 4,
+                      color: '#e8e8df',
+                      fontFamily: "'DM Mono', monospace",
+                      fontSize: 13,
+                      padding: '11px 14px',
+                      outline: 'none',
+                      width: '100%',
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = '#0a66c2'}
+                    onBlur={(e) => e.target.style.borderColor = '#2e2e28'}
+                  />
+                </div>
+                <div>
+                  <label style={{
+                    fontSize: 11,
+                    fontWeight: 500,
+                    letterSpacing: '0.15em',
+                    textTransform: 'uppercase',
+                    color: '#888880',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    marginBottom: 7,
+                  }}>
+                    Last Name <span style={{ color: '#0a66c2', fontSize: 13 }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="Morgan"
+                    required
+                    style={{
+                      background: '#1a1a17',
+                      border: '1px solid #2e2e28',
+                      borderRadius: 4,
+                      color: '#e8e8df',
+                      fontFamily: "'DM Mono', monospace",
+                      fontSize: 13,
+                      padding: '11px 14px',
+                      outline: 'none',
+                      width: '100%',
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = '#0a66c2'}
+                    onBlur={(e) => e.target.style.borderColor = '#2e2e28'}
+                  />
+                </div>
+              </div>
+
+              {/* Email */}
+              <div style={{ marginBottom: 20 }}>
+                <label style={{
+                  fontSize: 11,
+                  fontWeight: 500,
+                  letterSpacing: '0.15em',
+                  textTransform: 'uppercase',
+                  color: '#888880',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  marginBottom: 7,
+                }}>
+                  Email <span style={{ color: '#0a66c2', fontSize: 13 }}>*</span>
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="alex@company.com"
+                  required
+                  style={{
+                    background: '#1a1a17',
+                    border: '1px solid #2e2e28',
+                    borderRadius: 4,
+                    color: '#e8e8df',
+                    fontFamily: "'DM Mono', monospace",
+                    fontSize: 13,
+                    padding: '11px 14px',
+                    outline: 'none',
+                    width: '100%',
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#0a66c2'}
+                  onBlur={(e) => e.target.style.borderColor = '#2e2e28'}
+                />
+              </div>
+
+              {/* File upload */}
+              <div style={{ marginBottom: 24 }}>
+                <label style={{
+                  fontSize: 11,
+                  fontWeight: 500,
+                  letterSpacing: '0.15em',
+                  textTransform: 'uppercase',
+                  color: '#888880',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  marginBottom: 7,
+                }}>
+                  LinkedIn CSV <span style={{ color: '#0a66c2', fontSize: 13 }}>*</span>
+                </label>
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  style={{
+                    position: 'relative',
+                    border: `1.5px dashed ${isDragging ? '#0a66c2' : '#0a66c2'}`,
+                    borderRadius: 6,
+                    padding: '28px 20px',
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    background: isDragging ? 'rgba(10, 102, 194, 0.03)' : 'transparent',
+                  }}
+                >
+                  <input
+                    type="file"
+                    accept=".csv"
+                    onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
+                    required
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      opacity: 0,
+                      cursor: 'pointer',
+                      width: '100%',
+                      height: '100%',
+                    }}
+                  />
+                  <div style={{ fontSize: 20, color: '#e8e8df', marginBottom: 10 }}>↑</div>
+                  <div style={{
+                    fontSize: 13,
+                    color: '#888880',
+                    marginBottom: 6,
+                  }}>
+                    <strong style={{ color: '#0a66c2', fontWeight: 500 }}>Click to upload</strong> or drag your file here
+                  </div>
+                  <div style={{
+                    fontSize: 12,
+                    color: '#888880',
+                    lineHeight: 1.5,
+                  }}>
+                    Export from LinkedIn → Settings → Data Privacy<br />→ Get a copy of your data
+                  </div>
+                </div>
+                {csvFile && (
+                  <div style={{
+                    fontSize: 12,
+                    color: '#0a66c2',
+                    marginTop: 8,
+                  }}>
+                    ✓ {csvFile.name}
+                  </div>
+                )}
+              </div>
+
+              {/* Divider */}
+              <div style={{
+                height: 1,
+                background: '#2e2e28',
+                margin: '4px 0 24px',
+              }} />
+
+              {/* Outcome question */}
+              <div style={{
+                border: '1px solid #2e2e28',
+                borderRadius: 6,
+                padding: 18,
+                marginBottom: 32,
+                background: '#1a1a17',
+              }}>
+                <div style={{
+                  fontFamily: "'DM Serif Display', serif",
+                  fontSize: 15,
+                  fontWeight: 400,
+                  color: '#e8e8df',
+                  lineHeight: 1.45,
+                  marginBottom: 14,
+                }}>
+                  What's the one business outcome you're trying to drive through your network in the <em style={{ fontStyle: 'italic', color: '#0a66c2' }}>next 90 days?</em>
+                </div>
+                <textarea
+                  value={outcome}
+                  onChange={(e) => setOutcome(e.target.value)}
+                  placeholder="e.g. Close 3 enterprise pilots, get intro to Microsoft procurement, find a co-founder in AI infrastructure..."
+                  rows={4}
+                  required
+                  style={{
+                    background: '#0f0f0d',
+                    border: '1px solid #2e2e28',
+                    borderRadius: 4,
+                    color: '#e8e8df',
+                    fontFamily: "'DM Mono', monospace",
+                    fontSize: 12,
+                    padding: '12px 14px',
+                    outline: 'none',
+                    width: '100%',
+                    resize: 'vertical',
+                    minHeight: 90,
+                    lineHeight: 1.6,
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#0a66c2'}
+                  onBlur={(e) => e.target.style.borderColor = '#2e2e28'}
+                />
+              </div>
+
+              {/* Footer */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'flex-end',
+                justifyContent: 'space-between',
+                gap: 20,
+              }}>
+                <p style={{
+                  fontSize: 12,
+                  color: '#888880',
+                  lineHeight: 1.65,
+                  maxWidth: 240,
+                }}>
+                  Your analysis will be delivered within 48 hours. Your data is never shared or used for any other purpose.
+                </p>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  style={{
+                    background: 'transparent',
+                    border: '1.5px solid #e8e8df',
+                    borderRadius: 4,
+                    color: '#e8e8df',
+                    fontFamily: "'DM Mono', monospace",
+                    fontSize: 12,
+                    fontWeight: 500,
+                    letterSpacing: '0.12em',
+                    textTransform: 'uppercase',
+                    padding: '13px 24px',
+                    cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0,
+                    opacity: isSubmitting ? 0.5 : 1,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSubmitting) {
+                      e.currentTarget.style.background = '#e8e8df';
+                      e.currentTarget.style.color = '#0f0f0d';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.color = '#e8e8df';
+                  }}
+                >
+                  {isSubmitting ? 'Submitting...' : 'Submit →'}
+                </button>
+              </div>
+
+            </form>
+          </>
+        ) : (
+          /* Success View */
+          <div style={{ padding: '80px 0', textAlign: 'center' }}>
+            <span style={{
+              fontSize: 32,
+              color: '#0a66c2',
+              marginBottom: 20,
+              display: 'block',
+            }}>
+              ✦
+            </span>
+            <h2 style={{
+              fontFamily: "'DM Serif Display', serif",
+              fontSize: 28,
+              fontWeight: 400,
+              color: '#e8e8df',
+              marginBottom: 12,
+            }}>
+              You're in the queue.
+            </h2>
+            <p style={{
+              fontSize: 13,
+              color: '#888880',
+              lineHeight: 1.65,
+            }}>
+              Your network analysis will be ready within 48 hours.<br />
+              Check your inbox — we'll send it directly.
+            </p>
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
