@@ -265,6 +265,12 @@ Do not wrap in code fences.
 Do not add explanations before or after.
 Start with { and end with }.
 
+CRITICAL REQUIREMENT - RATIONALE OBJECT:
+The readiness.rationale object is MANDATORY and must contain NON-EMPTY strings for all 5 fields.
+Each rationale string must be 1-2 sentences explaining why THAT specific score was given for THIS specific decision.
+Use numbers, names, or specific conditions from the decision context.
+Empty strings or generic explanations will cause the response to be rejected.
+
 Return this exact shape:
 
 {
@@ -283,11 +289,11 @@ Return this exact shape:
     "label": string,
     "summary": string,
     "rationale": {
-      "clarity": string,
-      "assumptions": string,
-      "reversibility": string,
-      "risk": string,
-      "exitLogic": string
+      "clarity": string (REQUIRED, NON-EMPTY, decision-specific),
+      "assumptions": string (REQUIRED, NON-EMPTY, decision-specific),
+      "reversibility": string (REQUIRED, NON-EMPTY, decision-specific),
+      "risk": string (REQUIRED, NON-EMPTY, decision-specific),
+      "exitLogic": string (REQUIRED, NON-EMPTY, decision-specific)
     }
   },
   "topline": {
