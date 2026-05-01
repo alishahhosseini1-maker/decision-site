@@ -362,7 +362,7 @@ export default function NetworkPage() {
                     color: '#888880',
                     lineHeight: 1.5,
                   }}>
-                    Export from LinkedIn → Settings → Data Privacy<br />→ Get a copy of your data
+                    Settings → Data Privacy → How LinkedIn uses your data<br />→ Get a copy of your data → select only Connections → request archive.<br />This delivers just the CSV within minutes instead of days.
                   </div>
                 </div>
                 {csvFile && (
