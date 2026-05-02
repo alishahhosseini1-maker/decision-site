@@ -46,44 +46,48 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid signature', details: err.message }, { status: 400 });
     }
 
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object as Stripe.Checkout.Session;
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object as Stripe.Checkout.Session;
 
-    if (session.payment_status === 'paid') {
-      const decisionId = session.metadata?.decision_id;
-      const customerEmail = session.customer_email || session.customer_details?.email;
+      if (session.payment_status === 'paid') {
+        const decisionId = session.metadata?.decision_id;
+        const customerEmail = session.customer_email || session.customer_details?.email;
 
-      if (!decisionId || !customerEmail) {
-        console.error('[webhook] Missing decision ID or email');
-        return NextResponse.json({ error: 'Missing required data' }, { status: 400 });
-      }
+        if (!decisionId || !customerEmail) {
+          console.error('[webhook] Missing decision ID or email');
+          return NextResponse.json({ error: 'Missing required data' }, { status: 400 });
+        }
 
-      // Check idempotency
-      const { data: existing } = await supabase
-        .from('decision_payments')
-        .select('id')
-        .eq('stripe_session_id', session.id)
-        .single();
-
-      if (!existing) {
-        const { error } = await supabase
+        // Check idempotency
+        const { data: existing } = await supabase
           .from('decision_payments')
-          .insert({
-            decision_id: decisionId,
-            user_id: null,
-            stripe_session_id: session.id,
-            customer_email: customerEmail,
-            amount: session.amount_total || 0,
-            paid_at: new Date().toISOString(),
-          });
+          .select('id')
+          .eq('stripe_session_id', session.id)
+          .single();
 
-        if (error) {
-          console.error('[webhook] Insert error:', error);
-          return NextResponse.json({ error: 'Insert failed' }, { status: 500 });
+        if (!existing) {
+          const { error } = await supabase
+            .from('decision_payments')
+            .insert({
+              decision_id: decisionId,
+              user_id: null,
+              stripe_session_id: session.id,
+              customer_email: customerEmail,
+              amount: session.amount_total || 0,
+              paid_at: new Date().toISOString(),
+            });
+
+          if (error) {
+            console.error('[webhook] Insert error:', error);
+            return NextResponse.json({ error: 'Insert failed' }, { status: 500 });
+          }
         }
       }
     }
-  }
 
-  return NextResponse.json({ received: true });
+    return NextResponse.json({ received: true });
+  } catch (err: any) {
+    console.error('[webhook] Unexpected error:', err);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }
