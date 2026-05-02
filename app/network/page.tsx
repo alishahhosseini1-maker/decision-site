@@ -53,6 +53,7 @@ export default function NetworkPage() {
     setIsSubmitting(true);
 
     try {
+      // Validation
       if (!firstName.trim() || !lastName.trim() || !email.trim() || !outcome.trim()) {
         throw new Error('Please fill in all fields');
       }
@@ -66,6 +67,7 @@ export default function NetworkPage() {
         throw new Error('Please enter a valid email address');
       }
 
+      // Step 1: Upload CSV to Supabase Storage first
       const fileName = `${Date.now()}-${csvFile.name}`;
       const { error: uploadError } = await supabase.storage
         .from('linkedin-csvs')
@@ -83,27 +85,39 @@ export default function NetworkPage() {
         .from('linkedin-csvs')
         .getPublicUrl(fileName);
 
-      const { error: insertError } = await supabase
-        .from('network_submissions')
-        .insert({
-          first_name: firstName.trim(),
-          last_name: lastName.trim(),
+      const csvUrl = urlData.publicUrl;
+
+      // Step 2: Create Stripe checkout session
+      const checkoutRes = await fetch('/api/network/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
           email: email.trim().toLowerCase(),
           outcome: outcome.trim(),
-          csv_url: urlData.publicUrl,
-        });
+          csvFile: csvUrl, // Pass the uploaded CSV URL
+        }),
+      });
 
-      if (insertError) {
-        console.error('Insert error:', insertError);
-        throw new Error('Failed to save submission');
+      const checkoutData = await checkoutRes.json();
+
+      if (!checkoutRes.ok) {
+        throw new Error(checkoutData.error || 'Checkout failed');
       }
 
-      setSuccess(true);
+      // Step 3: Redirect to Stripe checkout
+      if (checkoutData.url) {
+        window.location.href = checkoutData.url;
+      } else {
+        throw new Error('No checkout URL received');
+      }
+
     } catch (err: any) {
       setError(err.message || 'Something went wrong');
-    } finally {
       setIsSubmitting(false);
     }
+    // Don't reset isSubmitting here - let the redirect happen
   };
 
   return (
