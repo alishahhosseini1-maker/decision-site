@@ -183,9 +183,27 @@ export default function NetworkPage() {
               fontSize: 13,
               color: '#888880',
               lineHeight: 1.65,
-              marginBottom: 40,
+              marginBottom: 16,
             }}>
               Upload your connections file and answer one question. You&apos;ll receive a prioritized analysis of your top opportunities in 48 hours.
+            </p>
+
+            <p style={{
+              fontSize: 12,
+              marginBottom: 40,
+            }}>
+              <a
+                href="/sample"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  color: '#4FC3F7',
+                  textDecoration: 'none',
+                  borderBottom: '1px solid rgba(79, 195, 247, 0.3)',
+                }}
+              >
+                Not sure what you&apos;re getting? See a real sample report →
+              </a>
             </p>
 
             {error && (
