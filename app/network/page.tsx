@@ -185,7 +185,7 @@ export default function NetworkPage() {
               lineHeight: 1.65,
               marginBottom: 16,
             }}>
-              Upload your connections file and answer one question. You&apos;ll receive a prioritized analysis of your top opportunities in 48 hours.
+              Upload your connections file and answer one question. You&apos;ll receive a prioritized analysis of your top opportunities in 24 hours.
             </p>
 
             <p style={{
@@ -471,7 +471,7 @@ export default function NetworkPage() {
                   lineHeight: 1.65,
                   maxWidth: 240,
                 }}>
-                  Your analysis will be delivered within 48 hours. Your data is never shared or used for any other purpose.
+                  Your analysis will be delivered within 24 hours. Your data is never shared or used for any other purpose.
                 </p>
                 <button
                   type="submit"
@@ -534,7 +534,7 @@ export default function NetworkPage() {
               color: '#888880',
               lineHeight: 1.65,
             }}>
-              Your network analysis will be ready within 48 hours.<br />
+              Your network analysis will be ready within 24 hours.<br />
               Check your inbox — we&apos;ll send it directly.
             </p>
           </div>
