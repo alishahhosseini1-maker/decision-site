@@ -1,51 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
-import { supabase } from '../lib/supabase';
 
 export default function NetworkPage() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [outcome, setOutcome] = useState('');
-  const [csvFile, setCsvFile] = useState<File | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-
-  const handleFileChange = (file: File | null) => {
-    if (!file) return;
-
-    if (!file.name.endsWith('.csv')) {
-      setError('Please upload a CSV file');
-      setCsvFile(null);
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      setError('File size must be less than 10MB');
-      setCsvFile(null);
-      return;
-    }
-    setCsvFile(file);
-    setError(null);
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = () => {
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const file = e.dataTransfer.files[0];
-    handleFileChange(file);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,36 +22,12 @@ export default function NetworkPage() {
         throw new Error('Please fill in all fields');
       }
 
-      if (!csvFile) {
-        throw new Error('Please upload your LinkedIn CSV');
-      }
-
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
         throw new Error('Please enter a valid email address');
       }
 
-      // Step 1: Upload CSV to Supabase Storage first
-      const fileName = `${Date.now()}-${csvFile.name}`;
-      const { error: uploadError } = await supabase.storage
-        .from('linkedin-csvs')
-        .upload(fileName, csvFile, {
-          cacheControl: '3600',
-          upsert: false,
-        });
-
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        throw new Error('Failed to upload CSV file');
-      }
-
-      const { data: urlData } = supabase.storage
-        .from('linkedin-csvs')
-        .getPublicUrl(fileName);
-
-      const csvUrl = urlData.publicUrl;
-
-      // Step 2: Create Stripe checkout session
+      // Create Stripe checkout session
       const checkoutRes = await fetch('/api/network/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -96,7 +36,6 @@ export default function NetworkPage() {
           lastName: lastName.trim(),
           email: email.trim().toLowerCase(),
           outcome: outcome.trim(),
-          csvFile: csvUrl, // Pass the uploaded CSV URL
         }),
       });
 
@@ -106,7 +45,7 @@ export default function NetworkPage() {
         throw new Error(checkoutData.error || 'Checkout failed');
       }
 
-      // Step 3: Redirect to Stripe checkout
+      // Redirect to Stripe checkout
       if (checkoutData.url) {
         window.location.href = checkoutData.url;
       } else {
@@ -337,83 +276,6 @@ export default function NetworkPage() {
                   onBlur={(e) => e.target.style.borderColor = '#2e2e28'}
                 />
               </div>
-
-              {/* File upload */}
-              <div style={{ marginBottom: 24 }}>
-                <label style={{
-                  fontSize: 11,
-                  fontWeight: 500,
-                  letterSpacing: '0.15em',
-                  textTransform: 'uppercase',
-                  color: '#888880',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  marginBottom: 7,
-                }}>
-                  LinkedIn CSV <span style={{ color: '#0a66c2', fontSize: 13 }}>*</span>
-                </label>
-                <div
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                  style={{
-                    position: 'relative',
-                    border: `1.5px dashed ${isDragging ? '#0a66c2' : '#0a66c2'}`,
-                    borderRadius: 6,
-                    padding: '28px 20px',
-                    textAlign: 'center',
-                    cursor: 'pointer',
-                    background: isDragging ? 'rgba(10, 102, 194, 0.03)' : 'transparent',
-                  }}
-                >
-                  <input
-                    type="file"
-                    accept=".csv"
-                    onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
-                    required
-                    style={{
-                      position: 'absolute',
-                      inset: 0,
-                      opacity: 0,
-                      cursor: 'pointer',
-                      width: '100%',
-                      height: '100%',
-                    }}
-                  />
-                  <div style={{ fontSize: 20, color: '#e8e8df', marginBottom: 10 }}>↑</div>
-                  <div style={{
-                    fontSize: 13,
-                    color: '#888880',
-                    marginBottom: 6,
-                  }}>
-                    <strong style={{ color: '#0a66c2', fontWeight: 500 }}>Click to upload</strong> or drag your file here
-                  </div>
-                  <div style={{
-                    fontSize: 12,
-                    color: '#888880',
-                    lineHeight: 1.5,
-                  }}>
-                    Settings → Data Privacy → How LinkedIn uses your data<br />→ Get a copy of your data → select only Connections → request archive.<br />This delivers just the CSV within minutes instead of days.
-                  </div>
-                </div>
-                {csvFile && (
-                  <div style={{
-                    fontSize: 12,
-                    color: '#0a66c2',
-                    marginTop: 8,
-                  }}>
-                    ✓ {csvFile.name}
-                  </div>
-                )}
-              </div>
-
-              {/* Divider */}
-              <div style={{
-                height: 1,
-                background: '#2e2e28',
-                margin: '4px 0 24px',
-              }} />
 
               {/* Outcome question */}
               <div style={{

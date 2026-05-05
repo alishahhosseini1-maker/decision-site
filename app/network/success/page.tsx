@@ -25,22 +25,22 @@ export default function NetworkSuccessPage() {
         </span>
         <h1 style={{
           fontFamily: "'DM Serif Display', serif",
-          fontSize: 36,
+          fontSize: 32,
           fontWeight: 400,
           color: '#e8e8df',
           marginBottom: 16,
-          lineHeight: 1.2,
+          lineHeight: 1.3,
         }}>
-          You&apos;re in the queue.
+          You&apos;re in. One last step — email your LinkedIn connections CSV to <a href="mailto:info@decisionlayer.dev" style={{ color: '#4FC3F7', textDecoration: 'none', borderBottom: '1px solid rgba(79, 195, 247, 0.3)' }}>info@decisionlayer.dev</a> to get started.
         </h1>
         <p style={{
-          fontSize: 15,
+          fontSize: 14,
           color: '#888880',
-          lineHeight: 1.65,
+          lineHeight: 1.75,
           marginBottom: 32,
+          textAlign: 'left',
         }}>
-          Your network analysis will be ready within 48 hours.<br />
-          Check your inbox — we&apos;ll send it directly.
+          Here&apos;s how to get it: Go to <a href="https://www.linkedin.com/mypreferences/d/download-my-data" target="_blank" rel="noopener noreferrer" style={{ color: '#4FC3F7', textDecoration: 'none', borderBottom: '1px solid rgba(79, 195, 247, 0.3)' }}>https://www.linkedin.com/mypreferences/d/download-my-data</a>, select Download larger data archive, and click Request archive. LinkedIn will email you the file within 10-24 hours. Once you have it, forward the Connections.csv file to <a href="mailto:info@decisionlayer.dev" style={{ color: '#4FC3F7', textDecoration: 'none', borderBottom: '1px solid rgba(79, 195, 247, 0.3)' }}>info@decisionlayer.dev</a> and your report will be delivered within 24 hours of us receiving it.
         </p>
 
         <a
