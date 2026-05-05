@@ -564,7 +564,7 @@
         </div>
       </div>
       <div style="display:flex;gap:12px;margin-top:20px;">
-        <button class="copy-btn" style="padding:10px 20px;font-size:11px;" onclick="copyCard()">Copy Card Text</button>
+        <button class="copy-btn" style="padding:10px 20px;font-size:11px;" onclick="copyCard()">Copy & Share</button>
         <button class="copy-btn" style="padding:10px 20px;font-size:11px;background:rgba(74,222,128,0.1);border-color:rgba(74,222,128,0.3);color:#4ade80;" onclick="window.print()">Print / Save as PDF</button>
       </div>
       <div style="font-size:11px;color:var(--muted);margin-top:10px;">This is a sample report. Your report is built entirely around your network and your specific 90-day goal.</div>
@@ -618,7 +618,7 @@ TOP FINDINGS:
 90-Day Goal: Close 10 enterprise software deals
 
 Get your own report → decisionlayer.dev/network`;
-  navigator.clipboard.writeText(text).then(() => { event.target.textContent='Copied!'; setTimeout(()=>{ event.target.textContent='Copy Card Text'; },2000); });
+  navigator.clipboard.writeText(text).then(() => { event.target.textContent='Copied!'; setTimeout(()=>{ event.target.textContent='Copy & Share'; },2000); });
 }
 </script>
 </body>
