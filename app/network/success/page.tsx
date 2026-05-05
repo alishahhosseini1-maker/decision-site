@@ -40,7 +40,7 @@ export default function NetworkSuccessPage() {
           marginBottom: 32,
           textAlign: 'left',
         }}>
-          Here&apos;s how to get it: Go to <a href="https://www.linkedin.com/mypreferences/d/download-my-data" target="_blank" rel="noopener noreferrer" style={{ color: '#4FC3F7', textDecoration: 'none', borderBottom: '1px solid rgba(79, 195, 247, 0.3)' }}>https://www.linkedin.com/mypreferences/d/download-my-data</a>, select Download larger data archive, and click Request archive. LinkedIn will email you the file within 10-24 hours. Once you have it, forward the Connections.csv file to <a href="mailto:info@decisionlayer.dev" style={{ color: '#4FC3F7', textDecoration: 'none', borderBottom: '1px solid rgba(79, 195, 247, 0.3)' }}>info@decisionlayer.dev</a> and your report will be delivered within 24 hours of us receiving it.
+          Here&apos;s how to get it: Go to <a href="https://www.linkedin.com/mypreferences/d/download-my-data" target="_blank" rel="noopener noreferrer" style={{ color: '#4FC3F7', textDecoration: 'none', borderBottom: '1px solid rgba(79, 195, 247, 0.3)' }}>https://www.linkedin.com/mypreferences/d/download-my-data</a> and request your data archive. LinkedIn will send you two emails — ignore the first one. The second email contains your Connections.csv file and arrives within 24 hours. Forward that file to <a href="mailto:info@decisionlayer.dev" style={{ color: '#4FC3F7', textDecoration: 'none', borderBottom: '1px solid rgba(79, 195, 247, 0.3)' }}>info@decisionlayer.dev</a> and we&apos;ll get started.
         </p>
 
         <a

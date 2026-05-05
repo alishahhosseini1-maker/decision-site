@@ -442,7 +442,7 @@ export async function sendNetworkConfirmationEmail({
                           Step 1 — Get your LinkedIn connections file
                         </div>
                         <div style="font-size:14px; line-height:1.7; color:#374151; margin-bottom:12px;">
-                          Go to <a href="https://www.linkedin.com/mypreferences/d/download-my-data" style="color:#0066cc; text-decoration:none;">https://www.linkedin.com/mypreferences/d/download-my-data</a>, select <strong>Download larger data archive</strong>, and click <strong>Request archive</strong>. LinkedIn will email you the file within 10-24 hours.
+                          Go to <a href="https://www.linkedin.com/mypreferences/d/download-my-data" style="color:#0066cc; text-decoration:none;">https://www.linkedin.com/mypreferences/d/download-my-data</a> and request your data archive. LinkedIn will send you two emails — ignore the first one. The second email contains your Connections.csv file and arrives within 24 hours. Forward that file to <a href="mailto:info@decisionlayer.dev" style="color:#0066cc; text-decoration:none;">info@decisionlayer.dev</a> and we'll get started.
                         </div>
                       </div>
                     </td>
