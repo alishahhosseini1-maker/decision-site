@@ -159,7 +159,7 @@ export default function NetworkPage() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} noValidate>
 
               {/* Name fields */}
               <div style={{
