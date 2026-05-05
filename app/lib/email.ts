@@ -397,3 +397,107 @@ export async function sendSummaryEmail({
     html,
   });
 }
+
+export async function sendNetworkConfirmationEmail({
+  to,
+  firstName,
+}: {
+  to: string;
+  firstName: string;
+}) {
+  if (!to) return;
+
+  const html = `
+    <!doctype html>
+    <html>
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Your Decision Layer report is confirmed</title>
+      </head>
+      <body style="margin:0; padding:0; background:#f7f7f2; font-family:Arial, sans-serif; color:#111827;">
+        <div style="background:#f7f7f2; padding:32px 12px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td align="center">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;">
+                  <tr>
+                    <td style="padding:0 0 24px 0;">
+                      <div style="font-size:24px; line-height:1.3; font-weight:700; color:#111111;">
+                        Hi ${escapeHtml(firstName)},
+                      </div>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding:0 0 20px 0; font-size:15px; line-height:1.7; color:#4b5563;">
+                      You're in. Here's what happens next:
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding-bottom:20px;">
+                      <div style="background:#ffffff; border:1px solid rgba(0,0,0,0.08); border-radius:12px; padding:24px;">
+                        <div style="font-size:13px; line-height:1.4; letter-spacing:0.1em; text-transform:uppercase; color:#6b7280; margin-bottom:12px; font-weight:600;">
+                          Step 1 — Get your LinkedIn connections file
+                        </div>
+                        <div style="font-size:14px; line-height:1.7; color:#374151; margin-bottom:12px;">
+                          Go to <a href="https://www.linkedin.com/mypreferences/d/download-my-data" style="color:#0066cc; text-decoration:none;">https://www.linkedin.com/mypreferences/d/download-my-data</a>, select <strong>Download larger data archive</strong>, and click <strong>Request archive</strong>. LinkedIn will email you the file within 10-24 hours.
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding-bottom:20px;">
+                      <div style="background:#ffffff; border:1px solid rgba(0,0,0,0.08); border-radius:12px; padding:24px;">
+                        <div style="font-size:13px; line-height:1.4; letter-spacing:0.1em; text-transform:uppercase; color:#6b7280; margin-bottom:12px; font-weight:600;">
+                          Step 2 — Forward it to us
+                        </div>
+                        <div style="font-size:14px; line-height:1.7; color:#374151;">
+                          Once you have it, forward the <strong>Connections.csv</strong> file to <a href="mailto:info@decisionlayer.dev" style="color:#0066cc; text-decoration:none;">info@decisionlayer.dev</a>.
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding-bottom:28px;">
+                      <div style="background:#ffffff; border:1px solid rgba(0,0,0,0.08); border-radius:12px; padding:24px;">
+                        <div style="font-size:13px; line-height:1.4; letter-spacing:0.1em; text-transform:uppercase; color:#6b7280; margin-bottom:12px; font-weight:600;">
+                          Step 3 — Get your report
+                        </div>
+                        <div style="font-size:14px; line-height:1.7; color:#374151;">
+                          Your full network intelligence report will be delivered within <strong>24 hours</strong> of us receiving your file.
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding:20px 0; border-top:1px solid rgba(0,0,0,0.08); font-size:13px; line-height:1.7; color:#6b7280;">
+                      Questions? Reply to this email or contact us at <a href="mailto:info@decisionlayer.dev" style="color:#0066cc; text-decoration:none;">info@decisionlayer.dev</a>.
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding:12px 0 0 0; font-size:13px; line-height:1.7; color:#111111; font-weight:600;">
+                      — The Decision Layer Team
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </body>
+    </html>
+  `;
+
+  await resend.emails.send({
+    from: 'Decision Layer <info@decisionlayer.dev>',
+    to,
+    subject: 'Your Decision Layer report is confirmed — one last step',
+    html,
+  });
+}

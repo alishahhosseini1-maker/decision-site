@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
+import { sendNetworkConfirmationEmail } from '@/app/lib/email';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-04-22.dahlia',
@@ -70,6 +71,18 @@ export async function POST(req: Request) {
         }
 
         console.log('[stripe-network webhook] Network submission created for:', email);
+
+        // Send confirmation email
+        try {
+          await sendNetworkConfirmationEmail({
+            to: email,
+            firstName: first_name,
+          });
+          console.log('[stripe-network webhook] Confirmation email sent to:', email);
+        } catch (emailError) {
+          console.error('[stripe-network webhook] Email send failed:', emailError);
+          // Don't fail the webhook if email fails - submission is already recorded
+        }
       } else {
         console.log('[stripe-network webhook] Submission already exists for session:', session.id);
       }
