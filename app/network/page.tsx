@@ -124,7 +124,7 @@ export default function NetworkPage() {
               lineHeight: 1.65,
               marginBottom: 16,
             }}>
-              Upload your connections file and answer one question. You&apos;ll receive a prioritized analysis of your top opportunities in 24 hours.
+              Answer one question about your 90-day goal. After payment we&apos;ll send you instructions to get your LinkedIn connections file — your report will be delivered within 24 hours of us receiving it.
             </p>
 
             <p style={{
@@ -333,7 +333,7 @@ export default function NetworkPage() {
                   lineHeight: 1.65,
                   maxWidth: 240,
                 }}>
-                  Your analysis will be delivered within 24 hours. Your data is never shared or used for any other purpose.
+                  Your data is never shared or used for any other purpose.
                 </p>
                 <button
                   type="submit"
