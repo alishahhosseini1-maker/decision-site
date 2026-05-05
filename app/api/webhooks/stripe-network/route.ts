@@ -88,7 +88,6 @@ export async function POST(req: Request) {
           last_name,
           email,
           outcome,
-          csv_url: null,
           stripe_session_id: session.id,
           customer_email: session.customer_email || session.customer_details?.email,
           amount_paid: session.amount_total || 0,
