@@ -13,9 +13,9 @@ const supabase = createClient(
 
 export async function POST(req: Request) {
   try {
-    const { firstName, lastName, email, outcome, csvFile } = await req.json();
+    const { firstName, lastName, email, outcome } = await req.json();
 
-    if (!firstName || !lastName || !email || !outcome || !csvFile) {
+    if (!firstName || !lastName || !email || !outcome) {
       return NextResponse.json({ error: 'All fields required' }, { status: 400 });
     }
 
@@ -50,7 +50,6 @@ export async function POST(req: Request) {
         last_name: lastName,
         email: email,
         outcome: outcome,
-        csv_file: csvFile, // This will be the uploaded file URL
       },
     });
 

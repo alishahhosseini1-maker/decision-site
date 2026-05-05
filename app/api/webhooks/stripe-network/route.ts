@@ -36,9 +36,9 @@ export async function POST(req: Request) {
     const session = event.data.object as Stripe.Checkout.Session;
 
     if (session.payment_status === 'paid') {
-      const { first_name, last_name, email, outcome, csv_file } = session.metadata || {};
+      const { first_name, last_name, email, outcome } = session.metadata || {};
 
-      if (!first_name || !last_name || !email || !outcome || !csv_file) {
+      if (!first_name || !last_name || !email || !outcome) {
         console.error('[stripe-network webhook] Missing required metadata');
         return NextResponse.json({ error: 'Missing data' }, { status: 400 });
       }
@@ -58,7 +58,7 @@ export async function POST(req: Request) {
             last_name,
             email,
             outcome,
-            csv_url: csv_file,
+            csv_url: null,
             stripe_session_id: session.id,
             customer_email: session.customer_email || session.customer_details?.email,
             amount_paid: session.amount_total || 0,
