@@ -193,6 +193,74 @@
   .notification-btn { background: #0a0a0f; color: #4FC3F7; border: none; padding: 8px 20px; border-radius: 4px; font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; cursor: pointer; text-decoration: none; display: inline-block; transition: opacity 0.2s; }
   .notification-btn:hover { opacity: 0.9; }
   body { padding-top: 44px; }
+
+  /* MOBILE STYLES */
+  @media (max-width: 767px) {
+    /* Header - reduce padding and stack elements */
+    .header { padding: 20px 16px 16px; }
+    .header-top { flex-direction: column; align-items: flex-start; gap: 16px; }
+    .report-meta { text-align: left; font-size: 10px; }
+    .brand-text { font-size: 14px; }
+    .brand-sub { font-size: 10px; }
+    .sample-badge { font-size: 9px; padding: 2px 8px; }
+
+    /* Metrics - 3x2 grid on mobile */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px 12px;
+      padding-top: 16px;
+    }
+    .metric { align-items: center; text-align: center; }
+    .metric-value { font-size: 20px; }
+    .metric-label { font-size: 9px; }
+
+    /* Navigation - horizontal scroll */
+    .nav {
+      padding: 0 16px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .nav::-webkit-scrollbar { display: none; }
+    .tab { padding: 12px 16px; font-size: 10px; }
+
+    /* Main content - reduce padding */
+    .main { padding: 24px 16px; }
+
+    /* Footer - reduce padding */
+    .footer { padding: 16px; flex-direction: column; gap: 12px; text-align: center; }
+
+    /* Notification bar - reduce padding and font size */
+    .notification-bar {
+      padding: 0 16px;
+      font-size: 11px;
+      gap: 12px;
+    }
+    .notification-text { font-size: 10px; }
+    .notification-btn {
+      padding: 6px 12px;
+      font-size: 9px;
+      white-space: nowrap;
+    }
+
+    /* Cards and other content - reduce padding */
+    .exec-summary { padding: 20px 16px; }
+    .callout { padding: 16px 20px; }
+    .mirror-card { padding: 16px 18px; }
+    .card { padding: 18px 16px; }
+    .prompt-header { padding: 12px 16px; }
+    .prompt-body { padding: 16px; }
+    .msg-header { padding: 12px 16px; }
+    .msg-body { padding: 14px 16px; }
+    .action-item { padding: 16px 18px; }
+    .momentum-section { padding: 20px 16px; }
+    .share-card { padding: 16px; }
+    .sc-header { padding: 16px 20px; }
+    .sc-headline { padding: 20px 20px 16px; }
+    .sc-findings { padding: 16px 20px; }
+    .sc-footer { padding: 14px 20px; flex-direction: column; gap: 16px; }
+  }
 </style>
 </head>
 <body>
