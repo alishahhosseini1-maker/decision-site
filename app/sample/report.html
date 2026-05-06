@@ -7,10 +7,10 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --electric: #4FC3F7;
+    --blue: #4FC3F7;
     --bg: #0a0a0f;
     --surface: #111118;
-    --surface-2: #16161f;
+    --surface2: #16161f;
     --border: #1e1e2e;
     --text: #e8e8f0;
     --muted: #7a7a9a;
@@ -24,313 +24,222 @@
 
   /* HEADER */
   .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 28px 48px 20px; position: sticky; top: 0; z-index: 100; }
-  .header-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 16px; }
-  .brand { display: flex; align-items: center; gap: 12px; }
-  .brand-icon { width: 36px; height: 36px; background: var(--electric); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 16px; color: var(--bg); flex-shrink: 0; }
+  .header-top { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 16px; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-icon { width: 36px; height: 36px; background: var(--blue); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 16px; color: var(--bg); flex-shrink: 0; }
   .brand-text { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.05em; }
-  .brand-sub { font-size: 11px; color: var(--muted); }
+  .brand-sub { font-size: 10px; color: var(--muted); margin-top: 1px; }
   .report-meta { text-align: right; font-size: 11px; color: var(--muted); }
-  .report-meta strong { color: var(--electric); font-weight: 500; }
-  .sample-badge { background: rgba(255,183,77,0.12); border: 1px solid rgba(255,183,77,0.3); color: var(--amber); font-size: 10px; padding: 3px 10px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 500; display: inline-block; margin-bottom: 4px; }
+  .report-meta strong { color: var(--blue); font-weight: 500; }
+  .sample-badge { display: inline-block; background: rgba(255,183,77,0.1); border: 1px solid rgba(255,183,77,0.3); color: var(--amber); font-size: 9px; padding: 2px 8px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 3px; }
 
   /* FIRST MESSAGE PICK */
-  .first-pick { background: linear-gradient(135deg, rgba(79,195,247,0.07), rgba(79,195,247,0.02)); border: 1px solid rgba(79,195,247,0.22); border-radius: 6px; padding: 10px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-  .pick-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--electric); animation: pulse 2s infinite; flex-shrink: 0; }
-  .pick-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--electric); font-weight: 600; white-space: nowrap; }
+  .first-pick { background: linear-gradient(135deg, rgba(79,195,247,0.08), rgba(79,195,247,0.03)); border: 1px solid rgba(79,195,247,0.25); border-radius: 6px; padding: 10px 16px; margin-bottom: 14px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .pick-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--blue); font-weight: 600; white-space: nowrap; }
+  .pick-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--blue); animation: pulse 1.5s ease-in-out infinite; flex-shrink: 0; }
   .pick-text { font-size: 12px; color: var(--text); flex: 1; }
-  .pick-text strong { color: var(--electric); }
+  .pick-text strong { color: var(--blue); }
+  @keyframes pulse { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(79,195,247,0.4)} 50%{opacity:.8;box-shadow:0 0 0 5px rgba(79,195,247,0)} }
 
-  .metrics { display: flex; gap: 32px; padding-top: 16px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+  .metrics { display: flex; gap: 28px; flex-wrap: wrap; padding-top: 14px; border-top: 1px solid var(--border); padding-left: 2px; }
   .metric { display: flex; flex-direction: column; gap: 2px; }
-  .metric-value { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; color: var(--electric); }
+  .metric-value { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; color: var(--blue); }
   .metric-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
 
   /* NAV */
   .nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 48px; display: flex; overflow-x: auto; }
-  .tab { padding: 12px 20px; font-size: 11px; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500; font-family: 'DM Mono', monospace; }
+  .tab { padding: 11px 18px; font-size: 10px; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.09em; font-weight: 500; font-family: 'DM Mono', monospace; }
   .tab:hover { color: var(--text); }
-  .tab.active { color: var(--electric); border-bottom-color: var(--electric); }
-  .tab.active.tab-amber { color: var(--amber); border-bottom-color: var(--amber); }
+  .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+  .tab-amber { }
+  .tab-amber.active { color: var(--amber); border-bottom-color: var(--amber); }
+  .tab-green { }
+  .tab-green.active { color: var(--green); border-bottom-color: var(--green); }
+  .tab-purple { }
+  .tab-purple.active { color: var(--purple); border-bottom-color: var(--purple); }
+  .tab-teal { }
+  .tab-teal.active { color: #4DB6AC; border-bottom-color: #4DB6AC; }
+  .tab-indigo { }
+  .tab-indigo.active { color: #7986CB; border-bottom-color: #7986CB; }
 
   /* MAIN */
-  .main { padding: 40px 48px; max-width: 1400px; }
+  .main { padding: 48px 48px; max-width: 1400px; }
   .section { display: none; }
   .section.active { display: block; }
 
   /* EXEC SUMMARY */
-  .exec-summary { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--electric); border-radius: 8px; padding: 28px 32px; margin-bottom: 32px; }
-  .exec-summary h2 { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--electric); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 16px; }
-  .exec-summary p { font-size: 13px; line-height: 1.9; color: var(--text); margin-bottom: 10px; }
-  .exec-summary p:last-child { margin-bottom: 0; }
-  .exec-summary strong { color: var(--electric); }
+  .exec { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--blue); border-radius: 8px; padding: 28px 32px; margin-bottom: 36px; }
+  .exec h2 { font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 12px; }
+  .exec p { font-size: 13px; line-height: 1.9; color: var(--text); margin-bottom: 8px; }
+  .exec p:last-child { margin-bottom: 0; }
+  .exec strong { color: var(--blue); }
 
   /* MIRROR */
-  .mirror-title { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; color: var(--electric); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 6px; }
-  .mirror-subtitle { font-size: 12px; color: var(--muted); margin-bottom: 20px; }
-  .mirror-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
+  .sh { font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 4px; }
+  .ss { font-size: 11px; color: var(--muted); margin-bottom: 16px; }
+  .mirror-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
   @media(max-width:800px){.mirror-grid{grid-template-columns:1fr}}
-  .mirror-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px 22px; border-left-width: 3px; }
-  .mirror-strength { border-left-color: var(--electric); }
-  .mirror-gap { border-left-color: var(--amber); }
-  .mirror-insight { border-left-color: var(--green); }
-  .mirror-opportunity { border-left-color: var(--purple); }
-  .mirror-card-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
-  .mirror-card-value { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
-  .mirror-card-desc { font-size: 12px; color: var(--muted); line-height: 1.7; }
+  .mc { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 18px 20px; border-left-width: 3px; }
+  .mc.strength { border-left-color: var(--blue); }
+  .mc.gap { border-left-color: var(--amber); }
+  .mc.meaning { border-left-color: var(--green); }
+  .mc.hidden { border-left-color: var(--purple); }
+  .mc-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
+  .mc-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .mc-body { font-size: 12px; color: var(--muted); line-height: 1.75; }
 
   /* SECTION HEADERS */
-  .section-header { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
-  .section-header::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-  .section-desc { font-size: 12px; color: var(--muted); margin-bottom: 28px; }
+  .section-title { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 6px; padding-bottom: 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .section-desc { font-size: 11px; color: var(--muted); margin-bottom: 32px; line-height: 1.75; }
 
   /* GAP SECTION */
-  .gap-intro { background: rgba(255,183,77,0.05); border: 1px solid rgba(255,183,77,0.2); border-left: 3px solid var(--amber); border-radius: 8px; padding: 16px 20px; margin-bottom: 24px; font-size: 12px; line-height: 1.75; color: var(--text); }
+  .gap-intro { background: rgba(255,183,77,0.05); border: 1px solid rgba(255,183,77,0.2); border-left: 3px solid var(--amber); border-radius: 8px; padding: 16px 20px; margin-bottom: 20px; font-size: 12px; line-height: 1.75; color: var(--text); }
   .gap-intro strong { color: var(--amber); }
-  .gap-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 16px; overflow: hidden; transition: border-color 0.2s; }
-  .gap-card:hover { border-color: rgba(255,183,77,0.3); }
-  .gap-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 16px 24px; background: var(--surface-2); border-bottom: 1px solid var(--border); gap: 12px; }
+  .gap-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 20px; overflow: hidden; }
+  .gap-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 14px 18px; background: var(--surface2); border-bottom: 1px solid var(--border); gap: 12px; }
   .gap-name { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; }
   .gap-role { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .gap-body { padding: 16px 24px; }
-  .gap-why { font-size: 12px; color: var(--muted); line-height: 1.7; margin-bottom: 14px; }
-  .gap-sub { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--electric); margin-bottom: 7px; margin-top: 14px; font-weight: 500; }
-  .gap-msg { font-size: 12px; line-height: 1.85; color: var(--text); padding: 12px 14px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 4px; }
-  .gap-note { margin-top: 8px; font-size: 11px; color: var(--muted); font-style: italic; padding-left: 4px; border-left: 2px solid var(--electric); padding-left: 10px; }
-  .bridge-callout { background: var(--surface-2); border-left: 3px solid var(--electric); border-radius: 0 8px 8px 0; padding: 18px 22px; margin-top: 24px; font-size: 12px; line-height: 1.8; color: var(--text); }
-  .bridge-callout strong { color: var(--electric); }
+  .gap-body { padding: 16px 20px; line-height: 1.8; }
+  .gap-why { font-size: 12px; color: var(--muted); line-height: 1.7; margin-bottom: 12px; }
+  .gap-sub { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 6px; margin-top: 12px; }
+  .gap-msg { font-size: 12px; line-height: 1.8; color: var(--text); padding: 11px 13px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; }
+  .gap-note { margin-top: 7px; font-size: 11px; color: var(--muted); font-style: italic; }
+  .bridge-callout { background: var(--surface2); border: 1px solid rgba(79,195,247,0.2); border-left: 3px solid var(--blue); border-radius: 8px; padding: 16px 20px; margin-top: 20px; font-size: 12px; line-height: 1.75; color: var(--text); }
+  .bridge-callout strong { color: var(--blue); }
 
   /* PEOPLE TO FIND */
-  .find-intro { background: rgba(255,183,77,0.04); border: 1px solid rgba(255,183,77,0.18); border-radius: 8px; padding: 14px 20px; margin-bottom: 24px; font-size: 12px; color: var(--muted); line-height: 1.75; }
-  .find-card { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--amber); border-radius: 8px; margin-bottom: 16px; overflow: hidden; transition: border-color 0.2s; }
-  .find-card:hover { border-color: rgba(255,183,77,0.4); }
-  .find-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 16px 24px; background: var(--surface-2); border-bottom: 1px solid var(--border); gap: 12px; flex-wrap: wrap; }
+  .find-intro { background: rgba(255,183,77,0.05); border: 1px solid rgba(255,183,77,0.2); border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; font-size: 12px; color: var(--muted); line-height: 1.75; }
+  .find-card { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--amber); border-radius: 8px; margin-bottom: 24px; overflow: hidden; }
+  .find-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 14px 18px; background: var(--surface2); border-bottom: 1px solid var(--border); gap: 12px; flex-wrap: wrap; }
   .find-name { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; }
   .find-org { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .find-body { padding: 16px 24px; }
+  .find-body { padding: 14px 18px; }
   .find-why { font-size: 12px; color: var(--muted); line-height: 1.7; margin-bottom: 12px; }
-  .find-link { display: inline-block; font-size: 11px; color: var(--amber); text-decoration: none; border-bottom: 1px solid rgba(255,183,77,0.3); margin-bottom: 14px; transition: border-color 0.2s; }
-  .find-link:hover { border-color: var(--amber); }
-  .find-sub { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--amber); margin-bottom: 7px; margin-top: 14px; font-weight: 500; }
-  .find-msg { font-size: 12px; line-height: 1.85; color: var(--text); padding: 12px 14px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 4px; }
-  .char-count { font-size: 10px; color: var(--muted); margin-top: 5px; }
-  .find-note { margin-top: 8px; font-size: 11px; color: var(--muted); font-style: italic; border-left: 2px solid var(--amber); padding-left: 10px; }
-  .mutual { display: inline-block; font-size: 10px; color: var(--green); background: rgba(102,187,106,0.08); border: 1px solid rgba(102,187,106,0.2); padding: 2px 8px; border-radius: 3px; }
-  .no-mutual { display: inline-block; font-size: 10px; color: var(--muted); background: rgba(122,122,154,0.08); border: 1px solid rgba(122,122,154,0.15); padding: 2px 8px; border-radius: 3px; }
+  .find-link { display: inline-block; font-size: 11px; color: var(--amber); text-decoration: none; border-bottom: 1px solid rgba(255,183,77,0.3); margin-bottom: 12px; }
+  .find-sub { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 6px; margin-top: 12px; }
+  .find-msg { font-size: 12px; line-height: 1.8; color: var(--text); padding: 10px 13px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; }
+  .char-count { font-size: 10px; color: var(--muted); margin-top: 4px; }
+  .find-note { margin-top: 6px; font-size: 11px; color: var(--muted); font-style: italic; }
+  .mutual { display: inline-block; font-size: 10px; color: var(--green); background: rgba(102,187,106,0.1); border: 1px solid rgba(102,187,106,0.2); padding: 2px 8px; border-radius: 3px; margin-bottom: 10px; }
+  .no-mutual { display: inline-block; font-size: 10px; color: var(--muted); background: rgba(122,122,154,0.1); border: 1px solid rgba(122,122,154,0.15); padding: 2px 8px; border-radius: 3px; margin-bottom: 10px; }
 
   /* TABLE */
-  .table-wrap { overflow-x: auto; margin-bottom: 40px; }
+  .table-wrap { overflow-x: auto; margin-bottom: 32px; }
   table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  thead th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); padding: 10px 14px; border-bottom: 1px solid var(--border); font-weight: 500; white-space: nowrap; }
+  thead th { text-align: left; font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); padding: 9px 12px; border-bottom: 1px solid var(--border); font-weight: 500; white-space: nowrap; }
   tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
-  tbody tr:hover { background: rgba(79,195,247,0.04); }
-  tbody td { padding: 11px 14px; color: var(--text); vertical-align: middle; }
-  .score-pill { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 24px; border-radius: 4px; font-weight: 700; font-size: 11px; font-family: 'Syne', sans-serif; }
-  .s80 { background: rgba(79,195,247,0.15); color: var(--electric); }
+  tbody tr:hover { background: rgba(79,195,247,0.03); }
+  tbody td { padding: 10px 12px; color: var(--text); vertical-align: middle; }
+  .score-pill { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 22px; border-radius: 4px; font-weight: 700; font-size: 11px; font-family: 'Syne', sans-serif; }
+  .s80 { background: rgba(79,195,247,0.12); color: var(--blue); }
   .s70 { background: rgba(102,187,106,0.12); color: var(--green); }
   .s65 { background: rgba(255,183,77,0.12); color: var(--amber); }
-  .s45 { background: rgba(255,255,255,0.06); color: var(--muted); }
-  .warmth-hot { background: rgba(79,195,247,0.12); color: var(--electric); font-size: 10px; padding: 3px 8px; border-radius: 3px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
-  .warmth-warm { background: rgba(102,187,106,0.1); color: var(--green); font-size: 10px; padding: 3px 8px; border-radius: 3px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
-  .warmth-cold { background: rgba(122,122,154,0.1); color: var(--muted); font-size: 10px; padding: 3px 8px; border-radius: 3px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
-  .rel-high { color: var(--electric); font-weight: 500; }
-  .rel-med { color: var(--green); font-weight: 500; }
-  .row-num { font-size: 10px; color: var(--border); font-weight: 700; font-family: 'Syne', sans-serif; }
-  .name-link { color: var(--text); text-decoration: none; font-weight: 500; }
-  .name-link:hover { color: var(--electric); }
+  .s45 { background: rgba(206,147,216,0.12); color: var(--purple); }
+  .tag { display: inline-block; font-size: 9px; padding: 2px 7px; border-radius: 3px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
+  .t-hot { background: rgba(79,195,247,0.1); color: var(--blue); }
+  .t-warm { background: rgba(102,187,106,0.1); color: var(--green); }
+  .t-cold { background: rgba(122,122,154,0.1); color: var(--muted); }
+  .t-hi { background: rgba(79,195,247,0.1); color: var(--blue); }
+  .t-med { background: rgba(255,183,77,0.1); color: var(--amber); }
+  .rn { font-size: 10px; color: var(--border); font-weight: 700; font-family: 'Syne', sans-serif; }
   .td-muted { font-size: 11px; color: var(--muted); line-height: 1.5; }
 
   /* SEGMENT CARDS */
-  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 20px; margin-bottom: 40px; }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 22px 24px; position: relative; transition: border-color 0.2s; }
-  .card:hover { border-color: rgba(79,195,247,0.3); }
-  .card-rank { position: absolute; top: 16px; right: 16px; font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--border); line-height: 1; }
-  .card-name { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
-  .card-role { font-size: 11px; color: var(--electric); margin-bottom: 12px; }
-  .card-tags { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
-  .tag { font-size: 10px; padding: 3px 8px; border-radius: 3px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
-  .t-hot { background: rgba(79,195,247,0.12); color: var(--electric); }
-  .t-warm { background: rgba(102,187,106,0.1); color: var(--green); }
-  .t-cold { background: rgba(122,122,154,0.1); color: var(--muted); }
-  .t-hi { background: rgba(79,195,247,0.12); color: var(--electric); }
-  .t-med { background: rgba(255,183,77,0.1); color: var(--amber); }
-  .tag-approach { background: rgba(255,255,255,0.06); color: var(--muted); }
-  .card-why { font-size: 12px; color: var(--muted); line-height: 1.7; border-top: 1px solid var(--border); padding-top: 12px; margin-top: 4px; }
-  .card-approach { font-size: 11px; color: var(--electric); margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
-  .card-approach span { color: var(--muted); }
+  .seg-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 18px 20px; margin-bottom: 12px; }
+  .seg-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; gap: 12px; }
+  .seg-name { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; }
+  .seg-role { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .seg-badges { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+  .seg-body { font-size: 12px; color: var(--muted); line-height: 1.75; margin-bottom: 10px; }
+  .seg-approach { font-size: 11px; color: var(--blue); padding-top: 10px; border-top: 1px solid var(--border); }
+  .al { color: var(--muted); }
 
-  /* PROMPTS */
-  .prompt-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 24px; overflow: hidden; }
-  .prompt-header { background: var(--surface-2); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); gap: 12px; }
-  .prompt-btn-group { display: flex; gap: 8px; flex-shrink: 0; }
-  .prompt-person { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; color: var(--text); }
-  .prompt-company-tag { font-size: 11px; color: var(--muted); margin-top: 1px; }
-  .copy-btn { background: rgba(79,195,247,0.1); border: 1px solid rgba(79,195,247,0.3); color: var(--electric); padding: 6px 14px; border-radius: 4px; font-family: 'DM Mono', monospace; font-size: 10px; cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500; white-space: nowrap; flex-shrink: 0; }
-  .copy-btn:hover { background: rgba(79,195,247,0.2); border-color: var(--electric); }
-  .copy-btn.copied { background: rgba(102,187,106,0.1); border-color: var(--green); color: var(--green); }
-  .prompt-body { padding: 20px 24px; }
-  .prompt-field { margin-bottom: 16px; }
-  .prompt-field:last-child { margin-bottom: 0; }
-  .field-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--electric); margin-bottom: 6px; font-weight: 500; }
-  .field-value { font-size: 12px; color: var(--text); line-height: 1.8; background: rgba(255,255,255,0.03); border-radius: 4px; padding: 12px 14px; border: 1px solid var(--border); }
+  /* PROMPT CARDS */
+  .pc { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 14px; overflow: hidden; }
+  .pc-header { display: flex; align-items: flex-start; justify-content: space-between; padding: 14px 18px; background: var(--surface2); border-bottom: 1px solid var(--border); gap: 10px; }
+  .pc-name { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; }
+  .pc-co { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .copy-btns { display: flex; gap: 6px; flex-shrink: 0; }
+  .cb { padding: 5px 11px; border-radius: 5px; border: 1px solid rgba(79,195,247,0.25); background: rgba(79,195,247,0.08); color: var(--blue); font-family: 'DM Mono', monospace; font-size: 10px; cursor: pointer; letter-spacing: 0.04em; transition: all 0.15s; }
+  .cb:hover { background: rgba(79,195,247,0.16); }
+  .cb.copied { background: rgba(102,187,106,0.1); color: var(--green); border-color: rgba(102,187,106,0.25); }
+  .pc-body { padding: 14px 18px; }
+  .pfl { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; }
+  .pd { font-size: 13px; line-height: 1.75; margin-bottom: 14px; padding: 11px 13px; background: var(--bg); border-radius: 6px; border: 1px solid var(--border); }
+  .pctx { font-size: 12px; color: var(--muted); line-height: 1.85; padding: 11px 13px; background: var(--bg); border-radius: 6px; border: 1px solid var(--border); }
 
-  /* MESSAGES */
-  .msg-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 20px; overflow: hidden; }
-  .msg-header { padding: 14px 20px; background: var(--surface-2); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-  .msg-person { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; color: var(--text); }
-  .msg-role-tag { font-size: 10px; color: var(--muted); margin-top: 1px; }
-  .msg-body { padding: 18px 20px; font-size: 13px; line-height: 1.9; color: var(--text); }
-  .msg-note { margin: 0 20px 16px; padding: 10px 14px; border-left: 2px solid var(--electric); font-size: 11px; color: var(--muted); font-style: italic; }
+  /* OUTREACH */
+  .oc { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
+  .oc-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; background: var(--surface2); border-bottom: 1px solid var(--border); gap: 10px; }
+  .oc-name { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; }
+  .oc-role { font-size: 11px; color: var(--muted); }
+  .oc-msg { padding: 14px 18px; font-size: 13px; line-height: 1.85; }
+  .oc-note { padding: 9px 18px; background: var(--bg); border-top: 1px solid var(--border); font-size: 11px; color: var(--muted); font-style: italic; }
 
   /* ACTIONS */
-  .actions-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 32px; }
-  .action-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px 24px; display: flex; gap: 20px; align-items: flex-start; transition: border-color 0.2s; }
-  .action-item:hover { border-color: rgba(79,195,247,0.25); }
-  .action-num { background: var(--electric); color: var(--bg); width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 14px; flex-shrink: 0; }
-  .action-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
-  .action-desc { font-size: 12px; color: var(--muted); line-height: 1.7; }
-  .action-desc strong { color: var(--electric); }
+  .action-list { list-style: none; margin-bottom: 24px; }
+  .ai { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .an { width: 26px; height: 26px; border-radius: 50%; background: rgba(79,195,247,0.1); border: 1px solid rgba(79,195,247,0.25); color: var(--blue); font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .at { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+  .ab { font-size: 12px; color: var(--muted); line-height: 1.7; }
+  .ab strong { color: var(--text); }
 
-  /* MOMENTUM */
-  .momentum-section { background: var(--surface); border: 1px solid rgba(79,195,247,0.3); border-radius: 8px; padding: 24px 28px; margin-top: 32px; }
-  .momentum-header { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 24px; }
-  .momentum-pulse { width: 12px; height: 12px; background: var(--electric); border-radius: 50%; flex-shrink: 0; margin-top: 4px; animation: pulse 2s infinite; }
-  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(79,195,247,0.4); } 70% { box-shadow: 0 0 0 10px rgba(79,195,247,0); } 100% { box-shadow: 0 0 0 0 rgba(79,195,247,0); } }
-  .momentum-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--electric); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
-  .momentum-sub { font-size: 12px; color: var(--muted); line-height: 1.6; }
-  .momentum-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  @media (max-width: 900px) { .momentum-grid { grid-template-columns: 1fr; } }
-  .momentum-item { background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 16px 18px; }
-  .momentum-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; color: var(--text); margin-bottom: 2px; }
-  .momentum-role { font-size: 10px; color: var(--muted); margin-bottom: 10px; }
-  .momentum-days { font-size: 11px; color: var(--text); margin-bottom: 4px; }
-  .momentum-highlight { color: var(--electric); font-weight: 500; }
-  .momentum-reason { font-size: 11px; color: var(--muted); margin-bottom: 12px; font-style: italic; }
-  .momentum-bar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
-  .momentum-fill { height: 100%; background: var(--electric); border-radius: 2px; }
+  /* 48H WINDOW */
+  .win { background: var(--surface2); border: 1px solid rgba(79,195,247,0.2); border-radius: 8px; padding: 20px; margin-top: 24px; }
+  .win-title { display: flex; align-items: center; gap: 8px; font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; color: var(--blue); margin-bottom: 14px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); animation: pulse 1.5s ease-in-out infinite; flex-shrink: 0; }
+  .win-grid { display: grid; gap: 10px; }
+  .wc { background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: 12px 14px; }
+  .wc-name { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .wc-role { font-size: 11px; color: var(--muted); margin-bottom: 7px; }
+  .wc-why { font-size: 11px; color: var(--muted); margin-bottom: 8px; line-height: 1.6; }
+  .rb-wrap { display: flex; align-items: center; gap: 8px; }
+  .rb-bg { flex: 1; height: 3px; background: var(--border); border-radius: 2px; }
+  .rb-fill { height: 100%; border-radius: 2px; background: var(--blue); }
+  .rb-label { font-size: 10px; color: var(--blue); white-space: nowrap; }
 
   /* SHARE CARD */
-  .share-card-wrap { max-width: 700px; }
-  .share-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-  .sc-header { background: var(--surface-2); padding: 20px 28px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
-  .sc-brand { display: flex; align-items: center; gap: 10px; }
-  .sc-icon { width: 30px; height: 30px; background: var(--electric); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 13px; color: var(--bg); }
-  .sc-brand-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; }
-  .sc-brand-sub { font-size: 10px; color: var(--muted); }
-  .sc-date { font-size: 11px; color: var(--muted); }
-  .sc-headline { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; color: var(--text); padding: 28px 28px 20px; line-height: 1.4; border-bottom: 1px solid var(--border); }
-  .sc-stats { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--border); }
-  .sc-stat { padding: 18px 16px; border-right: 1px solid var(--border); text-align: center; }
-  .sc-stat:last-child { border-right: none; }
-  .sc-stat-val { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--electric); margin-bottom: 4px; }
-  .sc-stat-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; line-height: 1.4; }
-  .sc-findings { padding: 20px 28px; border-bottom: 1px solid var(--border); }
-  .sc-finding-title { font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--electric); margin-bottom: 12px; font-weight: 500; }
-  .sc-finding { font-size: 11px; color: var(--text); line-height: 1.7; margin-bottom: 8px; padding-left: 4px; }
-  .sc-footer { padding: 18px 28px; display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
-  .sc-goal-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
-  .sc-goal { font-size: 11px; color: var(--text); max-width: 300px; line-height: 1.5; }
-  .sc-cta { text-align: right; flex-shrink: 0; }
-  .sc-cta-text { font-size: 10px; color: var(--muted); margin-bottom: 2px; }
-  .sc-cta-url { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; color: var(--electric); }
+  .share-wrap { max-width: 680px; margin: 0 auto; }
+  .share-note { font-size: 11px; color: var(--muted); margin-bottom: 16px; }
+  .share-card { background: var(--surface); border: 1px solid rgba(79,195,247,0.2); border-radius: 12px; padding: 32px; }
+  .sc-brand { font-family: 'Syne', sans-serif; font-size: 10px; letter-spacing: 0.16em; color: var(--blue); text-transform: uppercase; margin-bottom: 4px; }
+  .sc-date { font-size: 11px; color: var(--muted); margin-bottom: 22px; }
+  .sc-headline { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; line-height: 1.2; margin-bottom: 22px; }
+  .sc-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 22px; }
+  .sc-m { background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; padding: 12px 14px; }
+  .sc-mv { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; color: var(--blue); }
+  .sc-ml { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .sc-ft { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 10px; }
+  .sc-finding { display: flex; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 12px; line-height: 1.6; }
+  .sc-finding:last-child { border-bottom: none; }
+  .sc-dot { color: var(--blue); flex-shrink: 0; }
+  .sc-goal { background: var(--bg); border: 1px solid var(--border); border-radius: 7px; padding: 12px 14px; margin: 16px 0; }
+  .sc-gl { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 5px; }
+  .sc-cta { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .sc-link { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--blue); text-decoration: none; border-bottom: 2px solid rgba(79,195,247,0.35); padding-bottom: 1px; }
+  .sc-btns { display: flex; gap: 7px; }
+  .sc-btn { padding: 7px 13px; border-radius: 5px; border: 1px solid rgba(79,195,247,0.25); background: rgba(79,195,247,0.08); color: var(--blue); font-family: 'DM Mono', monospace; font-size: 11px; cursor: pointer; transition: all 0.15s; }
+  .sc-btn:hover { background: rgba(79,195,247,0.16); }
 
   /* HOW IT WORKS */
-  .callout { border-left: 3px solid var(--electric); background: var(--surface-2); border-radius: 0 8px 8px 0; padding: 24px 28px; margin-bottom: 32px; }
-  .callout-title { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; color: var(--electric); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 12px; }
-  .callout-steps { display: flex; flex-direction: column; gap: 10px; }
-  .callout-step { display: flex; gap: 14px; align-items: flex-start; }
-  .step-num { background: var(--electric); color: var(--bg); width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 10px; flex-shrink: 0; margin-top: 2px; }
-  .callout-step p { color: var(--text); font-size: 12px; line-height: 1.7; }
-  .callout-step a { color: var(--electric); text-decoration: none; border-bottom: 1px solid rgba(79,195,247,0.3); }
-  .callout-footer { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 11px; color: var(--muted); font-style: italic; }
-
-  .footer { border-top: 1px solid var(--border); padding: 20px 48px; display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 40px; }
-  .footer a { color: var(--electric); text-decoration: none; }
-
-  /* NOTIFICATION BAR */
-  .notification-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: #4FC3F7; color: #0a0a0f; height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 48px; font-size: 12px; font-weight: 500; }
-  .notification-text { color: #0a0a0f; }
-  .notification-btn { background: #0a0a0f; color: #4FC3F7; border: none; padding: 8px 20px; border-radius: 4px; font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; cursor: pointer; text-decoration: none; display: inline-block; transition: opacity 0.2s; }
-  .notification-btn:hover { opacity: 0.9; }
-  body { padding-top: 44px; }
-
-  /* MOBILE STYLES */
-  @media (max-width: 767px) {
-    /* Header - reduce padding and stack elements */
-    .header { padding: 20px 16px 16px; }
-    .header-top { flex-direction: column; align-items: flex-start; gap: 16px; }
-    .report-meta { text-align: left; font-size: 10px; }
-    .brand-text { font-size: 14px; }
-    .brand-sub { font-size: 10px; }
-    .sample-badge { font-size: 9px; padding: 2px 8px; }
-
-    /* Metrics - 3x2 grid on mobile */
-    .metrics {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px 12px;
-      padding-top: 16px;
-    }
-    .metric { align-items: center; text-align: center; }
-    .metric-value { font-size: 20px; }
-    .metric-label { font-size: 9px; }
-
-    /* Navigation - horizontal scroll */
-    .nav {
-      padding: 0 16px;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-    }
-    .nav::-webkit-scrollbar { display: none; }
-    .tab { padding: 12px 16px; font-size: 10px; }
-
-    /* Main content - reduce padding */
-    .main { padding: 24px 16px; }
-
-    /* Footer - reduce padding */
-    .footer { padding: 16px; flex-direction: column; gap: 12px; text-align: center; }
-
-    /* Notification bar - reduce padding and font size */
-    .notification-bar {
-      padding: 0 16px;
-      font-size: 11px;
-      gap: 12px;
-    }
-    .notification-text { font-size: 10px; }
-    .notification-btn {
-      padding: 6px 12px;
-      font-size: 9px;
-      white-space: nowrap;
-    }
-
-    /* Cards and other content - reduce padding */
-    .exec-summary { padding: 20px 16px; }
-    .callout { padding: 16px 20px; }
-    .mirror-card { padding: 16px 18px; }
-    .card { padding: 18px 16px; }
-    .prompt-header { padding: 12px 16px; }
-    .prompt-body { padding: 16px; }
-    .msg-header { padding: 12px 16px; }
-    .msg-body { padding: 14px 16px; }
-    .action-item { padding: 16px 18px; }
-    .momentum-section { padding: 20px 16px; }
-    .share-card { padding: 16px; }
-    .sc-header { padding: 16px 20px; }
-    .sc-headline { padding: 20px 20px 16px; }
-    .sc-findings { padding: 16px 20px; }
-    .sc-footer { padding: 14px 20px; flex-direction: column; gap: 16px; }
-  }
+  .how { border-left: 3px solid var(--blue); background: var(--surface2); border-radius: 0 8px 8px 0; padding: 22px 26px; margin-bottom: 24px; }
+  .how-title { font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 700; color: var(--blue); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 10px; }
+  .how-steps { display: flex; flex-direction: column; gap: 10px; }
+  .how-step { display: flex; gap: 12px; align-items: flex-start; }
+  .sn { background: var(--blue); color: var(--bg); width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 9px; flex-shrink: 0; margin-top: 2px; }
+  .how-step p { font-size: 12px; color: var(--text); line-height: 1.7; }
+  .how-step a { color: var(--blue); text-decoration: none; border-bottom: 1px solid rgba(79,195,247,0.3); }
+  .how-foot { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 11px; color: var(--muted); font-style: italic; }
 </style>
 </head>
 <body>
 
-<!-- NOTIFICATION BAR -->
-<div class="notification-bar">
-  <div class="notification-text">You're viewing a sample report.</div>
-  <a href="https://decisionlayer.dev/network" class="notification-btn">Get your own report — $500</a>
+<div style="background:var(--blue);color:var(--bg);padding:10px 48px;font-family:'Syne',sans-serif;font-size:12px;font-weight:600;position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-content:space-between;">
+  <span>You are viewing a sample report.</span>
+  <a href="https://decisionlayer.dev/network?utm_source=sample&utm_medium=report" style="background:var(--bg);color:var(--blue);text-decoration:none;padding:6px 16px;border-radius:5px;font-size:11px;font-weight:700;letter-spacing:0.04em;white-space:nowrap;">Get your own report — $500</a>
 </div>
 
-<!-- HEADER -->
 <div class="header">
   <div class="header-top">
     <div class="brand">
@@ -347,32 +256,23 @@
     </div>
   </div>
 
-  <div class="first-pick">
-    <div class="pick-dot"></div>
-    <div class="pick-label">Send First</div>
-    <div class="pick-text"><strong>Message Diana Park at Rippling today.</strong> Connected 6 days ago as Head of HR Technology — she evaluates exactly what Workstream sells and is at peak receptivity right now. Every day you wait, the reply rate drops.</div>
-  </div>
-
   <div class="metrics">
     <div class="metric"><span class="metric-value">847</span><span class="metric-label">Total Connections</span></div>
     <div class="metric"><span class="metric-value">23</span><span class="metric-label">Scored Relevant</span></div>
     <div class="metric"><span class="metric-value">5</span><span class="metric-label">Hot Right Now</span></div>
-    <div class="metric"><span class="metric-value">CFO / CPO</span><span class="metric-label">Biggest Gap</span></div>
+    <div class="metric"><span class="metric-value" style="color:var(--amber);">CFO / CPO</span><span class="metric-label">Biggest Gap</span></div>
     <div class="metric"><span class="metric-value">5</span><span class="metric-label">Gap Contacts Activated</span></div>
-    <div class="metric"><span class="metric-value">7</span><span class="metric-label">People To Find</span></div>
+    <div class="metric"><span class="metric-value">7</span><span class="metric-label">People You Should Know</span></div>
   </div>
 </div>
 
-<!-- NAV -->
 <div class="nav">
-  <div class="tab active" onclick="showTab('summary',this)">Summary</div>
-  <div class="tab" onclick="showTab('gap',this)">Gap → Fix It</div>
-  <div class="tab tab-amber" onclick="showTab('find',this)">Find Missing</div>
-  <div class="tab" onclick="showTab('top20',this)">Top 20</div>
-  <div class="tab" onclick="showTab('prompts',this)">DL Prompts</div>
-  <div class="tab" onclick="showTab('messages',this)">Outreach</div>
-  <div class="tab" onclick="showTab('actions',this)">This Week</div>
-  <div class="tab" onclick="showTab('sharecard',this)">Share</div>
+  <div class="tab active" onclick="go('summary',this)">Summary</div>
+  <div class="tab" onclick="go('gap',this)">Gap → Fix It</div>
+  <div class="tab tab-amber" onclick="go('find',this)">People You Should Know</div>
+  <div class="tab tab-green" onclick="go('signals',this)">Live Intent Signals</div>
+  <div class="tab tab-purple" onclick="go('outreach',this)">Outreach</div>
+  <div class="tab tab-teal" onclick="go('actions',this)">This Week</div>
 </div>
 
 <div class="main">
@@ -380,106 +280,176 @@
 <!-- ==================== SUMMARY ==================== -->
 <div id="summary" class="section active">
 
-  <div class="exec-summary">
+  <div style="background:var(--surface2);border-left:3px solid var(--blue);border-radius:0 8px 8px 0;padding:20px 28px;margin-bottom:24px;">
+    <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:16px;letter-spacing:0.06em;">START HERE →</div>
+    <div style="display:flex;flex-direction:column;gap:0;">
+
+      <div style="display:flex;align-items:center;gap:16px;padding:10px 0;border-bottom:1px solid var(--border);">
+        <button onclick="showSection('gap')" style="background:rgba(79,195,247,0.1);border:none;border-bottom:2px solid var(--blue);color:var(--blue);padding:4px 12px;border-radius:3px 3px 0 0;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;letter-spacing:0.06em;text-transform:uppercase;min-width:180px;text-align:center;">Gap → Fix It</button>
+        <span style="font-size:12px;color:var(--muted);">People already connected to you who can open the right doors.</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;padding:10px 0;border-bottom:1px solid var(--border);">
+        <button onclick="showSection('find')" style="background:rgba(255,183,77,0.1);border:none;border-bottom:2px solid var(--amber);color:var(--amber);padding:4px 12px;border-radius:3px 3px 0 0;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;letter-spacing:0.06em;text-transform:uppercase;min-width:180px;text-align:center;">People You Should Know</button>
+        <span style="font-size:12px;color:var(--muted);">Real people outside your network you need to meet.</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;padding:10px 0;border-bottom:1px solid var(--border);">
+        <button onclick="showSection('signals')" style="background:rgba(102,187,106,0.1);border:none;border-bottom:2px solid var(--green);color:var(--green);padding:4px 12px;border-radius:3px 3px 0 0;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;letter-spacing:0.06em;text-transform:uppercase;min-width:180px;text-align:center;">Live Intent Signals</button>
+        <span style="font-size:12px;color:var(--muted);">Who is publicly signaling they need what you offer — right now.</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;padding:10px 0;border-bottom:1px solid var(--border);">
+        <button onclick="showSection('outreach')" style="background:rgba(206,147,216,0.1);border:none;border-bottom:2px solid var(--purple);color:var(--purple);padding:4px 12px;border-radius:3px 3px 0 0;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;letter-spacing:0.06em;text-transform:uppercase;min-width:180px;text-align:center;">Outreach</button>
+        <span style="font-size:12px;color:var(--muted);">Ready-to-copy messages for your top contacts.</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;padding:10px 0;">
+        <button onclick="showSection('actions')" style="background:rgba(77,182,172,0.1);border:none;border-bottom:2px solid #4DB6AC;color:#4DB6AC;padding:4px 12px;border-radius:3px 3px 0 0;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;letter-spacing:0.06em;text-transform:uppercase;min-width:180px;text-align:center;">This Week</button>
+        <span style="font-size:12px;color:var(--muted);">Your first 5 moves, in priority order.</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="height:12px;"></div>
+
+  <div class="exec">
     <h2>Executive Summary</h2>
     <p>Marcus's 847-connection network contains <strong>23 relevant contacts</strong> for closing 8 enterprise HR tech deals in 90 days — but the most striking finding is what's missing: zero CFOs and zero Chief People Officers, the two roles that co-sign enterprise HR software purchases at companies above 500 employees.</p>
-    <p>The highest-value opportunity right now is <strong>Diana Park at Rippling</strong> (connected 6 days ago, Head of HR Technology) — she evaluates platforms like Workstream professionally and is at peak receptivity today.</p>
-    <p><strong>First move this week:</strong> Message Diana Park before end of day, then reactivate James Okonkwo at Andreessen Horowitz — he can introduce Marcus to portfolio companies actively buying HR infrastructure right now.</p>
+    <p>The highest-value opportunity right now is a <strong>Head of HR Technology at a major HR platform</strong> who connected 6 days ago — she evaluates tools like Workstream professionally and is at peak receptivity today.</p>
+    <p><strong>First move this week:</strong> Message the HR Technology contact before end of day, then reactivate the dormant a16z partner — he can introduce Marcus to portfolio companies actively buying HR infrastructure right now.</p>
   </div>
 
-  <div class="mirror-title">WHAT YOUR NETWORK SAYS ABOUT YOU</div>
-  <div class="mirror-subtitle">A mirror — not just what to do next.</div>
 
-  <div class="mirror-grid">
-    <div class="mirror-card mirror-strength">
-      <div class="mirror-card-label">Your Strength</div>
-      <div class="mirror-card-value">Deep Mid-Market HR & People Ops Access</div>
-      <div class="mirror-card-desc">Your network is densely concentrated in HR Directors and VP People roles at Series B–D companies between 200–1,000 employees — exactly Workstream's ICP. This signals you're positioned as a trusted peer in the people-ops community, not a vendor, which is the most valuable positioning in HR tech sales.</div>
+
+  <div class="sh">WHAT YOUR NETWORK SAYS ABOUT YOU</div>
+
+  <div class="mirror-grid" style="gap:20px;">
+    <div class="mc strength" style="padding:22px 24px;">
+      <div class="mc-label">Your Strength</div>
+      <div class="mc-title">Deep Mid-Market HR & People Ops Access</div>
+      <div class="mc-body">Your network is densely concentrated in HR Directors and VP People roles at Series B–D companies between 200–1,000 employees — exactly Workstream's ICP. This signals you're positioned as a trusted peer in the people-ops community, not a vendor, which is the most valuable positioning in HR tech sales.</div>
     </div>
-    <div class="mirror-card mirror-gap">
-      <div class="mirror-card-label">Your Gap</div>
-      <div class="mirror-card-value">Zero CFOs and Zero Chief People Officers</div>
-      <div class="mirror-card-desc">Enterprise HR software at companies above 500 employees requires CFO sign-off and CPO sponsorship — and your network has neither. You have the influencer layer but not the decision layer. Every deal you're in right now is one level too low to close without an internal champion doing the work for you.</div>
+    <div class="mc gap" style="padding:22px 24px;">
+      <div class="mc-label">Your Gap</div>
+      <div class="mc-title">Zero CFOs and Zero Chief People Officers</div>
+      <div class="mc-body">Enterprise HR software at companies above 500 employees requires CFO sign-off and CPO sponsorship — and your network has neither. You have the influencer layer but not the decision layer. Every deal you're in right now is one level too low to close without an internal champion doing the work for you.</div>
     </div>
-    <div class="mirror-card mirror-insight">
-      <div class="mirror-card-label">What This Means</div>
-      <div class="mirror-card-value">Use Your HR Network as a Bridge, Not a Closer</div>
-      <div class="mirror-card-desc">Your VP People and HR Director contacts can't sign a deal, but they can introduce you upward to the CFO and CPO who can. The play right now is to activate your existing relationships for introductions — not direct pitches. Ask for the upward intro, not the sale.</div>
+    <div class="mc meaning" style="padding:22px 24px;">
+      <div class="mc-label">What This Means</div>
+      <div class="mc-title">Use Your HR Network as a Bridge, Not a Closer</div>
+      <div class="mc-body">Your VP People and HR Director contacts can't sign a deal, but they can introduce you upward to the CFO and CPO who can. The play right now is to activate your existing relationships for introductions, not direct pitches. Ask for the upward intro, not the sale.</div>
     </div>
-    <div class="mirror-card mirror-opportunity">
-      <div class="mirror-card-label">Hidden Asset</div>
-      <div class="mirror-card-value">Three Dormant VC Partners Who Fund Your ICP</div>
-      <div class="mirror-card-desc">James Okonkwo (a16z), Rachel Sung (Bessemer), and Tom Ferraro (Insight Partners) are all in your network, all connected over a year ago, and none have been activated. VC partners at growth-stage funds talk to portfolio HR leaders weekly — one warm intro from any of them is worth 20 cold outreach attempts.</div>
+    <div class="mc hidden" style="padding:22px 24px;">
+      <div class="mc-label">Hidden Asset</div>
+      <div class="mc-title">Three Dormant VC Partners Who Fund Your ICP</div>
+      <div class="mc-body">Three dormant VC partners at major growth-stage funds are in your network, connected over a year ago, and never activated. VC partners talk to portfolio HR leaders weekly — one warm intro from any of them is worth 20 cold outreach attempts.</div>
     </div>
   </div>
+
+
+
 
 </div>
 
+
 <!-- ==================== GAP → FIX IT ==================== -->
 <div id="gap" class="section">
-  <div class="section-header">Your Gap → Fix It</div>
+
+  <div class="section-title">Your Gap → Fix It</div>
   <div class="section-desc">Every connection in your network who touches the CFO and CPO gap. Activate these before going cold outreach.</div>
 
   <div class="gap-intro">
     <strong>The honest picture:</strong> You have no CFOs and no Chief People Officers in your scored network. These are the two roles that co-sign enterprise HR software at companies above 500 employees. What you do have: three dormant VC partners whose portfolio companies are buying HR infrastructure right now, two management consultants who advise C-suites at your ICP companies, and one former CPO who now advises early-stage HR tech. Every one of them is a bridge into the decision layer you're missing.
   </div>
 
+  <!-- JAMES OKONKWO -->
   <div class="gap-card">
     <div class="gap-header">
-      <div><div class="gap-name">James Okonkwo</div><div class="gap-role">Partner · Andreessen Horowitz · Connected 14 months ago</div></div>
-      <div style="display:flex;gap:8px;flex-shrink:0;align-items:center;"><span class="warmth-cold">Cold</span><button class="copy-btn" onclick="cp('gm1','Copy')">Copy Message</button></div>
+      <div>
+        <div class="gap-name">James Okonkwo</div>
+        <div class="gap-role">Partner · Andreessen Horowitz · Connected 14 months ago</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <span class="tag t-cold">Cold</span>
+        <button class="cb" onclick="cp('gm1','Copy')">Copy Message</button>
+      </div>
     </div>
     <div class="gap-body">
       <div class="gap-why">a16z partners talk to portfolio HR and finance leaders weekly. One intro from James into a portfolio company evaluating HR infrastructure is worth more than 20 cold outreach attempts. He's cold but the ask is natural — you're not asking for a check, you're asking for a connection.</div>
       <div class="gap-sub">Outreach Message</div>
       <div class="gap-msg" id="gm1">James — reconnecting after a while. I'm heading up sales at Workstream and we're seeing strong pull from Series B–D companies trying to consolidate their HR stack. Figured some of your portfolio companies might be in that conversation right now — worth a quick exchange to see if there's overlap?</div>
-      <div class="gap-note">Before sending: check his recent LinkedIn posts — if he's shared anything about portfolio companies or HR tech, reference it in line 1.</div>
+      <div class="gap-note">Before sending: check his recent LinkedIn posts — if he's announced any portfolio company or written about HR tech, reference it in line 1.</div>
     </div>
   </div>
 
+  <!-- RACHEL SUNG -->
   <div class="gap-card">
     <div class="gap-header">
-      <div><div class="gap-name">Rachel Sung</div><div class="gap-role">Principal · Bessemer Venture Partners · Connected 18 months ago</div></div>
-      <div style="display:flex;gap:8px;flex-shrink:0;align-items:center;"><span class="warmth-cold">Cold</span><button class="copy-btn" onclick="cp('gm2','Copy')">Copy Message</button></div>
+      <div>
+        <div class="gap-name">Rachel Sung</div>
+        <div class="gap-role">Principal · Bessemer Venture Partners · Connected 18 months ago</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <span class="tag t-cold">Cold</span>
+        <button class="cb" onclick="cp('gm2','Copy')">Copy Message</button>
+      </div>
     </div>
     <div class="gap-body">
       <div class="gap-why">Bessemer's portfolio includes several Series C+ companies in the 300–800 employee range — exactly where Workstream sells. Rachel covers enterprise software investments and would know immediately which portfolio companies are in an HR stack evaluation.</div>
       <div class="gap-sub">Outreach Message</div>
-      <div class="gap-msg" id="gm2">Rachel — it's been a while. I run sales at Workstream (HR workflow automation for mid-market) and I've been thinking about which Bessemer portfolio companies might be in a people-ops consolidation cycle right now. If any come to mind, I'd love an intro — happy to make it easy on both sides.</div>
+      <div class="gap-msg" id="gm2">Rachel — it's been a while. I run sales at Workstream (HR workflow automation for mid-market) and I've been thinking about which Bessemer portfolio companies might be in a people-ops consolidation cycle right now. If any come to mind, I'd love an intro — happy to make it easy for them.</div>
       <div class="gap-note">Verify she's still at Bessemer before sending — 18 months is enough time for a role change.</div>
     </div>
   </div>
 
+  <!-- TOM FERRARO -->
   <div class="gap-card">
     <div class="gap-header">
-      <div><div class="gap-name">Tom Ferraro</div><div class="gap-role">VP · Insight Partners · Connected 22 months ago</div></div>
-      <div style="display:flex;gap:8px;flex-shrink:0;align-items:center;"><span class="warmth-cold">Cold</span><button class="copy-btn" onclick="cp('gm3','Copy')">Copy Message</button></div>
+      <div>
+        <div class="gap-name">Tom Ferraro</div>
+        <div class="gap-role">VP · Insight Partners · Connected 22 months ago</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <span class="tag t-cold">Cold</span>
+        <button class="cb" onclick="cp('gm3','Copy')">Copy Message</button>
+      </div>
     </div>
     <div class="gap-body">
       <div class="gap-why">Insight Partners invests heavily in B2B SaaS at the growth stage and has portfolio companies at exactly the headcount where HR stack consolidation becomes a priority. Tom operates on the portfolio support side — these conversations are normal for him.</div>
       <div class="gap-sub">Outreach Message</div>
-      <div class="gap-msg" id="gm3">Tom — reconnecting. I'm leading sales at Workstream and we've been getting a lot of traction with Insight-stage companies looking to clean up their HR infrastructure. If any portfolio companies are in that conversation, I'd love to be on your radar — open to a quick exchange?</div>
+      <div class="gap-msg" id="gm3">Tom — reconnecting. I'm leading sales at Workstream and we've been getting a lot of traction with Insight-stage companies looking to clean up their HR infrastructure. If any portfolio companies are in that conversation, I'd love to be on your radar — would you be open to a quick exchange?</div>
       <div class="gap-note">Cold at 22 months. Keep it short and low-pressure. You're planting a seed, not closing a deal.</div>
     </div>
   </div>
 
+  <!-- LINDA PARK -->
   <div class="gap-card">
     <div class="gap-header">
-      <div><div class="gap-name">Linda Marsh</div><div class="gap-role">Associate Partner · McKinsey & Company · Connected 2 years ago</div></div>
-      <div style="display:flex;gap:8px;flex-shrink:0;align-items:center;"><span class="warmth-cold">Very Cold</span><button class="copy-btn" onclick="cp('gm4','Copy')">Copy Message</button></div>
+      <div>
+        <div class="gap-name">Linda Marsh</div>
+        <div class="gap-role">Management Consultant · McKinsey & Company · Connected 2 years ago</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <span class="tag t-cold">Very Cold</span>
+        <button class="cb" onclick="cp('gm4','Copy')">Copy Message</button>
+      </div>
     </div>
     <div class="gap-body">
       <div class="gap-why">McKinsey consultants advise CFOs and CPOs at large enterprises on operational transformation — including HR tech stack decisions. Linda works on the people & org practice and has direct visibility into which clients are actively evaluating HR platforms.</div>
       <div class="gap-sub">Outreach Message</div>
-      <div class="gap-msg" id="gm4">Linda — reconnecting after a long time. I'm heading up sales at Workstream and I've been curious what you're seeing on the HR transformation side with your clients — specifically whether workflow automation is coming up in the stack conversations you're in. Anything surprising?</div>
+      <div class="gap-msg" id="gm4">Linda — reconnecting after a long time. I'm heading up sales at Workstream and I've been curious what you're seeing on the HR transformation side with your clients — specifically whether workforce workflow automation is coming up in the stack conversations you're in. Anything surprising?</div>
       <div class="gap-note">Don't pitch. Ask for her read on the market. Consultants share market intelligence freely when approached as peers.</div>
     </div>
   </div>
 
+  <!-- SARAH KIM -->
   <div class="gap-card">
     <div class="gap-header">
-      <div><div class="gap-name">Sarah Kim</div><div class="gap-role">Former CPO · Independent Advisor · Connected 3 years ago</div></div>
-      <div style="display:flex;gap:8px;flex-shrink:0;align-items:center;"><span class="warmth-cold">Very Cold</span><button class="copy-btn" onclick="cp('gm5','Copy')">Copy Message</button></div>
+      <div>
+        <div class="gap-name">Sarah Kim</div>
+        <div class="gap-role">Former CPO · Now Independent Advisor · Connected 3 years ago</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <span class="tag t-cold">Very Cold</span>
+        <button class="cb" onclick="cp('gm5','Copy')">Copy Message</button>
+      </div>
     </div>
     <div class="gap-body">
       <div class="gap-why">Former CPOs who advise early-stage HR tech companies have direct relationships with current CPOs at growth-stage companies — the exact buyer profile Workstream needs. Sarah's network is full of the people you're trying to reach.</div>
@@ -492,404 +462,518 @@
   <div class="bridge-callout">
     <strong>When anyone in this section replies, ask them:</strong> "Who else in your network is working with CFOs or Chief People Officers at Series B–D companies going through an HR stack evaluation right now?" That one question builds the decision-maker layer your network is currently missing.
   </div>
+
 </div>
 
 <!-- ==================== PEOPLE TO FIND ==================== -->
 <div id="find" class="section">
-  <div class="section-header" style="color:var(--amber);">People To Find</div>
-  <div class="section-desc">Real people found outside your network. Find each one on LinkedIn, send the connection request note, wait for acceptance, then send the follow-up. Do not combine them.</div>
 
-  <div class="find-intro">These people are not in your network yet. Find each one using the LinkedIn search link, send the connection request note, then wait for acceptance before sending the follow-up message. Do not send the follow-up as the connection request note — LinkedIn caps notes at 300 characters and cold pitches get ignored.</div>
+  <div class="section-title" style="color:var(--amber);">People You Should Know</div>
+  <div class="section-desc">People outside your network who belong in it. Found through live search in a real report. Connection request notes and follow-up messages are ready to copy.</div>
 
+  <div style="background:rgba(255,183,77,0.06);border:1px solid rgba(255,183,77,0.2);border-radius:7px;padding:10px 16px;margin-bottom:14px;font-size:11px;color:var(--muted);line-height:1.7;">
+    <strong style="color:var(--amber);">Sample report note:</strong> Names in this section are illustrative. In your real report, these are verified people found through live web search at the time of report generation — with confirmed roles and real LinkedIn profiles.
+  </div>
+  <div class="find-intro">
+    These people are not in your network yet. Find each one using the LinkedIn search link, send the connection request note, then wait for acceptance before sending the follow-up message. Do not send the follow-up as the connection request note — LinkedIn caps notes at 300 characters and cold pitches get ignored.
+  </div>
+
+  <!-- PERSON 1 -->
   <div class="find-card">
     <div class="find-header">
-      <div><div class="find-name">Christine Holloway</div><div class="find-org">Chief People Officer · Lattice · San Francisco, CA</div></div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><span class="no-mutual">No mutual connections</span><button class="copy-btn" onclick="cp('fn1r','Copy Request')">Copy Request</button><button class="copy-btn" onclick="cp('fn1f','Copy Follow-up')">Copy Follow-up</button></div>
+      <div>
+        <div class="find-name">Christine Holloway</div>
+        <div class="find-org">Chief People Officer · Lattice · San Francisco, CA</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;">
+        <span class="no-mutual">No mutual connections</span>
+        <button class="cb" onclick="cp('fn1r','Copy Request')">Copy Request</button>
+        <button class="cb" onclick="cp('fn1f','Copy Follow-up')">Copy Follow-up</button>
+      </div>
     </div>
     <div class="find-body">
-      <div class="find-why">CPO at a high-growth HR tech company — she both uses and evaluates platforms like Workstream, and has direct relationships with CPOs at Lattice's customer base. Getting connected opens a peer referral channel into buyer conversations.</div>
+      <div class="find-why">CPO at a high-growth HR tech company — she both uses and evaluates platforms like Workstream, and has direct relationships with CPOs at Lattice's customer base. Getting connected here opens a peer referral channel into buyer conversations.</div>
       <a class="find-link" href="https://www.linkedin.com/search/results/people/?keywords=Christine+Holloway+Lattice" target="_blank">→ Find on LinkedIn</a>
-      <div class="find-sub">Connection Request Note</div>
+      <div class="find-sub">Connection Request Note <span style="color:var(--amber);font-size:9px;">(under 300 characters)</span></div>
       <div class="find-msg" id="fn1r">Hi Christine — I lead sales at Workstream, building HR workflow automation for mid-market people teams. Your work scaling Lattice's people function caught my attention — would love to be connected.</div>
-      <div class="char-count">~187 characters · Confirm role before sending</div>
+      <div class="char-count">~187 characters</div>
       <div class="find-sub">Follow-up After Acceptance (send within 48 hours)</div>
       <div class="find-msg" id="fn1f">Thanks for connecting Christine. Quick question — what's the workflow problem you see HR teams at your scale still solving manually that you'd expect to be automated by now? Building something in this space and trying to understand where the real friction is.</div>
-      <div class="find-note">Check her profile for recent activity before sending the follow-up — reference anything relevant from her last post.</div>
+      <div class="find-note">Confirm current role at Lattice before sending — check her profile for recent activity.</div>
     </div>
   </div>
 
+  <!-- PERSON 2 -->
   <div class="find-card">
     <div class="find-header">
-      <div><div class="find-name">Priya Anand</div><div class="find-org">Chief People Officer · Rippling · San Francisco, CA</div></div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><span class="mutual">1 mutual connection</span><button class="copy-btn" onclick="cp('fn2r','Copy Request')">Copy Request</button><button class="copy-btn" onclick="cp('fn2f','Copy Follow-up')">Copy Follow-up</button></div>
+      <div>
+        <div class="find-name">David Rosenthal</div>
+        <div class="find-org">CFO · Deel · San Francisco, CA</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;">
+        <span class="no-mutual">No mutual connections</span>
+        <button class="cb" onclick="cp('fn2r','Copy Request')">Copy Request</button>
+        <button class="cb" onclick="cp('fn2f','Copy Follow-up')">Copy Follow-up</button>
+      </div>
     </div>
     <div class="find-body">
-      <div class="find-why">CPO at Rippling — a company that competes with and integrates with platforms like Workstream — giving her direct insight into where HR teams find gaps in current tooling. The mutual connection is worth checking before sending a cold request.</div>
+      <div class="find-why">CFOs at high-growth HR tech companies co-sign the exact category of purchase Workstream requires. David has direct authority over the tech stack budget and has navigated the HR platform evaluation process himself at scale — making him both a potential buyer and a source of deal intelligence.</div>
+      <a class="find-link" href="https://www.linkedin.com/search/results/people/?keywords=David+Rosenthal+Deel" target="_blank">→ Find on LinkedIn</a>
+      <div class="find-sub">Connection Request Note <span style="color:var(--amber);font-size:9px;">(under 300 characters)</span></div>
+      <div class="find-msg" id="fn2r">Hi David — I run sales at Workstream, HR workflow automation for scaling companies. Been following Deel's growth closely and thought it made sense to connect given the overlap in the space.</div>
+      <div class="char-count">~191 characters</div>
+      <div class="find-sub">Follow-up After Acceptance (send within 48 hours)</div>
+      <div class="find-msg" id="fn2f">Thanks for connecting David. I'm curious how CFOs at Deel's stage think about the build vs. buy decision on HR workflow tooling — is that a category you're actively evaluating or something that's already been decided? Building something here and the CFO perspective is one I don't hear often enough.</div>
+      <div class="find-note">Verify current role before sending — Deel has gone through multiple leadership changes.</div>
+    </div>
+  </div>
+
+  <!-- PERSON 3 -->
+  <div class="find-card">
+    <div class="find-header">
+      <div>
+        <div class="find-name">Priya Anand</div>
+        <div class="find-org">Chief People Officer · Rippling · San Francisco, CA</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;">
+        <span class="mutual">1 mutual connection</span>
+        <button class="cb" onclick="cp('fn3r','Copy Request')">Copy Request</button>
+        <button class="cb" onclick="cp('fn3f','Copy Follow-up')">Copy Follow-up</button>
+      </div>
+    </div>
+    <div class="find-body">
+      <div class="find-why">CPO at Rippling — a company that competes with and integrates with platforms like Workstream — giving her direct insight into where HR teams find gaps in the current tooling landscape. The mutual connection is worth checking before sending a cold request.</div>
       <a class="find-link" href="https://www.linkedin.com/search/results/people/?keywords=Priya+Anand+Rippling" target="_blank">→ Find on LinkedIn</a>
-      <div class="find-sub">Connection Request Note</div>
-      <div class="find-msg" id="fn2r">Hi Priya — I lead sales at Workstream and I've been following what Rippling is building on the people-ops side closely. We share a mutual connection in [name] — thought it made sense to connect given the overlap.</div>
+      <div class="find-sub">Connection Request Note <span style="color:var(--amber);font-size:9px;">(under 300 characters)</span></div>
+      <div class="find-msg" id="fn3r">Hi Priya — I lead sales at Workstream and I've been following what Rippling is building on the people-ops side closely. We share a mutual connection in [name] — thought it made sense to connect given the overlap.</div>
       <div class="char-count">~212 characters · Fill in mutual connection name before sending</div>
       <div class="find-sub">Follow-up After Acceptance (send within 48 hours)</div>
-      <div class="find-msg" id="fn2f">Thanks for connecting Priya. I'm curious what workflow problems you still see HR teams solving manually at Rippling's scale — the ones that surprised you given how sophisticated the tooling has gotten. Would love your take.</div>
-      <div class="find-note">Check the mutual connection first — a warm mention doubles acceptance rates on cold requests.</div>
+      <div class="find-msg" id="fn3f">Thanks for connecting Priya. I'm curious what workflow problems you still see HR teams solving manually at Rippling's scale — the ones that surprised you given how sophisticated the tooling has gotten. Would love your take.</div>
+      <div class="find-note">Check the mutual connection before sending — a warm mention doubles acceptance rates on cold requests.</div>
     </div>
   </div>
 
+  <!-- PERSON 4 -->
   <div class="find-card">
     <div class="find-header">
-      <div><div class="find-name">David Rosenthal</div><div class="find-org">CFO · Deel · San Francisco, CA</div></div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><span class="no-mutual">No mutual connections</span><button class="copy-btn" onclick="cp('fn3r','Copy Request')">Copy Request</button><button class="copy-btn" onclick="cp('fn3f','Copy Follow-up')">Copy Follow-up</button></div>
+      <div>
+        <div class="find-name">Marcus Webb</div>
+        <div class="find-org">CFO · Gusto · San Francisco, CA</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;">
+        <span class="no-mutual">No mutual connections</span>
+        <button class="cb" onclick="cp('fn4r','Copy Request')">Copy Request</button>
+        <button class="cb" onclick="cp('fn4f','Copy Follow-up')">Copy Follow-up</button>
+      </div>
     </div>
     <div class="find-body">
-      <div class="find-why">CFOs at high-growth HR tech companies co-sign the exact category of purchase Workstream requires. David has direct authority over the tech stack budget and has navigated the HR platform evaluation process at scale — making him both a potential buyer and a source of deal intelligence.</div>
-      <a class="find-link" href="https://www.linkedin.com/search/results/people/?keywords=David+Rosenthal+Deel" target="_blank">→ Find on LinkedIn</a>
-      <div class="find-sub">Connection Request Note</div>
-      <div class="find-msg" id="fn3r">Hi David — I run sales at Workstream, HR workflow automation for scaling companies. Been following Deel's growth closely and thought it made sense to connect given the overlap in the space.</div>
-      <div class="char-count">~191 characters · Confirm current role — Deel has had leadership changes</div>
+      <div class="find-why">Gusto's CFO oversees finance at one of the most HR-tech-native companies in the market — which means he has a sharper view than most of what HR workflow tooling is worth, where the category is heading, and what mid-market companies are actually buying. High-value cold target.</div>
+      <a class="find-link" href="https://www.linkedin.com/search/results/people/?keywords=Marcus+Webb+Gusto" target="_blank">→ Find on LinkedIn</a>
+      <div class="find-sub">Connection Request Note <span style="color:var(--amber);font-size:9px;">(under 300 characters)</span></div>
+      <div class="find-msg" id="fn4r">Hi Marcus — I run sales at Workstream, HR workflow automation for mid-market teams. Been following Gusto's work in the HR space closely and thought it made sense to connect given the overlap.</div>
+      <div class="char-count">~193 characters</div>
       <div class="find-sub">Follow-up After Acceptance (send within 48 hours)</div>
-      <div class="find-msg" id="fn3f">Thanks for connecting David. I'm curious how CFOs at Deel's stage think about the build vs. buy decision on HR workflow tooling — is that a category you're actively evaluating or something that's already been decided? Building something here and the CFO perspective is one I don't hear often enough.</div>
-      <div class="find-note">Verify current role before sending — Deel has gone through multiple leadership changes recently.</div>
+      <div class="find-msg" id="fn4f">Thanks for connecting Marcus. Curious how you think about the ROI case for HR workflow automation at the CFO level — is it a category where the business case is obvious or still a hard sell internally? Building in this space and the finance perspective is one I want to understand better.</div>
+      <div class="find-note">Confirm current role at Gusto — verify on his profile before sending.</div>
     </div>
   </div>
 
+  <!-- PERSON 5 -->
   <div class="find-card">
     <div class="find-header">
-      <div><div class="find-name">Jennifer Torres</div><div class="find-org">Chief People Officer · Brex · San Francisco, CA</div></div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><span class="no-mutual">No mutual connections</span><button class="copy-btn" onclick="cp('fn4r','Copy Request')">Copy Request</button><button class="copy-btn" onclick="cp('fn4f','Copy Follow-up')">Copy Follow-up</button></div>
+      <div>
+        <div class="find-name">Jennifer Torres</div>
+        <div class="find-org">Chief People Officer · Brex · San Francisco, CA</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;">
+        <span class="no-mutual">No mutual connections</span>
+        <button class="cb" onclick="cp('fn5r','Copy Request')">Copy Request</button>
+        <button class="cb" onclick="cp('fn5f','Copy Follow-up')">Copy Follow-up</button>
+      </div>
     </div>
     <div class="find-body">
-      <div class="find-why">CPO at Brex — a high-growth fintech that has scaled headcount rapidly and publicly discussed the challenge of building HR infrastructure that keeps pace with growth. Jennifer is exactly the buyer profile Workstream targets at the right inflection point.</div>
+      <div class="find-why">CPO at Brex — a high-growth fintech that has scaled headcount rapidly and publicly discussed the challenge of building HR infrastructure that keeps pace with growth. Jennifer is exactly the buyer profile Workstream targets and is in a company at the right inflection point.</div>
       <a class="find-link" href="https://www.linkedin.com/search/results/people/?keywords=Jennifer+Torres+Brex" target="_blank">→ Find on LinkedIn</a>
-      <div class="find-sub">Connection Request Note</div>
-      <div class="find-msg" id="fn4r">Hi Jennifer — I lead sales at Workstream and I've been following how Brex has scaled its people function through rapid growth. Building HR workflow tooling for exactly that stage — thought it made sense to connect.</div>
-      <div class="char-count">~217 characters · Check her recent posts before sending</div>
+      <div class="find-sub">Connection Request Note <span style="color:var(--amber);font-size:9px;">(under 300 characters)</span></div>
+      <div class="find-msg" id="fn5r">Hi Jennifer — I lead sales at Workstream and I've been following how Brex has scaled its people function through rapid growth. Building HR workflow tooling for exactly that stage — thought it made sense to connect.</div>
+      <div class="char-count">~217 characters</div>
       <div class="find-sub">Follow-up After Acceptance (send within 48 hours)</div>
-      <div class="find-msg" id="fn4f">Thanks for connecting Jennifer. At Brex's growth pace, what's the HR workflow problem that keeps coming back even after you've thrown tools at it? We're building specifically for that stage and your perspective would be genuinely useful.</div>
+      <div class="find-msg" id="fn5f">Thanks for connecting Jennifer. I'm curious — at Brex's growth pace, what's the HR workflow problem that keeps coming back even after you've thrown tools at it? We're building specifically for that stage and your perspective would be genuinely useful.</div>
       <div class="find-note">Check her recent posts before sending — Brex has been in the news and a topical reference would help.</div>
     </div>
   </div>
 
+  <!-- PERSON 6 -->
   <div class="find-card">
     <div class="find-header">
-      <div><div class="find-name">Marcus Webb</div><div class="find-org">CFO · Gusto · San Francisco, CA</div></div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><span class="no-mutual">No mutual connections</span><button class="copy-btn" onclick="cp('fn5r','Copy Request')">Copy Request</button><button class="copy-btn" onclick="cp('fn5f','Copy Follow-up')">Copy Follow-up</button></div>
+      <div>
+        <div class="find-name">Alex Kim</div>
+        <div class="find-org">CFO · Ironclad · San Francisco, CA</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;">
+        <span class="no-mutual">No mutual connections</span>
+        <button class="cb" onclick="cp('fn6r','Copy Request')">Copy Request</button>
+        <button class="cb" onclick="cp('fn6f','Copy Follow-up')">Copy Follow-up</button>
+      </div>
     </div>
     <div class="find-body">
-      <div class="find-why">Gusto's CFO has a sharper view than most of what HR workflow tooling is worth — Gusto is one of the most HR-tech-native companies in the market. Direct authority over the budget category Workstream sells into.</div>
-      <a class="find-link" href="https://www.linkedin.com/search/results/people/?keywords=Marcus+Webb+Gusto" target="_blank">→ Find on LinkedIn</a>
-      <div class="find-sub">Connection Request Note</div>
-      <div class="find-msg" id="fn5r">Hi Marcus — I run sales at Workstream, HR workflow automation for mid-market teams. Been following Gusto's work in the HR space closely and thought it made sense to connect given the overlap.</div>
-      <div class="char-count">~193 characters · Confirm current role at Gusto</div>
-      <div class="find-sub">Follow-up After Acceptance (send within 48 hours)</div>
-      <div class="find-msg" id="fn5f">Thanks for connecting Marcus. Curious how you think about the ROI case for HR workflow automation at the CFO level — is it a category where the business case is obvious or still a hard sell internally? Building in this space and the finance perspective is one I want to understand better.</div>
-      <div class="find-note">Confirm current role at Gusto before sending — verify on his LinkedIn profile.</div>
-    </div>
-  </div>
-
-  <div class="find-card">
-    <div class="find-header">
-      <div><div class="find-name">Alex Kim</div><div class="find-org">CFO · Ironclad · San Francisco, CA</div></div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><span class="no-mutual">No mutual connections</span><button class="copy-btn" onclick="cp('fn6r','Copy Request')">Copy Request</button><button class="copy-btn" onclick="cp('fn6f','Copy Follow-up')">Copy Follow-up</button></div>
-    </div>
-    <div class="find-body">
-      <div class="find-why">CFO at Ironclad — a Series D company at roughly 300 employees, exactly the headcount where HR workflow automation becomes a priority purchase. Finance leaders at this stage are actively building the business case for HR infrastructure investments.</div>
+      <div class="find-why">CFO at Ironclad — a Series D legal tech company at roughly 300 employees, exactly the headcount where HR workflow automation becomes a priority purchase. Finance leaders at this stage are actively building the business case for HR infrastructure investments.</div>
       <a class="find-link" href="https://www.linkedin.com/search/results/people/?keywords=Alex+Kim+Ironclad" target="_blank">→ Find on LinkedIn</a>
-      <div class="find-sub">Connection Request Note</div>
+      <div class="find-sub">Connection Request Note <span style="color:var(--amber);font-size:9px;">(under 300 characters)</span></div>
       <div class="find-msg" id="fn6r">Hi Alex — I run sales at Workstream, HR workflow automation for scaling B2B companies. Ironclad is at exactly the stage where this becomes a real priority — thought it made sense to connect.</div>
-      <div class="char-count">~192 characters · Confirm headcount and current role before sending</div>
+      <div class="char-count">~192 characters</div>
       <div class="find-sub">Follow-up After Acceptance (send within 48 hours)</div>
       <div class="find-msg" id="fn6f">Thanks for connecting Alex. Curious how CFOs at Ironclad's stage think about the people-ops tech stack — is HR workflow automation something with a clear ROI story internally or still fighting for budget against other priorities? Trying to understand the finance perspective on the category.</div>
-      <div class="find-note">Verify current role and confirm Ironclad is still in the right size range before sending.</div>
+      <div class="find-note">Verify current role and headcount — confirm Ironclad is still in the right size range before sending.</div>
     </div>
   </div>
 
+  <!-- PERSON 7 -->
   <div class="find-card">
     <div class="find-header">
-      <div><div class="find-name">Maya Patel</div><div class="find-org">Chief People Officer · Notion · San Francisco, CA</div></div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><span class="no-mutual">No mutual connections</span><button class="copy-btn" onclick="cp('fn7r','Copy Request')">Copy Request</button><button class="copy-btn" onclick="cp('fn7f','Copy Follow-up')">Copy Follow-up</button></div>
+      <div>
+        <div class="find-name">Maya Patel</div>
+        <div class="find-org">Chief People Officer · Notion · San Francisco, CA</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;">
+        <span class="no-mutual">No mutual connections</span>
+        <button class="cb" onclick="cp('fn7r','Copy Request')">Copy Request</button>
+        <button class="cb" onclick="cp('fn7f','Copy Follow-up')">Copy Follow-up</button>
+      </div>
     </div>
     <div class="find-body">
-      <div class="find-why">CPO at Notion — a product-led growth company that has scaled globally and publicly invested in people operations infrastructure. A reference from Notion would carry weight in every conversation that follows.</div>
+      <div class="find-why">CPO at Notion — a product-led growth company that has scaled globally and publicly invested in people operations infrastructure. High brand recognition in the target market means a reference here would carry weight in other conversations.</div>
       <a class="find-link" href="https://www.linkedin.com/search/results/people/?keywords=Maya+Patel+Notion" target="_blank">→ Find on LinkedIn</a>
-      <div class="find-sub">Connection Request Note</div>
+      <div class="find-sub">Connection Request Note <span style="color:var(--amber);font-size:9px;">(under 300 characters)</span></div>
       <div class="find-msg" id="fn7r">Hi Maya — I lead sales at Workstream, HR workflow automation for product-led companies scaling their people function. Notion's approach to operations has always caught my attention — thought it made sense to connect.</div>
-      <div class="char-count">~219 characters · Confirm role is current — Notion has grown quickly</div>
+      <div class="char-count">~219 characters</div>
       <div class="find-sub">Follow-up After Acceptance (send within 48 hours)</div>
-      <div class="find-msg" id="fn7f">Thanks for connecting Maya. For a product-led org like Notion, is HR workflow automation something the people team drives or does it come from ops or finance? Trying to understand who owns the conversation internally at companies like yours.</div>
-      <div class="find-note">Confirm her role is current — Notion's leadership has shifted with growth. Check before sending.</div>
+      <div class="find-msg" id="fn7f">Thanks for connecting Maya. I'm curious — for a product-led org like Notion, is HR workflow automation something the people team drives or does it come from ops or finance? Trying to understand who owns the conversation internally at companies like yours.</div>
+      <div class="find-note">Confirm her role is current — Notion has grown quickly and leadership has shifted. Check before sending.</div>
     </div>
   </div>
+
 </div>
 
-<!-- ==================== TOP 20 ==================== -->
-<div id="top20" class="section">
-  <div class="section-header">Top 20 Scored Connections</div>
-  <div class="section-desc">Ranked by relevance + recency score. Coworkers at Workstream excluded. Filtered for enterprise HR software buyer and referral profiles.</div>
-  <div class="table-wrap">
-    <table>
-      <thead><tr><th>#</th><th>Name</th><th>Role</th><th>Company</th><th>Connected</th><th>Warmth</th><th>Relevance</th><th>Score</th><th>Why</th></tr></thead>
-      <tbody>
-        <tr><td class="row-num">1</td><td><a class="name-link">Diana Park</a></td><td>Head of HR Technology</td><td>Rippling</td><td>Apr 29, 2026</td><td><span class="warmth-hot">Hot · 6d</span></td><td class="rel-high">High</td><td><span class="score-pill s80">80</span></td><td class="td-muted">Evaluates HR platforms professionally. Direct buyer profile at peak receptivity.</td></tr>
-        <tr><td class="row-num">2</td><td><a class="name-link">Kevin Zhao</a></td><td>VP People Operations</td><td>Figma</td><td>Apr 22, 2026</td><td><span class="warmth-hot">Hot · 13d</span></td><td class="rel-high">High</td><td><span class="score-pill s80">80</span></td><td class="td-muted">Decision-maker tier at 1,000+ employee company scaling HR infrastructure.</td></tr>
-        <tr><td class="row-num">3</td><td><a class="name-link">Amara Osei</a></td><td>Director of HR Systems</td><td>Stripe</td><td>Apr 18, 2026</td><td><span class="warmth-hot">Hot · 17d</span></td><td class="rel-high">High</td><td><span class="score-pill s80">80</span></td><td class="td-muted">HR systems directors own the evaluation and implementation of platforms like Workstream.</td></tr>
-        <tr><td class="row-num">4</td><td><a class="name-link">Ryan Matsuda</a></td><td>VP People</td><td>Linear</td><td>Apr 12, 2026</td><td><span class="warmth-hot">Hot · 23d</span></td><td class="rel-high">High</td><td><span class="score-pill s80">80</span></td><td class="td-muted">VP People at high-growth Series B — exact ICP headcount and stage.</td></tr>
-        <tr><td class="row-num">5</td><td><a class="name-link">Sofia Brennan</a></td><td>Head of People</td><td>Vercel</td><td>Apr 9, 2026</td><td><span class="warmth-hot">Hot · 26d</span></td><td class="rel-high">High</td><td><span class="score-pill s80">80</span></td><td class="td-muted">Scaling people function at developer-tool company at the right headcount inflection point.</td></tr>
-        <tr><td class="row-num">6</td><td><a class="name-link">James Okonkwo</a></td><td>Partner</td><td>Andreessen Horowitz</td><td>Mar 2025</td><td><span class="warmth-cold">Cold</span></td><td class="rel-high">High</td><td><span class="score-pill s65">45</span></td><td class="td-muted">Portfolio intro potential. Talks to HR and finance leaders at growth-stage companies weekly.</td></tr>
-        <tr><td class="row-num">7</td><td><a class="name-link">Rachel Sung</a></td><td>Principal</td><td>Bessemer Venture Partners</td><td>Nov 2024</td><td><span class="warmth-cold">Cold</span></td><td class="rel-high">High</td><td><span class="score-pill s65">45</span></td><td class="td-muted">Bessemer portfolio companies are in the ICP zone. One intro worth 20 cold calls.</td></tr>
-        <tr><td class="row-num">8</td><td><a class="name-link">Tom Ferraro</a></td><td>VP</td><td>Insight Partners</td><td>Jul 2024</td><td><span class="warmth-cold">Cold</span></td><td class="rel-high">High</td><td><span class="score-pill s65">45</span></td><td class="td-muted">Insight portfolio skews B2B SaaS at the right stage. Cold but ask is natural.</td></tr>
-        <tr><td class="row-num">9</td><td><a class="name-link">Linda Marsh</a></td><td>Associate Partner</td><td>McKinsey & Company</td><td>May 2024</td><td><span class="warmth-cold">Cold</span></td><td class="rel-high">High</td><td><span class="score-pill s65">45</span></td><td class="td-muted">Advises CFOs and CPOs on HR transformation. Market intelligence and intro source.</td></tr>
-        <tr><td class="row-num">10</td><td><a class="name-link">Sarah Kim</a></td><td>Independent Advisor</td><td>Former CPO</td><td>Feb 2024</td><td><span class="warmth-cold">Cold</span></td><td class="rel-high">High</td><td><span class="score-pill s65">45</span></td><td class="td-muted">Former CPO with current CPO relationships. Bridge into the buyer layer.</td></tr>
-        <tr><td class="row-num">11</td><td><a class="name-link">Priya Desai</a></td><td>HR Business Partner Lead</td><td>Databricks</td><td>Jan 2025</td><td><span class="warmth-cold">Cold</span></td><td class="rel-high">High</td><td><span class="score-pill s65">45</span></td><td class="td-muted">Senior HRBP at a unicorn — knows what HR workflow tooling the org is evaluating.</td></tr>
-        <tr><td class="row-num">12</td><td><a class="name-link">Marcus Lee</a></td><td>Director of Total Rewards</td><td>Canva</td><td>Dec 2024</td><td><span class="warmth-cold">Cold</span></td><td class="rel-high">High</td><td><span class="score-pill s65">45</span></td><td class="td-muted">Total rewards directors touch the workflow layer Workstream automates — adjacent buyer.</td></tr>
-        <tr><td class="row-num">13</td><td><a class="name-link">Elena Vasquez</a></td><td>VP HR</td><td>Airtable</td><td>Oct 2024</td><td><span class="warmth-cold">Cold</span></td><td class="rel-high">High</td><td><span class="score-pill s65">45</span></td><td class="td-muted">VP HR at product-led company at the right growth stage — direct buyer profile.</td></tr>
-        <tr><td class="row-num">14</td><td><a class="name-link">Jordan Webb</a></td><td>Head of People Ops</td><td>Ramp</td><td>Sep 2024</td><td><span class="warmth-cold">Cold</span></td><td class="rel-high">High</td><td><span class="score-pill s65">45</span></td><td class="td-muted">People ops leaders at fintech companies are actively consolidating HR stacks right now.</td></tr>
-        <tr><td class="row-num">15</td><td><a class="name-link">Tanya Morris</a></td><td>Director People Technology</td><td>Scale AI</td><td>Aug 2024</td><td><span class="warmth-cold">Cold</span></td><td class="rel-high">High</td><td><span class="score-pill s65">45</span></td><td class="td-muted">People technology directors own the vendor evaluation process — direct buyer authority.</td></tr>
-        <tr><td class="row-num">16</td><td><a class="name-link">Chris Nakamura</a></td><td>HR Systems Manager</td><td>Brex</td><td>Jul 2024</td><td><span class="warmth-cold">Cold</span></td><td class="rel-med">Medium</td><td><span class="score-pill s65">45</span></td><td class="td-muted">HR systems managers are the implementation buyers — strong influence on vendor selection.</td></tr>
-        <tr><td class="row-num">17</td><td><a class="name-link">Fatima Al-Hassan</a></td><td>Senior HR Manager</td><td>Webflow</td><td>May 2024</td><td><span class="warmth-cold">Cold</span></td><td class="rel-med">Medium</td><td><span class="score-pill s65">45</span></td><td class="td-muted">Growing tech company at the right headcount — senior HR managers often initiate the vendor search.</td></tr>
-        <tr><td class="row-num">18</td><td><a class="name-link">Daniel Park</a></td><td>Talent Operations Lead</td><td>Retool</td><td>Apr 2024</td><td><span class="warmth-cold">Cold</span></td><td class="rel-med">Medium</td><td><span class="score-pill s65">45</span></td><td class="td-muted">Talent ops at Series C developer tool company — adjacent to the core workflow problem.</td></tr>
-        <tr><td class="row-num">19</td><td><a class="name-link">Yuki Tanaka</a></td><td>People Analytics Lead</td><td>Cohere</td><td>Mar 2024</td><td><span class="warmth-cold">Cold</span></td><td class="rel-med">Medium</td><td><span class="score-pill s65">45</span></td><td class="td-muted">People analytics at an AI company scaling fast — evaluating HR infrastructure right now.</td></tr>
-        <tr><td class="row-num">20</td><td><a class="name-link">Brendan Walsh</a></td><td>HR Director</td><td>Mercury</td><td>Feb 2024</td><td><span class="warmth-cold">Cold</span></td><td class="rel-med">Medium</td><td><span class="score-pill s65">45</span></td><td class="td-muted">Fintech HR director at the right headcount — familiar with the evaluation cycle for HR tooling.</td></tr>
-      </tbody>
-    </table>
+<!-- ==================== LIVE INTENT SIGNALS ==================== -->
+<div id="signals" class="section">
+
+  <div class="section-title" style="color:var(--green);">Live Intent Signals</div>
+  <div class="section-desc">Real people who publicly signaled they have the problem you solve — found through search when this report was generated. These are outside your network. Act fast.</div>
+
+  <div style="background:rgba(102,187,106,0.06);border:1px solid rgba(102,187,106,0.2);border-radius:8px;padding:14px 18px;margin-bottom:20px;font-size:12px;color:var(--muted);line-height:1.75;">
+    These are real people who publicly signaled they have the problem you solve — found through search at the time this report was generated. <strong style="color:var(--green);">Act on Hot signals within 24 hours. Warm signals within 72 hours.</strong> Intent goes cold fast and other people are watching the same posts.
+    <div style="margin-top:8px;font-size:10px;color:var(--muted);opacity:0.7;">Searches run: May 5, 2026 at 2:14 PM PT</div>
   </div>
+
+  <!-- SIGNAL 1 — HOT -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:8px;margin-bottom:24px;overflow:hidden;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:14px 20px;background:var(--surface2);border-bottom:1px solid var(--border);gap:12px;flex-wrap:wrap;">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">Reddit · r/humanresources</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">Posted 6 hours ago · <span style="background:rgba(102,187,106,0.12);color:var(--green);font-size:10px;padding:2px 7px;border-radius:3px;font-weight:600;">HOT</span></div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <span style="background:rgba(102,187,106,0.1);color:var(--green);font-size:10px;padding:2px 8px;border-radius:3px;">High Relevance</span>
+      </div>
+    </div>
+    <div style="padding:14px 20px;">
+      <div style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:12px;"><strong style="color:var(--text);">Signal:</strong> HR Director at a 400-person B2B SaaS company posted asking for recommendations on HR workflow platforms — specifically frustrated that their current tool doesn't handle cross-functional onboarding or offboarding without manual intervention.</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:12px;"><strong style="color:var(--text);">Why relevant:</strong> This is the exact workflow problem Workstream solves and the poster is at the decision-making stage — they're actively soliciting vendor recommendations, not just venting.</div>
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--green);margin-bottom:7px;font-weight:500;">Suggested Response</div>
+      <div style="font-size:12px;line-height:1.85;color:var(--text);padding:11px 13px;background:var(--bg);border:1px solid var(--border);border-radius:6px;">We ran into this exact problem helping teams at a similar stage — the cross-functional handoff is where every manual workflow breaks first. I work at Workstream and we've built specifically for this — happy to share how we handle it if useful, no pitch required.</div>
+      <div style="margin-top:8px;font-size:11px;color:var(--muted);font-style:italic;border-left:2px solid var(--green);padding-left:10px;">If they respond: Ask what their current tool is and where the handoff breaks specifically — that answer tells you whether Workstream is the right fit before you go further.</div>
+    </div>
+  </div>
+
+  <!-- SIGNAL 2 — HOT -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:8px;margin-bottom:24px;overflow:hidden;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:14px 20px;background:var(--surface2);border-bottom:1px solid var(--border);gap:12px;flex-wrap:wrap;">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">LinkedIn · Public Post</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">Posted 14 hours ago · <span style="background:rgba(102,187,106,0.12);color:var(--green);font-size:10px;padding:2px 7px;border-radius:3px;font-weight:600;">HOT</span></div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <span style="background:rgba(102,187,106,0.1);color:var(--green);font-size:10px;padding:2px 8px;border-radius:3px;">High Relevance</span>
+        <span style="background:rgba(79,195,247,0.1);color:var(--blue);font-size:10px;padding:2px 8px;border-radius:3px;">⚑ Mutual connection exists</span>
+      </div>
+    </div>
+    <div style="padding:14px 20px;">
+      <div style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:12px;"><strong style="color:var(--text);">Signal:</strong> VP People at a Series C fintech posted publicly that they're "finally pulling the trigger on replacing their HRIS stack" and asked their network who has gone through this recently and what they wished they'd known.</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:12px;"><strong style="color:var(--text);">Why relevant:</strong> HRIS stack replacement at Series C fintech is the highest-intent signal in the HR tech market — they are actively in a buying cycle, not researching.</div>
+      <div style="background:rgba(79,195,247,0.06);border:1px solid rgba(79,195,247,0.15);border-radius:6px;padding:10px 13px;margin-bottom:12px;font-size:11px;color:var(--text);line-height:1.7;">
+        <strong style="color:var(--blue);">Mutual connection exists</strong> — Do not reply to the post directly. A connection in your network knows this person. Request a warm intro from them instead — that turns a cold signal into a warm conversation.
+      </div>
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--blue);margin-bottom:7px;font-weight:500;">Warm Intro Request to Your Mutual Connection</div>
+      <div style="font-size:12px;line-height:1.85;color:var(--text);padding:11px 13px;background:var(--bg);border:1px solid var(--border);border-radius:6px;">[Name] — saw your connection posted about replacing their HRIS stack. I run sales at Workstream and we're built for exactly that moment. If it would be useful, would you be open to a quick intro? Happy to make it easy.</div>
+      <div style="margin-top:8px;font-size:11px;color:var(--muted);font-style:italic;border-left:2px solid var(--blue);padding-left:10px;">If they respond: Ask what they know about the timeline and whether they've shortlisted vendors — that intel shapes your first conversation if an intro happens.</div>
+    </div>
+  </div>
+
+  <!-- SIGNAL 3 — WARM -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:8px;margin-bottom:24px;overflow:hidden;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:14px 20px;background:var(--surface2);border-bottom:1px solid var(--border);gap:12px;flex-wrap:wrap;">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">Reddit · r/startups</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">Posted 2 days ago · <span style="background:rgba(255,183,77,0.12);color:var(--amber);font-size:10px;padding:2px 7px;border-radius:3px;font-weight:600;">WARM</span></div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <span style="background:rgba(255,183,77,0.1);color:var(--amber);font-size:10px;padding:2px 8px;border-radius:3px;">Medium Relevance</span>
+      </div>
+    </div>
+    <div style="padding:14px 20px;">
+      <div style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:12px;"><strong style="color:var(--text);">Signal:</strong> Founder of a 120-person B2B SaaS company asked how other ops teams are handling employee onboarding at scale — specifically whether spreadsheets and email are still viable or whether it's time to invest in tooling.</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:12px;"><strong style="color:var(--text);">Why relevant:</strong> This is the moment before the buying decision — they're acknowledging the problem and starting to evaluate whether tooling is worth it, which is the earliest stage of the Workstream sales cycle.</div>
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--green);margin-bottom:7px;font-weight:500;">Suggested Response</div>
+      <div style="font-size:12px;line-height:1.85;color:var(--text);padding:11px 13px;background:var(--bg);border:1px solid var(--border);border-radius:6px;">The spreadsheet-to-tooling tipping point is usually around 80–100 employees when the onboarding coordination tax starts costing more than the tool. I work at Workstream and we've seen this exact inflection point hundreds of times — happy to share what we've seen work if it's useful.</div>
+    </div>
+  </div>
+
+  <!-- ONGOING MONITORING -->
+  <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:18px 20px;margin-top:20px;">
+    <div style="font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--text);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:14px;">Ongoing Monitoring</div>
+    <p style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:14px;">This section ran once at report generation time. New signals appear daily. Use these tools to monitor continuously:</p>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+      <div style="font-size:12px;color:var(--text);padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:5px;font-family:'DM Mono',monospace;">site:reddit.com "HR workflow" OR "HRIS replacement" OR "onboarding tool" SaaS</div>
+      <div style="font-size:12px;color:var(--text);padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:5px;font-family:'DM Mono',monospace;">site:reddit.com "evaluating HR software" OR "HR stack consolidation" startup</div>
+      <div style="font-size:12px;color:var(--text);padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:5px;font-family:'DM Mono',monospace">"looking for HR workflow" OR "HR automation recommendations" LinkedIn</div>
+    </div>
+    <p style="font-size:11px;color:var(--muted);line-height:1.7;">Set up Google Alerts for <strong style="color:var(--text);">"HR workflow automation"</strong> and <strong style="color:var(--text);">"HRIS replacement"</strong> to catch signals as they appear. Private Slack communities and gated forums cannot be monitored through search and require manual checking.</p>
+  </div>
+
 </div>
 
-<!-- ==================== PROMPTS ==================== -->
-<div id="prompts" class="section">
-  <div class="section-header">Decision Layer Prompts</div>
-  <div class="section-desc">Paste into <a href="https://decisionlayer.dev" target="_blank" style="color:var(--electric)">decisionlayer.dev</a>. Copy Decision and Context separately — Decision Layer has two input fields.</div>
 
-  <div class="prompt-card">
-    <div class="prompt-header">
-      <div><div class="prompt-person">Diana Park</div><div class="prompt-company-tag">Head of HR Technology · Rippling · Hot · 6 days</div></div>
-      <div class="prompt-btn-group"><button class="copy-btn" onclick="cp('d1','Copy Decision')">Copy Decision</button><button class="copy-btn" onclick="cp('c1','Copy Context')">Copy Context</button></div>
+
+<!-- ==================== OUTREACH ==================== -->
+<div id="outreach" class="section">
+
+  <div class="section-title" style="color:var(--purple);">Outreach</div>
+  <div class="section-desc" style="margin-bottom:24px;">Three steps for each contact: read the message, run the Decision Layer prompt to confirm you're ready, then send. Spend 60 seconds on their LinkedIn profile first and reference their latest post — that one swap doubles reply rates.</div>
+
+  <!-- CARD 1: HOT — existing network -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;margin-bottom:28px;overflow:hidden;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--surface2);border-bottom:1px solid var(--border);">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">Head of HR Technology · Major HR Platform</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">Connected 6 days ago · <span style="background:rgba(79,195,247,0.1);color:var(--blue);font-size:10px;padding:2px 7px;border-radius:3px;font-weight:500;">HOT</span> · Existing network</div>
+      </div>
     </div>
-    <div class="prompt-body">
-      <div class="prompt-field"><div class="field-label">Decision</div><div class="field-value" id="d1">Should I message Diana Park at Rippling today while she's at peak receptivity, given that her role puts her at the center of the HR platform evaluation process I'm trying to get into?</div></div>
-      <div class="prompt-field"><div class="field-label">Context</div><div class="field-value" id="c1">Diana's title — Head of HR Technology at Rippling — means her entire job is evaluating, implementing, and optimizing HR platforms, which puts her at the exact intersection of buyer, evaluator, and market intelligence source that Workstream needs access to. Rippling itself is a competitor and integration partner to platforms in Workstream's category, which means Diana has a sharper and more skeptical view of product differentiation claims than a typical HR buyer — she's seen every pitch. What Workstream brings is a workflow automation angle that complements rather than competes with Rippling's core payroll and compliance offering, which is the framing most likely to get a productive conversation started. The assumption this decision hangs on is whether Diana is willing to engage with a peer from a non-competing platform, or whether she'll see this as competitive intelligence gathering and disengage. What I don't know is whether Rippling has a policy around employees engaging with vendors in their category, or whether Diana is currently in an active vendor review. Getting this wrong — sending a message that reads as a sales pitch rather than a peer conversation — burns the best-timed connection in my network right now at a moment I can't recreate.</div></div>
+
+    <!-- STEP 1: Message -->
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--blue);font-weight:600;margin-bottom:8px;">① The Message</div>
+      <div style="font-size:13px;line-height:1.85;color:var(--text);margin-bottom:10px;" id="o1">Diana — I noticed you're doing HR technology at Rippling and I'm curious what gaps you're still seeing in the workflow automation space that the current tools aren't closing. I run sales at Workstream and we're building specifically in that layer — figured you'd have a sharper view on this than most. Worth a quick exchange?</div>
+      <button class="cb" onclick="cp('o1','Copy Message')">Copy Message</button>
+    </div>
+
+    <!-- STEP 2: DL Prompt -->
+    <div style="padding:16px 20px;background:rgba(121,134,203,0.04);border-bottom:1px solid var(--border);">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:#7986CB;font-weight:600;margin-bottom:10px;">② Before You Send — Run This in <a href="https://decisionlayer.dev" target="_blank" style="color:#7986CB;text-decoration:none;border-bottom:1px solid rgba(121,134,203,0.4);">decisionlayer.dev</a></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px;">Decision</div>
+          <div style="font-size:11px;color:var(--text);line-height:1.7;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:5px;" id="od1">Should I message the Head of HR Technology at a major HR platform today while she's at peak receptivity, given that her role puts her at the center of the HR platform evaluation process I'm trying to get into?</div>
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px;">Context</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.7;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:5px;max-height:100px;overflow:hidden;position:relative;" id="oc1">Her title means her entire job is evaluating HR platforms — putting her at the exact intersection of buyer, evaluator, and market intelligence source. The platform she works at is both a competitor and integration partner to platforms in Workstream's category, meaning she has a sharper view of differentiation than a typical HR buyer. The assumption this decision hangs on is whether she'll engage as a peer or see this as competitive intelligence gathering.<div style="position:absolute;bottom:0;left:0;right:0;height:24px;background:linear-gradient(transparent,var(--bg));"></div></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="cb" onclick="cp('od1','Copy Decision')">Copy Decision</button>
+        <button class="cb" onclick="cp('oc1','Copy Context')">Copy Context</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Tip -->
+    <div style="padding:10px 20px;font-size:11px;color:var(--muted);font-style:italic;">
+      💡 Find her most recent LinkedIn post and open with it instead of line 1 — that one swap doubles reply rates.
     </div>
   </div>
 
-  <div class="prompt-card">
-    <div class="prompt-header">
-      <div><div class="prompt-person">Kevin Zhao</div><div class="prompt-company-tag">VP People Operations · Figma · Hot · 13 days</div></div>
-      <div class="prompt-btn-group"><button class="copy-btn" onclick="cp('d2','Copy Decision')">Copy Decision</button><button class="copy-btn" onclick="cp('c2','Copy Context')">Copy Context</button></div>
+  <!-- CARD 2: COLD — gap contact -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--muted);border-radius:8px;margin-bottom:28px;overflow:hidden;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--surface2);border-bottom:1px solid var(--border);">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">VC Partner · Major Growth-Stage Fund</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">Connected 14 months ago · <span style="background:rgba(122,122,154,0.1);color:var(--muted);font-size:10px;padding:2px 7px;border-radius:3px;font-weight:500;">COLD</span> · Gap → Fix It contact</div>
+      </div>
     </div>
-    <div class="prompt-body">
-      <div class="prompt-field"><div class="field-label">Decision</div><div class="field-value" id="d2">Should I approach Kevin Zhao at Figma as a direct enterprise prospect, or use him first as a market intelligence source before pitching?</div></div>
-      <div class="prompt-field"><div class="field-label">Context</div><div class="field-value" id="c2">VP People Operations at Figma means Kevin has both budget authority and a genuine workflow problem — Figma has scaled from 200 to 1,500 employees in four years, and the HR infrastructure has had to run to keep up. Figma is known for a product-led culture that applies the same rigor to internal tooling decisions as to their product roadmap, which means Kevin will expect a demonstration of real product value before any commercial conversation starts. What Workstream brings maps directly to the scaling pain Figma has publicly experienced — specifically the manual coordination layer between hiring, onboarding, and systems that breaks down at 500+ employees. The decision turns on whether Kevin is currently in an active vendor evaluation or whether Workstream would be introducing a new budget conversation entirely. What I don't know is whether Figma has already consolidated its HR stack under a platform that would make a Workstream conversation irrelevant right now. Pitching someone who signed a 3-year contract six months ago wastes the best hot connection I have this week.</div></div>
+
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--blue);font-weight:600;margin-bottom:8px;">① The Message</div>
+      <div style="font-size:13px;line-height:1.85;color:var(--text);margin-bottom:10px;" id="o2">James — reconnecting after a while. I'm heading up sales at Workstream (HR workflow automation for Series B–D companies) and I've been thinking about which a16z portfolio companies might be in the HR infrastructure conversation right now. If any come to mind, I'd love an intro — happy to make it easy on both sides.</div>
+      <button class="cb" onclick="cp('o2','Copy Message')">Copy Message</button>
+    </div>
+
+    <div style="padding:16px 20px;background:rgba(121,134,203,0.04);border-bottom:1px solid var(--border);">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:#7986CB;font-weight:600;margin-bottom:10px;">② Before You Send — Run This in <a href="https://decisionlayer.dev" target="_blank" style="color:#7986CB;text-decoration:none;border-bottom:1px solid rgba(121,134,203,0.4);">decisionlayer.dev</a></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px;">Decision</div>
+          <div style="font-size:11px;color:var(--text);line-height:1.7;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:5px;" id="od2">Should I reactivate the dormant VC partner to request portfolio introductions to companies actively buying HR infrastructure, rather than approaching those companies cold?</div>
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px;">Context</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.7;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:5px;max-height:100px;overflow:hidden;position:relative;" id="oc2">A partner at a major growth-stage fund has weekly contact with people and finance leaders at portfolio companies — the exact CFO and CPO relationships missing from this network. The fund's portfolio at Series B–D includes companies where HR workflow automation is becoming a real budget line item. The hinge assumption is whether 14 months of silence makes this effectively cold outreach, and whether the fund has existing relationships with competing HR platforms.<div style="position:absolute;bottom:0;left:0;right:0;height:24px;background:linear-gradient(transparent,var(--bg));"></div></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="cb" onclick="cp('od2','Copy Decision')">Copy Decision</button>
+        <button class="cb" onclick="cp('oc2','Copy Context')">Copy Context</button>
+      </div>
+    </div>
+
+    <div style="padding:10px 20px;font-size:11px;color:var(--muted);font-style:italic;">
+      💡 Low pressure, easy ask. Don't add more context — at this level, more words reads as desperation.
     </div>
   </div>
 
-  <div class="prompt-card">
-    <div class="prompt-header">
-      <div><div class="prompt-person">James Okonkwo</div><div class="prompt-company-tag">Partner · Andreessen Horowitz · Cold · 14 months</div></div>
-      <div class="prompt-btn-group"><button class="copy-btn" onclick="cp('d3','Copy Decision')">Copy Decision</button><button class="copy-btn" onclick="cp('c3','Copy Context')">Copy Context</button></div>
+  <!-- CARD 3: CONNECT FIRST — People You Should Know -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--amber);border-radius:8px;margin-bottom:28px;overflow:hidden;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--surface2);border-bottom:1px solid var(--border);">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">Chief People Officer · High-Growth HR Tech</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">Not yet connected · <span style="background:rgba(255,183,77,0.1);color:var(--amber);font-size:10px;padding:2px 7px;border-radius:3px;font-weight:500;">CONNECT FIRST</span> · People You Should Know</div>
+      </div>
     </div>
-    <div class="prompt-body">
-      <div class="prompt-field"><div class="field-label">Decision</div><div class="field-value" id="d3">Should I reactivate James Okonkwo at a16z to request portfolio introductions to companies actively buying HR infrastructure, rather than approaching those companies cold?</div></div>
-      <div class="prompt-field"><div class="field-label">Context</div><div class="field-value" id="c3">James is a partner at Andreessen Horowitz, which means he has weekly contact with the people and finance leaders at a16z portfolio companies — the exact CFO and CPO relationships that are missing from my network and are the co-signers on enterprise HR software purchases. a16z's portfolio at the Series B–D stage includes dozens of companies in the 200–800 employee range where HR workflow automation is becoming a real budget line item, which means the timing of this request is naturally aligned with what portfolio companies are thinking about right now. What Workstream can offer James is a credible HR infrastructure solution his portfolio companies will thank him for knowing about — which makes the ask a service, not a favor. The hinge assumption is whether James remembers the connection well enough to engage with a reactivation message, or whether 14 months of silence has made this effectively cold outreach. What I don't know is whether a16z has existing relationships with competing HR platforms that would make a Workstream recommendation awkward for James to make. Getting this wrong by approaching too aggressively would turn a warm network asset into a wasted introduction — and VC partners don't get a second approach.</div></div>
+
+    <div style="padding:14px 20px;background:rgba(255,183,77,0.04);border-bottom:1px solid var(--border);">
+      <div style="font-size:11px;color:var(--muted);">This person is not yet in your network. Send the connection request first. Wait for acceptance. Then send the follow-up message — not before.</div>
+    </div>
+
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--amber);font-weight:600;margin-bottom:8px;">① Connection Request <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">(under 300 characters)</span></div>
+      <div style="font-size:13px;line-height:1.85;color:var(--text);margin-bottom:10px;" id="o3r">Hi — I lead sales at Workstream, HR workflow automation for mid-market people teams. Your work scaling a high-growth people function caught my attention — would love to be connected.</div>
+      <button class="cb" onclick="cp('o3r','Copy Request')">Copy Request</button>
+    </div>
+
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--amber);font-weight:600;margin-bottom:8px;">② Follow-up After Acceptance</div>
+      <div style="font-size:13px;line-height:1.85;color:var(--text);margin-bottom:10px;" id="o3f">Thanks for connecting. Quick question — what's the workflow problem you see HR teams at your scale still solving manually that you'd expect to be automated by now? Building something in this space and trying to understand where the real friction is.</div>
+      <button class="cb" onclick="cp('o3f','Copy Follow-up')">Copy Follow-up</button>
+    </div>
+
+    <div style="padding:16px 20px;background:rgba(121,134,203,0.04);border-bottom:1px solid var(--border);">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:#7986CB;font-weight:600;margin-bottom:10px;">③ Before You Send the Follow-up — Run This in <a href="https://decisionlayer.dev" target="_blank" style="color:#7986CB;text-decoration:none;border-bottom:1px solid rgba(121,134,203,0.4);">decisionlayer.dev</a></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px;">Decision</div>
+          <div style="font-size:11px;color:var(--text);line-height:1.7;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:5px;" id="od3">Should I reach out to the CPO at this high-growth HR tech company to open a peer conversation about workflow gaps, given she was just found outside my network?</div>
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px;">Context</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.7;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:5px;max-height:100px;overflow:hidden;position:relative;" id="oc3">This CPO was found through external search — she is not currently in the network. Her company is at the stage where HR workflow automation becomes a real priority. The unknown is whether she already uses a competing platform and whether she has bandwidth to engage with a new connection from a vendor. The risk is coming in too strong before any relationship exists.<div style="position:absolute;bottom:0;left:0;right:0;height:24px;background:linear-gradient(transparent,var(--bg));"></div></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="cb" onclick="cp('od3','Copy Decision')">Copy Decision</button>
+        <button class="cb" onclick="cp('oc3','Copy Context')">Copy Context</button>
+      </div>
+    </div>
+
+    <div style="padding:10px 20px;font-size:11px;color:var(--muted);font-style:italic;">
+      💡 Once connected, send the follow-up within 48 hours — connections go cold fast after that.
     </div>
   </div>
 
-  <div class="prompt-card">
-    <div class="prompt-header">
-      <div><div class="prompt-person">Amara Osei</div><div class="prompt-company-tag">Director of HR Systems · Stripe · Hot · 17 days</div></div>
-      <div class="prompt-btn-group"><button class="copy-btn" onclick="cp('d4','Copy Decision')">Copy Decision</button><button class="copy-btn" onclick="cp('c4','Copy Context')">Copy Context</button></div>
-    </div>
-    <div class="prompt-body">
-      <div class="prompt-field"><div class="field-label">Decision</div><div class="field-value" id="d4">Should I pitch Amara Osei at Stripe directly on Workstream given her role as the person who owns HR systems vendor decisions, or approach through a discovery question first?</div></div>
-      <div class="prompt-field"><div class="field-label">Context</div><div class="field-value" id="c4">HR Systems Directors at companies like Stripe own the full vendor evaluation and implementation process — which means Amara has decision authority, not just influence, and talking to her is not a warm-up to the real buyer but potentially the real buyer herself. Stripe operates at a scale where HR system failures are expensive and visible, which means Amara is under constant pressure to have the right infrastructure in place before the organization grows into a problem. What Workstream brings is a credible track record with high-growth B2B companies in the 300–800 employee range, which maps directly to Stripe's internal structure across its various business units. The decision turns on whether Stripe is currently running a vendor evaluation cycle or in a quiet period — enterprise HR systems decisions often happen in Q1 and Q3, which means timing matters more than it does in most categories. What I don't know is Stripe's current HR systems stack and whether there are existing contracts that make a new vendor conversation premature. A pitch to someone in a vendor freeze wastes a hot connection in a role that is hard to access at Stripe's size.</div></div>
-    </div>
+  <div style="text-align:center;padding:14px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);">
+    Your full report includes messages and Decision Layer prompts for every contact — personalized to their role, company, and your specific 90-day goal.
   </div>
 
-  <div class="prompt-card">
-    <div class="prompt-header">
-      <div><div class="prompt-person">Sofia Brennan</div><div class="prompt-company-tag">Head of People · Vercel · Hot · 26 days — Window closing</div></div>
-      <div class="prompt-btn-group"><button class="copy-btn" onclick="cp('d5','Copy Decision')">Copy Decision</button><button class="copy-btn" onclick="cp('c5','Copy Context')">Copy Context</button></div>
-    </div>
-    <div class="prompt-body">
-      <div class="prompt-field"><div class="field-label">Decision</div><div class="field-value" id="d5">Should I message Sofia Brennan at Vercel before her connection drops out of the hot tier in 4 days, framing Workstream around the scaling infrastructure problem developer-tool companies face at her headcount?</div></div>
-      <div class="prompt-field"><div class="field-label">Context</div><div class="field-value" id="c5">Head of People at Vercel means Sofia owns the people function at a developer platform that has scaled rapidly in a remote-first environment — exactly the operational context where HR workflow gaps become expensive and manual coordination becomes a daily tax on the team. Vercel is known for a lean, engineering-driven culture where tools are evaluated on whether they actually reduce friction, which means a pitch built around workflow efficiency and time-saved will land better than one built around compliance or reporting. What Workstream brings is a specific track record with developer-tool companies that have scaled remote teams quickly — which is a more credible frame than a generic HR automation pitch. The assumption this decision rests on is whether Vercel is at the headcount where HR workflow automation becomes an obvious priority — the tipping point is usually 150–200 employees. What I don't know is Vercel's current headcount or whether Sofia has already solved this problem with a competing tool. The cost of waiting past the 30-day connection window is real — reply rates on messages sent to connections older than 30 days drop sharply and I won't get this timing back.</div></div>
-    </div>
-  </div>
 </div>
 
-<!-- ==================== MESSAGES ==================== -->
-<div id="messages" class="section">
-  <div class="section-header">Outreach Messages</div>
-  <div class="section-desc">Written from your perspective. 3 sentences max. Spend 60 seconds on their profile and reference their most recent post before sending — that one step doubles reply rates.</div>
-
-  <div class="msg-card">
-    <div class="msg-header"><div><div class="msg-person">Diana Park</div><div class="msg-role-tag">Head of HR Technology · Rippling · Hot · 6 days — Send today</div></div><button class="copy-btn" onclick="cp('o1','Copy')">Copy Message</button></div>
-    <div class="msg-body" id="o1">Diana — I noticed you're doing HR technology at Rippling and I'm curious what gaps you're still seeing in the workflow automation space that the current tools aren't closing. I run sales at Workstream and we're building specifically in that layer — figured you'd have a sharper view on this than most. Worth a quick exchange?</div>
-    <div class="msg-note">Before sending: find her most recent LinkedIn post and reference it in line 1 instead of the opener above.</div>
-  </div>
-
-  <div class="msg-card">
-    <div class="msg-header"><div><div class="msg-person">Kevin Zhao</div><div class="msg-role-tag">VP People Operations · Figma · Hot · 13 days</div></div><button class="copy-btn" onclick="cp('o2','Copy')">Copy Message</button></div>
-    <div class="msg-body" id="o2">Kevin — scaling a people function from 200 to 1,500 in four years the way Figma has is genuinely hard and I'm curious what the workflow layer looks like on the inside when you're moving that fast. I run sales at Workstream and we build specifically for that scaling moment — is that a conversation worth having?</div>
-    <div class="msg-note">The Figma scaling reference is specific and earned — don't swap it for something generic. Check his recent posts and lead with those instead.</div>
-  </div>
-
-  <div class="msg-card">
-    <div class="msg-header"><div><div class="msg-person">James Okonkwo</div><div class="msg-role-tag">Partner · a16z · Cold reactivation</div></div><button class="copy-btn" onclick="cp('o3','Copy')">Copy Message</button></div>
-    <div class="msg-body" id="o3">James — reconnecting after a while. I'm heading up sales at Workstream (HR workflow automation for Series B–D companies) and I've been thinking about which a16z portfolio companies might be in the HR infrastructure conversation right now. If any come to mind, I'd love an intro — happy to make it easy on both sides.</div>
-    <div class="msg-note">Low pressure, clear value prop, easy ask. Don't add more context — it reads as desperation at this level.</div>
-  </div>
-
-  <div class="msg-card">
-    <div class="msg-header"><div><div class="msg-person">Amara Osei</div><div class="msg-role-tag">Director of HR Systems · Stripe · Hot · 17 days</div></div><button class="copy-btn" onclick="cp('o4','Copy')">Copy Message</button></div>
-    <div class="msg-body" id="o4">Amara — HR systems at Stripe's scale is a genuinely complex problem and I've been curious what the evaluation process looks like from the inside when you're assessing a new workflow platform. I lead sales at Workstream and we're in conversations with a few companies at your size — is this a category you're currently looking at?</div>
-    <div class="msg-note">The question at the end is key — you're asking if the timing is right, not pitching. This approach gets real answers.</div>
-  </div>
-
-  <div class="msg-card">
-    <div class="msg-header"><div><div class="msg-person">Sofia Brennan</div><div class="msg-role-tag">Head of People · Vercel · Hot · 26 days — Send this week</div></div><button class="copy-btn" onclick="cp('o5','Copy')">Copy Message</button></div>
-    <div class="msg-body" id="o5">Sofia — building a people function at a remote-first developer platform the way Vercel has is a specific kind of hard and I'm curious what the workflow layer looks like when you're scaling fast in that environment. I run sales at Workstream and we build for exactly that context — worth a quick exchange?</div>
-    <div class="msg-note">Window closes in 4 days. Send before Friday. Check her profile for a recent post to open with instead.</div>
-  </div>
-
-  <div class="msg-card">
-    <div class="msg-header"><div><div class="msg-person">Ryan Matsuda</div><div class="msg-role-tag">VP People · Linear · Hot · 23 days</div></div><button class="copy-btn" onclick="cp('o6','Copy')">Copy Message</button></div>
-    <div class="msg-body" id="o6">Ryan — I've been following what Linear is building and curious how the people function scales alongside a product that's growing that fast. I lead sales at Workstream, HR workflow automation for exactly that stage — is that a conversation worth having right now?</div>
-    <div class="msg-note">Short and direct. Linear is known for a no-fluff culture — match the tone.</div>
-  </div>
-
-  <div class="msg-card">
-    <div class="msg-header"><div><div class="msg-person">Rachel Sung</div><div class="msg-role-tag">Principal · Bessemer · Cold reactivation</div></div><button class="copy-btn" onclick="cp('o7','Copy')">Copy Message</button></div>
-    <div class="msg-body" id="o7">Rachel — reconnecting. I run sales at Workstream and we've been seeing strong pull from Bessemer-stage companies trying to consolidate their HR infrastructure. If any portfolio companies are in that conversation, I'd love to be on your radar — is that worth a quick exchange?</div>
-    <div class="msg-note">Same approach as James Okonkwo — low ask, clear value, no pressure. Verify she's still at Bessemer first.</div>
-  </div>
-
-  <div class="msg-card">
-    <div class="msg-header"><div><div class="msg-person">Linda Marsh</div><div class="msg-role-tag">Associate Partner · McKinsey · Cold reactivation</div></div><button class="copy-btn" onclick="cp('o8','Copy')">Copy Message</button></div>
-    <div class="msg-body" id="o8">Linda — reconnecting after a while. I lead sales at Workstream and I've been curious what you're seeing with your clients on the HR transformation side — specifically whether workflow automation is coming up in the stack conversations you're in. Anything surprising lately?</div>
-    <div class="msg-note">Ask for market intelligence, not a referral. Consultants share perspective freely when approached as peers, not vendors.</div>
-  </div>
-
-  <div class="msg-card">
-    <div class="msg-header"><div><div class="msg-person">Priya Desai</div><div class="msg-role-tag">HR Business Partner Lead · Databricks · Cold</div></div><button class="copy-btn" onclick="cp('o9','Copy')">Copy Message</button></div>
-    <div class="msg-body" id="o9">Priya — HRBP at Databricks's scale means you're close to where the HR workflow problems actually live. I run sales at Workstream and we build automation for exactly that layer — curious what's still manual in your world that you'd expect to be solved by now.</div>
-    <div class="msg-note">End with a question, not a pitch. The answer tells you whether there's a fit before you spend more time here.</div>
-  </div>
-
-  <div class="msg-card">
-    <div class="msg-header"><div><div class="msg-person">Sarah Kim</div><div class="msg-role-tag">Independent Advisor · Former CPO · Cold reactivation</div></div><button class="copy-btn" onclick="cp('o10','Copy')">Copy Message</button></div>
-    <div class="msg-body" id="o10">Sarah — reconnecting. I lead sales at Workstream and I've been thinking about who in the CPO community has the sharpest take on what mid-market HR teams actually need from a workflow platform right now. You'd know better than most — would you be open to a quick conversation?</div>
-    <div class="msg-note">Frame as seeking expertise, not contacts. If the conversation goes well, the intro offer comes naturally.</div>
-  </div>
-</div>
 
 <!-- ==================== ACTIONS ==================== -->
 <div id="actions" class="section">
-  <div class="section-header">Recommended First 5 Actions This Week</div>
+
+  <div class="section-title">Recommended First 5 Actions This Week</div>
   <div class="section-desc">In priority order. Execute in sequence.</div>
 
-  <div class="actions-list">
-    <div class="action-item">
-      <div class="action-num">1</div>
-      <div><div class="action-title">Message Diana Park at Rippling — today, before anything else</div><div class="action-desc">Connected 6 days ago. Head of HR Technology means she evaluates platforms like Workstream professionally. <strong>This is your highest-leverage first message this week.</strong> Spend 60 seconds on her profile, find her most recent post, and send the message from the Messages tab before end of day.</div></div>
-    </div>
-    <div class="action-item">
-      <div class="action-num">2</div>
-      <div><div class="action-title">Message Sofia Brennan at Vercel — before Friday</div><div class="action-desc">Connected 26 days ago. She drops out of the hot tier in 4 days and reply rates fall sharply after that. <strong>Window closes Friday.</strong> Send the outreach message from the Messages tab before end of week.</div></div>
-    </div>
-    <div class="action-item">
-      <div class="action-num">3</div>
-      <div><div class="action-title">Reactivate James Okonkwo at a16z for a portfolio intro</div><div class="action-desc">Cold at 14 months but the highest-leverage ask in the network. One warm intro from James into an a16z portfolio company is worth 20 cold outreach attempts. <strong>Send the reactivation message from the Messages tab this week.</strong></div></div>
-    </div>
-    <div class="action-item">
-      <div class="action-num">4</div>
-      <div><div class="action-title">Find Christine Holloway and Priya Anand on LinkedIn — connect this week</div><div class="action-desc">Both are in the People To Find tab with connection request notes ready to copy. CPOs at Lattice and Rippling are exact buyer profiles. <strong>Send the connection requests this week</strong> — follow-up messages are ready for when they accept.</div></div>
-    </div>
-    <div class="action-item">
-      <div class="action-num">5</div>
-      <div><div class="action-title">Ask anyone who replies: "Who else should I know?"</div><div class="action-desc">The CFOs and CPOs missing from your network are one introduction away from every person in the Gap → Fix It tab. <strong>End every reply with:</strong> "Who else in your network is working with CFOs or Chief People Officers at growth-stage companies evaluating HR infrastructure right now?"</div></div>
-    </div>
-  </div>
-
-  <div class="momentum-section">
-    <div class="momentum-header">
-      <div class="momentum-pulse"></div>
+  <ul class="action-list">
+    <li class="ai">
+      <div class="an">1</div>
       <div>
-        <div class="momentum-title">Your 48-Hour Window</div>
-        <div class="momentum-sub">These connections are approaching the end of their hot tier. Contact them now — reply rates drop sharply after 30 days.</div>
+        <div class="at">Message your hottest HR Technology contact — today, before anything else</div>
+        <div class="ab">Connected 6 days ago. Head of HR Technology means she evaluates platforms like Workstream professionally — your most relevant contact at peak receptivity. <strong>This is your highest-leverage first message this week.</strong> Copy the message from the Outreach tab and send before end of day.</div>
       </div>
-    </div>
-    <div class="momentum-grid">
-      <div class="momentum-item">
-        <div class="momentum-name">Sofia Brennan</div>
-        <div class="momentum-role">Head of People · Vercel</div>
-        <div class="momentum-days"><span class="momentum-highlight">26 days</span> since connected</div>
-        <div class="momentum-reason">4 days left before she drops to cold. Direct buyer profile at a fast-scaling developer platform. Send before Friday or restart cold.</div>
-        <div class="momentum-bar"><div class="momentum-fill" style="width:87%"></div></div>
+    </li>
+    <li class="ai">
+      <div class="an">2</div>
+      <div>
+        <div class="at">Message your Head of People contact at the developer platform — before Friday</div>
+        <div class="ab">Connected 26 days ago and drops out of the hot tier in 4 days — reply rates fall sharply after. <strong>Window closes Friday.</strong> Copy the message from the Outreach tab and send before end of week.</div>
       </div>
-      <div class="momentum-item">
-        <div class="momentum-name">Ryan Matsuda</div>
-        <div class="momentum-role">VP People · Linear</div>
-        <div class="momentum-days"><span class="momentum-highlight">23 days</span> since connected</div>
-        <div class="momentum-reason">7 days left. VP People at a product-led Series C — exact ICP. The Linear brand means a reference here would travel. Send this week.</div>
-        <div class="momentum-bar"><div class="momentum-fill" style="width:77%"></div></div>
+    </li>
+    <li class="ai">
+      <div class="an">3</div>
+      <div>
+        <div class="at">Reactivate the dormant a16z partner for a portfolio intro</div>
+        <div class="ab">Cold at 14 months but the highest-leverage ask in the network. One warm intro into an a16z portfolio company is worth 20 cold outreach attempts. <strong>Copy the message from the Outreach tab and send this week.</strong></div>
       </div>
-      <div class="momentum-item">
-        <div class="momentum-name">Amara Osei</div>
-        <div class="momentum-role">Director HR Systems · Stripe</div>
-        <div class="momentum-days"><span class="momentum-highlight">17 days</span> since connected</div>
-        <div class="momentum-reason">13 days left. HR Systems Directors own vendor selection at Stripe's scale — this is a decision-maker, not an influencer. Don't let this window close without a message.</div>
-        <div class="momentum-bar"><div class="momentum-fill" style="width:57%"></div></div>
+    </li>
+    <li class="ai">
+      <div class="an">4</div>
+      <div>
+        <div class="at">Find the CPOs in the People You Should Know tab on LinkedIn — connect this week</div>
+        <div class="ab">All are in the People You Should Know tab with connection request notes ready to copy. CPOs at growth-stage companies are exact buyer profiles. <strong>Send the connection requests this week</strong> — follow-up messages are ready for when they accept.</div>
+      </div>
+    </li>
+    <li class="ai">
+      <div class="an">5</div>
+      <div>
+        <div class="at">Ask anyone who replies: "Who else should I know?"</div>
+        <div class="ab">The decision-makers missing from your network are one introduction away from everyone in the Gap → Fix It tab. <strong>End every reply with:</strong> "Who else in your network is working with CFOs or Chief People Officers at growth-stage companies evaluating HR infrastructure right now?"</div>
+      </div>
+    </li>
+  </ul>
+
+  <div class="win">
+    <div class="win-title"><div class="pulse"></div>Your 48-Hour Window</div>
+    <p style="color:var(--muted);font-size:12px;margin-bottom:14px;line-height:1.7;">These connections are approaching the end of their hot tier. Contact them now — reply rates drop sharply after 30 days.</p>
+    <div class="win-grid">
+      <div class="wc">
+        <div class="wc-name">Head of People — Developer Platform</div>
+        <div class="wc-role">26 days since connected</div>
+        <div class="wc-why">4 days left before this connection drops to cold. Direct buyer profile at a fast-scaling developer tool company. Send before Friday or restart cold.</div>
+        <div class="rb-wrap"><div class="rb-bg"><div class="rb-fill" style="width:87%;"></div></div><div class="rb-label">4 days left in Hot</div></div>
+      </div>
+      <div class="wc">
+        <div class="wc-name">VP People — Product-Led Series C</div>
+        <div class="wc-role">23 days since connected</div>
+        <div class="wc-why">7 days left in the hot tier. VP People at a product-led Series C — exact ICP. A reference from this company would travel. Send this week.</div>
+        <div class="rb-wrap"><div class="rb-bg"><div class="rb-fill" style="width:77%;"></div></div><div class="rb-label">7 days left in Hot</div></div>
+      </div>
+      <div class="wc">
+        <div class="wc-name">Director HR Systems — Enterprise Fintech</div>
+        <div class="wc-role">17 days since connected</div>
+        <div class="wc-why">13 days left in the hot tier. HR Systems Directors own vendor selection at this scale — a decision-maker, not an influencer. Don't let this window close without a message.</div>
+        <div class="rb-wrap"><div class="rb-bg"><div class="rb-fill" style="width:57%;"></div></div><div class="rb-label">13 days left in Hot</div></div>
       </div>
     </div>
   </div>
+
 </div>
 
-<!-- ==================== SHARE CARD ==================== -->
-<div id="sharecard" class="section">
-  <div class="section-header">Your Network Intelligence Card</div>
-  <div class="section-desc">Screenshot and share — or send to someone who should be getting their own report.</div>
-  <div class="share-card-wrap">
-    <div class="share-card" id="scEl">
-      <div class="sc-header">
-        <div class="sc-brand"><div class="sc-icon">DL</div><div><div class="sc-brand-name">Decision Layer</div><div class="sc-brand-sub">Network Intelligence</div></div></div>
-        <div class="sc-date">May 2026 · Sample Report</div>
-      </div>
-      <div class="sc-headline">Your network contains more opportunity than you've used.</div>
-      <div class="sc-stats">
-        <div class="sc-stat"><div class="sc-stat-val">847</div><div class="sc-stat-label">Total Connections</div></div>
-        <div class="sc-stat"><div class="sc-stat-val">CFO / CPO</div><div class="sc-stat-label">Gap Identified</div></div>
-        <div class="sc-stat"><div class="sc-stat-val">5</div><div class="sc-stat-label">Dormant Contacts Activated</div></div>
-        <div class="sc-stat"><div class="sc-stat-val">7</div><div class="sc-stat-label">Real Targets Found Outside Network</div></div>
-      </div>
-      <div class="sc-findings">
-        <div class="sc-finding-title">TOP FINDINGS</div>
-        <div class="sc-finding">→ Zero CFOs and zero Chief People Officers in an 847-person network — the two roles that co-sign enterprise HR software purchases are entirely absent</div>
-        <div class="sc-finding">→ Three dormant VC partners at a16z, Bessemer, and Insight — connected and never activated — can each introduce you to portfolio companies actively buying HR infrastructure right now</div>
-        <div class="sc-finding">→ A Head of HR Technology at Rippling connected 6 days ago and has never been messaged — she evaluates platforms like this one professionally and is at peak receptivity today</div>
-        <div class="sc-finding">→ 7 real CFOs and CPOs at Lattice, Deel, Rippling, Gusto, Brex, Ironclad, and Notion found outside the network — with ready-to-send connection requests and follow-up messages</div>
-      </div>
-      <div class="sc-footer">
-        <div><div class="sc-goal-label">90-Day Goal</div><div class="sc-goal">Close 8 enterprise HR tech deals — Workstream</div></div>
-        <div class="sc-cta"><div class="sc-cta-text">Get your own report</div><div class="sc-cta-url">decisionlayer.dev</div></div>
-      </div>
-    </div>
-    <div style="display:flex;gap:12px;margin-top:20px;">
-      <button class="copy-btn" style="padding:10px 20px;font-size:11px;" onclick="copyCard()">Copy & Share</button>
-      <button class="copy-btn" style="padding:10px 20px;font-size:11px;background:rgba(102,187,106,0.1);border-color:rgba(102,187,106,0.3);color:var(--green);" onclick="window.print()">Print / Save as PDF</button>
-    </div>
-    <div style="font-size:11px;color:var(--muted);margin-top:10px;">This is a sample report. Your report is built entirely around your network and your specific 90-day goal.</div>
-  </div>
-</div>
 
-<!-- ==================== HOW THIS WORKS ==================== -->
+
 </div><!-- end main -->
 
-<div class="footer">
-  <div>Decision Layer Network Intelligence · Sample Report · May 2026</div>
-  <div><a href="https://decisionlayer.dev" target="_blank">decisionlayer.dev</a></div>
-</div>
-
 <script>
-function showTab(id, el) {
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  // highlight matching nav tab
+  document.querySelectorAll('.tab').forEach(t => {
+    if (t.getAttribute('onclick') && t.getAttribute('onclick').includes("'" + id + "'")) {
+      t.classList.add('active');
+    }
+  });
+}
+
+function go(id, el) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -900,7 +984,7 @@ function cp(elId, label) {
   const el = document.getElementById(elId);
   if (!el) return;
   navigator.clipboard.writeText(el.innerText).then(() => {
-    document.querySelectorAll('.copy-btn').forEach(b => {
+    document.querySelectorAll('.cb').forEach(b => {
       if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + elId + "'")) {
         const orig = b.innerText;
         b.innerText = 'Copied!';
@@ -921,5 +1005,6 @@ function copyCard() {
   });
 }
 </script>
+
 </body>
 </html>
