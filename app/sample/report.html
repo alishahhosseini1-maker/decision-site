@@ -366,15 +366,13 @@
 <!-- NAV -->
 <div class="nav">
   <div class="tab active" onclick="showTab('summary',this)">Summary</div>
-  <div class="tab" onclick="showTab('gap',this)">Your Gap → Fix It</div>
-  <div class="tab tab-amber" onclick="showTab('find',this)">People To Find</div>
+  <div class="tab" onclick="showTab('gap',this)">Gap → Fix It</div>
+  <div class="tab tab-amber" onclick="showTab('find',this)">Find Missing</div>
   <div class="tab" onclick="showTab('top20',this)">Top 20</div>
-  <div class="tab" onclick="showTab('segment',this)">Highest Value Segment</div>
-  <div class="tab" onclick="showTab('prompts',this)">Decision Layer Prompts</div>
-  <div class="tab" onclick="showTab('messages',this)">Outreach Messages</div>
-  <div class="tab" onclick="showTab('actions',this)">First 5 Actions</div>
-  <div class="tab" onclick="showTab('sharecard',this)">Share Card</div>
-  <div class="tab" onclick="showTab('how',this)">How This Works</div>
+  <div class="tab" onclick="showTab('prompts',this)">DL Prompts</div>
+  <div class="tab" onclick="showTab('messages',this)">Outreach</div>
+  <div class="tab" onclick="showTab('actions',this)">This Week</div>
+  <div class="tab" onclick="showTab('sharecard',this)">Share</div>
 </div>
 
 <div class="main">
@@ -656,55 +654,6 @@
   </div>
 </div>
 
-<!-- ==================== SEGMENT ==================== -->
-<div id="segment" class="section">
-  <div class="section-header">Highest Value Segment</div>
-  <div class="section-desc">Top 5 most likely to produce a direct result toward 8 enterprise deals in 90 days.</div>
-
-  <div class="cards">
-    <div class="card">
-      <div class="card-rank">01</div>
-      <div class="card-name">Diana Park</div>
-      <div class="card-role">Head of HR Technology · Rippling</div>
-      <div class="card-tags"><span class="tag t-hot">Hot · 6 days</span><span class="tag t-hi">High Relevance</span></div>
-      <div class="card-why">She evaluates HR platforms professionally — that's her job title. Connected 6 days ago which means this is the best possible timing for a first message. Don't pitch. Ask for her honest take on where the category is falling short.</div>
-      <div class="card-approach"><span>Approach: </span>Peer insight request → natural product conversation</div>
-    </div>
-    <div class="card">
-      <div class="card-rank">02</div>
-      <div class="card-name">Kevin Zhao</div>
-      <div class="card-role">VP People Operations · Figma</div>
-      <div class="card-tags"><span class="tag t-hot">Hot · 13 days</span><span class="tag t-hi">High Relevance</span></div>
-      <div class="card-why">VP People Ops at Figma means he has budget authority and a team large enough to have real workflow problems. Figma scaled from startup to enterprise in 4 years — that scaling story is exactly the problem Workstream solves.</div>
-      <div class="card-approach"><span>Approach: </span>Direct warm outreach — product-fit angle</div>
-    </div>
-    <div class="card">
-      <div class="card-rank">03</div>
-      <div class="card-name">James Okonkwo</div>
-      <div class="card-role">Partner · Andreessen Horowitz</div>
-      <div class="card-tags"><span class="tag t-cold">Cold · 14 months</span><span class="tag t-hi">High Relevance</span></div>
-      <div class="card-why">The highest-leverage cold reactivation in the network. One warm intro from James into an a16z portfolio company is worth more than 20 direct outreach attempts. The ask is low-stakes — you're not asking him to endorse the product, just to make a connection.</div>
-      <div class="card-approach"><span>Approach: </span>Cold reactivation → portfolio intro request</div>
-    </div>
-    <div class="card">
-      <div class="card-rank">04</div>
-      <div class="card-name">Amara Osei</div>
-      <div class="card-role">Director of HR Systems · Stripe</div>
-      <div class="card-tags"><span class="tag t-hot">Hot · 17 days</span><span class="tag t-hi">High Relevance</span></div>
-      <div class="card-why">HR systems directors own the platform evaluation and implementation process — vendor selection authority. Stripe is at a scale where HR workflow problems are real and expensive. Connected 17 days ago. This is a direct pitch opportunity with the right framing.</div>
-      <div class="card-approach"><span>Approach: </span>Direct warm outreach — evaluation timing question</div>
-    </div>
-    <div class="card">
-      <div class="card-rank">05</div>
-      <div class="card-name">Sofia Brennan</div>
-      <div class="card-role">Head of People · Vercel</div>
-      <div class="card-tags"><span class="tag t-hot" style="background:rgba(248,113,113,0.12);color:var(--red);">Hot · 4 days left</span><span class="tag t-hi">High Relevance</span></div>
-      <div class="card-why">Head of People at Vercel — a developer platform scaling fast at exactly the headcount where HR workflow automation becomes a real priority. Connected 26 days ago. The window closes in 4 days.</div>
-      <div class="card-approach"><span>Approach: </span>Urgent warm outreach — send before end of week</div>
-    </div>
-  </div>
-</div>
-
 <!-- ==================== PROMPTS ==================== -->
 <div id="prompts" class="section">
   <div class="section-header">Decision Layer Prompts</div>
@@ -932,23 +881,6 @@
 </div>
 
 <!-- ==================== HOW THIS WORKS ==================== -->
-<div id="how" class="section">
-  <div class="section-header">How This Works</div>
-  <div class="section-desc">Read this after you've reviewed the analysis — not before.</div>
-
-  <div class="callout">
-    <div class="callout-title">HOW THIS WORKS</div>
-    <p style="color:var(--muted);font-size:12px;margin-bottom:14px;line-height:1.75;">This report tells you who in your network to contact and when — based on your specific 90-day goal. Decision Layer tells you whether to contact them and what intelligence gap to resolve first.</p>
-    <div class="callout-steps">
-      <div class="callout-step"><div class="step-num">1</div><p>Start with <strong>Your Gap → Fix It</strong>. That's where the highest-leverage contacts are — the people already in your network who are bridges to the buyers you're missing.</p></div>
-      <div class="callout-step"><div class="step-num">2</div><p>Before sending any message, spend 60 seconds on that person's LinkedIn profile. Find their most recent post and reference it in your opening line. This one step doubles your reply rate.</p></div>
-      <div class="callout-step"><div class="step-num">3</div><p>Copy the matching Decision Layer prompt and paste it into <a href="https://decisionlayer.dev" target="_blank">decisionlayer.dev</a> before you reach out. The verdict tells you the one thing you need to know before committing to this outreach.</p></div>
-      <div class="callout-step"><div class="step-num">4</div><p>Use the verdict's Next Move to guide what you say when they respond.</p></div>
-    </div>
-    <div class="callout-footer">Your network already contains the relationships you need. This report shows you which ones and in what order.</div>
-  </div>
-</div>
-
 </div><!-- end main -->
 
 <div class="footer">
