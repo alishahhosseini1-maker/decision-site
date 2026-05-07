@@ -28,6 +28,8 @@ export async function GET(req: Request) {
 
     // Return the decision data
     return NextResponse.json({
+      decision: data.decision,
+      context: data.context,
       reviewResult: data.review_result,
       deepReview: data.deep_review,
       verdict: data.verdict,
