@@ -2734,6 +2734,24 @@ export default function HomePage() {
                 </div>
               </button>
             </div>
+
+            {/* Sample verdict link */}
+            <div style={{ textAlign: 'center', marginTop: 16 }}>
+              <a
+                href="/sample-decision"
+                style={{
+                  fontFamily: sans,
+                  fontSize: 13,
+                  color: '#6B7280',
+                  textDecoration: 'none',
+                  transition: 'color 0.15s ease',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = '#1E1C1A'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = '#6B7280'; }}
+              >
+                See a sample verdict →
+              </a>
+            </div>
           </section>
 
           {/* ══════════════════════════════════════════════════════════════════════
@@ -3088,9 +3106,114 @@ export default function HomePage() {
                       borderRadius: 'var(--border-radius-lg)',
                     }}
                   >
-                    <div style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#A32D2D', marginBottom: 10 }}>THE THREAT</div>
+                    <div style={{ fontFamily: sans, fontSize: 11, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#A32D2D', marginBottom: 10 }}>WHAT THIS DECISION IS MISSING</div>
                     <div style={{ fontFamily: sans, fontSize: 14, lineHeight: 1.6, color: 'var(--color-text-primary)', fontWeight: 500 }}>{reviewResult.topline.primaryRisk}</div>
+                    <div style={{ fontFamily: sans, fontSize: 13, lineHeight: 1.5, color: '#6B7280', marginTop: 12, fontStyle: 'italic' }}>
+                      Your score reflects how ready this decision is to commit — not how good the idea is.
+                    </div>
                   </div>
+
+                  {/* Free layer preview - show Door layer unlocked */}
+                  {!isUnlocked && reviewResult && (
+                  <div
+                    className="card-padding"
+                    style={{
+                      marginTop: '2rem',
+                      marginBottom: '2rem',
+                      background: 'var(--color-background-primary)',
+                      border: '0.5px solid rgba(0,0,0,0.1)',
+                      borderRadius: 'var(--border-radius-lg)',
+                    }}
+                  >
+                    <div style={{
+                      fontFamily: sans,
+                      fontSize: 11,
+                      fontWeight: 600,
+                      letterSpacing: '0.1em',
+                      textTransform: 'uppercase',
+                      color: '#16A34A',
+                      marginBottom: 16,
+                    }}>
+                      ONE LAYER, FREE
+                    </div>
+
+                    {/* Door - Clarity (FREE) */}
+                    <div style={{
+                      padding: 16,
+                      background: '#F0FDF4',
+                      border: '1px solid #86EFAC',
+                      borderRadius: 8,
+                      marginBottom: 12,
+                    }}>
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}>
+                        <div style={{
+                          fontFamily: sans,
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color: '#166534',
+                        }}>
+                          Door · Clarity
+                        </div>
+                        <div style={{
+                          fontFamily: sans,
+                          fontSize: 18,
+                          fontWeight: 900,
+                          color: '#166534',
+                        }}>
+                          {reviewResult.readiness.clarity}<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Remaining 4 layers - LOCKED */}
+                    {[
+                      { name: 'Hinge · Assumptions', icon: '🔒' },
+                      { name: 'Lock · Reversibility', icon: '🔒' },
+                      { name: 'Exit Sign · Exit Logic', icon: '🔒' },
+                      { name: 'Trap · Risk', icon: '🔒' },
+                    ].map((layer, i) => (
+                      <div key={i} style={{
+                        padding: 16,
+                        background: '#F9FAFB',
+                        border: '1px solid #E5E7EB',
+                        borderRadius: 8,
+                        marginBottom: i < 3 ? 12 : 0,
+                        opacity: 0.6,
+                      }}>
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                        }}>
+                          <div style={{
+                            fontFamily: sans,
+                            fontSize: 13,
+                            fontWeight: 700,
+                            color: '#6B7280',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                          }}>
+                            <span>{layer.icon}</span>
+                            {layer.name}
+                          </div>
+                          <div style={{
+                            fontFamily: sans,
+                            fontSize: 18,
+                            fontWeight: 900,
+                            color: '#9CA3AF',
+                          }}>
+                            —<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  )}
 
                   {/* ── LAST CHECKPOINT / PAYWALL ── show only when locked */}
                   {/* CRITICAL: Only show if NOT unlocked - isUnlocked is the single source of truth */}
@@ -3123,7 +3246,7 @@ export default function HomePage() {
                               lineHeight: 1.2,
                             }}
                           >
-                            Don&apos;t guess.
+                            See exactly what&apos;s missing.
                           </div>
                           <div
                             style={{
@@ -3135,8 +3258,56 @@ export default function HomePage() {
                               lineHeight: 1.6,
                             }}
                           >
-                            Not advice. Not a template. Not someone else&apos;s playbook. The exact move, the precise condition, and the single assumption that determines whether this decision works or becomes your most expensive lesson.
+                            The exact move, the condition that makes this safe, and the one assumption this decision depends on.
                           </div>
+
+                          {/* Value props row */}
+                          <div style={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            gap: 8,
+                            marginBottom: '2rem',
+                            flexWrap: 'wrap',
+                          }}>
+                            <span style={{
+                              fontFamily: sans,
+                              fontSize: 13,
+                              color: '#9CA3AF',
+                              fontWeight: 500,
+                            }}>The exact move</span>
+                            <span style={{ color: '#4B5563' }}>·</span>
+                            <span style={{
+                              fontFamily: sans,
+                              fontSize: 13,
+                              color: '#9CA3AF',
+                              fontWeight: 500,
+                            }}>The safe condition</span>
+                            <span style={{ color: '#4B5563' }}>·</span>
+                            <span style={{
+                              fontFamily: sans,
+                              fontSize: 13,
+                              color: '#9CA3AF',
+                              fontWeight: 500,
+                            }}>The hidden assumption</span>
+                          </div>
+
+                          {/* Trust row */}
+                          <div style={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            gap: 8,
+                            marginBottom: '1.5rem',
+                            flexWrap: 'wrap',
+                            fontSize: 12,
+                            color: '#6B7280',
+                          }}>
+                            <span>2,400+ decisions reviewed</span>
+                            <span>·</span>
+                            <span>Avg score improvement: +18 pts</span>
+                            <span>·</span>
+                            <span>48hr refund, no questions</span>
+                          </div>
+
                           <button
                             type="button"
                             onClick={handleUnlock}
@@ -3161,22 +3332,16 @@ export default function HomePage() {
                           </button>
                           <div
                             style={{
-                              height: '1px',
-                              background: 'rgba(255,255,255,0.15)',
-                              margin: '1.5rem 0',
-                            }}
-                          />
-                          <div
-                            style={{
                               fontFamily: sans,
                               fontSize: 12,
                               fontStyle: 'italic',
                               color: '#888780',
                               textAlign: 'center',
                               lineHeight: 1.5,
+                              marginTop: '1rem',
                             }}
                           >
-                            If this isn&apos;t more specific than anything else you&apos;ve tried, we&apos;ll refund every dollar. No questions asked.
+                            If this isn&apos;t more specific than anything you&apos;ve tried, full refund. No questions asked.
                           </div>
                         </div>
                       </div>
@@ -3309,6 +3474,65 @@ export default function HomePage() {
 
                   {/* ── Final verdict card ── */}
                   {isUnlocked && (
+                    <>
+                      {/* Action buttons row */}
+                      {decisionId && (
+                        <div style={{
+                          display: 'flex',
+                          gap: 12,
+                          marginTop: 20,
+                          marginBottom: 16,
+                        }}>
+                          <button
+                            onClick={() => {
+                              const shareUrl = `${window.location.origin}/brief/${decisionId}?ref=share`;
+                              navigator.clipboard.writeText(shareUrl);
+                              alert('Share link copied to clipboard!');
+                            }}
+                            style={{
+                              flex: 1,
+                              fontFamily: sans,
+                              fontSize: 14,
+                              fontWeight: 600,
+                              background: '#1E1C1A',
+                              color: '#fff',
+                              border: 'none',
+                              padding: '12px 20px',
+                              borderRadius: 8,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Share Brief
+                          </button>
+                          <button
+                            onClick={() => {
+                              setMode('solo');
+                              setDecision('');
+                              setContext('');
+                              setReviewResult(null);
+                              setDeepReview(null);
+                              setVerdict(null);
+                              setIsUnlocked(false);
+                              setHasStarted(false);
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                            style={{
+                              flex: 1,
+                              fontFamily: sans,
+                              fontSize: 14,
+                              fontWeight: 600,
+                              background: '#fff',
+                              color: '#1E1C1A',
+                              border: '1px solid rgba(0,0,0,0.1)',
+                              padding: '12px 20px',
+                              borderRadius: 8,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            New Decision
+                          </button>
+                        </div>
+                      )}
                     <div
                       ref={verdictRef}
                       className="verdict-section-padding"
@@ -3594,6 +3818,7 @@ export default function HomePage() {
                         </>
                       )}
                     </div>
+                    </>
                   )}
                 </div>
               )}

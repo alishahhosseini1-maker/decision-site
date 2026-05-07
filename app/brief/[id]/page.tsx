@@ -1,0 +1,239 @@
+import { createClient } from '@supabase/supabase-js';
+import Link from 'next/link';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+export default async function SharedBriefPage({ params }: { params: { id: string } }) {
+  const { id } = params;
+
+  // Load decision from database
+  const { data: decision, error } = await supabase
+    .from('decisions')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error || !decision) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: "'Inter', system-ui, sans-serif",
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <h1 style={{ fontSize: 24, marginBottom: 12 }}>Decision not found</h1>
+          <Link href="/" style={{ color: '#2563EB' }}>Go to homepage</Link>
+        </div>
+      </div>
+    );
+  }
+
+  const serif = "'Spectral', Georgia, serif";
+  const sans = "'Inter', system-ui, -apple-system, sans-serif";
+
+  const reviewResult = decision.review_result;
+  const score = decision.score || 0;
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: '#FDFCFA',
+      fontFamily: sans,
+      color: '#1E1C1A',
+    }}>
+      {/* Header */}
+      <div style={{
+        borderBottom: '1px solid rgba(0,0,0,0.08)',
+        padding: '16px 20px',
+        background: '#fff',
+      }}>
+        <Link href="/" style={{
+          fontFamily: serif,
+          fontSize: 20,
+          fontWeight: 700,
+          color: '#1E1C1A',
+          textDecoration: 'none',
+        }}>
+          Decision Layer
+        </Link>
+      </div>
+
+      {/* Content */}
+      <div style={{
+        maxWidth: 720,
+        margin: '0 auto',
+        padding: '40px 20px 80px',
+      }}>
+        {/* Badge */}
+        <div style={{
+          display: 'inline-block',
+          padding: '4px 10px',
+          background: '#DBEAFE',
+          border: '1px solid #3B82F6',
+          borderRadius: 4,
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: '0.05em',
+          textTransform: 'uppercase',
+          color: '#1E40AF',
+          marginBottom: 16,
+        }}>
+          Shared Decision
+        </div>
+
+        {/* Decision Title */}
+        <h1 style={{
+          fontFamily: serif,
+          fontSize: 32,
+          fontWeight: 700,
+          lineHeight: 1.3,
+          marginBottom: 12,
+          color: '#1E1C1A',
+        }}>
+          {decision.decision || 'Untitled Decision'}
+        </h1>
+
+        {/* Score */}
+        <div style={{
+          background: '#fff',
+          border: '1px solid rgba(0,0,0,0.1)',
+          borderRadius: 12,
+          padding: 24,
+          marginTop: 32,
+          marginBottom: 24,
+        }}>
+          <div style={{
+            fontSize: 48,
+            fontWeight: 900,
+            color: score < 50 ? '#DC2626' : score < 65 ? '#F59E0B' : score < 80 ? '#EAB308' : '#16A34A',
+            lineHeight: 1,
+            marginBottom: 8,
+          }}>
+            {score}<span style={{ fontSize: 24, opacity: 0.5 }}>/100</span>
+          </div>
+          <div style={{
+            fontSize: 11,
+            fontWeight: 600,
+            letterSpacing: '0.05em',
+            textTransform: 'uppercase',
+            color: '#6B7280',
+          }}>
+            Pre-commit score
+          </div>
+        </div>
+
+        {/* Hinge Assumption */}
+        {reviewResult?.snapshot?.hinge && (
+          <div style={{
+            background: '#fff',
+            border: '1px solid rgba(0,0,0,0.1)',
+            borderRadius: 12,
+            padding: 24,
+            marginBottom: 24,
+          }}>
+            <div style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: '#6B7280',
+              marginBottom: 12,
+            }}>
+              🔑 Hinge Assumption
+            </div>
+            <div style={{
+              fontSize: 15,
+              lineHeight: 1.6,
+              color: '#1E1C1A',
+            }}>
+              {reviewResult.snapshot.hinge}
+            </div>
+          </div>
+        )}
+
+        {/* Exit Condition */}
+        {reviewResult?.snapshot?.step && (
+          <div style={{
+            background: '#fff',
+            border: '1px solid rgba(0,0,0,0.1)',
+            borderRadius: 12,
+            padding: 24,
+            marginBottom: 24,
+          }}>
+            <div style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: '#6B7280',
+              marginBottom: 12,
+            }}>
+              🚪 Exit Condition
+            </div>
+            <div style={{
+              fontSize: 15,
+              lineHeight: 1.6,
+              color: '#1E1C1A',
+            }}>
+              {reviewResult.snapshot.step}
+            </div>
+          </div>
+        )}
+
+        {/* Final Verdict */}
+        {decision.verdict && (
+          <div style={{
+            background: '#0E0C0A',
+            color: '#F1EFE8',
+            borderRadius: 12,
+            padding: 24,
+            marginBottom: 24,
+          }}>
+            <div style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: '#9CA3AF',
+              marginBottom: 12,
+            }}>
+              Final Verdict
+            </div>
+            <div style={{
+              fontSize: 15,
+              lineHeight: 1.7,
+              whiteSpace: 'pre-wrap',
+            }}>
+              {decision.verdict}
+            </div>
+          </div>
+        )}
+
+        {/* Footer */}
+        <div style={{
+          textAlign: 'center',
+          marginTop: 40,
+          paddingTop: 40,
+          borderTop: '1px solid rgba(0,0,0,0.08)',
+        }}>
+          <a
+            href="/?ref=share"
+            style={{
+              fontFamily: sans,
+              fontSize: 13,
+              color: '#6B7280',
+              textDecoration: 'none',
+            }}
+          >
+            Reviewed with Decision Layer
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
