@@ -38,6 +38,11 @@ export async function POST(req: Request) {
       ],
       customer_creation: 'always',
       allow_promotion_codes: true,
+      discounts: [
+        {
+          promotion_code: 'promo_1TUXlVIePH9FZTCMLir2HHDh', // FOUNDING13
+        },
+      ],
       success_url: `${appUrl}/?decision_id=${decisionId}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/?decision_id=${decisionId}`,
       metadata: {
