@@ -695,6 +695,7 @@ export default function HomePage() {
             }
 
             // Restore decision data from localStorage (excluding form inputs)
+            // Or load from database if localStorage is empty (private mode issue)
             try {
               const raw = localStorage.getItem(STORAGE.pendingSoloReview);
               if (raw) {
@@ -713,8 +714,25 @@ export default function HomePage() {
                 setReflectionPrompts(saved.reflectionPrompts ?? []);
                 if (saved.requestKey) setRequestKey(saved.requestKey);
                 setHasStarted(true);
+              } else if (data.decisionId) {
+                // localStorage empty (private mode) - load from database
+                console.log('[Verification] Loading from database, decisionId:', data.decisionId);
+                const loadRes = await fetch(`/api/decision/load?id=${data.decisionId}`);
+                if (loadRes.ok) {
+                  const dbData = await loadRes.json();
+                  setDecision(''); // Keep form clear
+                  setContext(''); // Keep form clear
+                  setReviewResult(dbData.reviewResult ?? null);
+                  setDeepReview(dbData.deepReview ?? null);
+                  setVerdict(dbData.verdict ?? null);
+                  setHasStarted(true);
+                  console.log('[Verification] Loaded from database successfully');
+                } else {
+                  console.warn('[Verification] Failed to load from database');
+                  alert('Decision data not found. Please return to the analysis page and try again.');
+                }
               } else {
-                console.warn('[Verification] No decision data found in localStorage');
+                console.warn('[Verification] No decision data in localStorage or database');
                 alert('Decision data not found. Please return to the analysis page and try again.');
               }
             } catch (err) {
@@ -1667,16 +1685,48 @@ export default function HomePage() {
   const handleUnlock = async () => {
     setUnlockInProgress(true);
 
-    if (!decisionId) {
-      console.warn('[Unlock] Decision ID not available, using requestKey');
-    }
-
     try {
+      // FIRST: Save decision to database so we can load it back after payment
+      // (localStorage gets cleared in private mode when navigating to Stripe)
+      let savedDecisionId = decisionId;
+
+      if (!savedDecisionId && reviewResult) {
+        console.log('[Unlock] Saving decision to database before checkout...');
+        const saveRes = await fetch('/api/decision/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            decision,
+            context,
+            score: reviewResult.readiness?.total ?? null,
+            clarity: reviewResult.readiness?.clarity ?? null,
+            assumptions: reviewResult.readiness?.assumptions ?? null,
+            reversibility: reviewResult.readiness?.reversibility ?? null,
+            risk: reviewResult.readiness?.risk ?? null,
+            exitLogic: reviewResult.readiness?.exitLogic ?? null,
+            hinge: reviewResult.snapshot?.hinge ?? null,
+            step: reviewResult.snapshot?.step ?? null,
+            deepReview: deepReview ?? null,
+            verdict: verdict ?? null,
+          }),
+        });
+
+        if (saveRes.ok) {
+          const saveData = await saveRes.json();
+          if (saveData?.id) {
+            savedDecisionId = saveData.id;
+            setDecisionId(savedDecisionId);
+            console.log('[Unlock] Decision saved with ID:', savedDecisionId);
+          }
+        }
+      }
+
+      // THEN: Create checkout session
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          decisionId: decisionId || requestKey
+          decisionId: savedDecisionId || requestKey
         }),
       });
 
