@@ -796,6 +796,21 @@ export default function HomePage() {
     verifyAndCheckUnlock();
   }, []);
 
+  // CRITICAL: Clear form on regular page loads after restoration completes
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const hasSessionId = params.get('session_id');
+
+    // Only clear if NOT returning from payment
+    if (!hasSessionId) {
+      // Use setTimeout to ensure this runs after all restoration code
+      setTimeout(() => {
+        setDecision('');
+        setContext('');
+      }, 100);
+    }
+  }, []); // Run once on mount
+
   // Auto-generate verdict when unlocked
   useEffect(() => {
     if (unlockInProgress) return;
@@ -816,11 +831,12 @@ export default function HomePage() {
 
         const saved = JSON.parse(raw) as PendingSoloReview;
 
-        // Always clear form inputs on page load
+        // NEVER restore decision/context on regular page loads
+        // (They're only restored in payment verification flow)
         setDecision('');
         setContext('');
 
-        // But restore analysis results and paywall state
+        // But always restore analysis results and paywall state
         setReviewResult(saved.reviewResult ?? null);
         setDeepReview(saved.deepReview ?? null);
         setFinalThoughts(saved.finalThoughts ?? '');
