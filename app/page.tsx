@@ -604,8 +604,8 @@ export default function HomePage() {
   const persistSoloReviewLocally = (payload?: Partial<PendingSoloReview>) => {
     try {
       const nextPayload: PendingSoloReview = {
-        decision: payload?.decision ?? decision,
-        context: payload?.context ?? context,
+        decision: '', // Always save empty string to keep form clear on refresh
+        context: '', // Always save empty string to keep form clear on refresh
         reviewResult: payload?.reviewResult ?? reviewResult,
         deepReview: payload?.deepReview ?? deepReview,
         finalThoughts: payload?.finalThoughts ?? finalThoughts,
@@ -677,9 +677,11 @@ export default function HomePage() {
               const raw = localStorage.getItem(STORAGE.pendingSoloReview);
               if (raw) {
                 const saved = JSON.parse(raw) as PendingSoloReview;
-                // Keep form inputs clear
-                // setDecision(saved.decision ?? '');
-                // setContext(saved.context ?? '');
+                // Always clear form inputs
+                setDecision('');
+                setContext('');
+
+                // But restore analysis results and paywall state
                 setReviewResult(saved.reviewResult ?? null);
                 setDeepReview(saved.deepReview ?? null);
                 setFinalThoughts(saved.finalThoughts ?? '');
@@ -775,9 +777,11 @@ export default function HomePage() {
 
         const saved = JSON.parse(raw) as PendingSoloReview;
 
-        // Keep form inputs clear, but restore analysis results and paywall state
-        // setDecision(saved.decision ?? '');
-        // setContext(saved.context ?? '');
+        // Always clear form inputs on page load
+        setDecision('');
+        setContext('');
+
+        // But restore analysis results and paywall state
         setReviewResult(saved.reviewResult ?? null);
         setDeepReview(saved.deepReview ?? null);
         setFinalThoughts(saved.finalThoughts ?? '');
@@ -833,9 +837,11 @@ export default function HomePage() {
         if (raw) {
           const saved = JSON.parse(raw) as PendingSoloReview;
 
-          // Keep form inputs clear
-          // setDecision(saved.decision ?? '');
-          // setContext(saved.context ?? '');
+          // Always clear form inputs
+          setDecision('');
+          setContext('');
+
+          // But restore analysis results and paywall state
           setReviewResult(saved.reviewResult ?? null);
           setDeepReview(saved.deepReview ?? null);
           setFinalThoughts(saved.finalThoughts ?? '');
@@ -886,9 +892,10 @@ export default function HomePage() {
         if (!saved.reviewResult || !saved.verdict) return;
 
         // Restore all UI state so the page shows the review correctly
-        // Keep form inputs clear
-        // setDecision(saved.decision ?? '');
-        // setContext(saved.context ?? '');
+        // Always clear form inputs
+        setDecision('');
+        setContext('');
+
         setReviewResult(saved.reviewResult);
         setDeepReview(saved.deepReview ?? null);
         setFinalThoughts(saved.finalThoughts ?? '');
