@@ -38,20 +38,25 @@ export async function POST(req: Request) {
         .eq('stripe_session_id', sessionId)
         .single();
 
-      // If user_id exists, generate a session for returning user
+      // If user_id exists, generate a token for returning user
       let authSession = null;
-      if (existing.user_id) {
+      if (existing.user_id && existing.customer_email) {
         try {
-          const { data: session, error: sessionError } = await supabase.auth.admin.createSession({
-            user_id: existing.user_id,
+          const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+            type: 'magiclink',
+            email: existing.customer_email,
           });
 
-          if (!sessionError && session) {
-            authSession = session;
-            console.log('[verify] Generated session for existing user');
+          if (!linkError && linkData) {
+            authSession = {
+              access_token: linkData.properties?.hashed_token || '',
+              email: existing.customer_email,
+              token_type: 'magiclink',
+            };
+            console.log('[verify] Generated token for existing user');
           }
         } catch (authErr) {
-          console.error('[verify] Failed to create session for existing user:', authErr);
+          console.error('[verify] Failed to generate token for existing user:', authErr);
         }
       }
 
@@ -62,8 +67,9 @@ export async function POST(req: Request) {
         hasAccount: !!existing.user_id,
         decisionId: paymentData?.decision_id,
         session: authSession ? {
-          access_token: authSession.access_token,
-          refresh_token: authSession.refresh_token,
+          token: authSession.access_token,
+          email: authSession.email,
+          type: authSession.token_type,
         } : null,
       });
     }
@@ -156,18 +162,24 @@ export async function POST(req: Request) {
         console.log('[verify] Found existing user:', userId);
       }
 
-      // Generate session tokens for the user
-      const { data: session, error: sessionError } = await supabase.auth.admin.createSession({
-        user_id: userId,
+      // Generate magic link token for the user (compatible with Supabase v2.x)
+      const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+        type: 'magiclink',
+        email: customerEmail,
       });
 
-      if (sessionError || !session) {
-        console.error('[verify] Failed to create session:', sessionError);
-        throw sessionError;
+      if (linkError || !linkData) {
+        console.error('[verify] Failed to generate magic link:', linkError);
+        throw linkError;
       }
 
-      authSession = session;
-      console.log('[verify] Generated auth session successfully');
+      // Extract the token from the hashed_token property
+      authSession = {
+        access_token: linkData.properties?.hashed_token || '',
+        email: customerEmail,
+        token_type: 'magiclink',
+      };
+      console.log('[verify] Generated auth token successfully');
 
       // Update the payment record with user_id
       await supabase
@@ -186,8 +198,9 @@ export async function POST(req: Request) {
       hasAccount: !!authSession,
       decisionId: decisionId,
       session: authSession ? {
-        access_token: authSession.access_token,
-        refresh_token: authSession.refresh_token,
+        token: authSession.access_token,
+        email: authSession.email,
+        type: authSession.token_type,
       } : null,
     });
   } catch (err) {

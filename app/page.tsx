@@ -679,22 +679,23 @@ export default function HomePage() {
           if (res.ok && data.verified) {
             console.log('[Verification] Payment verified successfully');
 
-            // Auto-sign-in user if session tokens are provided
-            if (data.session && data.session.access_token && data.session.refresh_token) {
-              console.log('[Verification] Auto-signing in user with session tokens');
+            // Auto-sign-in user if auth token is provided
+            if (data.session && data.session.token && data.session.email) {
+              console.log('[Verification] Auto-signing in user with magic link token');
               try {
-                const { error: sessionError } = await supabase.auth.setSession({
-                  access_token: data.session.access_token,
-                  refresh_token: data.session.refresh_token,
+                const { error: authError } = await supabase.auth.verifyOtp({
+                  email: data.session.email,
+                  token: data.session.token,
+                  type: 'magiclink',
                 });
 
-                if (sessionError) {
-                  console.error('[Verification] Failed to set session:', sessionError);
+                if (authError) {
+                  console.error('[Verification] Failed to verify OTP:', authError);
                 } else {
                   console.log('[Verification] User automatically signed in');
                 }
-              } catch (sessionErr) {
-                console.error('[Verification] Error setting session:', sessionErr);
+              } catch (authErr) {
+                console.error('[Verification] Error verifying OTP:', authErr);
               }
             }
 
