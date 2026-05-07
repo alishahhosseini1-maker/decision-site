@@ -642,6 +642,7 @@ export default function HomePage() {
         // Remove all decision data for a completely fresh start
         localStorage.removeItem(STORAGE.pendingSoloReview);
         localStorage.removeItem(STORAGE.pendingLockVerdict);
+        localStorage.removeItem('payment_verified'); // Clear payment flag too
       } catch {
         // ignore
       }
