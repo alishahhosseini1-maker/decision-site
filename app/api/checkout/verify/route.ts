@@ -31,11 +31,19 @@ export async function POST(req: Request) {
 
     if (existing) {
       console.log('[verify] Payment already recorded:', existing);
+      // Fetch the decision_id from the payment record
+      const { data: paymentData } = await supabase
+        .from('decision_payments')
+        .select('decision_id')
+        .eq('stripe_session_id', sessionId)
+        .single();
+
       return NextResponse.json({
         verified: true,
         alreadyRecorded: true,
         email: existing.customer_email,
-        hasAccount: !!existing.user_id
+        hasAccount: !!existing.user_id,
+        decisionId: paymentData?.decision_id
       });
     }
 
@@ -98,7 +106,8 @@ export async function POST(req: Request) {
     return NextResponse.json({
       verified: true,
       email: customerEmail,
-      hasAccount: false
+      hasAccount: false,
+      decisionId: decisionId
     });
   } catch (err) {
     console.error('[verify] Error:', err);

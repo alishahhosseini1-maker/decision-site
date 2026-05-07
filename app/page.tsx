@@ -663,8 +663,14 @@ export default function HomePage() {
           if (res.ok && data.verified) {
             console.log('[Verification] Payment verified successfully');
 
-            // Remove session_id from URL
-            window.history.replaceState({}, '', window.location.pathname);
+            // If we got a decisionId from the verification, add it to the URL
+            if (data.decisionId) {
+              console.log('[Verification] Got decisionId from payment:', data.decisionId);
+              window.history.replaceState({}, '', `${window.location.pathname}?decision_id=${data.decisionId}`);
+            } else {
+              // Remove session_id from URL
+              window.history.replaceState({}, '', window.location.pathname);
+            }
 
             // Restore decision data from localStorage
             try {
