@@ -789,20 +789,6 @@ export default function HomePage() {
     verifyAndCheckUnlock();
   }, []);
 
-  // CRITICAL: Clear form on regular page loads after restoration completes
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const hasSessionId = params.get('session_id');
-
-    // Only clear if NOT returning from payment
-    if (!hasSessionId) {
-      // Use setTimeout to ensure this runs after all restoration code
-      setTimeout(() => {
-        setDecision('');
-        setContext('');
-      }, 100);
-    }
-  }, []); // Run once on mount
 
   // Auto-generate verdict when unlocked
   useEffect(() => {
