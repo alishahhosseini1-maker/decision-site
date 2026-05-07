@@ -886,8 +886,9 @@ export default function HomePage() {
         if (!saved.reviewResult || !saved.verdict) return;
 
         // Restore all UI state so the page shows the review correctly
-        setDecision(saved.decision ?? '');
-        setContext(saved.context ?? '');
+        // Keep form inputs clear
+        // setDecision(saved.decision ?? '');
+        // setContext(saved.context ?? '');
         setReviewResult(saved.reviewResult);
         setDeepReview(saved.deepReview ?? null);
         setFinalThoughts(saved.finalThoughts ?? '');
