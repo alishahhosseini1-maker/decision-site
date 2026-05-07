@@ -1,10 +1,51 @@
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
+import { Metadata } from 'next';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const { id } = params;
+
+  // Load decision from database
+  const { data: decision } = await supabase
+    .from('decisions')
+    .select('decision, score, review_result')
+    .eq('id', id)
+    .single();
+
+  if (!decision) {
+    return {
+      title: 'Decision not found — Decision Layer',
+    };
+  }
+
+  const score = decision.score || 0;
+  const hingeOneLiner = decision.review_result?.snapshot?.hinge
+    ? decision.review_result.snapshot.hinge.split('.')[0] + '.'
+    : 'Decision analysis';
+
+  const title = `${decision.decision || 'Decision'} — Decision Layer`;
+  const description = `Score: ${score}/100 · ${hingeOneLiner}`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
+  };
+}
 
 export default async function SharedBriefPage({ params }: { params: { id: string } }) {
   const { id } = params;

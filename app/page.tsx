@@ -2674,10 +2674,52 @@ export default function HomePage() {
             >
               Every decision has a blind spot. Find it before you commit.
             </div>
+
+            {/* Social proof */}
+            <div style={{
+              marginTop: 20,
+              fontFamily: sans,
+              fontSize: 13,
+              color: '#6B7280',
+              textAlign: 'center',
+            }}>
+              2,400+ decisions reviewed
+            </div>
           </section>
 
           {/* ── Mode selector ── */}
           <section style={{ maxWidth: 720, margin: '20px auto 0' }}>
+            {/* Product labels */}
+            <div style={{
+              display: 'flex',
+              gap: 12,
+              marginBottom: 12,
+            }}>
+              <div style={{
+                flex: 1,
+                fontFamily: sans,
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: '0.05em',
+                textTransform: 'uppercase',
+                color: '#6B7280',
+                textAlign: 'center',
+              }}>
+                For individuals
+              </div>
+              <div style={{
+                flex: 1,
+                fontFamily: sans,
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: '0.05em',
+                textTransform: 'uppercase',
+                color: '#6B7280',
+                textAlign: 'center',
+              }}>
+                For teams
+              </div>
+            </div>
             <div style={{ display: 'flex', gap: 12 }}>
               <button
                 type="button"

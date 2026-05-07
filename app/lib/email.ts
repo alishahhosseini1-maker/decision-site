@@ -501,3 +501,93 @@ export async function sendNetworkConfirmationEmail({
     html,
   });
 }
+
+export async function sendNetworkFlywheelEmail({
+  to,
+  firstName,
+}: {
+  to: string;
+  firstName: string;
+}) {
+  if (!to) return;
+
+  const html = `
+    <!doctype html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Your outreach decisions — a shortcut</title>
+      </head>
+      <body style="margin:0; padding:0; background:#fdfcfa; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
+        <div style="max-width:600px; margin:0 auto; padding:40px 20px;">
+          <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#ffffff; border:1px solid rgba(0,0,0,0.08); border-radius:16px; overflow:hidden;">
+            <tr>
+              <td style="padding:32px 32px 28px;">
+                <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                  <tr>
+                    <td style="padding-bottom:24px;">
+                      <div style="font-family:Georgia,serif; font-size:24px; font-weight:700; color:#111111; line-height:1.3;">
+                        Your outreach decisions — a shortcut
+                      </div>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding-bottom:20px;">
+                      <div style="font-size:15px; line-height:1.7; color:#374151;">
+                        You've already done the hardest part — you know exactly who to reach out to and what to say.
+                      </div>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding-bottom:20px;">
+                      <div style="font-size:15px; line-height:1.7; color:#374151;">
+                        Every message in your network report has a "Before you send" prompt already loaded into Decision Layer. Use it before your first 3 outreach messages this week.
+                      </div>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding-bottom:28px;">
+                      <div style="background:#f9fafb; border:1px solid rgba(0,0,0,0.08); border-radius:12px; padding:20px;">
+                        <div style="font-size:14px; line-height:1.7; color:#374151; margin-bottom:12px;">
+                          <strong>For report customers:</strong> your first Decision Unlock is <strong>$49</strong> (normally $99).
+                        </div>
+                        <div style="font-size:14px; line-height:1.7; color:#6b7280;">
+                          Use code <strong style="color:#111111;">NETWORK50</strong> at checkout.
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding-bottom:28px; text-align:center;">
+                      <a href="https://decisionlayer.dev/?ref=network-email" style="display:inline-block; background:#1e1c1a; color:#ffffff; text-decoration:none; padding:14px 28px; border-radius:8px; font-size:15px; font-weight:600;">
+                        Unlock a Decision — $49 →
+                      </a>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding:20px 0 0 0; border-top:1px solid rgba(0,0,0,0.08); font-size:13px; line-height:1.7; color:#111111; font-weight:600;">
+                      — The Decision Layer Team
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </body>
+    </html>
+  `;
+
+  await resend.emails.send({
+    from: 'Decision Layer <info@decisionlayer.dev>',
+    to,
+    subject: 'Your outreach decisions — a shortcut',
+    html,
+  });
+}
