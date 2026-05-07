@@ -38,8 +38,8 @@ export async function POST(req: Request) {
       ],
       customer_creation: 'always',
       allow_promotion_codes: true,
-      success_url: `${appUrl}/?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${appUrl}/`,
+      success_url: `${appUrl}/?decision_id=${decisionId}&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${appUrl}/?decision_id=${decisionId}`,
       metadata: {
         decision_id: decisionId,
       },
