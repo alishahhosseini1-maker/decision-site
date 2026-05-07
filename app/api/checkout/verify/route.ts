@@ -38,12 +38,33 @@ export async function POST(req: Request) {
         .eq('stripe_session_id', sessionId)
         .single();
 
+      // If user_id exists, generate a session for returning user
+      let authSession = null;
+      if (existing.user_id) {
+        try {
+          const { data: session, error: sessionError } = await supabase.auth.admin.createSession({
+            user_id: existing.user_id,
+          });
+
+          if (!sessionError && session) {
+            authSession = session;
+            console.log('[verify] Generated session for existing user');
+          }
+        } catch (authErr) {
+          console.error('[verify] Failed to create session for existing user:', authErr);
+        }
+      }
+
       return NextResponse.json({
         verified: true,
         alreadyRecorded: true,
         email: existing.customer_email,
         hasAccount: !!existing.user_id,
-        decisionId: paymentData?.decision_id
+        decisionId: paymentData?.decision_id,
+        session: authSession ? {
+          access_token: authSession.access_token,
+          refresh_token: authSession.refresh_token,
+        } : null,
       });
     }
 
@@ -103,11 +124,71 @@ export async function POST(req: Request) {
     }
 
     console.log('[verify] Payment recorded successfully!', insertData);
+
+    // Create or get Supabase user and generate session
+    console.log('[verify] Creating/getting Supabase user for auto-authentication...');
+    let authSession = null;
+
+    try {
+      // Get or create user by email
+      const { data: usersData } = await supabase.auth.admin.listUsers();
+      const existingUser = usersData?.users?.find(u => u.email === customerEmail);
+
+      let userId: string;
+
+      if (!existingUser) {
+        // User doesn't exist, create them
+        console.log('[verify] User not found, creating new user...');
+        const { data: newUserData, error: createError } = await supabase.auth.admin.createUser({
+          email: customerEmail,
+          email_confirm: true, // Auto-confirm email since they paid
+        });
+
+        if (createError || !newUserData.user) {
+          console.error('[verify] Failed to create user:', createError);
+          throw createError;
+        }
+
+        userId = newUserData.user.id;
+        console.log('[verify] Created new user:', userId);
+      } else {
+        userId = existingUser.id;
+        console.log('[verify] Found existing user:', userId);
+      }
+
+      // Generate session tokens for the user
+      const { data: session, error: sessionError } = await supabase.auth.admin.createSession({
+        user_id: userId,
+      });
+
+      if (sessionError || !session) {
+        console.error('[verify] Failed to create session:', sessionError);
+        throw sessionError;
+      }
+
+      authSession = session;
+      console.log('[verify] Generated auth session successfully');
+
+      // Update the payment record with user_id
+      await supabase
+        .from('decision_payments')
+        .update({ user_id: userId })
+        .eq('stripe_session_id', sessionId);
+
+    } catch (authErr) {
+      console.error('[verify] Auth session creation failed, but payment was recorded:', authErr);
+      // Don't fail the whole request - payment is still valid
+    }
+
     return NextResponse.json({
       verified: true,
       email: customerEmail,
-      hasAccount: false,
-      decisionId: decisionId
+      hasAccount: !!authSession,
+      decisionId: decisionId,
+      session: authSession ? {
+        access_token: authSession.access_token,
+        refresh_token: authSession.refresh_token,
+      } : null,
     });
   } catch (err) {
     console.error('[verify] Error:', err);

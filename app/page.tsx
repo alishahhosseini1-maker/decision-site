@@ -679,6 +679,25 @@ export default function HomePage() {
           if (res.ok && data.verified) {
             console.log('[Verification] Payment verified successfully');
 
+            // Auto-sign-in user if session tokens are provided
+            if (data.session && data.session.access_token && data.session.refresh_token) {
+              console.log('[Verification] Auto-signing in user with session tokens');
+              try {
+                const { error: sessionError } = await supabase.auth.setSession({
+                  access_token: data.session.access_token,
+                  refresh_token: data.session.refresh_token,
+                });
+
+                if (sessionError) {
+                  console.error('[Verification] Failed to set session:', sessionError);
+                } else {
+                  console.log('[Verification] User automatically signed in');
+                }
+              } catch (sessionErr) {
+                console.error('[Verification] Error setting session:', sessionErr);
+              }
+            }
+
             // If we got a decisionId from the verification, add it to the URL
             if (data.decisionId) {
               console.log('[Verification] Got decisionId from payment:', data.decisionId);
@@ -732,8 +751,8 @@ export default function HomePage() {
               console.error('[Verification] Failed to restore decision data:', err);
             }
 
-            // Show signup prompt if no account exists
-            if (!data.hasAccount && data.email) {
+            // Show signup prompt only if session creation failed and no account exists
+            if (!data.session && !data.hasAccount && data.email) {
               setPaymentEmail(data.email);
               setShowSignupPrompt(true);
             }

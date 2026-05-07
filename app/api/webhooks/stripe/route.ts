@@ -66,11 +66,38 @@ export async function POST(req: Request) {
           .single();
 
         if (!existing) {
+          // Get or create Supabase user for this email
+          let userId: string | null = null;
+          try {
+            // List users and find by email
+            const { data: usersData } = await supabase.auth.admin.listUsers();
+            const existingUser = usersData?.users?.find(u => u.email === customerEmail);
+
+            if (existingUser) {
+              userId = existingUser.id;
+              console.log('[webhook] Found existing user:', userId);
+            } else {
+              // Create user with auto-confirmed email
+              const { data: newUserData } = await supabase.auth.admin.createUser({
+                email: customerEmail,
+                email_confirm: true,
+              });
+
+              if (newUserData?.user) {
+                userId = newUserData.user.id;
+                console.log('[webhook] Created new user:', userId);
+              }
+            }
+          } catch (authErr) {
+            console.error('[webhook] Failed to get/create user:', authErr);
+            // Continue without user_id - payment is still valid
+          }
+
           const { error } = await supabase
             .from('decision_payments')
             .insert({
               decision_id: decisionId,
-              user_id: null,
+              user_id: userId,
               stripe_session_id: session.id,
               customer_email: customerEmail,
               amount: session.amount_total || 0,
@@ -81,6 +108,8 @@ export async function POST(req: Request) {
             console.error('[webhook] Insert error:', error);
             return NextResponse.json({ error: 'Insert failed' }, { status: 500 });
           }
+
+          console.log('[webhook] Payment recorded successfully', { decisionId, userId });
         }
       }
     }
