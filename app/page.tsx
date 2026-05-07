@@ -616,7 +616,7 @@ export default function HomePage() {
         requestKey: payload?.requestKey ?? requestKey,
       };
 
-      localStorage.setItem(STORAGE.pendingSoloReview, JSON.stringify(nextPayload));
+      // localStorage.setItem(STORAGE.pendingSoloReview, JSON.stringify(nextPayload));
     } catch {
       // ignore
     }
@@ -672,29 +672,29 @@ export default function HomePage() {
               window.history.replaceState({}, '', window.location.pathname);
             }
 
-            // Restore decision data from localStorage
-            try {
-              const raw = localStorage.getItem(STORAGE.pendingSoloReview);
-              if (raw) {
-                const saved = JSON.parse(raw) as PendingSoloReview;
-                setDecision(saved.decision ?? '');
-                setContext(saved.context ?? '');
-                setReviewResult(saved.reviewResult ?? null);
-                setDeepReview(saved.deepReview ?? null);
-                setFinalThoughts(saved.finalThoughts ?? '');
-                setVerdictRequested(Boolean(saved.verdictRequested));
-                setVerdict(saved.verdict ?? null);
-                setRevealStage(saved.revealStage ?? 0);
-                setReflectionPrompts(saved.reflectionPrompts ?? []);
-                if (saved.requestKey) setRequestKey(saved.requestKey);
-                setHasStarted(true);
-              } else {
-                console.warn('[Verification] No decision data found in localStorage');
-                alert('Decision data not found. Please return to the analysis page and try again.');
-              }
-            } catch (err) {
-              console.error('[Verification] Failed to restore decision data:', err);
-            }
+            // Restore decision data from localStorage - DISABLED
+            // try {
+            //   const raw = localStorage.getItem(STORAGE.pendingSoloReview);
+            //   if (raw) {
+            //     const saved = JSON.parse(raw) as PendingSoloReview;
+            //     setDecision(saved.decision ?? '');
+            //     setContext(saved.context ?? '');
+            //     setReviewResult(saved.reviewResult ?? null);
+            //     setDeepReview(saved.deepReview ?? null);
+            //     setFinalThoughts(saved.finalThoughts ?? '');
+            //     setVerdictRequested(Boolean(saved.verdictRequested));
+            //     setVerdict(saved.verdict ?? null);
+            //     setRevealStage(saved.revealStage ?? 0);
+            //     setReflectionPrompts(saved.reflectionPrompts ?? []);
+            //     if (saved.requestKey) setRequestKey(saved.requestKey);
+            //     setHasStarted(true);
+            //   } else {
+            //     console.warn('[Verification] No decision data found in localStorage');
+            //     alert('Decision data not found. Please return to the analysis page and try again.');
+            //   }
+            // } catch (err) {
+            //   console.error('[Verification] Failed to restore decision data:', err);
+            // }
 
             // Show signup prompt if no account exists
             if (!data.hasAccount && data.email) {
@@ -806,7 +806,7 @@ export default function HomePage() {
           : null
       );
 
-      hydratePendingSoloReview();
+      // hydratePendingSoloReview();
       setAuthLoading(false);
     };
 
@@ -826,25 +826,25 @@ export default function HomePage() {
           : null
       );
 
-      try {
-        const raw = localStorage.getItem(STORAGE.pendingSoloReview);
-        if (raw) {
-          const saved = JSON.parse(raw) as PendingSoloReview;
+      // try {
+      //   const raw = localStorage.getItem(STORAGE.pendingSoloReview);
+      //   if (raw) {
+      //     const saved = JSON.parse(raw) as PendingSoloReview;
 
-          setDecision(saved.decision ?? '');
-          setContext(saved.context ?? '');
-          setReviewResult(saved.reviewResult ?? null);
-          setDeepReview(saved.deepReview ?? null);
-          setFinalThoughts(saved.finalThoughts ?? '');
-          setVerdictRequested(Boolean(saved.verdictRequested));
-          setVerdict(saved.verdict ?? null);
-          setRevealStage(saved.revealStage ?? 0);
-          setReflectionPrompts(saved.reflectionPrompts ?? []);
-          setHasStarted(Boolean(saved.reviewResult || saved.verdict || saved.deepReview));
-        }
-      } catch {
-        // ignore
-      }
+      //     setDecision(saved.decision ?? '');
+      //     setContext(saved.context ?? '');
+      //     setReviewResult(saved.reviewResult ?? null);
+      //     setDeepReview(saved.deepReview ?? null);
+      //     setFinalThoughts(saved.finalThoughts ?? '');
+      //     setVerdictRequested(Boolean(saved.verdictRequested));
+      //     setVerdict(saved.verdict ?? null);
+      //     setRevealStage(saved.revealStage ?? 0);
+      //     setReflectionPrompts(saved.reflectionPrompts ?? []);
+      //     setHasStarted(Boolean(saved.reviewResult || saved.verdict || saved.deepReview));
+      //   }
+      // } catch {
+      //   // ignore
+      // }
 
       setAuthLoading(false);
       setAuthError(null);
