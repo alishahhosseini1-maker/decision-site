@@ -632,23 +632,16 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    // FIRST: Clear decision/context from localStorage before anything else
+    // FIRST: Clear ALL data from localStorage on regular page loads
     // BUT skip if returning from payment (session_id in URL)
     const params = new URLSearchParams(window.location.search);
     const hasSessionId = params.get('session_id');
 
     if (!hasSessionId) {
       try {
-        const raw = localStorage.getItem(STORAGE.pendingSoloReview);
-        if (raw) {
-          const saved = JSON.parse(raw);
-          if (saved.decision || saved.context) {
-            // Remove decision and context fields from stored data
-            saved.decision = '';
-            saved.context = '';
-            localStorage.setItem(STORAGE.pendingSoloReview, JSON.stringify(saved));
-          }
-        }
+        // Remove all decision data for a completely fresh start
+        localStorage.removeItem(STORAGE.pendingSoloReview);
+        localStorage.removeItem(STORAGE.pendingLockVerdict);
       } catch {
         // ignore
       }
@@ -826,17 +819,34 @@ export default function HomePage() {
   useEffect(() => {
     const hydratePendingSoloReview = () => {
       try {
+        // Check if returning from payment
+        const params = new URLSearchParams(window.location.search);
+        const hasSessionId = params.get('session_id');
+
+        // On regular page loads, clear everything for a fresh start
+        if (!hasSessionId) {
+          setDecision('');
+          setContext('');
+          setReviewResult(null);
+          setDeepReview(null);
+          setFinalThoughts('');
+          setVerdictRequested(false);
+          setVerdict(null);
+          setRevealStage(0);
+          setReflectionPrompts([]);
+          setHasStarted(false);
+          return;
+        }
+
+        // Only restore data when returning from payment
         const raw = localStorage.getItem(STORAGE.pendingSoloReview);
         if (!raw) return;
 
         const saved = JSON.parse(raw) as PendingSoloReview;
 
-        // NEVER restore decision/context on regular page loads
-        // (They're only restored in payment verification flow)
-        setDecision('');
-        setContext('');
-
-        // But always restore analysis results and paywall state
+        // Restore everything on payment return
+        setDecision(saved.decision ?? '');
+        setContext(saved.context ?? '');
         setReviewResult(saved.reviewResult ?? null);
         setDeepReview(saved.deepReview ?? null);
         setFinalThoughts(saved.finalThoughts ?? '');
@@ -888,15 +898,32 @@ export default function HomePage() {
       );
 
       try {
+        // Check if returning from payment
+        const params = new URLSearchParams(window.location.search);
+        const hasSessionId = params.get('session_id');
+
+        // On regular page loads, don't restore anything
+        if (!hasSessionId) {
+          setDecision('');
+          setContext('');
+          setReviewResult(null);
+          setDeepReview(null);
+          setFinalThoughts('');
+          setVerdictRequested(false);
+          setVerdict(null);
+          setRevealStage(0);
+          setReflectionPrompts([]);
+          setHasStarted(false);
+          return;
+        }
+
+        // Only restore on payment return
         const raw = localStorage.getItem(STORAGE.pendingSoloReview);
         if (raw) {
           const saved = JSON.parse(raw) as PendingSoloReview;
 
-          // Always clear form inputs
-          setDecision('');
-          setContext('');
-
-          // But restore analysis results and paywall state
+          setDecision(saved.decision ?? '');
+          setContext(saved.context ?? '');
           setReviewResult(saved.reviewResult ?? null);
           setDeepReview(saved.deepReview ?? null);
           setFinalThoughts(saved.finalThoughts ?? '');
