@@ -632,6 +632,22 @@ export default function HomePage() {
   };
 
   useEffect(() => {
+    // FIRST: Clear decision/context from localStorage before anything else
+    try {
+      const raw = localStorage.getItem(STORAGE.pendingSoloReview);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved.decision || saved.context) {
+          // Remove decision and context fields from stored data
+          saved.decision = '';
+          saved.context = '';
+          localStorage.setItem(STORAGE.pendingSoloReview, JSON.stringify(saved));
+        }
+      }
+    } catch {
+      // ignore
+    }
+
     try {
       const lu = localStorage.getItem(STORAGE.lastUsed);
       setLastUsedAt(lu);
