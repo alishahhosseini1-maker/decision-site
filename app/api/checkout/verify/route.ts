@@ -54,13 +54,20 @@ export async function POST(req: Request) {
               token_type: 'magiclink',
             };
             console.log('[verify] Generated token for existing user');
+            console.log('[verify] Existing user token details:', {
+              hasToken: !!authSession.access_token,
+              tokenLength: authSession.access_token?.length,
+              email: authSession.email,
+            });
+          } else {
+            console.log('[verify] Failed to generate token for existing user:', linkError);
           }
         } catch (authErr) {
           console.error('[verify] Failed to generate token for existing user:', authErr);
         }
       }
 
-      return NextResponse.json({
+      const existingResponse = {
         verified: true,
         alreadyRecorded: true,
         email: existing.customer_email,
@@ -71,7 +78,16 @@ export async function POST(req: Request) {
           email: authSession.email,
           type: authSession.token_type,
         } : null,
+      };
+
+      console.log('[verify] Returning existing payment response:', {
+        verified: existingResponse.verified,
+        hasAccount: existingResponse.hasAccount,
+        hasSession: !!existingResponse.session,
+        sessionHasToken: !!existingResponse.session?.token,
       });
+
+      return NextResponse.json(existingResponse);
     }
 
     // Verify session with Stripe
@@ -180,6 +196,12 @@ export async function POST(req: Request) {
         token_type: 'magiclink',
       };
       console.log('[verify] Generated auth token successfully');
+      console.log('[verify] Auth token details:', {
+        hasToken: !!authSession.access_token,
+        tokenLength: authSession.access_token?.length,
+        email: authSession.email,
+        type: authSession.token_type,
+      });
 
       // Update the payment record with user_id
       await supabase
@@ -192,7 +214,7 @@ export async function POST(req: Request) {
       // Don't fail the whole request - payment is still valid
     }
 
-    return NextResponse.json({
+    const response = {
       verified: true,
       email: customerEmail,
       hasAccount: !!authSession,
@@ -202,7 +224,17 @@ export async function POST(req: Request) {
         email: authSession.email,
         type: authSession.token_type,
       } : null,
+    };
+
+    console.log('[verify] Returning response:', {
+      verified: response.verified,
+      hasAccount: response.hasAccount,
+      hasSession: !!response.session,
+      sessionHasToken: !!response.session?.token,
+      decisionId: response.decisionId,
     });
+
+    return NextResponse.json(response);
   } catch (err) {
     console.error('[verify] Error:', err);
     return NextResponse.json({

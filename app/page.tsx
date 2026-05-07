@@ -664,10 +664,20 @@ export default function HomePage() {
       const params = new URLSearchParams(window.location.search);
       const sessionId = params.get('session_id');
 
+      console.log('[Verification] verifyAndCheckUnlock called');
+      console.log('[Verification] URL params:', {
+        fullURL: window.location.href,
+        search: window.location.search,
+        hasSessionId: !!sessionId,
+        sessionId: sessionId,
+      });
+
       // Verify payment if session_id present
       if (sessionId) {
+        console.log('[Verification] Session ID found, starting payment verification...');
         setVerifyingPayment(true);
         try {
+          console.log('[Verification] Calling /api/checkout/verify with sessionId:', sessionId);
           const res = await fetch('/api/checkout/verify', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -676,14 +686,30 @@ export default function HomePage() {
 
           const data = await res.json();
 
+          console.log('[Verification] Verify response received:', {
+            verified: data.verified,
+            hasSession: !!data.session,
+            sessionHasToken: !!data.session?.token,
+            sessionHasEmail: !!data.session?.email,
+            tokenLength: data.session?.token?.length,
+            email: data.session?.email,
+            hasAccount: data.hasAccount,
+          });
+
           if (res.ok && data.verified) {
             console.log('[Verification] Payment verified successfully');
 
             // Auto-sign-in user if auth token is provided
             if (data.session && data.session.token && data.session.email) {
               console.log('[Verification] Auto-signing in user with magic link token');
+              console.log('[Verification] Token details:', {
+                tokenLength: data.session.token.length,
+                email: data.session.email,
+                type: data.session.type,
+              });
+
               try {
-                const { error: authError } = await supabase.auth.verifyOtp({
+                const { data: authData, error: authError } = await supabase.auth.verifyOtp({
                   email: data.session.email,
                   token: data.session.token,
                   type: 'magiclink',
@@ -691,12 +717,25 @@ export default function HomePage() {
 
                 if (authError) {
                   console.error('[Verification] Failed to verify OTP:', authError);
+                  console.error('[Verification] OTP error details:', {
+                    message: authError.message,
+                    status: authError.status,
+                    name: authError.name,
+                  });
                 } else {
                   console.log('[Verification] User automatically signed in');
+                  console.log('[Verification] Auth data:', {
+                    hasUser: !!authData?.user,
+                    userId: authData?.user?.id,
+                    userEmail: authData?.user?.email,
+                  });
                 }
               } catch (authErr) {
                 console.error('[Verification] Error verifying OTP:', authErr);
               }
+            } else {
+              console.warn('[Verification] No session data provided for auto-sign-in');
+              console.warn('[Verification] Session object:', data.session);
             }
 
             // If we got a decisionId from the verification, add it to the URL
