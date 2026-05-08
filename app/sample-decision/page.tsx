@@ -164,13 +164,132 @@ export default function SampleDecisionPage() {
             5 Layers
           </div>
 
-          {/* Door - FREE LAYER */}
+          {/* Door */}
+          <div style={{
+            padding: 16,
+            background: '#FEF2F2',
+            border: '1px solid #FECACA',
+            borderRadius: 8,
+            marginBottom: 12,
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+              <div style={{
+                fontSize: 13,
+                fontWeight: 700,
+                color: '#DC2626',
+              }}>
+                Door · Clarity
+              </div>
+              <div style={{
+                fontSize: 18,
+                fontWeight: 900,
+                color: '#DC2626',
+              }}>
+                10<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Hinge */}
+          <div style={{
+            padding: 16,
+            background: '#FEF2F2',
+            border: '1px solid #FECACA',
+            borderRadius: 8,
+            marginBottom: 12,
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+              <div style={{
+                fontSize: 13,
+                fontWeight: 700,
+                color: '#DC2626',
+              }}>
+                Hinge · Assumptions
+              </div>
+              <div style={{
+                fontSize: 18,
+                fontWeight: 900,
+                color: '#DC2626',
+              }}>
+                7<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Lock */}
+          <div style={{
+            padding: 16,
+            background: '#FEF2F2',
+            border: '1px solid #FECACA',
+            borderRadius: 8,
+            marginBottom: 12,
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+              <div style={{
+                fontSize: 13,
+                fontWeight: 700,
+                color: '#DC2626',
+              }}>
+                Lock · Reversibility
+              </div>
+              <div style={{
+                fontSize: 18,
+                fontWeight: 900,
+                color: '#DC2626',
+              }}>
+                5<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Exit Sign */}
+          <div style={{
+            padding: 16,
+            background: '#FEF2F2',
+            border: '1px solid #FECACA',
+            borderRadius: 8,
+            marginBottom: 12,
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+              <div style={{
+                fontSize: 13,
+                fontWeight: 700,
+                color: '#DC2626',
+              }}>
+                Exit Sign · Exit Logic
+              </div>
+              <div style={{
+                fontSize: 18,
+                fontWeight: 900,
+                color: '#DC2626',
+              }}>
+                12<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Trap - FREE LAYER */}
           <div style={{
             padding: 16,
             background: '#F0FDF4',
             border: '2px solid #86EFAC',
             borderRadius: 8,
-            marginBottom: 12,
             position: 'relative',
           }}>
             <div style={{
@@ -198,7 +317,7 @@ export default function SampleDecisionPage() {
                 fontWeight: 700,
                 color: '#166534',
               }}>
-                Door · Clarity
+                Trap · Risk
               </div>
               <div style={{
                 fontSize: 18,
@@ -213,146 +332,7 @@ export default function SampleDecisionPage() {
               lineHeight: 1.5,
               color: '#14532D',
             }}>
-              &quot;Equity-for-stability trade&quot;
-            </div>
-          </div>
-
-          {/* Hinge - LOCKED */}
-          <div style={{
-            padding: 16,
-            background: '#F9FAFB',
-            border: '1px solid #E5E7EB',
-            borderRadius: 8,
-            marginBottom: 12,
-            opacity: 0.6,
-          }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}>
-              <div style={{
-                fontSize: 13,
-                fontWeight: 700,
-                color: '#6B7280',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-              }}>
-                <span>🔒</span>
-                Hinge · Assumptions
-              </div>
-              <div style={{
-                fontSize: 18,
-                fontWeight: 900,
-                color: '#9CA3AF',
-              }}>
-                7<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Lock - LOCKED */}
-          <div style={{
-            padding: 16,
-            background: '#F9FAFB',
-            border: '1px solid #E5E7EB',
-            borderRadius: 8,
-            marginBottom: 12,
-            opacity: 0.6,
-          }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}>
-              <div style={{
-                fontSize: 13,
-                fontWeight: 700,
-                color: '#6B7280',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-              }}>
-                <span>🔒</span>
-                Lock · Reversibility
-              </div>
-              <div style={{
-                fontSize: 18,
-                fontWeight: 900,
-                color: '#9CA3AF',
-              }}>
-                5<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Exit Sign - LOCKED */}
-          <div style={{
-            padding: 16,
-            background: '#F9FAFB',
-            border: '1px solid #E5E7EB',
-            borderRadius: 8,
-            marginBottom: 12,
-            opacity: 0.6,
-          }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}>
-              <div style={{
-                fontSize: 13,
-                fontWeight: 700,
-                color: '#6B7280',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-              }}>
-                <span>🔒</span>
-                Exit Sign · Exit Logic
-              </div>
-              <div style={{
-                fontSize: 18,
-                fontWeight: 900,
-                color: '#9CA3AF',
-              }}>
-                12<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Trap - LOCKED */}
-          <div style={{
-            padding: 16,
-            background: '#F9FAFB',
-            border: '1px solid #E5E7EB',
-            borderRadius: 8,
-            opacity: 0.6,
-          }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}>
-              <div style={{
-                fontSize: 13,
-                fontWeight: 700,
-                color: '#6B7280',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-              }}>
-                <span>🔒</span>
-                Trap · Risk
-              </div>
-              <div style={{
-                fontSize: 18,
-                fontWeight: 900,
-                color: '#9CA3AF',
-              }}>
-                10<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
-              </div>
+              Prestige of escape disguised as opportunity — you are leaving because the current role feels stale, not because this opportunity is objectively exceptional. Boredom is not a thesis.
             </div>
           </div>
         </div>
