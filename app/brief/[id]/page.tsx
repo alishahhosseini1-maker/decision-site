@@ -226,6 +226,269 @@ export default async function SharedBriefPage({ params }: { params: { id: string
           </div>
         )}
 
+        {/* IF YOU WAIT */}
+        {decision.if_delayed && (
+          <div style={{
+            background: '#fff',
+            border: '1px solid rgba(0,0,0,0.1)',
+            borderRadius: 12,
+            padding: 24,
+            marginBottom: 24,
+          }}>
+            <div style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: '#6B7280',
+              marginBottom: 12,
+            }}>
+              If You Wait
+            </div>
+            <div style={{
+              fontSize: 15,
+              lineHeight: 1.7,
+              color: '#1E1C1A',
+            }}>
+              {decision.if_delayed}
+            </div>
+          </div>
+        )}
+
+        {/* WHAT OTHERS MAY MISS */}
+        {decision.what_others_miss && (
+          <div style={{
+            background: '#0E0C0A',
+            color: '#F1EFE8',
+            borderRadius: 12,
+            padding: 24,
+            marginBottom: 24,
+          }}>
+            <div style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: '#9CA3AF',
+              marginBottom: 12,
+            }}>
+              What Others May Miss
+            </div>
+            <div style={{
+              fontSize: 15,
+              lineHeight: 1.7,
+              fontStyle: 'italic',
+              fontWeight: 500,
+            }}>
+              {decision.what_others_miss}
+            </div>
+          </div>
+        )}
+
+        {/* WHAT TO SAY */}
+        {decision.script && (
+          <div style={{
+            background: '#fff',
+            border: '1px solid rgba(0,0,0,0.1)',
+            borderRadius: 12,
+            padding: 24,
+            marginBottom: 24,
+          }}>
+            <div style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: '#6B7280',
+              marginBottom: 12,
+            }}>
+              What to Say
+            </div>
+            <div style={{
+              fontSize: 15,
+              lineHeight: 1.7,
+              color: '#1E1C1A',
+              fontStyle: 'italic',
+            }}>
+              {decision.script}
+            </div>
+          </div>
+        )}
+
+        {/* WALK AWAY IF */}
+        {decision.tripwire && (
+          <div style={{
+            background: '#fff',
+            border: '1px solid rgba(0,0,0,0.1)',
+            borderRadius: 12,
+            padding: 24,
+            marginBottom: 24,
+          }}>
+            <div style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: '#6B7280',
+              marginBottom: 12,
+            }}>
+              Walk Away If
+            </div>
+            <div style={{
+              fontSize: 15,
+              lineHeight: 1.7,
+              color: '#1E1C1A',
+              fontWeight: 600,
+            }}>
+              {decision.tripwire}
+            </div>
+          </div>
+        )}
+
+        {/* EVIDENCE */}
+        {(decision.door || decision.hinge || decision.lock || decision.trap || decision.exit) && (
+          <div style={{
+            background: '#fff',
+            border: '1px solid rgba(0,0,0,0.1)',
+            borderRadius: 12,
+            padding: 24,
+            marginBottom: 24,
+          }}>
+            <div style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: '#6B7280',
+              marginBottom: 16,
+            }}>
+              Evidence
+            </div>
+            <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+              {decision.door && (
+                <div style={{
+                  borderBottom: '1px solid rgba(0,0,0,0.06)',
+                  padding: '16px 0',
+                }}>
+                  <div style={{
+                    fontSize: 10,
+                    fontWeight: 500,
+                    letterSpacing: '0.13em',
+                    textTransform: 'uppercase',
+                    color: 'rgba(0,0,0,0.36)',
+                    marginBottom: 6,
+                  }}>
+                    The Decision
+                  </div>
+                  <div style={{
+                    fontSize: 14,
+                    lineHeight: 1.6,
+                    color: 'rgba(0,0,0,0.75)',
+                  }}>
+                    {decision.door}
+                  </div>
+                </div>
+              )}
+              {decision.hinge && (
+                <div style={{
+                  borderBottom: '1px solid rgba(0,0,0,0.06)',
+                  padding: '16px 0',
+                }}>
+                  <div style={{
+                    fontSize: 10,
+                    fontWeight: 500,
+                    letterSpacing: '0.13em',
+                    textTransform: 'uppercase',
+                    color: '#A32D2D',
+                    marginBottom: 6,
+                  }}>
+                    The Hinge
+                  </div>
+                  <div style={{
+                    fontSize: 14,
+                    lineHeight: 1.6,
+                    color: '#1E1C1A',
+                    fontWeight: 500,
+                  }}>
+                    {decision.hinge}
+                  </div>
+                </div>
+              )}
+              {decision.lock && (
+                <div style={{
+                  borderBottom: '1px solid rgba(0,0,0,0.06)',
+                  padding: '16px 0',
+                }}>
+                  <div style={{
+                    fontSize: 10,
+                    fontWeight: 500,
+                    letterSpacing: '0.13em',
+                    textTransform: 'uppercase',
+                    color: 'rgba(0,0,0,0.36)',
+                    marginBottom: 6,
+                  }}>
+                    What Can&apos;t Be Undone
+                  </div>
+                  <div style={{
+                    fontSize: 14,
+                    lineHeight: 1.6,
+                    color: 'rgba(0,0,0,0.75)',
+                  }}>
+                    {decision.lock}
+                  </div>
+                </div>
+              )}
+              {decision.exit && (
+                <div style={{
+                  borderBottom: '1px solid rgba(0,0,0,0.06)',
+                  padding: '16px 0',
+                }}>
+                  <div style={{
+                    fontSize: 10,
+                    fontWeight: 500,
+                    letterSpacing: '0.13em',
+                    textTransform: 'uppercase',
+                    color: 'rgba(0,0,0,0.36)',
+                    marginBottom: 6,
+                  }}>
+                    Exit Condition
+                  </div>
+                  <div style={{
+                    fontSize: 14,
+                    lineHeight: 1.6,
+                    color: 'rgba(0,0,0,0.75)',
+                  }}>
+                    {decision.exit}
+                  </div>
+                </div>
+              )}
+              {decision.trap && (
+                <div style={{
+                  padding: '16px 0',
+                }}>
+                  <div style={{
+                    fontSize: 10,
+                    fontWeight: 500,
+                    letterSpacing: '0.13em',
+                    textTransform: 'uppercase',
+                    color: 'rgba(0,0,0,0.36)',
+                    marginBottom: 6,
+                  }}>
+                    Hidden Trap
+                  </div>
+                  <div style={{
+                    fontSize: 14,
+                    lineHeight: 1.6,
+                    color: 'rgba(0,0,0,0.75)',
+                  }}>
+                    {decision.trap}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Final Verdict */}
         {decision.verdict && (
           <div style={{
