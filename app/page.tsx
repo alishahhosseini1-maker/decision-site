@@ -588,7 +588,6 @@ export default function HomePage() {
   const snapshotRef = useRef<HTMLDivElement | null>(null);
   const decisionInputRef = useRef<HTMLTextAreaElement | null>(null);
   const contextInputRef = useRef<HTMLTextAreaElement | null>(null);
-  const contextDetailsRef = useRef<HTMLDetailsElement | null>(null);
   const verdictRef = useRef<HTMLDivElement | null>(null);
   const teamPreviewRef = useRef<HTMLDivElement | null>(null);
   const isSavingRef = useRef(false);
@@ -2254,19 +2253,6 @@ export default function HomePage() {
     padding: '10px 12px',
   };
 
-  const summaryStyle: React.CSSProperties = {
-    cursor: 'pointer',
-    listStyle: 'none',
-    outline: 'none',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    fontSize: 14,
-    fontWeight: 700,
-    opacity: 0.95,
-    fontFamily: sans,
-  };
-
   const modeCardBase: React.CSSProperties = {
     flex: 1,
     borderRadius: 14,
@@ -2318,7 +2304,6 @@ export default function HomePage() {
 
   const decisionPlaceholder = 'launch · invest · hire · pivot · exit';
   const contextPlaceholder = "stakes · deadline · who's affected · what you're risking";
-  const optionalDetailsLabel = '▶ Any details I should know (optional)';
 
   // ─── Render ───────────────────────────────────────────────────────────────────
 
@@ -3002,59 +2987,42 @@ export default function HomePage() {
                         {decisionError}
                       </div>
                     )}
-                    {!hasStarted && (
-                      <div
-                        style={{
-                          marginTop: 8,
-                          fontSize: 12,
-                          lineHeight: 1.6,
-                          color: 'rgba(0,0,0,0.42)',
-                          borderLeft: '2px solid rgba(0,0,0,0.10)',
-                          paddingLeft: 9,
-                        }}
-                      >
-                        Gaps in context become gaps in the verdict.
+                  </div>
+
+                  <div>
+                    <textarea
+                      ref={contextInputRef}
+                      value={context}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setContext(value);
+                        // Auto-save draft to localStorage
+                        try {
+                          localStorage.setItem('dl_draft_context', value);
+                        } catch (err) {
+                          // Ignore localStorage errors (incognito mode, quota exceeded)
+                        }
+                      }}
+                      rows={4}
+                      placeholder={contextPlaceholder}
+                      style={{ ...inputStyle, minHeight: 112, resize: 'vertical' }}
+                    />
+                    {context.length > 0 && context.length <= 50 && (
+                      <div style={{ marginTop: 6, fontSize: 11, color: 'rgba(0,0,0,0.38)' }}>
+                        Vague context = vague verdict. Add what&apos;s actually at stake.
+                      </div>
+                    )}
+                    {context.length > 50 && context.length <= 150 && (
+                      <div style={{ marginTop: 6, fontSize: 11, color: 'rgba(0,0,0,0.38)' }}>
+                        Getting there. Add a number, a deadline, or who else is affected.
+                      </div>
+                    )}
+                    {context.length > 150 && (
+                      <div style={{ marginTop: 6, fontSize: 11, color: 'rgba(0,0,0,0.38)' }}>
+                        This is enough to work with.
                       </div>
                     )}
                   </div>
-
-                  <details ref={contextDetailsRef} style={detailStyle} open>
-                    <summary style={summaryStyle}>{optionalDetailsLabel}</summary>
-                    <div style={{ paddingTop: 12 }}>
-                      <textarea
-                        ref={contextInputRef}
-                        value={context}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          setContext(value);
-                          // Auto-save draft to localStorage
-                          try {
-                            localStorage.setItem('dl_draft_context', value);
-                          } catch (err) {
-                            // Ignore localStorage errors (incognito mode, quota exceeded)
-                          }
-                        }}
-                        rows={4}
-                        placeholder={contextPlaceholder}
-                        style={{ ...inputStyle, minHeight: 112, resize: 'vertical' }}
-                      />
-                      {context.length > 0 && context.length <= 50 && (
-                        <div style={{ marginTop: 6, fontSize: 11, color: 'rgba(0,0,0,0.38)' }}>
-                          Vague context = vague verdict. Add what&apos;s actually at stake.
-                        </div>
-                      )}
-                      {context.length > 50 && context.length <= 150 && (
-                        <div style={{ marginTop: 6, fontSize: 11, color: 'rgba(0,0,0,0.38)' }}>
-                          Getting there. Add a number, a deadline, or who else is affected.
-                        </div>
-                      )}
-                      {context.length > 150 && (
-                        <div style={{ marginTop: 6, fontSize: 11, color: 'rgba(0,0,0,0.38)' }}>
-                          This is enough to work with.
-                        </div>
-                      )}
-                    </div>
-                  </details>
 
                   {apiError && (
                     <div
