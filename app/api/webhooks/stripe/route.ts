@@ -49,12 +49,32 @@ export async function POST(req: Request) {
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session;
 
+      console.log('[webhook] Checkout session completed');
+      console.log('[webhook] Session details:', {
+        id: session.id,
+        payment_status: session.payment_status,
+        customer_email: session.customer_email,
+        customer_details_email: session.customer_details?.email,
+        metadata: session.metadata,
+        metadata_decision_id: session.metadata?.decision_id,
+      });
+
       if (session.payment_status === 'paid') {
         const decisionId = session.metadata?.decision_id;
         const customerEmail = session.customer_email || session.customer_details?.email;
 
+        console.log('[webhook] Extracted data:', {
+          decisionId,
+          customerEmail,
+          hasDecisionId: !!decisionId,
+          hasEmail: !!customerEmail,
+        });
+
         if (!decisionId || !customerEmail) {
           console.error('[webhook] Missing decision ID or email');
+          console.error('[webhook] Debug - metadata:', JSON.stringify(session.metadata));
+          console.error('[webhook] Debug - customer_email:', session.customer_email);
+          console.error('[webhook] Debug - customer_details:', JSON.stringify(session.customer_details));
           return NextResponse.json({ error: 'Missing required data' }, { status: 400 });
         }
 

@@ -38,32 +38,29 @@ export async function POST(req: Request) {
         .eq('stripe_session_id', sessionId)
         .single();
 
-      // If user_id exists, generate a token for returning user
+      // If user_id exists, generate temporary credentials for returning user
       let authSession = null;
       if (existing.user_id && existing.customer_email) {
         try {
-          const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
-            type: 'magiclink',
-            email: existing.customer_email,
+          const tempPassword = `temp_${Math.random().toString(36).slice(2)}_${Date.now()}`;
+          console.log('[verify] Generating temporary password for existing user');
+
+          const { error: updateError } = await supabase.auth.admin.updateUserById(existing.user_id, {
+            password: tempPassword,
           });
 
-          if (!linkError && linkData) {
+          if (!updateError) {
             authSession = {
-              access_token: linkData.properties?.hashed_token || '',
               email: existing.customer_email,
-              token_type: 'magiclink',
+              password: tempPassword,
+              type: 'password',
             };
-            console.log('[verify] Generated token for existing user');
-            console.log('[verify] Existing user token details:', {
-              hasToken: !!authSession.access_token,
-              tokenLength: authSession.access_token?.length,
-              email: authSession.email,
-            });
+            console.log('[verify] Generated credentials for existing user');
           } else {
-            console.log('[verify] Failed to generate token for existing user:', linkError);
+            console.log('[verify] Failed to update password for existing user:', updateError);
           }
         } catch (authErr) {
-          console.error('[verify] Failed to generate token for existing user:', authErr);
+          console.error('[verify] Failed to generate credentials for existing user:', authErr);
         }
       }
 
@@ -74,9 +71,9 @@ export async function POST(req: Request) {
         hasAccount: !!existing.user_id,
         decisionId: paymentData?.decision_id,
         session: authSession ? {
-          token: authSession.access_token,
           email: authSession.email,
-          type: authSession.token_type,
+          password: authSession.password,
+          type: authSession.type,
         } : null,
       };
 
@@ -84,7 +81,7 @@ export async function POST(req: Request) {
         verified: existingResponse.verified,
         hasAccount: existingResponse.hasAccount,
         hasSession: !!existingResponse.session,
-        sessionHasToken: !!existingResponse.session?.token,
+        sessionHasPassword: !!existingResponse.session?.password,
       });
 
       return NextResponse.json(existingResponse);
@@ -147,11 +144,15 @@ export async function POST(req: Request) {
 
     console.log('[verify] Payment recorded successfully!', insertData);
 
-    // Create or get Supabase user and generate session
+    // Create or get Supabase user and generate temporary credentials for auto-authentication
     console.log('[verify] Creating/getting Supabase user for auto-authentication...');
     let authSession = null;
 
     try {
+      // Generate a random temporary password
+      const tempPassword = `temp_${Math.random().toString(36).slice(2)}_${Date.now()}`;
+      console.log('[verify] Generated temporary password for auto-signin');
+
       // Get or create user by email
       const { data: usersData } = await supabase.auth.admin.listUsers();
       const existingUser = usersData?.users?.find(u => u.email === customerEmail);
@@ -159,10 +160,11 @@ export async function POST(req: Request) {
       let userId: string;
 
       if (!existingUser) {
-        // User doesn't exist, create them
-        console.log('[verify] User not found, creating new user...');
+        // User doesn't exist, create them with temporary password
+        console.log('[verify] User not found, creating new user with password...');
         const { data: newUserData, error: createError } = await supabase.auth.admin.createUser({
           email: customerEmail,
+          password: tempPassword,
           email_confirm: true, // Auto-confirm email since they paid
         });
 
@@ -174,34 +176,29 @@ export async function POST(req: Request) {
         userId = newUserData.user.id;
         console.log('[verify] Created new user:', userId);
       } else {
+        // User exists, update their password to the temporary one
         userId = existingUser.id;
-        console.log('[verify] Found existing user:', userId);
+        console.log('[verify] Found existing user, updating password...');
+
+        const { error: updateError } = await supabase.auth.admin.updateUserById(userId, {
+          password: tempPassword,
+        });
+
+        if (updateError) {
+          console.error('[verify] Failed to update user password:', updateError);
+          throw updateError;
+        }
+
+        console.log('[verify] Updated existing user password');
       }
 
-      // Generate magic link token for the user (compatible with Supabase v2.x)
-      const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
-        type: 'magiclink',
-        email: customerEmail,
-      });
-
-      if (linkError || !linkData) {
-        console.error('[verify] Failed to generate magic link:', linkError);
-        throw linkError;
-      }
-
-      // Extract the token from the hashed_token property
+      // Return credentials for frontend to use signInWithPassword
       authSession = {
-        access_token: linkData.properties?.hashed_token || '',
         email: customerEmail,
-        token_type: 'magiclink',
+        password: tempPassword,
+        type: 'password',
       };
-      console.log('[verify] Generated auth token successfully');
-      console.log('[verify] Auth token details:', {
-        hasToken: !!authSession.access_token,
-        tokenLength: authSession.access_token?.length,
-        email: authSession.email,
-        type: authSession.token_type,
-      });
+      console.log('[verify] Generated auth credentials successfully');
 
       // Update the payment record with user_id
       await supabase
@@ -220,9 +217,9 @@ export async function POST(req: Request) {
       hasAccount: !!authSession,
       decisionId: decisionId,
       session: authSession ? {
-        token: authSession.access_token,
         email: authSession.email,
-        type: authSession.token_type,
+        password: authSession.password,
+        type: authSession.type,
       } : null,
     };
 
@@ -230,7 +227,7 @@ export async function POST(req: Request) {
       verified: response.verified,
       hasAccount: response.hasAccount,
       hasSession: !!response.session,
-      sessionHasToken: !!response.session?.token,
+      sessionHasPassword: !!response.session?.password,
       decisionId: response.decisionId,
     });
 

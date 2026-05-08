@@ -689,9 +689,8 @@ export default function HomePage() {
           console.log('[Verification] Verify response received:', {
             verified: data.verified,
             hasSession: !!data.session,
-            sessionHasToken: !!data.session?.token,
+            sessionHasPassword: !!data.session?.password,
             sessionHasEmail: !!data.session?.email,
-            tokenLength: data.session?.token?.length,
             email: data.session?.email,
             hasAccount: data.hasAccount,
           });
@@ -699,25 +698,19 @@ export default function HomePage() {
           if (res.ok && data.verified) {
             console.log('[Verification] Payment verified successfully');
 
-            // Auto-sign-in user if auth token is provided
-            if (data.session && data.session.token && data.session.email) {
-              console.log('[Verification] Auto-signing in user with magic link token');
-              console.log('[Verification] Token details:', {
-                tokenLength: data.session.token.length,
-                email: data.session.email,
-                type: data.session.type,
-              });
+            // Auto-sign-in user if credentials are provided
+            if (data.session && data.session.password && data.session.email) {
+              console.log('[Verification] Auto-signing in user with temporary credentials');
 
               try {
-                const { data: authData, error: authError } = await supabase.auth.verifyOtp({
+                const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
                   email: data.session.email,
-                  token: data.session.token,
-                  type: 'magiclink',
+                  password: data.session.password,
                 });
 
                 if (authError) {
-                  console.error('[Verification] Failed to verify OTP:', authError);
-                  console.error('[Verification] OTP error details:', {
+                  console.error('[Verification] Failed to sign in:', authError);
+                  console.error('[Verification] Sign-in error details:', {
                     message: authError.message,
                     status: authError.status,
                     name: authError.name,
@@ -731,10 +724,10 @@ export default function HomePage() {
                   });
                 }
               } catch (authErr) {
-                console.error('[Verification] Error verifying OTP:', authErr);
+                console.error('[Verification] Error signing in:', authErr);
               }
             } else {
-              console.warn('[Verification] No session data provided for auto-sign-in');
+              console.warn('[Verification] No session credentials provided for auto-sign-in');
               console.warn('[Verification] Session object:', data.session);
             }
 

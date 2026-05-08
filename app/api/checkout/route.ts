@@ -37,6 +37,8 @@ export async function POST(req: Request) {
         },
       ],
       customer_creation: 'always',
+      customer_email: undefined, // Let Stripe collect it
+      billing_address_collection: 'auto',
       allow_promotion_codes: true,
       success_url: `${appUrl}/?decision_id=${decisionId}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/?decision_id=${decisionId}`,
