@@ -3225,87 +3225,73 @@ export default function HomePage() {
                       fontWeight: 600,
                       letterSpacing: '0.1em',
                       textTransform: 'uppercase',
-                      color: '#16A34A',
+                      color: '#6B7280',
                       marginBottom: 16,
                     }}>
-                      ONE LAYER, FREE
+                      DECISION QUALITY BREAKDOWN
                     </div>
 
-                    {/* Door - Clarity (FREE) */}
-                    <div style={{
-                      padding: 16,
-                      background: '#F0FDF4',
-                      border: '1px solid #86EFAC',
-                      borderRadius: 8,
-                      marginBottom: 12,
-                    }}>
-                      <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                      }}>
-                        <div style={{
-                          fontFamily: sans,
-                          fontSize: 13,
-                          fontWeight: 700,
-                          color: '#166534',
-                        }}>
-                          Door · Clarity
-                        </div>
-                        <div style={{
-                          fontFamily: sans,
-                          fontSize: 18,
-                          fontWeight: 900,
-                          color: '#166534',
-                        }}>
-                          {reviewResult.readiness.clarity}<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
-                        </div>
-                      </div>
-                    </div>
+                    {(() => {
+                      // Find the dimension with the lowest score
+                      const dimensions = [
+                        { name: 'Clarity', score: reviewResult.readiness.clarity, rationale: reviewResult.readiness.rationale?.clarity },
+                        { name: 'Assumptions', score: reviewResult.readiness.assumptions, rationale: reviewResult.readiness.rationale?.assumptions },
+                        { name: 'Reversibility', score: reviewResult.readiness.reversibility, rationale: reviewResult.readiness.rationale?.reversibility },
+                        { name: 'Risk', score: reviewResult.readiness.risk, rationale: reviewResult.readiness.rationale?.risk },
+                        { name: 'Exit Logic', score: reviewResult.readiness.exitLogic, rationale: reviewResult.readiness.rationale?.exitLogic },
+                      ];
 
-                    {/* Remaining 4 layers - LOCKED */}
-                    {[
-                      { name: 'Hinge · Assumptions', icon: '🔒' },
-                      { name: 'Lock · Reversibility', icon: '🔒' },
-                      { name: 'Exit Sign · Exit Logic', icon: '🔒' },
-                      { name: 'Trap · Risk', icon: '🔒' },
-                    ].map((layer, i) => (
-                      <div key={i} style={{
-                        padding: 16,
-                        background: '#F9FAFB',
-                        border: '1px solid #E5E7EB',
-                        borderRadius: 8,
-                        marginBottom: i < 3 ? 12 : 0,
-                        opacity: 0.6,
-                      }}>
-                        <div style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                        }}>
-                          <div style={{
-                            fontFamily: sans,
-                            fontSize: 13,
-                            fontWeight: 700,
-                            color: '#6B7280',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 8,
+                      const lowestScore = Math.min(...dimensions.map(d => d.score));
+                      const lowestDimension = dimensions.find(d => d.score === lowestScore);
+
+                      return dimensions.map((dimension, i) => {
+                        const isLowest = dimension.name === lowestDimension?.name;
+
+                        return (
+                          <div key={i} style={{
+                            padding: 16,
+                            background: isLowest ? '#FEF2F2' : '#fff',
+                            border: isLowest ? '1px solid #FCA5A5' : '1px solid rgba(0,0,0,0.1)',
+                            borderRadius: 8,
+                            marginBottom: i < 4 ? 12 : 0,
                           }}>
-                            <span>{layer.icon}</span>
-                            {layer.name}
+                            <div style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              marginBottom: isLowest && dimension.rationale ? 12 : 0,
+                            }}>
+                              <div style={{
+                                fontFamily: sans,
+                                fontSize: 13,
+                                fontWeight: 700,
+                                color: isLowest ? '#991B1B' : '#1E1C1A',
+                              }}>
+                                {dimension.name}
+                              </div>
+                              <div style={{
+                                fontFamily: sans,
+                                fontSize: 18,
+                                fontWeight: 900,
+                                color: isLowest ? '#DC2626' : '#1E1C1A',
+                              }}>
+                                {dimension.score}<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
+                              </div>
+                            </div>
+                            {isLowest && dimension.rationale && (
+                              <div style={{
+                                fontFamily: sans,
+                                fontSize: 13,
+                                lineHeight: 1.6,
+                                color: '#7F1D1D',
+                              }}>
+                                {dimension.rationale}
+                              </div>
+                            )}
                           </div>
-                          <div style={{
-                            fontFamily: sans,
-                            fontSize: 18,
-                            fontWeight: 900,
-                            color: '#9CA3AF',
-                          }}>
-                            —<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                        );
+                      });
+                    })()}
                   </div>
                   )}
 
