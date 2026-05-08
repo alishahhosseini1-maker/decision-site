@@ -50,6 +50,9 @@ export async function GET(req: Request) {
       console.log('[load-recent] Commitment:', data.commitment ? 'Has commitment' : 'null (unlocked)');
       console.log('[load-recent] User ID:', data.user_id);
       console.log('[load-recent] Created at:', data.created_at);
+      console.log('[load-recent] Has review_result?:', !!data.review_result);
+      console.log('[load-recent] Has verdict?:', !!data.verdict);
+      console.log('[load-recent] FULL DATA OBJECT:', JSON.stringify(data, null, 2));
     }
 
     if (!data) {
@@ -58,7 +61,7 @@ export async function GET(req: Request) {
     }
 
     // Return the full decision data for restoration
-    return NextResponse.json({
+    const responsePayload = {
       id: data.id,
       decision: data.decision,
       context: data.context,
@@ -91,7 +94,15 @@ export async function GET(req: Request) {
       finalThoughts: data.final_thoughts,
       reviewResult: data.review_result,
       requestKey: data.request_key,
-    });
+    };
+
+    console.log('[load-recent] 📤 Returning payload:');
+    console.log('[load-recent]   - id:', responsePayload.id);
+    console.log('[load-recent]   - decision:', responsePayload.decision?.slice(0, 50));
+    console.log('[load-recent]   - reviewResult exists?:', !!responsePayload.reviewResult);
+    console.log('[load-recent]   - verdict exists?:', !!responsePayload.verdict);
+
+    return NextResponse.json(responsePayload);
   } catch (err) {
     console.error('[load-recent] Error:', err);
     return NextResponse.json(
