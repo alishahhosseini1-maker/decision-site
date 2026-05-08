@@ -3446,18 +3446,6 @@ export default function HomePage() {
                           >
                             See exactly what&apos;s missing.
                           </div>
-                          <div
-                            style={{
-                              fontFamily: sans,
-                              fontSize: 15,
-                              fontWeight: 400,
-                              color: '#D3D1C7',
-                              marginBottom: '2rem',
-                              lineHeight: 1.6,
-                            }}
-                          >
-                            The exact move, the condition that makes this safe, and the one assumption this decision depends on.
-                          </div>
 
                           {/* Value props row */}
                           <div style={{
