@@ -2853,14 +2853,31 @@ export default function HomePage() {
                   border:
                     mode === 'solo'
                       ? '1px solid rgba(0,0,0,0.22)'
-                      : '1px solid rgba(0,0,0,0.10)',
-                  background: mode === 'solo' ? '#ffffff' : 'rgba(255,255,255,0.55)',
+                      : '1px solid rgba(0,0,0,0.16)',
+                  background: mode === 'solo' ? '#ffffff' : 'rgba(255,255,255,0.65)',
                   boxShadow:
                     mode === 'solo'
                       ? '0 10px 24px rgba(0,0,0,0.06)'
-                      : '0 4px 12px rgba(0,0,0,0.02)',
+                      : '0 6px 16px rgba(0,0,0,0.04)',
+                  position: 'relative',
                 }}
               >
+                <div style={{
+                  position: 'absolute',
+                  top: 10,
+                  right: 12,
+                  fontSize: 9,
+                  fontWeight: 700,
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase',
+                  color: '#16A34A',
+                  background: '#F0FDF4',
+                  border: '1px solid #BBF7D0',
+                  padding: '2px 6px',
+                  borderRadius: 4,
+                }}>
+                  Most popular
+                </div>
                 <div style={{ fontSize: 18, marginBottom: 6 }}>👤</div>
                 <div style={{ fontSize: 14, fontWeight: 800 }}>Solo Decision</div>
                 <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68, lineHeight: 1.45 }}>
