@@ -1136,8 +1136,7 @@ export default function HomePage() {
         });
 
         if (saveRes.ok) {
-          const saveData = await saveRes.json();
-          if (saveData?.id) setDecisionId(saveData.id);
+          // DO NOT set decisionId - only set when user actually locks the verdict
           try { localStorage.removeItem(STORAGE.pendingSoloReview); } catch { /* ignore */ }
           setSavedToast('Decision saved to history');
         }
@@ -1998,10 +1997,11 @@ export default function HomePage() {
           const saveData = await saveRes.json();
 
           if (saveRes.ok && saveData?.id) {
-            setDecisionId(saveData.id);
+            // DO NOT set decisionId here - that would make the lock button appear locked
+            // decisionId should only be set when user actually locks/commits the verdict
             console.log('[Auto-save] ✅ Verdict saved successfully');
             console.log('[Auto-save] Decision ID:', saveData.id);
-            console.log('[Auto-save] This should be restored on next page load');
+            console.log('[Auto-save] Verdict is saved but NOT locked - user can still lock it');
           } else {
             console.error('[Auto-save] ❌ Failed to save verdict:', saveData?.error);
           }
