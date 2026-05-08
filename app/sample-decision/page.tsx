@@ -167,8 +167,8 @@ export default function SampleDecisionPage() {
           {/* Door */}
           <div style={{
             padding: 16,
-            background: '#FEF2F2',
-            border: '1px solid #FECACA',
+            background: '#FAFAFA',
+            border: '1px solid #E5E5E5',
             borderRadius: 8,
             marginBottom: 12,
           }}>
@@ -180,14 +180,14 @@ export default function SampleDecisionPage() {
               <div style={{
                 fontSize: 13,
                 fontWeight: 700,
-                color: '#DC2626',
+                color: '#737373',
               }}>
                 Door · Clarity
               </div>
               <div style={{
                 fontSize: 18,
                 fontWeight: 900,
-                color: '#DC2626',
+                color: '#737373',
               }}>
                 10<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
               </div>
@@ -197,8 +197,8 @@ export default function SampleDecisionPage() {
           {/* Hinge */}
           <div style={{
             padding: 16,
-            background: '#FEF2F2',
-            border: '1px solid #FECACA',
+            background: '#FAFAFA',
+            border: '1px solid #E5E5E5',
             borderRadius: 8,
             marginBottom: 12,
           }}>
@@ -210,14 +210,14 @@ export default function SampleDecisionPage() {
               <div style={{
                 fontSize: 13,
                 fontWeight: 700,
-                color: '#DC2626',
+                color: '#737373',
               }}>
                 Hinge · Assumptions
               </div>
               <div style={{
                 fontSize: 18,
                 fontWeight: 900,
-                color: '#DC2626',
+                color: '#737373',
               }}>
                 7<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
               </div>
@@ -227,8 +227,8 @@ export default function SampleDecisionPage() {
           {/* Lock */}
           <div style={{
             padding: 16,
-            background: '#FEF2F2',
-            border: '1px solid #FECACA',
+            background: '#FAFAFA',
+            border: '1px solid #E5E5E5',
             borderRadius: 8,
             marginBottom: 12,
           }}>
@@ -240,14 +240,14 @@ export default function SampleDecisionPage() {
               <div style={{
                 fontSize: 13,
                 fontWeight: 700,
-                color: '#DC2626',
+                color: '#737373',
               }}>
                 Lock · Reversibility
               </div>
               <div style={{
                 fontSize: 18,
                 fontWeight: 900,
-                color: '#DC2626',
+                color: '#737373',
               }}>
                 5<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
               </div>
@@ -257,8 +257,8 @@ export default function SampleDecisionPage() {
           {/* Exit Sign */}
           <div style={{
             padding: 16,
-            background: '#FEF2F2',
-            border: '1px solid #FECACA',
+            background: '#FAFAFA',
+            border: '1px solid #E5E5E5',
             borderRadius: 8,
             marginBottom: 12,
           }}>
@@ -270,42 +270,27 @@ export default function SampleDecisionPage() {
               <div style={{
                 fontSize: 13,
                 fontWeight: 700,
-                color: '#DC2626',
+                color: '#737373',
               }}>
                 Exit Sign · Exit Logic
               </div>
               <div style={{
                 fontSize: 18,
                 fontWeight: 900,
-                color: '#DC2626',
+                color: '#737373',
               }}>
                 12<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
               </div>
             </div>
           </div>
 
-          {/* Trap - FREE LAYER */}
+          {/* Trap - Revealed Layer */}
           <div style={{
             padding: 16,
-            background: '#F0FDF4',
-            border: '2px solid #86EFAC',
+            background: '#fff',
+            border: '2px solid #404040',
             borderRadius: 8,
-            position: 'relative',
           }}>
-            <div style={{
-              position: 'absolute',
-              top: 8,
-              right: 8,
-              padding: '2px 8px',
-              background: '#16A34A',
-              color: '#fff',
-              fontSize: 9,
-              fontWeight: 700,
-              letterSpacing: '0.05em',
-              borderRadius: 4,
-            }}>
-              FREE
-            </div>
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
@@ -315,14 +300,14 @@ export default function SampleDecisionPage() {
               <div style={{
                 fontSize: 13,
                 fontWeight: 700,
-                color: '#166534',
+                color: '#1E1C1A',
               }}>
                 Trap · Risk
               </div>
               <div style={{
                 fontSize: 18,
                 fontWeight: 900,
-                color: '#166534',
+                color: '#1E1C1A',
               }}>
                 10<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
               </div>
@@ -330,9 +315,17 @@ export default function SampleDecisionPage() {
             <div style={{
               fontSize: 14,
               lineHeight: 1.5,
-              color: '#14532D',
+              color: '#1E1C1A',
+              marginBottom: 8,
             }}>
               Prestige of escape disguised as opportunity — you are leaving because the current role feels stale, not because this opportunity is objectively exceptional. Boredom is not a thesis.
+            </div>
+            <div style={{
+              fontSize: 11,
+              fontStyle: 'italic',
+              color: '#737373',
+            }}>
+              One layer revealed.
             </div>
           </div>
         </div>
@@ -527,7 +520,7 @@ export default function SampleDecisionPage() {
             fontWeight: 600,
             marginBottom: 12,
           }}>
-            Get your own decision verdict
+            Every decision has a blind spot. Find yours.
           </div>
           <Link href="/" style={{
             display: 'inline-block',
