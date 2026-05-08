@@ -1864,6 +1864,62 @@ export default function HomePage() {
         verdictRequested: true,
         verdict: nextVerdict,
       });
+
+      // Auto-save to database if user is authenticated and has paid
+      if (user && isUnlocked && reviewResult) {
+        console.log('[Auto-save] Saving paid verdict to database...');
+        try {
+          const saveRes = await fetch('/api/decision/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              decision,
+              context,
+              score: reviewResult?.readiness?.total ?? null,
+              clarity: reviewResult?.readiness?.clarity ?? null,
+              assumptions: reviewResult?.readiness?.assumptions ?? null,
+              reversibility: reviewResult?.readiness?.reversibility ?? null,
+              risk: reviewResult?.readiness?.risk ?? null,
+              exitLogic: reviewResult?.readiness?.exitLogic ?? null,
+              rationale_clarity: reviewResult?.readiness?.rationale?.clarity ?? null,
+              rationale_assumptions: reviewResult?.readiness?.rationale?.assumptions ?? null,
+              rationale_reversibility: reviewResult?.readiness?.rationale?.reversibility ?? null,
+              rationale_risk: reviewResult?.readiness?.rationale?.risk ?? null,
+              rationale_exit_logic: reviewResult?.readiness?.rationale?.exitLogic ?? null,
+              verdict: nextVerdict,
+              door: reviewResult?.snapshot?.door ?? null,
+              hinge: reviewResult?.snapshot?.hinge ?? null,
+              lock: reviewResult?.snapshot?.lock ?? null,
+              trap: reviewResult?.snapshot?.trap ?? null,
+              exit: reviewResult?.snapshot?.exit ?? null,
+              step: reviewResult?.snapshot?.step ?? null,
+              script: reviewResult?.snapshot?.script ?? null,
+              tripwire: reviewResult?.snapshot?.tripwire ?? null,
+              failure_modes: reviewResult?.snapshot?.failure_modes ?? null,
+              if_delayed: reviewResult?.snapshot?.if_delayed ?? null,
+              what_others_miss: reviewResult?.snapshot?.what_others_miss ?? null,
+              deep_review: deepReview ?? null,
+              final_thoughts: finalThoughts ?? null,
+              commitment: null, // Not committed yet
+              outcome_status: 'awaiting_outcome',
+              userId: user.id,
+              requestKey,
+            }),
+          });
+
+          const saveData = await saveRes.json();
+
+          if (saveRes.ok && saveData?.id) {
+            setDecisionId(saveData.id);
+            console.log('[Auto-save] Verdict saved successfully, ID:', saveData.id);
+          } else {
+            console.error('[Auto-save] Failed to save verdict:', saveData?.error);
+          }
+        } catch (saveErr) {
+          console.error('[Auto-save] Error saving verdict:', saveErr);
+          // Don't show error to user - this is background save
+        }
+      }
     } catch {
       const fallbackVerdict = 'Not ready yet\n\nSomething went wrong. Try again.';
       setVerdict(fallbackVerdict);
@@ -3717,6 +3773,24 @@ export default function HomePage() {
                               marginBottom: 16,
                             }}
                           >
+                            {/* Saved banner */}
+                            {decisionId && (
+                              <div
+                                style={{
+                                  fontFamily: sans,
+                                  fontSize: 13,
+                                  color: '#86EFAC',
+                                  marginBottom: 16,
+                                  padding: '10px 12px',
+                                  background: 'rgba(134, 239, 172, 0.1)',
+                                  border: '1px solid rgba(134, 239, 172, 0.2)',
+                                  borderRadius: 8,
+                                }}
+                              >
+                                ✓ Your verdict is saved. Lock it below to commit to your next step.
+                              </div>
+                            )}
+
                             <div
                               style={{
                                 fontFamily: sans,
