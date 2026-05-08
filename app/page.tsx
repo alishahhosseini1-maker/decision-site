@@ -1124,8 +1124,7 @@ export default function HomePage() {
             what_others_miss: saved.reviewResult?.snapshot?.what_others_miss ?? null,
             deep_review: saved.deepReview ?? null,
             final_thoughts: saved.finalThoughts ?? null,
-            commitment: null,
-            locked: false,
+            commitment: null, // null means unlocked/not committed
             outcome_status: 'awaiting_outcome',
             userId,
             requestKey: saved.requestKey ?? null,
@@ -1985,8 +1984,7 @@ export default function HomePage() {
               what_others_miss: reviewResult?.snapshot?.what_others_miss ?? null,
               deep_review: deepReview ?? null,
               final_thoughts: finalThoughts ?? null,
-              commitment: null, // Not committed yet
-              locked: false, // Auto-save never locks
+              commitment: null, // Not committed yet - null means unlocked
               outcome_status: 'awaiting_outcome',
               userId: user.id,
               requestKey,
@@ -2083,8 +2081,7 @@ export default function HomePage() {
           what_others_miss: reviewResult?.snapshot?.what_others_miss ?? null,
           deep_review: deepReview ?? null,
           final_thoughts: finalThoughts ?? null,
-          commitment: commitment.trim() || null,
-          locked: true,
+          commitment: commitment.trim() || null, // Having a commitment means locked/committed
           outcome_status: 'awaiting_outcome',
           userId: user.id,
           requestKey,

@@ -19,20 +19,20 @@ export async function GET(req: Request) {
     }
 
     // Query for most recent unlocked verdict (less than 7 days old)
-    // If a decision has user_id and is not locked, user must have paid (otherwise it wouldn't be saved with user_id)
+    // A decision is "unlocked/not committed" when commitment is null
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     console.log('[load-recent] Query filters:');
     console.log('[load-recent]   - user_id =', userId);
-    console.log('[load-recent]   - locked = false (not committed yet)');
+    console.log('[load-recent]   - commitment IS NULL (not committed yet)');
     console.log('[load-recent]   - created_at >=', sevenDaysAgo.toISOString());
 
     const { data, error } = await supabase
       .from('decisions')
       .select('*')
       .eq('user_id', userId)
-      .eq('locked', false)
+      .is('commitment', null)
       .gte('created_at', sevenDaysAgo.toISOString())
       .order('created_at', { ascending: false })
       .limit(1)
@@ -47,7 +47,7 @@ export async function GET(req: Request) {
     if (data) {
       console.log('[load-recent] Decision ID:', data.id);
       console.log('[load-recent] Decision:', data.decision?.slice(0, 50));
-      console.log('[load-recent] Locked:', data.locked);
+      console.log('[load-recent] Commitment:', data.commitment ? 'Has commitment' : 'null (unlocked)');
       console.log('[load-recent] User ID:', data.user_id);
       console.log('[load-recent] Created at:', data.created_at);
     }
