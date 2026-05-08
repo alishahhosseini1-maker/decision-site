@@ -164,14 +164,29 @@ export default function SampleDecisionPage() {
             5 Layers
           </div>
 
-          {/* Door */}
+          {/* Door - FREE LAYER */}
           <div style={{
             padding: 16,
-            background: '#FEF2F2',
-            border: '1px solid #FECACA',
+            background: '#F0FDF4',
+            border: '2px solid #86EFAC',
             borderRadius: 8,
             marginBottom: 12,
+            position: 'relative',
           }}>
+            <div style={{
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              padding: '2px 8px',
+              background: '#16A34A',
+              color: '#fff',
+              fontSize: 9,
+              fontWeight: 700,
+              letterSpacing: '0.05em',
+              borderRadius: 4,
+            }}>
+              FREE
+            </div>
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
@@ -181,14 +196,14 @@ export default function SampleDecisionPage() {
               <div style={{
                 fontSize: 13,
                 fontWeight: 700,
-                color: '#DC2626',
+                color: '#166534',
               }}>
                 Door · Clarity
               </div>
               <div style={{
                 fontSize: 18,
                 fontWeight: 900,
-                color: '#DC2626',
+                color: '#166534',
               }}>
                 10<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
               </div>
@@ -196,160 +211,148 @@ export default function SampleDecisionPage() {
             <div style={{
               fontSize: 14,
               lineHeight: 1.5,
-              color: '#7F1D1D',
+              color: '#14532D',
             }}>
               &quot;Equity-for-stability trade&quot;
             </div>
           </div>
 
-          {/* Hinge */}
+          {/* Hinge - LOCKED */}
           <div style={{
             padding: 16,
-            background: '#FEF2F2',
-            border: '1px solid #FECACA',
+            background: '#F9FAFB',
+            border: '1px solid #E5E7EB',
             borderRadius: 8,
             marginBottom: 12,
+            opacity: 0.6,
           }}>
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: 8,
             }}>
               <div style={{
                 fontSize: 13,
                 fontWeight: 700,
-                color: '#DC2626',
+                color: '#6B7280',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
               }}>
+                <span>🔒</span>
                 Hinge · Assumptions
               </div>
               <div style={{
                 fontSize: 18,
                 fontWeight: 900,
-                color: '#DC2626',
+                color: '#9CA3AF',
               }}>
                 7<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
               </div>
             </div>
-            <div style={{
-              fontSize: 14,
-              lineHeight: 1.5,
-              color: '#7F1D1D',
-            }}>
-              &quot;Your 2% will not be diluted below 0.8% before a liquidity event&quot;
-            </div>
           </div>
 
-          {/* Lock */}
+          {/* Lock - LOCKED */}
           <div style={{
             padding: 16,
-            background: '#FEF2F2',
-            border: '1px solid #FECACA',
+            background: '#F9FAFB',
+            border: '1px solid #E5E7EB',
             borderRadius: 8,
             marginBottom: 12,
+            opacity: 0.6,
           }}>
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: 8,
             }}>
               <div style={{
                 fontSize: 13,
                 fontWeight: 700,
-                color: '#DC2626',
+                color: '#6B7280',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
               }}>
+                <span>🔒</span>
                 Lock · Reversibility
               </div>
               <div style={{
                 fontSize: 18,
                 fontWeight: 900,
-                color: '#DC2626',
+                color: '#9CA3AF',
               }}>
                 5<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
               </div>
             </div>
-            <div style={{
-              fontSize: 14,
-              lineHeight: 1.5,
-              color: '#7F1D1D',
-            }}>
-              &quot;You permanently exit the Series B career track and reset to early-stage compensation with no guarantee of liquidity&quot;
-            </div>
           </div>
 
-          {/* Exit Sign */}
+          {/* Exit Sign - LOCKED */}
           <div style={{
             padding: 16,
-            background: '#FEF2F2',
-            border: '1px solid #FECACA',
+            background: '#F9FAFB',
+            border: '1px solid #E5E7EB',
             borderRadius: 8,
             marginBottom: 12,
+            opacity: 0.6,
           }}>
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: 8,
             }}>
               <div style={{
                 fontSize: 13,
                 fontWeight: 700,
-                color: '#DC2626',
+                color: '#6B7280',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
               }}>
+                <span>🔒</span>
                 Exit Sign · Exit Logic
               </div>
               <div style={{
                 fontSize: 18,
                 fontWeight: 900,
-                color: '#DC2626',
+                color: '#9CA3AF',
               }}>
                 12<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
               </div>
             </div>
-            <div style={{
-              fontSize: 14,
-              lineHeight: 1.5,
-              color: '#7F1D1D',
-            }}>
-              &quot;If the startup has not hit Series A within 18 months or your equity is diluted below 1.2%, return to market immediately&quot;
-            </div>
           </div>
 
-          {/* Trap */}
+          {/* Trap - LOCKED */}
           <div style={{
             padding: 16,
-            background: '#FEF2F2',
-            border: '1px solid #FECACA',
+            background: '#F9FAFB',
+            border: '1px solid #E5E7EB',
             borderRadius: 8,
+            opacity: 0.6,
           }}>
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: 8,
             }}>
               <div style={{
                 fontSize: 13,
                 fontWeight: 700,
-                color: '#DC2626',
+                color: '#6B7280',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
               }}>
+                <span>🔒</span>
                 Trap · Risk
               </div>
               <div style={{
                 fontSize: 18,
                 fontWeight: 900,
-                color: '#DC2626',
+                color: '#9CA3AF',
               }}>
                 10<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
               </div>
-            </div>
-            <div style={{
-              fontSize: 14,
-              lineHeight: 1.5,
-              color: '#7F1D1D',
-            }}>
-              &quot;Prestige of escape disguised as opportunity — you are leaving a known trajectory for an unknown one because the current role feels stale, not because this opportunity is exceptional&quot;
             </div>
           </div>
         </div>
@@ -428,9 +431,11 @@ export default function SampleDecisionPage() {
           padding: 24,
         }}>
           <div style={{
-            fontSize: 18,
+            fontSize: 11,
             fontWeight: 700,
-            fontFamily: serif,
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            color: '#6B7280',
             marginBottom: 20,
           }}>
             Decision Brief
@@ -554,7 +559,7 @@ export default function SampleDecisionPage() {
             fontWeight: 600,
             textDecoration: 'none',
           }}>
-            Start Solo Decision
+            Start Solo Decision → free preview, $99 to unlock
           </Link>
         </div>
       </div>
