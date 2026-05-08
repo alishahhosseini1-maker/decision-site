@@ -863,7 +863,7 @@ export default function DecisionSummaryPage() {
 
         {/* ── SIGNAL: What matters now ── */}
         <section className="rounded-[20px] border-l-4 border-l-black border border-black/6 bg-[#f1f1ec] p-8 shadow-sm">
-          <p className="text-[10px] uppercase tracking-[0.22em] text-[#A32D2D]">THE THREAT</p>
+          <p className="text-[10px] uppercase tracking-[0.22em] text-[#A32D2D]">WHAT THIS DECISION IS MISSING</p>
           <h2 className="mt-3 text-2xl font-semibold leading-snug tracking-tight text-black md:text-[1.65rem]">
             {buildInsight(decision)}
           </h2>
@@ -1006,7 +1006,7 @@ export default function DecisionSummaryPage() {
 
         {/* ── WHAT TO SAY (SCRIPT) ── */}
         {decision.script?.trim() ? (
-          <details className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
+          <details open className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
             <summary className="cursor-pointer text-[10px] uppercase tracking-[0.18em] text-black/36 flex justify-between items-center list-none">
               WHAT TO SAY
               <span className="text-base text-black/28">▼</span>
@@ -1017,7 +1017,7 @@ export default function DecisionSummaryPage() {
 
         {/* ── WALK AWAY IF ── */}
         {decision.tripwire?.trim() ? (
-          <details className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
+          <details open className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
             <summary className="cursor-pointer text-[10px] uppercase tracking-[0.18em] text-black/36 flex justify-between items-center list-none">
               WALK AWAY IF
               <span className="text-base text-black/28">▼</span>
@@ -1027,7 +1027,7 @@ export default function DecisionSummaryPage() {
         ) : null}
 
         {/* ── EVIDENCE: Threat / Hinge / Trap ── */}
-        <details className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
+        <details open className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
           <summary className="cursor-pointer text-[10px] uppercase tracking-[0.18em] text-black/36 flex justify-between items-center list-none">
             Evidence
             <span className="text-base text-black/28">▼</span>
