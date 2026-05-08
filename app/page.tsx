@@ -2939,17 +2939,6 @@ export default function HomePage() {
                 <div style={{ marginBottom: 12 }}>
                   <div
                     style={{
-                      fontSize: 13,
-                      fontWeight: 900,
-                      letterSpacing: '0.06em',
-                      opacity: 0.58,
-                    }}
-                  >
-                    SOLO DECISION
-                  </div>
-                  <div
-                    style={{
-                      marginTop: 6,
                       fontFamily: serif,
                       fontSize: 22,
                       fontWeight: 400,
@@ -2990,6 +2979,9 @@ export default function HomePage() {
                   </div>
 
                   <div>
+                    <div style={{ fontSize: 12, color: '#6B7280', marginBottom: 6 }}>
+                      Context
+                    </div>
                     <textarea
                       ref={contextInputRef}
                       value={context}
@@ -3005,7 +2997,7 @@ export default function HomePage() {
                       }}
                       rows={4}
                       placeholder={contextPlaceholder}
-                      style={{ ...inputStyle, minHeight: 112, resize: 'vertical' }}
+                      style={{ ...inputStyle, minHeight: 124, resize: 'vertical' }}
                     />
                     {context.length > 0 && context.length <= 50 && (
                       <div style={{ marginTop: 6, fontSize: 11, color: 'rgba(0,0,0,0.38)' }}>
