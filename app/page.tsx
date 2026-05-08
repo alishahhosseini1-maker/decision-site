@@ -2879,7 +2879,7 @@ export default function HomePage() {
                 <div style={{ fontSize: 18, marginBottom: 6 }}>👤</div>
                 <div style={{ fontSize: 14, fontWeight: 800 }}>Solo Decision</div>
                 <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68, lineHeight: 1.45 }}>
-                  Get a verdict before you decide alone.
+                  Find the blind spot in your decision before it costs you.
                 </div>
               </button>
 
@@ -2905,7 +2905,7 @@ export default function HomePage() {
                 <div style={{ fontSize: 18, marginBottom: 6 }}>👥</div>
                 <div style={{ fontSize: 14, fontWeight: 800 }}>Team Review</div>
                 <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68, lineHeight: 1.45 }}>
-                  Get alignment before the call gets made.
+                  Surface what the room isn&apos;t saying before the decision is made.
                 </div>
               </button>
             </div>
@@ -2916,13 +2916,18 @@ export default function HomePage() {
                 href="/sample-decision"
                 style={{
                   fontFamily: sans,
-                  fontSize: 13,
-                  color: '#6B7280',
+                  fontSize: 15,
+                  fontWeight: 600,
+                  color: '#111',
                   textDecoration: 'none',
-                  transition: 'color 0.15s ease',
+                  padding: '8px 16px',
+                  background: 'rgba(0,0,0,0.04)',
+                  borderRadius: 8,
+                  display: 'inline-block',
+                  transition: 'background 0.15s ease',
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = '#1E1C1A'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = '#6B7280'; }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.08)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
               >
                 See a sample verdict →
               </a>
@@ -3068,6 +3073,9 @@ export default function HomePage() {
                   )}
 
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 0 }}>
+                    <div style={{ fontSize: 12, color: '#6B7280', fontStyle: 'italic', marginBottom: 8 }}>
+                      Free preview in seconds. Full verdict unlocks at $99.
+                    </div>
                     <button
                       type="button"
                       onClick={beginReview}
