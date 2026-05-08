@@ -1987,7 +1987,6 @@ export default function HomePage() {
               final_thoughts: finalThoughts ?? null,
               commitment: null, // Not committed yet
               locked: false, // Auto-save never locks
-              is_unlocked: true, // User has paid
               outcome_status: 'awaiting_outcome',
               userId: user.id,
               requestKey,

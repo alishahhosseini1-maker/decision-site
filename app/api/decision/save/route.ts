@@ -58,7 +58,6 @@ export async function POST(req: Request) {
       final_thoughts: body.final_thoughts ?? null,
       commitment: body.commitment ?? null,
       locked: body.locked ?? false,
-      is_unlocked: body.is_unlocked ?? false,
 
       outcome_status: 'awaiting_outcome',
       needs_follow_up: false,

@@ -18,14 +18,14 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'User ID required' }, { status: 400 });
     }
 
-    // Query for most recent unlocked, paid verdict (less than 7 days old)
+    // Query for most recent unlocked verdict (less than 7 days old)
+    // If a decision has user_id and is not locked, user must have paid (otherwise it wouldn't be saved with user_id)
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     console.log('[load-recent] Query filters:');
     console.log('[load-recent]   - user_id =', userId);
-    console.log('[load-recent]   - locked = false');
-    console.log('[load-recent]   - is_unlocked = true');
+    console.log('[load-recent]   - locked = false (not committed yet)');
     console.log('[load-recent]   - created_at >=', sevenDaysAgo.toISOString());
 
     const { data, error } = await supabase
@@ -33,7 +33,6 @@ export async function GET(req: Request) {
       .select('*')
       .eq('user_id', userId)
       .eq('locked', false)
-      .eq('is_unlocked', true)
       .gte('created_at', sevenDaysAgo.toISOString())
       .order('created_at', { ascending: false })
       .limit(1)
@@ -49,7 +48,7 @@ export async function GET(req: Request) {
       console.log('[load-recent] Decision ID:', data.id);
       console.log('[load-recent] Decision:', data.decision?.slice(0, 50));
       console.log('[load-recent] Locked:', data.locked);
-      console.log('[load-recent] Is unlocked:', data.is_unlocked);
+      console.log('[load-recent] User ID:', data.user_id);
       console.log('[load-recent] Created at:', data.created_at);
     }
 
