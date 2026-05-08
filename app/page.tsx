@@ -989,10 +989,9 @@ export default function HomePage() {
               console.log('[Restore] Checking conditions:');
               console.log('[Restore]   - data exists?:', !!data);
               console.log('[Restore]   - data.id exists?:', !!data?.id);
-              console.log('[Restore]   - data.reviewResult exists?:', !!data?.reviewResult);
               console.log('[Restore]   - data.verdict exists?:', !!data?.verdict);
 
-              if (data && data.id && data.reviewResult) {
+              if (data && data.id && data.verdict) {
                 console.log('[Restore] ✅ Found unlocked verdict, restoring...');
                 console.log('[Restore] Decision ID:', data.id);
                 console.log('[Restore] Decision:', data.decision?.slice(0, 50) + '...');
