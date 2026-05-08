@@ -956,8 +956,73 @@ export default function HomePage() {
         const params = new URLSearchParams(window.location.search);
         const hasSessionId = params.get('session_id');
 
-        // On regular page loads, don't restore anything
-        if (!hasSessionId) {
+        // If returning from payment, restore from localStorage
+        if (hasSessionId) {
+          const raw = localStorage.getItem(STORAGE.pendingSoloReview);
+          if (raw) {
+            const saved = JSON.parse(raw) as PendingSoloReview;
+
+            setDecision(saved.decision ?? '');
+            setContext(saved.context ?? '');
+            setReviewResult(saved.reviewResult ?? null);
+            setDeepReview(saved.deepReview ?? null);
+            setFinalThoughts(saved.finalThoughts ?? '');
+            setVerdictRequested(Boolean(saved.verdictRequested));
+            setVerdict(saved.verdict ?? null);
+            setRevealStage(saved.revealStage ?? 0);
+            setReflectionPrompts(saved.reflectionPrompts ?? []);
+            setHasStarted(Boolean(saved.reviewResult || saved.verdict || saved.deepReview));
+          }
+          return;
+        }
+
+        // On regular page loads, try to restore most recent unlocked verdict if user is authenticated
+        if (authUser?.id) {
+          fetch(`/api/decision/load-recent?userId=${authUser.id}`)
+            .then(res => res.json())
+            .then(data => {
+              if (data && data.id && data.reviewResult) {
+                // Restore full verdict state
+                setDecisionId(data.id);
+                setDecision(data.decision ?? '');
+                setContext(data.context ?? '');
+                setReviewResult(data.reviewResult);
+                setDeepReview(data.deepReview ?? null);
+                setFinalThoughts(data.finalThoughts ?? '');
+                setVerdictRequested(true);
+                setVerdict(data.verdict ?? null);
+                setHasStarted(true);
+                setRequestKey(data.requestKey ?? null);
+                setSavedToast('✓ Your verdict is saved. Lock it below to commit to your next step.');
+              } else {
+                // No recent unlocked verdict, show empty state
+                setDecision('');
+                setContext('');
+                setReviewResult(null);
+                setDeepReview(null);
+                setFinalThoughts('');
+                setVerdictRequested(false);
+                setVerdict(null);
+                setRevealStage(0);
+                setReflectionPrompts([]);
+                setHasStarted(false);
+              }
+            })
+            .catch(() => {
+              // On error, show empty state
+              setDecision('');
+              setContext('');
+              setReviewResult(null);
+              setDeepReview(null);
+              setFinalThoughts('');
+              setVerdictRequested(false);
+              setVerdict(null);
+              setRevealStage(0);
+              setReflectionPrompts([]);
+              setHasStarted(false);
+            });
+        } else {
+          // Not authenticated, show empty state
           setDecision('');
           setContext('');
           setReviewResult(null);
@@ -968,24 +1033,6 @@ export default function HomePage() {
           setRevealStage(0);
           setReflectionPrompts([]);
           setHasStarted(false);
-          return;
-        }
-
-        // Only restore on payment return
-        const raw = localStorage.getItem(STORAGE.pendingSoloReview);
-        if (raw) {
-          const saved = JSON.parse(raw) as PendingSoloReview;
-
-          setDecision(saved.decision ?? '');
-          setContext(saved.context ?? '');
-          setReviewResult(saved.reviewResult ?? null);
-          setDeepReview(saved.deepReview ?? null);
-          setFinalThoughts(saved.finalThoughts ?? '');
-          setVerdictRequested(Boolean(saved.verdictRequested));
-          setVerdict(saved.verdict ?? null);
-          setRevealStage(saved.revealStage ?? 0);
-          setReflectionPrompts(saved.reflectionPrompts ?? []);
-          setHasStarted(Boolean(saved.reviewResult || saved.verdict || saved.deepReview));
         }
       } catch {
         // ignore
