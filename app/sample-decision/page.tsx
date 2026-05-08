@@ -522,6 +522,14 @@ export default function SampleDecisionPage() {
           }}>
             Every decision has a blind spot. Find yours.
           </div>
+          <div style={{
+            fontSize: 13,
+            fontStyle: 'italic',
+            color: '#6B7280',
+            marginBottom: 16,
+          }}>
+            ChatGPT will agree with you. Decision Layer will find what you missed.
+          </div>
           <Link href="/" style={{
             display: 'inline-block',
             padding: '12px 24px',

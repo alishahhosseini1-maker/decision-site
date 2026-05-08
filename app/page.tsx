@@ -3455,6 +3455,17 @@ export default function HomePage() {
                             <span>48hr refund, no questions</span>
                           </div>
 
+                          <div style={{
+                            fontSize: 13,
+                            fontStyle: 'italic',
+                            color: '#6B7280',
+                            textAlign: 'center',
+                            marginTop: 16,
+                            marginBottom: 12,
+                          }}>
+                            ChatGPT will agree with you. Decision Layer will find what you missed.
+                          </div>
+
                           <button
                             type="button"
                             onClick={handleUnlock}
