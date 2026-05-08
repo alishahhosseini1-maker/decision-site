@@ -976,80 +976,8 @@ export default function HomePage() {
           return;
         }
 
-        // On regular page loads, try to restore most recent unlocked verdict if user is authenticated
-        if (authUser?.id) {
-          console.log('[Restore] 🔍 Page load: checking for unlocked verdict');
-          console.log('[Restore] User ID:', authUser.id);
-          console.log('[Restore] Query: /api/decision/load-recent?userId=' + authUser.id);
-
-          fetch(`/api/decision/load-recent?userId=${authUser.id}`)
-            .then(res => res.json())
-            .then(data => {
-              console.log('[Restore] 📦 Query result:', data);
-              console.log('[Restore] Checking conditions:');
-              console.log('[Restore]   - data exists?:', !!data);
-              console.log('[Restore]   - data.id exists?:', !!data?.id);
-              console.log('[Restore]   - data.verdict exists?:', !!data?.verdict);
-
-              if (data && data.id && data.verdict) {
-                console.log('[Restore] ✅ Found unlocked verdict, restoring...');
-                console.log('[Restore] Decision ID:', data.id);
-                console.log('[Restore] Decision:', data.decision?.slice(0, 50) + '...');
-
-                // Restore full verdict state
-                setDecisionId(data.id);
-                setDecision(data.decision ?? '');
-                setContext(data.context ?? '');
-                setReviewResult(data.reviewResult);
-                setDeepReview(data.deepReview ?? null);
-                setFinalThoughts(data.finalThoughts ?? '');
-                setVerdictRequested(true);
-                setVerdict(data.verdict ?? null);
-                setHasStarted(true);
-                setRequestKey(data.requestKey ?? null);
-                setSavedToast('✓ Your verdict is saved. Lock it below to commit to your next step.');
-              } else {
-                console.log('[Restore] ❌ No unlocked verdict found, showing empty state');
-                // No recent unlocked verdict, show empty state
-                setDecision('');
-                setContext('');
-                setReviewResult(null);
-                setDeepReview(null);
-                setFinalThoughts('');
-                setVerdictRequested(false);
-                setVerdict(null);
-                setRevealStage(0);
-                setReflectionPrompts([]);
-                setHasStarted(false);
-              }
-            })
-            .catch((err) => {
-              console.error('[Restore] ⚠️ Error fetching recent decision:', err);
-              // On error, show empty state
-              setDecision('');
-              setContext('');
-              setReviewResult(null);
-              setDeepReview(null);
-              setFinalThoughts('');
-              setVerdictRequested(false);
-              setVerdict(null);
-              setRevealStage(0);
-              setReflectionPrompts([]);
-              setHasStarted(false);
-            });
-        } else {
-          // Not authenticated, show empty state
-          setDecision('');
-          setContext('');
-          setReviewResult(null);
-          setDeepReview(null);
-          setFinalThoughts('');
-          setVerdictRequested(false);
-          setVerdict(null);
-          setRevealStage(0);
-          setReflectionPrompts([]);
-          setHasStarted(false);
-        }
+        // On regular page loads, do nothing here - restore logic moved to separate useEffect
+        // that watches user state (see below)
       } catch {
         // ignore
       }
@@ -1150,6 +1078,60 @@ export default function HomePage() {
     void doSave();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
+
+  // ─── Restore unlocked verdict on page load ────────────────────────────────────
+  // Runs after user authentication is confirmed
+  useEffect(() => {
+    // Skip if user not authenticated
+    if (!user?.id) return;
+
+    // Skip if returning from payment (handled by onAuthStateChange)
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('session_id')) return;
+
+    // Skip if already has verdict loaded
+    if (verdict || reviewResult) {
+      console.log('[Restore] Skipping - verdict already loaded');
+      return;
+    }
+
+    console.log('[Restore] 🔍 User authenticated, checking for unlocked verdict');
+    console.log('[Restore] User ID:', user.id);
+
+    fetch(`/api/decision/load-recent?userId=${user.id}`)
+      .then(res => res.json())
+      .then(data => {
+        console.log('[Restore] 📦 Query result:', data);
+        console.log('[Restore] Checking conditions:');
+        console.log('[Restore]   - data exists?:', !!data);
+        console.log('[Restore]   - data.id exists?:', !!data?.id);
+        console.log('[Restore]   - data.verdict exists?:', !!data?.verdict);
+
+        if (data && data.id && data.verdict) {
+          console.log('[Restore] ✅ Found unlocked verdict, restoring...');
+          console.log('[Restore] Decision ID:', data.id);
+          console.log('[Restore] Decision:', data.decision?.slice(0, 50) + '...');
+
+          // Restore full verdict state
+          setDecisionId(data.id);
+          setDecision(data.decision ?? '');
+          setContext(data.context ?? '');
+          setReviewResult(data.reviewResult);
+          setDeepReview(data.deepReview ?? null);
+          setFinalThoughts(data.finalThoughts ?? '');
+          setVerdictRequested(true);
+          setVerdict(data.verdict ?? null);
+          setHasStarted(true);
+          setRequestKey(data.requestKey ?? null);
+          setSavedToast('✓ Your verdict is saved. Lock it below to commit to your next step.');
+        } else {
+          console.log('[Restore] ℹ️ No unlocked verdict found');
+        }
+      })
+      .catch((err) => {
+        console.error('[Restore] ⚠️ Error fetching recent decision:', err);
+      });
+  }, [user?.id]); // Re-run when user changes
 
   useEffect(() => {
     if (!mode || mode !== 'solo') return;
