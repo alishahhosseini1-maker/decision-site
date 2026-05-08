@@ -862,10 +862,26 @@ export default function HomePage() {
         const params = new URLSearchParams(window.location.search);
         const hasSessionId = params.get('session_id');
 
-        // On regular page loads, clear everything for a fresh start
+        // On regular page loads, restore draft from localStorage or clear for fresh start
         if (!hasSessionId) {
-          setDecision('');
-          setContext('');
+          // Try to restore draft
+          try {
+            const draftDecision = localStorage.getItem('dl_draft_decision');
+            const draftContext = localStorage.getItem('dl_draft_context');
+
+            if (draftDecision || draftContext) {
+              setDecision(draftDecision || '');
+              setContext(draftContext || '');
+              console.log('[Draft] Restored draft from localStorage');
+            } else {
+              setDecision('');
+              setContext('');
+            }
+          } catch {
+            setDecision('');
+            setContext('');
+          }
+
           setReviewResult(null);
           setDeepReview(null);
           setFinalThoughts('');
@@ -1633,6 +1649,15 @@ export default function HomePage() {
       const data = safeResult;
 
       setReviewResult(data);
+
+      // Clear draft from localStorage since review is now complete
+      try {
+        localStorage.removeItem('dl_draft_decision');
+        localStorage.removeItem('dl_draft_context');
+        console.log('[Draft] Cleared draft from localStorage after review');
+      } catch {
+        // Ignore localStorage errors
+      }
 
       // Persist to localStorage immediately BEFORE any async operations
       persistSoloReviewLocally({
@@ -2953,7 +2978,16 @@ export default function HomePage() {
                     <textarea
                       ref={decisionInputRef}
                       value={decision}
-                      onChange={(e) => setDecision(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setDecision(value);
+                        // Auto-save draft to localStorage
+                        try {
+                          localStorage.setItem('dl_draft_decision', value);
+                        } catch (err) {
+                          // Ignore localStorage errors (incognito mode, quota exceeded)
+                        }
+                      }}
                       rows={4}
                       placeholder={decisionPlaceholder}
                       style={{ ...inputStyle, minHeight: 124, resize: 'vertical' }}
@@ -2985,7 +3019,16 @@ export default function HomePage() {
                       <textarea
                         ref={contextInputRef}
                         value={context}
-                        onChange={(e) => setContext(e.target.value)}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setContext(value);
+                          // Auto-save draft to localStorage
+                          try {
+                            localStorage.setItem('dl_draft_context', value);
+                          } catch (err) {
+                            // Ignore localStorage errors (incognito mode, quota exceeded)
+                          }
+                        }}
                         rows={4}
                         placeholder={contextPlaceholder}
                         style={{ ...inputStyle, minHeight: 112, resize: 'vertical' }}
