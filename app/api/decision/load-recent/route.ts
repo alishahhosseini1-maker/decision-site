@@ -11,6 +11,9 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get('userId');
 
+    console.log('[load-recent] 🔍 Request received');
+    console.log('[load-recent] User ID:', userId);
+
     if (!userId) {
       return NextResponse.json({ error: 'User ID required' }, { status: 400 });
     }
@@ -18,6 +21,12 @@ export async function GET(req: Request) {
     // Query for most recent unlocked, paid verdict (less than 7 days old)
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    console.log('[load-recent] Query filters:');
+    console.log('[load-recent]   - user_id =', userId);
+    console.log('[load-recent]   - locked = false');
+    console.log('[load-recent]   - is_unlocked = true');
+    console.log('[load-recent]   - created_at >=', sevenDaysAgo.toISOString());
 
     const { data, error } = await supabase
       .from('decisions')
@@ -31,11 +40,21 @@ export async function GET(req: Request) {
       .maybeSingle();
 
     if (error) {
-      console.error('[load-recent] Error:', error);
+      console.error('[load-recent] ❌ Query error:', error);
       return NextResponse.json({ error: 'Query failed' }, { status: 500 });
     }
 
+    console.log('[load-recent] 📦 Query result:', data ? 'Found decision' : 'No decision found');
+    if (data) {
+      console.log('[load-recent] Decision ID:', data.id);
+      console.log('[load-recent] Decision:', data.decision?.slice(0, 50));
+      console.log('[load-recent] Locked:', data.locked);
+      console.log('[load-recent] Is unlocked:', data.is_unlocked);
+      console.log('[load-recent] Created at:', data.created_at);
+    }
+
     if (!data) {
+      console.log('[load-recent] ℹ️ Returning null (no unlocked verdict found)');
       return NextResponse.json({ decision: null }, { status: 200 });
     }
 

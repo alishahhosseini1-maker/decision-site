@@ -978,10 +978,20 @@ export default function HomePage() {
 
         // On regular page loads, try to restore most recent unlocked verdict if user is authenticated
         if (authUser?.id) {
+          console.log('[Restore] 🔍 Page load: checking for unlocked verdict');
+          console.log('[Restore] User ID:', authUser.id);
+          console.log('[Restore] Query: /api/decision/load-recent?userId=' + authUser.id);
+
           fetch(`/api/decision/load-recent?userId=${authUser.id}`)
             .then(res => res.json())
             .then(data => {
+              console.log('[Restore] 📦 Query result:', data);
+
               if (data && data.id && data.reviewResult) {
+                console.log('[Restore] ✅ Found unlocked verdict, restoring...');
+                console.log('[Restore] Decision ID:', data.id);
+                console.log('[Restore] Decision:', data.decision?.slice(0, 50) + '...');
+
                 // Restore full verdict state
                 setDecisionId(data.id);
                 setDecision(data.decision ?? '');
@@ -995,6 +1005,7 @@ export default function HomePage() {
                 setRequestKey(data.requestKey ?? null);
                 setSavedToast('✓ Your verdict is saved. Lock it below to commit to your next step.');
               } else {
+                console.log('[Restore] ❌ No unlocked verdict found, showing empty state');
                 // No recent unlocked verdict, show empty state
                 setDecision('');
                 setContext('');
@@ -1008,7 +1019,8 @@ export default function HomePage() {
                 setHasStarted(false);
               }
             })
-            .catch(() => {
+            .catch((err) => {
+              console.error('[Restore] ⚠️ Error fetching recent decision:', err);
               // On error, show empty state
               setDecision('');
               setContext('');
@@ -1975,6 +1987,7 @@ export default function HomePage() {
               final_thoughts: finalThoughts ?? null,
               commitment: null, // Not committed yet
               locked: false, // Auto-save never locks
+              is_unlocked: true, // User has paid
               outcome_status: 'awaiting_outcome',
               userId: user.id,
               requestKey,
@@ -1985,9 +1998,11 @@ export default function HomePage() {
 
           if (saveRes.ok && saveData?.id) {
             setDecisionId(saveData.id);
-            console.log('[Auto-save] Verdict saved successfully, ID:', saveData.id);
+            console.log('[Auto-save] ✅ Verdict saved successfully');
+            console.log('[Auto-save] Decision ID:', saveData.id);
+            console.log('[Auto-save] This should be restored on next page load');
           } else {
-            console.error('[Auto-save] Failed to save verdict:', saveData?.error);
+            console.error('[Auto-save] ❌ Failed to save verdict:', saveData?.error);
           }
         } catch (saveErr) {
           console.error('[Auto-save] Error saving verdict:', saveErr);
