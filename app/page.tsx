@@ -2861,13 +2861,10 @@ export default function HomePage() {
                       : '0 6px 16px rgba(0,0,0,0.04)',
                 }}
               >
-                <div style={{ fontFamily: serif, fontSize: 28, fontWeight: 300, color: '#9CA3AF', marginBottom: 6 }}>1</div>
+                <div style={{ fontSize: 18, marginBottom: 6 }}>👤</div>
                 <div style={{ fontSize: 14, fontWeight: 800 }}>Solo Decision</div>
                 <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68, lineHeight: 1.45 }}>
                   Find the blind spot in your decision before it costs you.
-                </div>
-                <div style={{ marginTop: 8, fontSize: 11, fontStyle: 'italic', color: '#9CA3AF', lineHeight: 1.4 }}>
-                  Used by 90% of Decision Layer customers
                 </div>
               </button>
 
@@ -2890,7 +2887,7 @@ export default function HomePage() {
                       : '0 4px 12px rgba(0,0,0,0.02)',
                 }}
               >
-                <div style={{ fontFamily: serif, fontSize: 28, fontWeight: 300, color: '#9CA3AF', marginBottom: 6 }}>2+</div>
+                <div style={{ fontSize: 18, marginBottom: 6 }}>👥</div>
                 <div style={{ fontSize: 14, fontWeight: 800 }}>Team Review</div>
                 <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68, lineHeight: 1.45 }}>
                   Surface what the room isn&apos;t saying before the decision is made.
