@@ -113,7 +113,8 @@ export default function DecisionDoor({ reviewResult, onStepChange, decisionText,
     }, 30);
 
     return () => clearInterval(interval);
-  }, [current, steps]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current]);
 
   // Layer transition effects
   useEffect(() => {
