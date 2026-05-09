@@ -415,7 +415,7 @@ export default function SampleDecisionPage() {
             color: '#6B7280',
             marginBottom: 14,
           }}>
-            What Are You Doing In The Next 48 Hours?
+            WHAT ARE YOU DOING IN THE NEXT 48 HOURS?
           </div>
           <div style={{
             fontSize: 15,
@@ -423,20 +423,21 @@ export default function SampleDecisionPage() {
             color: '#4B5563',
             marginBottom: 20,
           }}>
-            Once you commit to this decision, you have 48 hours to change your mind. After that, the verdict locks and you&apos;ll return in 30, 60, and 90 days to track what actually happened.
+            People who write down their next step are 3x more likely to follow through.
           </div>
-          <div style={{
-            padding: 20,
-            background: '#FAFAFA',
-            border: '1px solid #E5E5E5',
-            borderRadius: 8,
-            fontSize: 14,
-            color: '#6B7280',
-            textAlign: 'center',
-            fontWeight: 600,
-          }}>
-            Decision Layer builds pattern recognition from your real outcomes — not hypotheticals.
-          </div>
+          <input
+            type="text"
+            placeholder="Type your next step here..."
+            style={{
+              width: '100%',
+              padding: '14px 16px',
+              fontSize: 15,
+              border: '2px solid #E5E7EB',
+              borderRadius: 8,
+              fontFamily: 'inherit',
+              outline: 'none',
+            }}
+          />
         </div>
       </div>
     </div>
