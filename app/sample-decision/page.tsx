@@ -99,7 +99,7 @@ export default function SampleDecisionPage() {
                 color: '#DC2626',
                 lineHeight: 1,
               }}>
-                44<span style={{ fontSize: 24, opacity: 0.5 }}>/100</span>
+                50<span style={{ fontSize: 24, opacity: 0.5 }}>/100</span>
               </div>
               <div style={{
                 fontSize: 11,
@@ -157,7 +157,7 @@ export default function SampleDecisionPage() {
           </div>
         </div>
 
-        {/* 5 Layers */}
+        {/* Decision Quality Breakdown */}
         <div style={{
           background: '#fff',
           border: '1px solid rgba(0,0,0,0.1)',
@@ -173,7 +173,199 @@ export default function SampleDecisionPage() {
             color: '#6B7280',
             marginBottom: 20,
           }}>
-            5 Layers
+            Decision Quality Breakdown
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {/* Clarity */}
+            <div style={{
+              padding: 16,
+              background: '#FAFAFA',
+              border: '1px solid #E5E5E5',
+              borderRadius: 8,
+            }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}>
+                <div style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: '#737373',
+                }}>
+                  Clarity
+                </div>
+                <div style={{
+                  fontSize: 18,
+                  fontWeight: 900,
+                  color: '#737373',
+                }}>
+                  12<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Assumptions */}
+            <div style={{
+              padding: 16,
+              background: '#FAFAFA',
+              border: '1px solid #E5E5E5',
+              borderRadius: 8,
+            }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}>
+                <div style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: '#737373',
+                }}>
+                  Assumptions
+                </div>
+                <div style={{
+                  fontSize: 18,
+                  fontWeight: 900,
+                  color: '#737373',
+                }}>
+                  8<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Reversibility - highlighted as weak */}
+            <div style={{
+              padding: 16,
+              background: '#FEF2F2',
+              border: '1px solid #FCA5A5',
+              borderRadius: 8,
+            }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}>
+                <div style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: '#991B1B',
+                }}>
+                  Reversibility
+                </div>
+                <div style={{
+                  fontSize: 18,
+                  fontWeight: 900,
+                  color: '#DC2626',
+                }}>
+                  6<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Risk */}
+            <div style={{
+              padding: 16,
+              background: '#FAFAFA',
+              border: '1px solid #E5E5E5',
+              borderRadius: 8,
+            }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}>
+                <div style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: '#737373',
+                }}>
+                  Risk
+                </div>
+                <div style={{
+                  fontSize: 18,
+                  fontWeight: 900,
+                  color: '#737373',
+                }}>
+                  10<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Exit Logic */}
+            <div style={{
+              padding: 16,
+              background: '#FAFAFA',
+              border: '1px solid #E5E5E5',
+              borderRadius: 8,
+            }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}>
+                <div style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: '#737373',
+                }}>
+                  Exit Logic
+                </div>
+                <div style={{
+                  fontSize: 18,
+                  fontWeight: 900,
+                  color: '#737373',
+                }}>
+                  14<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* How to Strengthen This Decision */}
+        <div style={{
+          background: '#fff',
+          border: '1px solid rgba(0,0,0,0.1)',
+          borderRadius: 12,
+          padding: 24,
+          marginBottom: 24,
+        }}>
+          <div style={{
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            color: '#6B7280',
+            marginBottom: 16,
+          }}>
+            How to Strengthen This Decision
+          </div>
+          <div style={{
+            fontSize: 14,
+            lineHeight: 1.6,
+            color: '#4B5563',
+          }}>
+            Before you commit: (1) Get the cap table model showing dilution through Series B. (2) Ask the founder what anti-dilution protection employee equity carries. (3) Model the worst-case scenario where the company acqui-hires at 1.5x current valuation in 18 months — does the equity still justify the base salary cut?
+          </div>
+        </div>
+
+        {/* 5 Layers */}
+        <div style={{
+          background: '#fff',
+          border: '1px solid rgba(0,0,0,0.1)',
+          borderRadius: 12,
+          padding: 24,
+          marginBottom: 24,
+        }}>
+          <div style={{
+            fontSize: 16,
+            fontWeight: 700,
+            color: '#1E1C1A',
+            marginBottom: 20,
+          }}>
+            Your decision has 5 layers
           </div>
 
           {/* Door */}
@@ -201,7 +393,7 @@ export default function SampleDecisionPage() {
                 fontWeight: 900,
                 color: '#737373',
               }}>
-                10<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
+                12<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
               </div>
             </div>
           </div>
@@ -231,7 +423,7 @@ export default function SampleDecisionPage() {
                 fontWeight: 900,
                 color: '#737373',
               }}>
-                7<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
+                8<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
               </div>
             </div>
           </div>
@@ -261,7 +453,7 @@ export default function SampleDecisionPage() {
                 fontWeight: 900,
                 color: '#737373',
               }}>
-                5<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
+                6<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
               </div>
             </div>
           </div>
@@ -291,7 +483,7 @@ export default function SampleDecisionPage() {
                 fontWeight: 900,
                 color: '#737373',
               }}>
-                12<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
+                14<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
               </div>
             </div>
           </div>
@@ -517,6 +709,45 @@ export default function SampleDecisionPage() {
               Prestige of escape disguised as opportunity. You&apos;re leaving because the current role feels stale, not because this opportunity is exceptional. The startup story is compelling, but the math isn&apos;t there yet.
             </div>
           </details>
+        </div>
+
+        {/* Lock the Verdict Box */}
+        <div style={{
+          background: '#fff',
+          border: '1px solid rgba(0,0,0,0.1)',
+          borderRadius: 12,
+          padding: 24,
+          marginBottom: 24,
+        }}>
+          <div style={{
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            color: '#6B7280',
+            marginBottom: 12,
+          }}>
+            Lock the Verdict
+          </div>
+          <div style={{
+            fontSize: 14,
+            lineHeight: 1.6,
+            color: '#4B5563',
+            marginBottom: 16,
+          }}>
+            Once you commit to this decision, you&apos;ll return in 30, 60, and 90 days to track what actually happened. Decision Layer builds pattern recognition from your real outcomes — not hypotheticals.
+          </div>
+          <div style={{
+            padding: 16,
+            background: '#FAFAFA',
+            border: '1px solid #E5E5E5',
+            borderRadius: 8,
+            fontSize: 13,
+            color: '#6B7280',
+            textAlign: 'center',
+          }}>
+            Commitment period: 48 hours to change your mind, then it&apos;s locked.
+          </div>
         </div>
 
         {/* Footer CTA */}
