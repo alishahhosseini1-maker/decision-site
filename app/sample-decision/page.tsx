@@ -30,6 +30,18 @@ export default function SampleDecisionPage() {
         </Link>
       </div>
 
+      {/* Banner */}
+      <div style={{
+        background: '#0E0C0A',
+        color: '#F1EFE8',
+        padding: '16px 20px',
+        textAlign: 'center',
+        fontSize: 14,
+        fontWeight: 600,
+      }}>
+        This is what a real paid verdict looks like. Yours gets the same treatment.
+      </div>
+
       {/* Content */}
       <div style={{
         maxWidth: 720,
