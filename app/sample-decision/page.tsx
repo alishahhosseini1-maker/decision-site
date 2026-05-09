@@ -618,13 +618,13 @@ export default function SampleDecisionPage() {
           <Link href="/" style={{
             display: 'inline-block',
             padding: '16px 32px',
-            background: '#DC2626',
+            background: '#1E1C1A',
             color: '#fff',
             borderRadius: 8,
             fontSize: 15,
             fontWeight: 700,
             textDecoration: 'none',
-            boxShadow: '0 4px 12px rgba(220, 38, 38, 0.4)',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
             transition: 'all 0.2s',
           }}>
             Get Your Verdict → Free preview, $99 to unlock
