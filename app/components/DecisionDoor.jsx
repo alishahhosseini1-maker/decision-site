@@ -723,21 +723,26 @@ export default function DecisionDoor({ reviewResult, onStepChange, decisionText,
             </g>
           )}
 
-          {/* COMPLETION STATE — walk complete confirmation */}
+          {/* COMPLETION STATE — dynamic summary */}
           {current === 5 && (
-            <g onClick={replay} style={{ cursor: 'pointer' }}>
-              {/* Completion pill */}
+            <g>
+              {/* Background panel for summary */}
               <rect
-                x="237"
-                y="258"
-                width="170"
-                height="28"
-                rx="14"
-                fill="#0F6E56"
+                x="198"
+                y="220"
+                width="248"
+                height="120"
+                rx="8"
+                fill="rgba(15,110,86,0.15)"
+                stroke="#0F6E56"
+                strokeWidth="1.5"
               />
-              {/* Completion text */}
-              <text x="322" y="277" textAnchor="middle" fontSize="11" fontWeight="500" fill="#FFFFFF">
-                Walkthrough complete.
+              {/* Multi-line summary text */}
+              <text x="322" y="245" textAnchor="middle" fontSize="10" fontWeight="500" fill="#F1EFE8" style={{ lineHeight: 1.5 }}>
+                <tspan x="322" dy="0">{reviewResult.snapshot.hinge}</tspan>
+                <tspan x="322" dy="16">{reviewResult.snapshot.lock}</tspan>
+                <tspan x="322" dy="16">{reviewResult.snapshot.exit}</tspan>
+                <tspan x="322" dy="20" fontWeight="600" fill="#1D9E75">Now you know what to do with it.</tspan>
               </text>
             </g>
           )}
