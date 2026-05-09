@@ -460,6 +460,21 @@ export default function DecisionDoor({ reviewResult, onStepChange, decisionText,
               <line x1="0" y1="0" x2="48" y2="0" stroke="#181614" strokeWidth="1"/>
               <line x1="24" y1="0" x2="24" y2="24" stroke="#181614" strokeWidth="0.5"/>
             </pattern>
+            {/* Progressive state glow filters */}
+            <filter id="goldGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+            <filter id="redGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
           </defs>
 
           {/* WALL — stone texture */}
@@ -530,6 +545,14 @@ export default function DecisionDoor({ reviewResult, onStepChange, decisionText,
 
           {/* HINGES — large brass, prominent */}
           <g opacity={getElementOpacity('hinges')}>
+          {/* Top hinge - warm gold glow after layer 0, 600ms ease in */}
+          <g
+            filter={current >= 0 ? 'url(#goldGlow)' : undefined}
+            style={{ transition: 'filter 600ms ease-in' }}
+          >
+          {current >= 0 && (
+            <rect x="184" y="104" width="28" height="44" fill="#B8860B" opacity="0.3" rx="2"/>
+          )}
           {/* Top hinge wall plate */}
           <rect x="184" y="104" width="18" height="44" rx="2" fill="url(#hingeG)"/>
           <rect x="184" y="104" width="18" height="44" rx="2" fill="none" stroke="#4A4840" strokeWidth="0.5"/>
@@ -542,6 +565,7 @@ export default function DecisionDoor({ reviewResult, onStepChange, decisionText,
           {/* Top hinge screws */}
           <circle cx="205" cy="114" r="1.5" fill="#8A6818"/>
           <circle cx="205" cy="138" r="1.5" fill="#8A6818"/>
+          </g>
           {/* crack lines top */}
           <line
             x1="184" y1="114" x2="212" y2="119"
@@ -571,7 +595,14 @@ export default function DecisionDoor({ reviewResult, onStepChange, decisionText,
           {/* hinge hl top */}
           <rect x="178" y="96" width="36" height="60" rx="4" fill="none" stroke="#E24B4A" strokeWidth={current === 1 ? 2 : 0} opacity={current === 1 ? 0.9 : 0} style={{ transition: 'all 0.25s' }}/>
 
-          {/* Bottom hinge */}
+          {/* Bottom hinge - warm gold glow after layer 1, 600ms ease in with slight delay */}
+          <g
+            filter={current >= 1 ? 'url(#goldGlow)' : undefined}
+            style={{ transition: 'filter 600ms 100ms ease-in' }}
+          >
+          {current >= 1 && (
+            <rect x="184" y="352" width="28" height="44" fill="#B8860B" opacity="0.3" rx="2"/>
+          )}
           <rect x="184" y="352" width="18" height="44" rx="2" fill="url(#hingeG)"/>
           <rect x="184" y="352" width="18" height="44" rx="2" fill="none" stroke="#4A4840" strokeWidth="0.5"/>
           <rect x="198" y="356" width="14" height="36" rx="1" fill="url(#brassG)"/>
@@ -580,6 +611,7 @@ export default function DecisionDoor({ reviewResult, onStepChange, decisionText,
           <line x1="205" y1="356" x2="205" y2="392" stroke="#A87820" strokeWidth="1.5"/>
           <circle cx="205" cy="362" r="1.5" fill="#8A6818"/>
           <circle cx="205" cy="386" r="1.5" fill="#8A6818"/>
+          </g>
           {/* crack lines bottom */}
           <line
             x1="184" y1="362" x2="212" y2="367"
@@ -603,15 +635,40 @@ export default function DecisionDoor({ reviewResult, onStepChange, decisionText,
 
           {/* LOCK — large brass escutcheon */}
           <g opacity={getElementOpacity('lock')}>
+          {/* Slow breathing glow at start - deliberate, weighty */}
+          {current < 0 && (
+            <circle cx="463" cy="285" r="20" fill="#B8860B" opacity="0.4" filter="url(#goldGlow)">
+              <animate attributeName="opacity" values="0.2;0.5;0.2" dur="2s" repeatCount="indefinite" />
+              <animate attributeName="r" values="18;22;18" dur="2s" repeatCount="indefinite" />
+            </circle>
+          )}
           {/* escutcheon plate */}
           <rect x="452" y="254" width="22" height="62" rx="4" fill="url(#brassG)"/>
           <rect x="452" y="254" width="22" height="62" rx="4" fill="none" stroke="#9A7218" strokeWidth="0.5"/>
           {/* keyhole */}
           <ellipse cx="463" cy="274" rx="4.5" ry="4.5" fill="#3A2808"/>
           <path d="M460 274 L460 286 L466 286 L466 274" fill="#3A2808"/>
-          {/* bolt */}
-          <rect x="462" y="304" width="22" height="13" rx="3" fill="url(#brassG)" style={{ transition: 'fill 0.3s' }}/>
-          <rect x="462" y="304" width="22" height="13" rx="3" fill="none" stroke="#9A7218" strokeWidth="0.5"/>
+          {/* bolt - animated from locked → unlocked at layer 2 */}
+          <rect
+            x={current >= 2 ? 442 : 462}
+            y="304"
+            width="22"
+            height="13"
+            rx="3"
+            fill="url(#brassG)"
+            style={{ transition: 'all 0.8s cubic-bezier(0.4, 0.0, 0.2, 1)' }}
+          />
+          <rect
+            x={current >= 2 ? 442 : 462}
+            y="304"
+            width="22"
+            height="13"
+            rx="3"
+            fill="none"
+            stroke="#9A7218"
+            strokeWidth="0.5"
+            style={{ transition: 'all 0.8s cubic-bezier(0.4, 0.0, 0.2, 1)' }}
+          />
           {/* knob */}
           <circle cx="444" cy="285" r="13" fill="none" stroke="url(#brassG)" strokeWidth="2.5" style={{ transition: 'stroke 0.3s' }}/>
           <circle cx="444" cy="285" r="6" fill="url(#brassG)"/>
@@ -622,16 +679,58 @@ export default function DecisionDoor({ reviewResult, onStepChange, decisionText,
           <rect x="430" y="244" width="56" height="82" rx="5" fill="none" stroke="#D4A840" strokeWidth={current === 2 ? 2 : 0} opacity={current === 2 ? 0.9 : 0} style={{ transition: 'all 0.25s' }}/>
           </g>
 
-          {/* EXIT SIGN — industrial wall-mounted */}
+          {/* EXIT SIGN — industrial wall-mounted, flickers once then holds red */}
           <g opacity={getElementOpacity('exit')}>
           {/* backplate */}
           <rect x="264" y="26" width="120" height="28" rx="4" fill="#141210"/>
-          <rect x="266" y="28" width="116" height="24" rx="3" fill="#0E0C0A"/>
-          {/* unlit tubes */}
-          <rect x="272" y="32" width="46" height="8" rx="2" fill="#1A1816"/>
-          <rect x="326" y="32" width="46" height="8" rx="2" fill="#1A1816"/>
+          <rect
+            x="266"
+            y="28"
+            width="116"
+            height="24"
+            rx="3"
+            fill={current >= 3 ? '#2A0808' : '#0E0C0A'}
+            style={{ transition: 'fill 400ms' }}
+          />
+          {/* tubes - flicker then stay lit */}
+          <rect
+            x="272"
+            y="32"
+            width="46"
+            height="8"
+            rx="2"
+            fill={current >= 3 ? '#DC2626' : '#1A1816'}
+            filter={current >= 3 ? 'url(#redGlow)' : undefined}
+          >
+            {current === 3 && (
+              <animate attributeName="opacity" values="1;0.3;1;0.4;1" dur="0.4s" repeatCount="1" />
+            )}
+          </rect>
+          <rect
+            x="326"
+            y="32"
+            width="46"
+            height="8"
+            rx="2"
+            fill={current >= 3 ? '#DC2626' : '#1A1816'}
+            filter={current >= 3 ? 'url(#redGlow)' : undefined}
+          >
+            {current === 3 && (
+              <animate attributeName="opacity" values="1;0.2;1;0.3;1" dur="0.4s" repeatCount="1" begin="0.05s" />
+            )}
+          </rect>
           {/* EXIT text */}
-          <text x="324" y="44" textAnchor="middle" fontSize="11" fontWeight="500" fill="#E24B4A" letterSpacing="3">EXIT ↗</text>
+          <text
+            x="324"
+            y="44"
+            textAnchor="middle"
+            fontSize="11"
+            fontWeight="500"
+            fill={current >= 3 ? '#FF4444' : '#E24B4A'}
+            opacity={current >= 3 ? 1 : 0.3}
+            letterSpacing="3"
+            style={{ transition: 'all 400ms' }}
+          >EXIT ↗</text>
           {/* mounting screws */}
           <circle cx="271" cy="40" r="2" fill="#1E1C1A"/>
           <circle cx="377" cy="40" r="2" fill="#1E1C1A"/>
@@ -649,13 +748,50 @@ export default function DecisionDoor({ reviewResult, onStepChange, decisionText,
           <rect x="196" y="496" width="256" height="14" rx="2" fill="none" stroke="#1D9E75" strokeWidth={current === 5 ? 2.5 : 0} opacity={current === 5 ? 0.95 : 0} style={{ transition: 'all 0.25s' }}/>
           </g>
 
-          {/* FLOOR TRAP — hazard beyond threshold */}
+          {/* FLOOR TRAP — hazard beyond threshold, deep red pulse (ominous) */}
           <g opacity={getElementOpacity('trap')}>
-          <g opacity={current === 4 ? 1 : 0} style={{ transition: 'opacity 0.7s' }}>
-            <rect x="270" y="520" width="108" height="28" rx="2" fill="#E24B4A" opacity="0.08"/>
-            <rect x="270" y="520" width="108" height="28" rx="2" fill="none" stroke="#E24B4A" strokeWidth="0.8" strokeDasharray="4 2" opacity="0.55"/>
-            <line x1="270" y1="534" x2="378" y2="534" stroke="#E24B4A" strokeWidth="0.4" opacity="0.35"/>
-            <text x="324" y="512" textAnchor="middle" fontSize="9" fill="#E24B4A" opacity="0.7">trap</text>
+          <g
+            opacity={current >= 4 ? 1 : 0.1}
+            filter={current >= 4 ? 'url(#redGlow)' : undefined}
+            style={{ transition: 'opacity 0.7s' }}
+          >
+            <rect
+              x="270"
+              y="520"
+              width="108"
+              height="28"
+              rx="2"
+              fill="#8B0000"
+              opacity={current >= 4 ? 0.25 : 0.08}
+            >
+              {current >= 4 && (
+                <animate attributeName="opacity" values="0.2;0.35;0.2" dur="3s" repeatCount="indefinite" />
+              )}
+            </rect>
+            <rect
+              x="270"
+              y="520"
+              width="108"
+              height="28"
+              rx="2"
+              fill="none"
+              stroke={current >= 4 ? '#DC2626' : '#E24B4A'}
+              strokeWidth={current >= 4 ? 1.2 : 0.8}
+              strokeDasharray="4 2"
+              opacity={current >= 4 ? 0.8 : 0.55}
+              style={{ transition: 'all 0.7s' }}
+            />
+            <line x1="270" y1="534" x2="378" y2="534" stroke={current >= 4 ? '#DC2626' : '#E24B4A'} strokeWidth="0.4" opacity="0.35"/>
+            <text
+              x="324"
+              y="512"
+              textAnchor="middle"
+              fontSize="9"
+              fill={current >= 4 ? '#FF4444' : '#E24B4A'}
+              opacity={current >= 4 ? 0.9 : 0.7}
+              fontWeight={current >= 4 ? 600 : 400}
+              style={{ transition: 'all 0.7s' }}
+            >trap</text>
           </g>
           <rect x="260" y="506" width="128" height="50" rx="3" fill="none" stroke="#E24B4A" strokeWidth={current === 4 ? 2 : 0} opacity={current === 4 ? 0.85 : 0} style={{ transition: 'all 0.25s' }}/>
           </g>
@@ -742,7 +878,7 @@ export default function DecisionDoor({ reviewResult, onStepChange, decisionText,
                 <tspan x="322" dy="0">{reviewResult.snapshot.hinge}</tspan>
                 <tspan x="322" dy="16">{reviewResult.snapshot.lock}</tspan>
                 <tspan x="322" dy="16">{reviewResult.snapshot.exit}</tspan>
-                <tspan x="322" dy="20" fontWeight="600" fill="#1D9E75">Now you know what to do with it.</tspan>
+                <tspan x="322" dy="20" fontWeight="600" fill="#1D9E75">Now you know what you're walking into.</tspan>
               </text>
             </g>
           )}
