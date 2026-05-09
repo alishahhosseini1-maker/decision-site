@@ -303,11 +303,24 @@ export default function SampleDecisionPage() {
             fontSize: 22,
             fontWeight: 700,
             color: '#F1EFE8',
-            marginBottom: 40,
+            marginBottom: 20,
             textAlign: 'center',
             letterSpacing: '-0.01em',
           }}>
             Your decision has 5 layers
+          </div>
+
+          {/* Progress indicator */}
+          <div style={{
+            textAlign: 'center',
+            marginBottom: 32,
+            fontSize: 13,
+            color: '#D4AF37',
+            fontWeight: 600,
+          }}>
+            {completedLayers.length === 0 ? 'Click "Next" to begin unlocking the door' :
+             completedLayers.length === 5 ? 'Door fully opened!' :
+             `${completedLayers.length} of 5 layers completed`}
           </div>
 
           {/* Door Visualization */}
@@ -351,30 +364,34 @@ export default function SampleDecisionPage() {
               border: '3px solid #3A3531',
               borderRadius: 4,
             }}>
-              {/* Left Hinge (Layer 1) */}
+              {/* Left Hinge (Layer 1) - Shows after completing layer 0 */}
               <div style={{
                 position: 'absolute',
-                left: -12,
+                left: -16,
                 top: 40,
-                width: 24,
-                height: 12,
-                background: completedLayers.includes(0) ? 'linear-gradient(90deg, #D4AF37 0%, #F4D03F 50%, #D4AF37 100%)' : '#2A2624',
-                borderRadius: 2,
+                width: 32,
+                height: 16,
+                background: completedLayers.includes(0) ? 'linear-gradient(90deg, #D4AF37 0%, #F4D03F 50%, #D4AF37 100%)' : '#1A1816',
+                borderRadius: 3,
                 transition: 'all 0.6s ease',
-                boxShadow: completedLayers.includes(0) ? '0 0 16px rgba(212,175,55,0.8)' : 'none',
+                boxShadow: completedLayers.includes(0) ? '0 0 24px rgba(212,175,55,1), inset 0 0 8px rgba(255,255,255,0.3)' : 'none',
+                border: completedLayers.includes(0) ? '2px solid #F4D03F' : '2px solid #2A2624',
+                opacity: completedLayers.includes(0) ? 1 : 0.3,
               }} />
 
-              {/* Right Hinge (Layer 2) */}
+              {/* Right Hinge (Layer 2) - Shows after completing layer 1 */}
               <div style={{
                 position: 'absolute',
-                left: -12,
-                top: 148,
-                width: 24,
-                height: 12,
-                background: completedLayers.includes(1) ? 'linear-gradient(90deg, #D4AF37 0%, #F4D03F 50%, #D4AF37 100%)' : '#2A2624',
-                borderRadius: 2,
+                left: -16,
+                top: 144,
+                width: 32,
+                height: 16,
+                background: completedLayers.includes(1) ? 'linear-gradient(90deg, #D4AF37 0%, #F4D03F 50%, #D4AF37 100%)' : '#1A1816',
+                borderRadius: 3,
                 transition: 'all 0.6s ease',
-                boxShadow: completedLayers.includes(1) ? '0 0 16px rgba(212,175,55,0.8)' : 'none',
+                boxShadow: completedLayers.includes(1) ? '0 0 24px rgba(212,175,55,1), inset 0 0 8px rgba(255,255,255,0.3)' : 'none',
+                border: completedLayers.includes(1) ? '2px solid #F4D03F' : '2px solid #2A2624',
+                opacity: completedLayers.includes(1) ? 1 : 0.3,
               }} />
 
               {/* Door Panel */}
@@ -386,12 +403,12 @@ export default function SampleDecisionPage() {
                 height: '100%',
                 background: 'linear-gradient(90deg, #2A2624 0%, #3A3531 50%, #2A2624 100%)',
                 borderRadius: 2,
-                transform: completedLayers.length === 5 ? 'perspective(400px) rotateY(-75deg)' :
-                           completedLayers.includes(3) ? 'perspective(400px) rotateY(-12deg)' :
-                           completedLayers.includes(2) ? 'perspective(400px) rotateY(-3deg)' : 'none',
+                transform: completedLayers.length === 5 ? 'perspective(600px) rotateY(-85deg)' :
+                           completedLayers.includes(3) ? 'perspective(600px) rotateY(-20deg)' :
+                           completedLayers.includes(2) ? 'perspective(600px) rotateY(-8deg)' : 'rotateY(0deg)',
                 transformOrigin: 'left center',
-                transition: 'transform 0.8s cubic-bezier(0.4, 0.0, 0.2, 1)',
-                boxShadow: completedLayers.includes(2) ? '4px 0 12px rgba(0,0,0,0.4)' : 'none',
+                transition: 'transform 1s cubic-bezier(0.4, 0.0, 0.2, 1)',
+                boxShadow: completedLayers.includes(2) ? '8px 0 24px rgba(0,0,0,0.6)' : 'none',
               }}>
                 {/* Lock (Layer 3) */}
                 <div style={{
@@ -399,8 +416,9 @@ export default function SampleDecisionPage() {
                   right: 20,
                   top: '50%',
                   transform: 'translateY(-50%)',
-                  fontSize: 32,
+                  fontSize: 40,
                   transition: 'all 0.6s ease',
+                  filter: completedLayers.includes(2) ? 'drop-shadow(0 0 8px rgba(212,175,55,0.8))' : 'none',
                 }}>
                   {completedLayers.includes(2) ? '🔓' : '🔒'}
                 </div>
