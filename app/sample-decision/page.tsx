@@ -520,16 +520,8 @@ export default function SampleDecisionPage() {
               fontSize: 14,
               lineHeight: 1.5,
               color: '#1E1C1A',
-              marginBottom: 8,
             }}>
               Prestige of escape disguised as opportunity — you are leaving because the current role feels stale, not because this opportunity is objectively exceptional. Boredom is not a thesis.
-            </div>
-            <div style={{
-              fontSize: 11,
-              fontStyle: 'italic',
-              color: '#737373',
-            }}>
-              One layer revealed.
             </div>
           </div>
         </div>
