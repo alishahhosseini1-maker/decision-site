@@ -2345,7 +2345,9 @@ export default function HomePage() {
               {!authLoading && user && (
                 <div style={{ fontSize: 12.5, opacity: 0.62 }}>{user.email || 'Signed in'}</div>
               )}
+            </div>
 
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
               {!authLoading && (
                 <a
                   href="/history"
