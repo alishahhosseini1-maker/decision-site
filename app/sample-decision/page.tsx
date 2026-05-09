@@ -246,6 +246,7 @@ export default function SampleDecisionPage() {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                marginBottom: 8,
               }}>
                 <div style={{
                   fontSize: 13,
@@ -261,6 +262,13 @@ export default function SampleDecisionPage() {
                 }}>
                   6<span style={{ fontSize: 12, opacity: 0.6 }}>/20</span>
                 </div>
+              </div>
+              <div style={{
+                fontSize: 13,
+                lineHeight: 1.5,
+                color: '#7F1D1D',
+              }}>
+                Leaving your Series B role resets your career trajectory and the typical 1-year cliff means zero equity if you leave before month 12.
               </div>
             </div>
 
