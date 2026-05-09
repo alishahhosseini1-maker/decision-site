@@ -550,7 +550,6 @@ export default function HomePage() {
   const [copied, setCopied] = useState(false);
   const [creatingTeamSession, setCreatingTeamSession] = useState(false);
 
-  const [lastUsedAt, setLastUsedAt] = useState<string | null>(null);
   const [hasStarted, setHasStarted] = useState(false);
   const [decisionError, setDecisionError] = useState<string | null>(null);
 
@@ -645,13 +644,6 @@ export default function HomePage() {
       } catch {
         // ignore
       }
-    }
-
-    try {
-      const lu = localStorage.getItem(STORAGE.lastUsed);
-      setLastUsedAt(lu);
-    } catch {
-      // ignore
     }
 
     setTimeout(() => {
@@ -1390,19 +1382,6 @@ export default function HomePage() {
     }
   };
 
-  const formatShort = (iso?: string | null) => {
-    if (!iso) return '—';
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return '—';
-    return d.toLocaleString(undefined, {
-      month: 'short',
-      day: '2-digit',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    });
-  };
-
   const formatDeadline = (value?: string | null) => {
     if (!value) return 'No deadline set';
 
@@ -1773,14 +1752,6 @@ export default function HomePage() {
       // Don't await - let it run in background, but localStorage is already saved
       saveDecision().catch(console.error);
 
-      const iso = new Date().toISOString();
-      setLastUsedAt(iso);
-
-      try {
-        localStorage.setItem(STORAGE.lastUsed, iso);
-      } catch {
-        // ignore
-      }
       setRevealStage(0);
       setReflectionPrompts([]);
 
@@ -2248,7 +2219,6 @@ export default function HomePage() {
 
   const meta = getScoreMeta(reviewResult?.readiness?.label);
 
-  const lastUsedLabel = formatShort(lastUsedAt);
   const visibleDeepReview = cleanDeepReview(deepReview);
   const deepReviewSections = parseDeepReviewSections(visibleDeepReview);
 
@@ -2371,10 +2341,6 @@ export default function HomePage() {
               gap: 12,
             }}
           >
-            <div style={{ fontSize: 12, opacity: 0.42 }}>
-              Last used: <span style={{ opacity: 0.65 }}>{lastUsedLabel}</span>
-            </div>
-
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
               {!authLoading && user && (
                 <div style={{ fontSize: 12.5, opacity: 0.62 }}>{user.email || 'Signed in'}</div>
