@@ -888,7 +888,7 @@ export default function DecisionDoor({ reviewResult, onStepChange, decisionText,
                 <tspan x="322" dy="0">{reviewResult.snapshot.hinge}</tspan>
                 <tspan x="322" dy="16">{reviewResult.snapshot.lock}</tspan>
                 <tspan x="322" dy="16">{reviewResult.snapshot.exit}</tspan>
-                <tspan x="322" dy="20" fontWeight="600" fill="#1D9E75">Now you know what you're walking into.</tspan>
+                <tspan x="322" dy="20" fontWeight="600" fill="#1D9E75">Now you know what you&apos;re walking into.</tspan>
               </text>
             </g>
           )}
