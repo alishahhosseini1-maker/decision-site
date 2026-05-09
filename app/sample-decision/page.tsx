@@ -51,54 +51,61 @@ export default function SampleDecisionPage() {
     }}>
       {/* Header */}
       <div style={{
-        borderBottom: '1px solid rgba(0,0,0,0.08)',
-        padding: '16px 20px',
+        borderBottom: '1px solid rgba(30,28,26,0.08)',
+        padding: '20px 24px',
         background: '#fff',
       }}>
         <Link href="/" style={{
           fontFamily: serif,
-          fontSize: 20,
+          fontSize: 22,
           fontWeight: 700,
           color: '#1E1C1A',
           textDecoration: 'none',
+          letterSpacing: '-0.01em',
         }}>
           Decision Layer
         </Link>
       </div>
 
-      {/* Banner */}
+      {/* Premium Banner */}
       <div style={{
-        background: '#0E0C0A',
+        background: 'linear-gradient(135deg, #0E0C0A 0%, #1E1C1A 100%)',
         color: '#F1EFE8',
-        padding: '24px 20px',
+        padding: '32px 24px',
         textAlign: 'center',
-        fontSize: 16,
-        fontWeight: 700,
-        letterSpacing: '0.02em',
-        borderBottom: '3px solid #DC2626',
+        borderBottom: '2px solid #DC2626',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
       }}>
-        This is what a real paid verdict looks like. Yours gets the same treatment.
+        <div style={{
+          fontSize: 17,
+          fontWeight: 700,
+          letterSpacing: '0.01em',
+          lineHeight: 1.4,
+        }}>
+          This is what a real paid verdict looks like.<br />
+          Yours gets the same treatment.
+        </div>
       </div>
 
       {/* Content */}
       <div style={{
-        maxWidth: 720,
+        maxWidth: 680,
         margin: '0 auto',
-        padding: '40px 20px 80px',
+        padding: '56px 24px 96px',
       }}>
         {/* Badge */}
         <div style={{
           display: 'inline-block',
-          padding: '4px 10px',
+          padding: '6px 12px',
           background: '#FEF3C7',
           border: '1px solid #F59E0B',
-          borderRadius: 4,
+          borderRadius: 6,
           fontSize: 11,
           fontWeight: 700,
-          letterSpacing: '0.05em',
+          letterSpacing: '0.06em',
           textTransform: 'uppercase',
           color: '#92400E',
-          marginBottom: 16,
+          marginBottom: 20,
         }}>
           Sample Decision
         </div>
@@ -106,63 +113,68 @@ export default function SampleDecisionPage() {
         {/* Decision Title */}
         <h1 style={{
           fontFamily: serif,
-          fontSize: 32,
+          fontSize: 36,
           fontWeight: 700,
-          lineHeight: 1.3,
-          marginBottom: 32,
+          lineHeight: 1.25,
+          marginBottom: 48,
           color: '#1E1C1A',
+          letterSpacing: '-0.02em',
         }}>
           Leave $180k Series B role for early-stage startup as employee #4 with 2% equity
         </h1>
 
-        {/* Score + Verdict Summary */}
+        {/* Premium Score + Verdict Card */}
         <div style={{
           background: '#0E0C0A',
           color: '#F1EFE8',
-          borderRadius: 12,
-          padding: 32,
-          marginBottom: 24,
+          borderRadius: 16,
+          padding: 40,
+          marginBottom: 40,
           border: '2px solid #DC2626',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
         }}>
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 20,
-            marginBottom: 20,
+            gap: 24,
+            marginBottom: 24,
+            paddingBottom: 24,
+            borderBottom: '1px solid rgba(255,255,255,0.1)',
           }}>
             <div>
               <div style={{
-                fontSize: 56,
+                fontSize: 64,
                 fontWeight: 900,
                 color: '#DC2626',
                 lineHeight: 1,
+                letterSpacing: '-0.02em',
               }}>
-                50<span style={{ fontSize: 28, opacity: 0.5, color: '#9CA3AF' }}>/100</span>
+                50<span style={{ fontSize: 32, opacity: 0.5, color: '#9CA3AF' }}>/100</span>
               </div>
               <div style={{
                 fontSize: 11,
-                fontWeight: 600,
-                letterSpacing: '0.05em',
+                fontWeight: 700,
+                letterSpacing: '0.08em',
                 textTransform: 'uppercase',
                 color: '#9CA3AF',
-                marginTop: 6,
+                marginTop: 8,
               }}>
-                Pre-commit score
+                Decision Readiness
               </div>
             </div>
             <div style={{
               flex: 1,
-              height: 1,
-              background: 'rgba(255,255,255,0.1)',
+              height: 2,
+              background: 'linear-gradient(90deg, rgba(220,38,38,0.4) 0%, rgba(255,255,255,0.05) 100%)',
             }} />
             <div style={{
-              padding: '8px 14px',
+              padding: '10px 16px',
               background: '#FEE2E2',
               border: '1px solid #DC2626',
-              borderRadius: 6,
+              borderRadius: 8,
               fontSize: 13,
               fontWeight: 700,
+              letterSpacing: '0.03em',
               color: '#7F1D1D',
             }}>
               NOT READY
@@ -170,8 +182,8 @@ export default function SampleDecisionPage() {
           </div>
 
           <div style={{
-            fontSize: 16,
-            lineHeight: 1.7,
+            fontSize: 17,
+            lineHeight: 1.65,
             fontWeight: 500,
             color: '#F1EFE8',
           }}>
@@ -179,47 +191,133 @@ export default function SampleDecisionPage() {
           </div>
         </div>
 
-        {/* What This Decision Is Missing */}
+        {/* What This Decision Is Missing - Refined */}
         <div style={{
-          padding: 20,
+          padding: 28,
           background: '#FEF2F2',
-          border: '1px solid #FCA5A5',
-          borderRadius: 8,
-          marginBottom: 32,
+          border: '2px solid #FCA5A5',
+          borderRadius: 12,
+          marginBottom: 48,
+          boxShadow: '0 2px 8px rgba(252,165,165,0.15)',
         }}>
           <div style={{
             fontSize: 11,
-            fontWeight: 600,
+            fontWeight: 700,
             letterSpacing: '0.1em',
             textTransform: 'uppercase',
             color: '#991B1B',
-            marginBottom: 8,
+            marginBottom: 12,
           }}>
-            WHAT THIS DECISION IS MISSING
+            What This Decision Is Missing
           </div>
           <div style={{
-            fontSize: 14,
-            lineHeight: 1.6,
+            fontSize: 15,
+            lineHeight: 1.7,
             color: '#7F1D1D',
+            fontWeight: 500,
           }}>
             You are pricing 2% equity using the company&apos;s current valuation, not the diluted value you&apos;ll actually hold at exit after two more funding rounds.
+          </div>
+        </div>
+
+        {/* CTA - Paywall Position */}
+        <div style={{
+          marginBottom: 56,
+          padding: 40,
+          background: 'linear-gradient(135deg, #1E1C1A 0%, #0E0C0A 100%)',
+          borderRadius: 16,
+          textAlign: 'center',
+          border: '2px solid #1E1C1A',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+        }}>
+          <div style={{
+            fontSize: 24,
+            fontWeight: 700,
+            marginBottom: 16,
+            color: '#F1EFE8',
+            lineHeight: 1.3,
+            letterSpacing: '-0.01em',
+            fontFamily: serif,
+          }}>
+            Every decision has a blind spot.<br />Find yours before you commit.
+          </div>
+          <div style={{
+            fontSize: 15,
+            color: '#9CA3AF',
+            marginBottom: 28,
+            lineHeight: 1.6,
+            maxWidth: 520,
+            margin: '0 auto 28px',
+          }}>
+            ChatGPT will agree with you. Decision Layer will find what you missed — the assumption you didn&apos;t test, the exit you didn&apos;t plan, the risk you didn&apos;t see.
+          </div>
+          <Link href="/" style={{
+            display: 'inline-block',
+            padding: '18px 40px',
+            background: '#1E1C1A',
+            color: '#fff',
+            borderRadius: 10,
+            fontSize: 16,
+            fontWeight: 700,
+            textDecoration: 'none',
+            boxShadow: '0 4px 16px rgba(30,28,26,0.5)',
+            transition: 'all 0.2s',
+            border: '2px solid #fff',
+            letterSpacing: '0.01em',
+          }}>
+            Get Your Verdict → Free preview, $99 to unlock
+          </Link>
+          <div style={{
+            marginTop: 20,
+            fontSize: 13,
+            color: '#6B7280',
+            letterSpacing: '0.01em',
+          }}>
+            48-hour money-back guarantee · Your decision stays private
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div style={{
+          height: 1,
+          background: 'linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.1) 50%, transparent 100%)',
+          marginBottom: 56,
+        }} />
+
+        {/* Label: Everything Below Is What You're Unlocking */}
+        <div style={{
+          textAlign: 'center',
+          marginBottom: 48,
+          opacity: 0.6,
+        }}>
+          <div style={{
+            fontSize: 12,
+            fontWeight: 600,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: '#6B7280',
+          }}>
+            ↓ Everything below is what you&apos;re unlocking ↓
           </div>
         </div>
 
         {/* 5-Layer Door Animation */}
         <div style={{
           background: '#fff',
-          border: '1px solid rgba(0,0,0,0.1)',
-          borderRadius: 12,
-          padding: 28,
-          marginBottom: 32,
+          border: '2px solid rgba(30,28,26,0.1)',
+          borderRadius: 16,
+          padding: 36,
+          marginBottom: 40,
+          boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
         }}>
           <div style={{
-            fontSize: 18,
+            fontFamily: serif,
+            fontSize: 22,
             fontWeight: 700,
             color: '#1E1C1A',
-            marginBottom: 24,
+            marginBottom: 32,
             textAlign: 'center',
+            letterSpacing: '-0.01em',
           }}>
             Your decision has 5 layers
           </div>
@@ -228,22 +326,23 @@ export default function SampleDecisionPage() {
           <div style={{
             display: 'flex',
             justifyContent: 'center',
-            gap: 8,
-            marginBottom: 24,
+            gap: 10,
+            marginBottom: 32,
           }}>
             {layers.map((_, idx) => (
               <button
                 key={idx}
                 onClick={() => setCurrentLayer(idx)}
                 style={{
-                  width: 10,
-                  height: 10,
+                  width: 12,
+                  height: 12,
                   borderRadius: '50%',
                   border: 'none',
                   background: idx === currentLayer ? '#1E1C1A' : '#D1D5DB',
                   cursor: 'pointer',
                   padding: 0,
-                  transition: 'all 0.2s',
+                  transition: 'all 0.25s',
+                  boxShadow: idx === currentLayer ? '0 2px 8px rgba(30,28,26,0.3)' : 'none',
                 }}
               />
             ))}
@@ -252,35 +351,38 @@ export default function SampleDecisionPage() {
           {/* Current Layer Display */}
           <div style={{
             background: currentLayer === 2 ? '#FEF2F2' : '#FAFAFA',
-            border: currentLayer === 2 ? '1px solid #FCA5A5' : '1px solid #E5E5E5',
-            borderRadius: 8,
-            padding: 20,
-            minHeight: 180,
+            border: currentLayer === 2 ? '2px solid #FCA5A5' : '2px solid #E5E5E5',
+            borderRadius: 12,
+            padding: 28,
+            minHeight: 200,
+            transition: 'all 0.3s',
           }}>
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: 12,
+              marginBottom: 16,
             }}>
               <div style={{
-                fontSize: 14,
+                fontSize: 15,
                 fontWeight: 700,
                 color: currentLayer === 2 ? '#991B1B' : '#1E1C1A',
+                letterSpacing: '0.02em',
               }}>
                 {layers[currentLayer].name} · {layers[currentLayer].subtitle}
               </div>
               <div style={{
-                fontSize: 20,
+                fontSize: 24,
                 fontWeight: 900,
                 color: currentLayer === 2 ? '#DC2626' : '#737373',
+                letterSpacing: '-0.01em',
               }}>
-                {layers[currentLayer].score}<span style={{ fontSize: 14, opacity: 0.6 }}>/20</span>
+                {layers[currentLayer].score}<span style={{ fontSize: 16, opacity: 0.6 }}>/20</span>
               </div>
             </div>
             <div style={{
-              fontSize: 14,
-              lineHeight: 1.6,
+              fontSize: 15,
+              lineHeight: 1.7,
               color: currentLayer === 2 ? '#7F1D1D' : '#4B5563',
             }}>
               {layers[currentLayer].content}
@@ -291,21 +393,23 @@ export default function SampleDecisionPage() {
           <div style={{
             display: 'flex',
             justifyContent: 'space-between',
-            marginTop: 20,
+            marginTop: 24,
           }}>
             <button
               onClick={() => setCurrentLayer(Math.max(0, currentLayer - 1))}
               disabled={currentLayer === 0}
               style={{
-                padding: '10px 20px',
+                padding: '12px 24px',
                 background: currentLayer === 0 ? '#F3F4F6' : '#1E1C1A',
                 color: currentLayer === 0 ? '#9CA3AF' : '#fff',
                 border: 'none',
-                borderRadius: 6,
-                fontSize: 13,
-                fontWeight: 600,
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 700,
                 cursor: currentLayer === 0 ? 'not-allowed' : 'pointer',
                 opacity: currentLayer === 0 ? 0.5 : 1,
+                transition: 'all 0.2s',
+                letterSpacing: '0.01em',
               }}
             >
               ← Previous
@@ -314,15 +418,17 @@ export default function SampleDecisionPage() {
               onClick={() => setCurrentLayer(Math.min(4, currentLayer + 1))}
               disabled={currentLayer === 4}
               style={{
-                padding: '10px 20px',
+                padding: '12px 24px',
                 background: currentLayer === 4 ? '#F3F4F6' : '#1E1C1A',
                 color: currentLayer === 4 ? '#9CA3AF' : '#fff',
                 border: 'none',
-                borderRadius: 6,
-                fontSize: 13,
-                fontWeight: 600,
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 700,
                 cursor: currentLayer === 4 ? 'not-allowed' : 'pointer',
                 opacity: currentLayer === 4 ? 0.5 : 1,
+                transition: 'all 0.2s',
+                letterSpacing: '0.01em',
               }}
             >
               Next →
@@ -333,10 +439,10 @@ export default function SampleDecisionPage() {
         {/* Next Move */}
         <div style={{
           background: '#fff',
-          border: '1px solid rgba(0,0,0,0.1)',
+          border: '2px solid rgba(30,28,26,0.08)',
           borderRadius: 12,
-          padding: 24,
-          marginBottom: 24,
+          padding: 28,
+          marginBottom: 32,
         }}>
           <div style={{
             fontSize: 11,
@@ -344,13 +450,13 @@ export default function SampleDecisionPage() {
             letterSpacing: '0.1em',
             textTransform: 'uppercase',
             color: '#6B7280',
-            marginBottom: 12,
+            marginBottom: 14,
           }}>
             Next Move
           </div>
           <div style={{
-            fontSize: 14,
-            lineHeight: 1.6,
+            fontSize: 15,
+            lineHeight: 1.7,
             color: '#4B5563',
           }}>
             Send one email to the founder this week asking for the cap table and dilution model before your next conversation.
@@ -360,10 +466,10 @@ export default function SampleDecisionPage() {
         {/* How to Strengthen This Decision */}
         <div style={{
           background: '#fff',
-          border: '1px solid rgba(0,0,0,0.1)',
+          border: '2px solid rgba(30,28,26,0.08)',
           borderRadius: 12,
-          padding: 24,
-          marginBottom: 32,
+          padding: 28,
+          marginBottom: 40,
         }}>
           <div style={{
             fontSize: 11,
@@ -371,13 +477,13 @@ export default function SampleDecisionPage() {
             letterSpacing: '0.1em',
             textTransform: 'uppercase',
             color: '#6B7280',
-            marginBottom: 16,
+            marginBottom: 14,
           }}>
             How to Strengthen This Decision
           </div>
           <div style={{
-            fontSize: 14,
-            lineHeight: 1.6,
+            fontSize: 15,
+            lineHeight: 1.7,
             color: '#4B5563',
           }}>
             Before you commit: (1) Get the cap table model showing dilution through Series B. (2) Ask the founder what anti-dilution protection employee equity carries. (3) Model the worst-case scenario where the company acqui-hires at 1.5x current valuation in 18 months — does the equity still justify the base salary cut?
@@ -389,8 +495,8 @@ export default function SampleDecisionPage() {
           background: '#0E0C0A',
           color: '#F1EFE8',
           borderRadius: 12,
-          padding: 28,
-          marginBottom: 24,
+          padding: 32,
+          marginBottom: 32,
         }}>
           <div style={{
             fontSize: 11,
@@ -398,12 +504,12 @@ export default function SampleDecisionPage() {
             letterSpacing: '0.1em',
             textTransform: 'uppercase',
             color: '#9CA3AF',
-            marginBottom: 12,
+            marginBottom: 14,
           }}>
             Final Verdict
           </div>
           <div style={{
-            fontSize: 15,
+            fontSize: 16,
             lineHeight: 1.7,
             color: '#F1EFE8',
           }}>
@@ -414,10 +520,10 @@ export default function SampleDecisionPage() {
         {/* When This Changes */}
         <div style={{
           background: '#fff',
-          border: '1px solid rgba(0,0,0,0.1)',
+          border: '2px solid rgba(30,28,26,0.08)',
           borderRadius: 12,
-          padding: 24,
-          marginBottom: 32,
+          padding: 28,
+          marginBottom: 40,
         }}>
           <div style={{
             fontSize: 11,
@@ -425,13 +531,13 @@ export default function SampleDecisionPage() {
             letterSpacing: '0.1em',
             textTransform: 'uppercase',
             color: '#6B7280',
-            marginBottom: 12,
+            marginBottom: 14,
           }}>
             When This Changes
           </div>
           <div style={{
-            fontSize: 14,
-            lineHeight: 1.6,
+            fontSize: 15,
+            lineHeight: 1.7,
             color: '#4B5563',
           }}>
             When you have the cap table model showing your exit value at three scenarios (acqui-hire / Series C / IPO) and the number is still worth the risk at the worst case.
@@ -441,9 +547,9 @@ export default function SampleDecisionPage() {
         {/* What Are You Doing In The Next 48 Hours */}
         <div style={{
           background: '#fff',
-          border: '2px solid #1E1C1A',
+          border: '3px solid #1E1C1A',
           borderRadius: 12,
-          padding: 24,
+          padding: 32,
           marginBottom: 24,
         }}>
           <div style={{
@@ -452,80 +558,29 @@ export default function SampleDecisionPage() {
             letterSpacing: '0.1em',
             textTransform: 'uppercase',
             color: '#6B7280',
-            marginBottom: 12,
+            marginBottom: 14,
           }}>
             What Are You Doing In The Next 48 Hours?
           </div>
           <div style={{
-            fontSize: 14,
-            lineHeight: 1.6,
+            fontSize: 15,
+            lineHeight: 1.7,
             color: '#4B5563',
-            marginBottom: 16,
+            marginBottom: 20,
           }}>
             Once you commit to this decision, you have 48 hours to change your mind. After that, the verdict locks and you&apos;ll return in 30, 60, and 90 days to track what actually happened.
           </div>
           <div style={{
-            padding: 16,
+            padding: 20,
             background: '#FAFAFA',
             border: '1px solid #E5E5E5',
             borderRadius: 8,
-            fontSize: 13,
+            fontSize: 14,
             color: '#6B7280',
             textAlign: 'center',
             fontWeight: 600,
           }}>
             Decision Layer builds pattern recognition from your real outcomes — not hypotheticals.
-          </div>
-        </div>
-
-        {/* Footer CTA */}
-        <div style={{
-          marginTop: 40,
-          padding: 32,
-          background: 'linear-gradient(135deg, #0E0C0A 0%, #1E1C1A 100%)',
-          borderRadius: 12,
-          textAlign: 'center',
-          border: '1px solid rgba(220,38,38,0.3)',
-        }}>
-          <div style={{
-            fontSize: 20,
-            fontWeight: 700,
-            marginBottom: 12,
-            color: '#F1EFE8',
-            lineHeight: 1.3,
-          }}>
-            Every decision has a blind spot.<br />Find yours before you commit.
-          </div>
-          <div style={{
-            fontSize: 15,
-            color: '#9CA3AF',
-            marginBottom: 24,
-            lineHeight: 1.6,
-            maxWidth: 500,
-            margin: '0 auto 24px',
-          }}>
-            ChatGPT will agree with you. Decision Layer will find what you missed — the assumption you didn&apos;t test, the exit you didn&apos;t plan, the risk you didn&apos;t see.
-          </div>
-          <Link href="/" style={{
-            display: 'inline-block',
-            padding: '16px 32px',
-            background: '#1E1C1A',
-            color: '#fff',
-            borderRadius: 8,
-            fontSize: 15,
-            fontWeight: 700,
-            textDecoration: 'none',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
-            transition: 'all 0.2s',
-          }}>
-            Get Your Verdict → Free preview, $99 to unlock
-          </Link>
-          <div style={{
-            marginTop: 16,
-            fontSize: 12,
-            color: '#6B7280',
-          }}>
-            48-hour money-back guarantee · Your decision stays private
           </div>
         </div>
       </div>
