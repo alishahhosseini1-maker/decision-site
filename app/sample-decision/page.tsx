@@ -8,6 +8,7 @@ export default function SampleDecisionPage() {
   const sans = "'Inter', system-ui, -apple-system, sans-serif";
 
   const [currentLayer, setCurrentLayer] = useState(0);
+  const [completedLayers, setCompletedLayers] = useState<number[]>([]);
 
   const layers = [
     {
@@ -290,23 +291,171 @@ export default function SampleDecisionPage() {
 
         {/* 5-Layer Door Animation */}
         <div style={{
-          background: '#fff',
-          border: '2px solid rgba(30,28,26,0.1)',
+          background: 'linear-gradient(180deg, #1A1816 0%, #0E0C0A 100%)',
+          border: '2px solid rgba(212,175,55,0.3)',
           borderRadius: 16,
-          padding: 36,
+          padding: 40,
           marginBottom: 40,
-          boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+          boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
         }}>
           <div style={{
             fontFamily: serif,
             fontSize: 22,
             fontWeight: 700,
-            color: '#1E1C1A',
-            marginBottom: 32,
+            color: '#F1EFE8',
+            marginBottom: 40,
             textAlign: 'center',
             letterSpacing: '-0.01em',
           }}>
             Your decision has 5 layers
+          </div>
+
+          {/* Door Visualization */}
+          <div style={{
+            position: 'relative',
+            width: '100%',
+            maxWidth: 400,
+            height: 320,
+            margin: '0 auto 40px',
+            background: '#0E0C0A',
+            borderRadius: 12,
+            overflow: 'hidden',
+            border: '1px solid rgba(212,175,55,0.2)',
+          }}>
+            {/* Exit Sign (Layer 4) */}
+            <div style={{
+              position: 'absolute',
+              top: 20,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              padding: '8px 20px',
+              background: completedLayers.includes(3) ? '#DC2626' : '#2A2624',
+              borderRadius: 6,
+              fontSize: 13,
+              fontWeight: 700,
+              color: completedLayers.includes(3) ? '#fff' : '#4B4845',
+              transition: 'all 0.6s ease',
+              boxShadow: completedLayers.includes(3) ? '0 0 20px rgba(220,38,38,0.6)' : 'none',
+            }}>
+              EXIT
+            </div>
+
+            {/* Door Frame */}
+            <div style={{
+              position: 'absolute',
+              top: 80,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: 200,
+              height: 200,
+              border: '3px solid #3A3531',
+              borderRadius: 4,
+            }}>
+              {/* Left Hinge (Layer 1) */}
+              <div style={{
+                position: 'absolute',
+                left: -12,
+                top: 40,
+                width: 24,
+                height: 12,
+                background: completedLayers.includes(0) ? 'linear-gradient(90deg, #D4AF37 0%, #F4D03F 50%, #D4AF37 100%)' : '#2A2624',
+                borderRadius: 2,
+                transition: 'all 0.6s ease',
+                boxShadow: completedLayers.includes(0) ? '0 0 16px rgba(212,175,55,0.8)' : 'none',
+              }} />
+
+              {/* Right Hinge (Layer 2) */}
+              <div style={{
+                position: 'absolute',
+                left: -12,
+                top: 148,
+                width: 24,
+                height: 12,
+                background: completedLayers.includes(1) ? 'linear-gradient(90deg, #D4AF37 0%, #F4D03F 50%, #D4AF37 100%)' : '#2A2624',
+                borderRadius: 2,
+                transition: 'all 0.6s ease',
+                boxShadow: completedLayers.includes(1) ? '0 0 16px rgba(212,175,55,0.8)' : 'none',
+              }} />
+
+              {/* Door Panel */}
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                background: 'linear-gradient(90deg, #2A2624 0%, #3A3531 50%, #2A2624 100%)',
+                borderRadius: 2,
+                transform: completedLayers.length === 5 ? 'perspective(400px) rotateY(-75deg)' :
+                           completedLayers.includes(3) ? 'perspective(400px) rotateY(-12deg)' :
+                           completedLayers.includes(2) ? 'perspective(400px) rotateY(-3deg)' : 'none',
+                transformOrigin: 'left center',
+                transition: 'transform 0.8s cubic-bezier(0.4, 0.0, 0.2, 1)',
+                boxShadow: completedLayers.includes(2) ? '4px 0 12px rgba(0,0,0,0.4)' : 'none',
+              }}>
+                {/* Lock (Layer 3) */}
+                <div style={{
+                  position: 'absolute',
+                  right: 20,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  fontSize: 32,
+                  transition: 'all 0.6s ease',
+                }}>
+                  {completedLayers.includes(2) ? '🔓' : '🔒'}
+                </div>
+              </div>
+            </div>
+
+            {/* Trap Door (Layer 5) */}
+            <div style={{
+              position: 'absolute',
+              bottom: 20,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: 120,
+              height: 40,
+              background: completedLayers.includes(4) ? 'linear-gradient(180deg, #D4AF37 0%, #B8941F 100%)' : '#1A1816',
+              border: completedLayers.includes(4) ? '2px solid #D4AF37' : '2px solid #2A2624',
+              borderRadius: 4,
+              transition: 'all 0.6s ease',
+              boxShadow: completedLayers.includes(4) ? '0 0 24px rgba(212,175,55,0.6)' : 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 11,
+              fontWeight: 700,
+              color: completedLayers.includes(4) ? '#1E1C1A' : '#4B4845',
+              letterSpacing: '0.05em',
+            }}>
+              TRAP DOOR
+            </div>
+
+            {/* "Tap to begin" overlay (only at start) */}
+            {completedLayers.length === 0 && (
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'rgba(14,12,10,0.85)',
+                backdropFilter: 'blur(4px)',
+              }}>
+                <div style={{
+                  fontSize: 16,
+                  fontWeight: 700,
+                  color: '#D4AF37',
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase',
+                }}>
+                  Tap to begin
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Layer Navigation Dots */}
@@ -317,110 +466,137 @@ export default function SampleDecisionPage() {
             marginBottom: 32,
           }}>
             {layers.map((_, idx) => (
-              <button
+              <div
                 key={idx}
-                onClick={() => setCurrentLayer(idx)}
                 style={{
                   width: 12,
                   height: 12,
                   borderRadius: '50%',
-                  border: 'none',
-                  background: idx === currentLayer ? '#1E1C1A' : '#D1D5DB',
-                  cursor: 'pointer',
-                  padding: 0,
+                  background: completedLayers.includes(idx) ? '#D4AF37' :
+                             idx === currentLayer ? '#9CA3AF' : '#3A3531',
                   transition: 'all 0.25s',
-                  boxShadow: idx === currentLayer ? '0 2px 8px rgba(30,28,26,0.3)' : 'none',
+                  boxShadow: completedLayers.includes(idx) ? '0 0 8px rgba(212,175,55,0.6)' : 'none',
                 }}
               />
             ))}
           </div>
 
-          {/* Current Layer Display */}
-          <div style={{
-            background: currentLayer === 2 ? '#FEF2F2' : '#FAFAFA',
-            border: currentLayer === 2 ? '2px solid #FCA5A5' : '2px solid #E5E5E5',
-            borderRadius: 12,
-            padding: 28,
-            minHeight: 200,
-            transition: 'all 0.3s',
-          }}>
+          {/* Walkthrough Complete Summary */}
+          {completedLayers.length === 5 ? (
             <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: 16,
+              background: 'rgba(212,175,55,0.1)',
+              border: '2px solid #D4AF37',
+              borderRadius: 12,
+              padding: 32,
+              textAlign: 'center',
             }}>
               <div style={{
-                fontSize: 15,
-                fontWeight: 700,
-                color: currentLayer === 2 ? '#991B1B' : '#1E1C1A',
-                letterSpacing: '0.02em',
+                fontSize: 17,
+                lineHeight: 1.7,
+                color: '#F1EFE8',
+                fontWeight: 500,
               }}>
-                {layers[currentLayer].name} · {layers[currentLayer].subtitle}
+                Your equity bet hinges on dilution math you don&apos;t have yet.
+                Leaving resets your Series B trajectory — no coming back at the same level.
+                If the startup hasn&apos;t hit Series A in 18 months, you know when to exit.
+                Now you know what to do with it.
               </div>
+            </div>
+          ) : (
+            <>
+              {/* Current Layer Display */}
               <div style={{
-                fontSize: 24,
-                fontWeight: 900,
-                color: currentLayer === 2 ? '#DC2626' : '#737373',
-                letterSpacing: '-0.01em',
+                background: currentLayer === 2 ? 'rgba(254,242,242,0.1)' : 'rgba(250,250,250,0.05)',
+                border: currentLayer === 2 ? '2px solid #FCA5A5' : '2px solid rgba(255,255,255,0.1)',
+                borderRadius: 12,
+                padding: 28,
+                minHeight: 200,
+                transition: 'all 0.3s',
               }}>
-                {layers[currentLayer].score}<span style={{ fontSize: 16, opacity: 0.6 }}>/20</span>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 16,
+                }}>
+                  <div style={{
+                    fontSize: 15,
+                    fontWeight: 700,
+                    color: currentLayer === 2 ? '#FCA5A5' : '#D4AF37',
+                    letterSpacing: '0.02em',
+                  }}>
+                    {layers[currentLayer].name} · {layers[currentLayer].subtitle}
+                  </div>
+                  <div style={{
+                    fontSize: 24,
+                    fontWeight: 900,
+                    color: currentLayer === 2 ? '#DC2626' : '#D4AF37',
+                    letterSpacing: '-0.01em',
+                  }}>
+                    {layers[currentLayer].score}<span style={{ fontSize: 16, opacity: 0.6 }}>/20</span>
+                  </div>
+                </div>
+                <div style={{
+                  fontSize: 15,
+                  lineHeight: 1.7,
+                  color: '#E5E5E5',
+                }}>
+                  {layers[currentLayer].content}
+                </div>
               </div>
-            </div>
-            <div style={{
-              fontSize: 15,
-              lineHeight: 1.7,
-              color: currentLayer === 2 ? '#7F1D1D' : '#4B5563',
-            }}>
-              {layers[currentLayer].content}
-            </div>
-          </div>
 
-          {/* Navigation Buttons */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            marginTop: 24,
-          }}>
-            <button
-              onClick={() => setCurrentLayer(Math.max(0, currentLayer - 1))}
-              disabled={currentLayer === 0}
-              style={{
-                padding: '12px 24px',
-                background: currentLayer === 0 ? '#F3F4F6' : '#1E1C1A',
-                color: currentLayer === 0 ? '#9CA3AF' : '#fff',
-                border: 'none',
-                borderRadius: 8,
-                fontSize: 14,
-                fontWeight: 700,
-                cursor: currentLayer === 0 ? 'not-allowed' : 'pointer',
-                opacity: currentLayer === 0 ? 0.5 : 1,
-                transition: 'all 0.2s',
-                letterSpacing: '0.01em',
-              }}
-            >
-              ← Previous
-            </button>
-            <button
-              onClick={() => setCurrentLayer(Math.min(4, currentLayer + 1))}
-              disabled={currentLayer === 4}
-              style={{
-                padding: '12px 24px',
-                background: currentLayer === 4 ? '#F3F4F6' : '#1E1C1A',
-                color: currentLayer === 4 ? '#9CA3AF' : '#fff',
-                border: 'none',
-                borderRadius: 8,
-                fontSize: 14,
-                fontWeight: 700,
-                cursor: currentLayer === 4 ? 'not-allowed' : 'pointer',
-                opacity: currentLayer === 4 ? 0.5 : 1,
-                transition: 'all 0.2s',
-                letterSpacing: '0.01em',
-              }}
-            >
-              Next →
-            </button>
-          </div>
+              {/* Navigation Buttons */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginTop: 24,
+              }}>
+                <button
+                  onClick={() => setCurrentLayer(Math.max(0, currentLayer - 1))}
+                  disabled={currentLayer === 0}
+                  style={{
+                    padding: '12px 24px',
+                    background: currentLayer === 0 ? 'rgba(243,244,246,0.1)' : '#D4AF37',
+                    color: currentLayer === 0 ? '#6B7280' : '#1E1C1A',
+                    border: 'none',
+                    borderRadius: 8,
+                    fontSize: 14,
+                    fontWeight: 700,
+                    cursor: currentLayer === 0 ? 'not-allowed' : 'pointer',
+                    opacity: currentLayer === 0 ? 0.3 : 1,
+                    transition: 'all 0.2s',
+                    letterSpacing: '0.01em',
+                  }}
+                >
+                  ← Previous
+                </button>
+                <button
+                  onClick={() => {
+                    if (!completedLayers.includes(currentLayer)) {
+                      setCompletedLayers([...completedLayers, currentLayer]);
+                    }
+                    setCurrentLayer(Math.min(4, currentLayer + 1));
+                  }}
+                  disabled={currentLayer === 4}
+                  style={{
+                    padding: '12px 24px',
+                    background: currentLayer === 4 ? 'rgba(243,244,246,0.1)' : '#D4AF37',
+                    color: currentLayer === 4 ? '#6B7280' : '#1E1C1A',
+                    border: 'none',
+                    borderRadius: 8,
+                    fontSize: 14,
+                    fontWeight: 700,
+                    cursor: currentLayer === 4 ? 'not-allowed' : 'pointer',
+                    opacity: currentLayer === 4 ? 0.3 : 1,
+                    transition: 'all 0.2s',
+                    letterSpacing: '0.01em',
+                  }}
+                >
+                  Next →
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Next Move */}
