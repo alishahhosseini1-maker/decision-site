@@ -231,28 +231,15 @@ export default function SampleDecisionPage() {
           boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
         }}>
           <div style={{
-            fontSize: 24,
-            fontWeight: 700,
-            marginBottom: 16,
-            color: '#F1EFE8',
-            lineHeight: 1.3,
-            letterSpacing: '-0.01em',
-            fontFamily: serif,
-          }}>
-            Every decision has a blind spot.<br />Find yours before you commit.
-          </div>
-          <div style={{
             fontSize: 15,
             color: '#9CA3AF',
             marginBottom: 28,
             lineHeight: 1.6,
-            maxWidth: 520,
-            margin: '0 auto 28px',
           }}>
             ChatGPT will agree with you. Decision Layer will find what you missed — the assumption you didn&apos;t test, the exit you didn&apos;t plan, the risk you didn&apos;t see.
           </div>
           <Link href="/" style={{
-            display: 'inline-block',
+            display: 'block',
             padding: '18px 40px',
             background: '#1E1C1A',
             color: '#fff',
@@ -264,11 +251,11 @@ export default function SampleDecisionPage() {
             transition: 'all 0.2s',
             border: '2px solid #fff',
             letterSpacing: '0.01em',
+            marginBottom: 28,
           }}>
             Get Your Verdict → Free preview, $99 to unlock
           </Link>
           <div style={{
-            marginTop: 20,
             fontSize: 13,
             color: '#6B7280',
             letterSpacing: '0.01em',
