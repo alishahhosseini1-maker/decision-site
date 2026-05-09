@@ -635,13 +635,23 @@ export default function DecisionDoor({ reviewResult, onStepChange, decisionText,
 
           {/* LOCK — large brass escutcheon */}
           <g opacity={getElementOpacity('lock')}>
-          {/* Slow breathing glow at start - deliberate, weighty */}
-          {current < 0 && (
-            <circle cx="463" cy="285" r="20" fill="#B8860B" opacity="0.4" filter="url(#goldGlow)">
-              <animate attributeName="opacity" values="0.2;0.5;0.2" dur="2s" repeatCount="indefinite" />
-              <animate attributeName="r" values="18;22;18" dur="2s" repeatCount="indefinite" />
-            </circle>
-          )}
+          {/* Slow breathing glow at start - invitation that ends once accepted */}
+          <circle
+            cx="463"
+            cy="285"
+            r="20"
+            fill="#B8860B"
+            opacity={current < 0 ? 0.4 : 0}
+            filter="url(#goldGlow)"
+            style={{ transition: 'opacity 600ms ease-out' }}
+          >
+            {current < 0 && (
+              <>
+                <animate attributeName="opacity" values="0.2;0.5;0.2" dur="2s" repeatCount="indefinite" />
+                <animate attributeName="r" values="18;22;18" dur="2s" repeatCount="indefinite" />
+              </>
+            )}
+          </circle>
           {/* escutcheon plate */}
           <rect x="452" y="254" width="22" height="62" rx="4" fill="url(#brassG)"/>
           <rect x="452" y="254" width="22" height="62" rx="4" fill="none" stroke="#9A7218" strokeWidth="0.5"/>
