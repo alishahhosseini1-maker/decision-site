@@ -1,47 +1,40 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import DecisionDoor from '../components/DecisionDoor';
 
 export default function SampleDecisionPage() {
   const serif = "'Spectral', Georgia, serif";
   const sans = "'Inter', system-ui, -apple-system, sans-serif";
 
-  const [currentLayer, setCurrentLayer] = useState(0);
-  const [completedLayers, setCompletedLayers] = useState<number[]>([]);
-
-  const layers = [
-    {
-      name: 'Door',
-      subtitle: 'Clarity',
-      score: 12,
-      content: 'What exactly are you deciding? The decision is framed as a binary choice (stay or leave) but the real decision is: does the equity value justify the salary cut and career risk? That\'s the door you\'re actually walking through.',
+  // Mock reviewResult data for sample page
+  const sampleReviewResult = {
+    readiness: {
+      total: 50,
+      label: 'Needs more before you commit',
+      clarity: 12,
+      assumptions: 8,
+      reversibility: 6,
+      risk: 10,
+      exitLogic: 14,
+      rationale: {
+        clarity: 'The decision is framed as a binary choice but the real question is whether equity value justifies the salary cut and career risk.',
+        assumptions: 'Without the cap table model, you\'re betting on a number that doesn\'t exist yet.',
+        reversibility: 'Leaving resets your Series B trajectory. The market reads "early-stage gamble" not "product leadership."',
+        risk: 'You are leaving because the current role feels stale, not because this opportunity is objectively exceptional.',
+        exitLogic: 'If the startup hasn\'t hit Series A in 18 months or equity dilutes below 1.2%, you know when to exit.',
+      },
     },
-    {
-      name: 'Hinge',
-      subtitle: 'Assumptions',
-      score: 8,
-      content: 'Your 2% will not be diluted below 0.8% before a liquidity event. Without the cap table model, you\'re betting on a number that doesn\'t exist yet.',
+    snapshot: {
+      door: 'What exactly are you deciding? Does the equity value justify the salary cut and career risk?',
+      hinge: 'Your 2% will not be diluted below 0.8% before a liquidity event.',
+      lock: 'You permanently exit the Series B career track. Returning to a similar role after 18 months at a failed startup resets your trajectory.',
+      exit: 'If the startup has not hit Series A within 18 months or your equity is diluted below 1.2%, return to market immediately.',
+      trap: 'Prestige of escape disguised as opportunity — you are leaving because the current role feels stale, not because this opportunity is objectively exceptional.',
+      step: 'Send one email to the founder this week asking for the cap table and dilution model.',
+      script: 'Ask for the cap table model showing dilution through Series B, anti-dilution protection details, and worst-case acqui-hire scenario modeling.',
     },
-    {
-      name: 'Lock',
-      subtitle: 'Reversibility',
-      score: 6,
-      content: 'You permanently exit the Series B career track. Returning to a similar role after 18 months at a failed startup resets your trajectory. The market reads "early-stage gamble" not "product leadership."',
-    },
-    {
-      name: 'Exit Sign',
-      subtitle: 'Exit Logic',
-      score: 14,
-      content: 'If the startup has not hit Series A within 18 months or your equity is diluted below 1.2%, return to market immediately. Set a calendar reminder for month 17.',
-    },
-    {
-      name: 'Trap',
-      subtitle: 'Risk',
-      score: 10,
-      content: 'Prestige of escape disguised as opportunity — you are leaving because the current role feels stale, not because this opportunity is objectively exceptional. Boredom is not a thesis.',
-    },
-  ];
+  };
 
   return (
     <div style={{
@@ -290,332 +283,13 @@ export default function SampleDecisionPage() {
         </div>
 
         {/* 5-Layer Door Animation */}
-        <div style={{
-          background: 'linear-gradient(180deg, #1A1816 0%, #0E0C0A 100%)',
-          border: '2px solid rgba(212,175,55,0.3)',
-          borderRadius: 16,
-          padding: 40,
-          marginBottom: 40,
-          boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
-        }}>
-          <div style={{
-            fontFamily: serif,
-            fontSize: 22,
-            fontWeight: 700,
-            color: '#F1EFE8',
-            marginBottom: 20,
-            textAlign: 'center',
-            letterSpacing: '-0.01em',
-          }}>
-            Your decision has 5 layers
-          </div>
-
-          {/* Progress indicator */}
-          <div style={{
-            textAlign: 'center',
-            marginBottom: 32,
-            fontSize: 13,
-            color: '#D4AF37',
-            fontWeight: 600,
-          }}>
-            {completedLayers.length === 0 ? 'Click "Next" to begin unlocking the door' :
-             completedLayers.length === 5 ? 'Door fully opened!' :
-             `${completedLayers.length} of 5 layers completed`}
-          </div>
-
-          {/* Door Visualization */}
-          <div style={{
-            position: 'relative',
-            width: '100%',
-            maxWidth: 400,
-            height: 320,
-            margin: '0 auto 40px',
-            background: '#0E0C0A',
-            borderRadius: 12,
-            overflow: 'hidden',
-            border: '1px solid rgba(212,175,55,0.2)',
-          }}>
-            {/* Exit Sign (Layer 4) */}
-            <div style={{
-              position: 'absolute',
-              top: 20,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              padding: '8px 20px',
-              background: completedLayers.includes(3) ? '#DC2626' : '#2A2624',
-              borderRadius: 6,
-              fontSize: 13,
-              fontWeight: 700,
-              color: completedLayers.includes(3) ? '#fff' : '#4B4845',
-              transition: 'all 0.6s ease',
-              boxShadow: completedLayers.includes(3) ? '0 0 20px rgba(220,38,38,0.6)' : 'none',
-            }}>
-              EXIT
-            </div>
-
-            {/* Door Frame */}
-            <div style={{
-              position: 'absolute',
-              top: 80,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: 200,
-              height: 200,
-              border: '3px solid #3A3531',
-              borderRadius: 4,
-            }}>
-              {/* Left Hinge (Layer 1) - Shows after completing layer 0 */}
-              <div style={{
-                position: 'absolute',
-                left: -16,
-                top: 40,
-                width: 32,
-                height: 16,
-                background: completedLayers.includes(0) ? 'linear-gradient(90deg, #D4AF37 0%, #F4D03F 50%, #D4AF37 100%)' : '#1A1816',
-                borderRadius: 3,
-                transition: 'all 0.6s ease',
-                boxShadow: completedLayers.includes(0) ? '0 0 24px rgba(212,175,55,1), inset 0 0 8px rgba(255,255,255,0.3)' : 'none',
-                border: completedLayers.includes(0) ? '2px solid #F4D03F' : '2px solid #2A2624',
-                opacity: completedLayers.includes(0) ? 1 : 0.3,
-              }} />
-
-              {/* Right Hinge (Layer 2) - Shows after completing layer 1 */}
-              <div style={{
-                position: 'absolute',
-                left: -16,
-                top: 144,
-                width: 32,
-                height: 16,
-                background: completedLayers.includes(1) ? 'linear-gradient(90deg, #D4AF37 0%, #F4D03F 50%, #D4AF37 100%)' : '#1A1816',
-                borderRadius: 3,
-                transition: 'all 0.6s ease',
-                boxShadow: completedLayers.includes(1) ? '0 0 24px rgba(212,175,55,1), inset 0 0 8px rgba(255,255,255,0.3)' : 'none',
-                border: completedLayers.includes(1) ? '2px solid #F4D03F' : '2px solid #2A2624',
-                opacity: completedLayers.includes(1) ? 1 : 0.3,
-              }} />
-
-              {/* Door Panel */}
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                background: 'linear-gradient(90deg, #2A2624 0%, #3A3531 50%, #2A2624 100%)',
-                borderRadius: 2,
-                transform: completedLayers.length === 5 ? 'perspective(600px) rotateY(-85deg)' :
-                           completedLayers.includes(3) ? 'perspective(600px) rotateY(-20deg)' :
-                           completedLayers.includes(2) ? 'perspective(600px) rotateY(-8deg)' : 'rotateY(0deg)',
-                transformOrigin: 'left center',
-                transition: 'transform 1s cubic-bezier(0.4, 0.0, 0.2, 1)',
-                boxShadow: completedLayers.includes(2) ? '8px 0 24px rgba(0,0,0,0.6)' : 'none',
-              }}>
-                {/* Lock (Layer 3) */}
-                <div style={{
-                  position: 'absolute',
-                  right: 20,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  fontSize: 40,
-                  transition: 'all 0.6s ease',
-                  filter: completedLayers.includes(2) ? 'drop-shadow(0 0 8px rgba(212,175,55,0.8))' : 'none',
-                }}>
-                  {completedLayers.includes(2) ? '🔓' : '🔒'}
-                </div>
-              </div>
-            </div>
-
-            {/* Trap Door (Layer 5) */}
-            <div style={{
-              position: 'absolute',
-              bottom: 20,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: 120,
-              height: 40,
-              background: completedLayers.includes(4) ? 'linear-gradient(180deg, #D4AF37 0%, #B8941F 100%)' : '#1A1816',
-              border: completedLayers.includes(4) ? '2px solid #D4AF37' : '2px solid #2A2624',
-              borderRadius: 4,
-              transition: 'all 0.6s ease',
-              boxShadow: completedLayers.includes(4) ? '0 0 24px rgba(212,175,55,0.6)' : 'none',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 11,
-              fontWeight: 700,
-              color: completedLayers.includes(4) ? '#1E1C1A' : '#4B4845',
-              letterSpacing: '0.05em',
-            }}>
-              TRAP DOOR
-            </div>
-
-            {/* "Tap to begin" overlay (only at start) */}
-            {completedLayers.length === 0 && (
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'rgba(14,12,10,0.85)',
-                backdropFilter: 'blur(4px)',
-              }}>
-                <div style={{
-                  fontSize: 16,
-                  fontWeight: 700,
-                  color: '#D4AF37',
-                  letterSpacing: '0.05em',
-                  textTransform: 'uppercase',
-                }}>
-                  Tap to begin
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Layer Navigation Dots */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: 10,
-            marginBottom: 32,
-          }}>
-            {layers.map((_, idx) => (
-              <div
-                key={idx}
-                style={{
-                  width: 12,
-                  height: 12,
-                  borderRadius: '50%',
-                  background: completedLayers.includes(idx) ? '#D4AF37' :
-                             idx === currentLayer ? '#9CA3AF' : '#3A3531',
-                  transition: 'all 0.25s',
-                  boxShadow: completedLayers.includes(idx) ? '0 0 8px rgba(212,175,55,0.6)' : 'none',
-                }}
-              />
-            ))}
-          </div>
-
-          {/* Walkthrough Complete Summary */}
-          {completedLayers.length === 5 ? (
-            <div style={{
-              background: 'rgba(212,175,55,0.1)',
-              border: '2px solid #D4AF37',
-              borderRadius: 12,
-              padding: 32,
-              textAlign: 'center',
-            }}>
-              <div style={{
-                fontSize: 17,
-                lineHeight: 1.7,
-                color: '#F1EFE8',
-                fontWeight: 500,
-              }}>
-                Your equity bet hinges on dilution math you don&apos;t have yet.
-                Leaving resets your Series B trajectory — no coming back at the same level.
-                If the startup hasn&apos;t hit Series A in 18 months, you know when to exit.
-                Now you know what to do with it.
-              </div>
-            </div>
-          ) : (
-            <>
-              {/* Current Layer Display */}
-              <div style={{
-                background: currentLayer === 2 ? 'rgba(254,242,242,0.1)' : 'rgba(250,250,250,0.05)',
-                border: currentLayer === 2 ? '2px solid #FCA5A5' : '2px solid rgba(255,255,255,0.1)',
-                borderRadius: 12,
-                padding: 28,
-                minHeight: 200,
-                transition: 'all 0.3s',
-              }}>
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: 16,
-                }}>
-                  <div style={{
-                    fontSize: 15,
-                    fontWeight: 700,
-                    color: currentLayer === 2 ? '#FCA5A5' : '#D4AF37',
-                    letterSpacing: '0.02em',
-                  }}>
-                    {layers[currentLayer].name} · {layers[currentLayer].subtitle}
-                  </div>
-                  <div style={{
-                    fontSize: 24,
-                    fontWeight: 900,
-                    color: currentLayer === 2 ? '#DC2626' : '#D4AF37',
-                    letterSpacing: '-0.01em',
-                  }}>
-                    {layers[currentLayer].score}<span style={{ fontSize: 16, opacity: 0.6 }}>/20</span>
-                  </div>
-                </div>
-                <div style={{
-                  fontSize: 15,
-                  lineHeight: 1.7,
-                  color: '#E5E5E5',
-                }}>
-                  {layers[currentLayer].content}
-                </div>
-              </div>
-
-              {/* Navigation Buttons */}
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                marginTop: 24,
-              }}>
-                <button
-                  onClick={() => setCurrentLayer(Math.max(0, currentLayer - 1))}
-                  disabled={currentLayer === 0}
-                  style={{
-                    padding: '12px 24px',
-                    background: currentLayer === 0 ? 'rgba(243,244,246,0.1)' : '#D4AF37',
-                    color: currentLayer === 0 ? '#6B7280' : '#1E1C1A',
-                    border: 'none',
-                    borderRadius: 8,
-                    fontSize: 14,
-                    fontWeight: 700,
-                    cursor: currentLayer === 0 ? 'not-allowed' : 'pointer',
-                    opacity: currentLayer === 0 ? 0.3 : 1,
-                    transition: 'all 0.2s',
-                    letterSpacing: '0.01em',
-                  }}
-                >
-                  ← Previous
-                </button>
-                <button
-                  onClick={() => {
-                    if (!completedLayers.includes(currentLayer)) {
-                      setCompletedLayers([...completedLayers, currentLayer]);
-                    }
-                    setCurrentLayer(Math.min(4, currentLayer + 1));
-                  }}
-                  disabled={currentLayer === 4}
-                  style={{
-                    padding: '12px 24px',
-                    background: currentLayer === 4 ? 'rgba(243,244,246,0.1)' : '#D4AF37',
-                    color: currentLayer === 4 ? '#6B7280' : '#1E1C1A',
-                    border: 'none',
-                    borderRadius: 8,
-                    fontSize: 14,
-                    fontWeight: 700,
-                    cursor: currentLayer === 4 ? 'not-allowed' : 'pointer',
-                    opacity: currentLayer === 4 ? 0.3 : 1,
-                    transition: 'all 0.2s',
-                    letterSpacing: '0.01em',
-                  }}
-                >
-                  Next →
-                </button>
-              </div>
-            </>
-          )}
-        </div>
+        <DecisionDoor
+          reviewResult={sampleReviewResult}
+          onStepChange={() => {}}
+          decisionText="Should I leave my stable Series B company for a founding product role at a pre-seed startup?"
+          verdictLine="Your equity bet hinges on dilution math you don't have yet"
+          hingeScore={8}
+        />
 
         {/* Next Move */}
         <div style={{
