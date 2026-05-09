@@ -1,9 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function DecisionDoor({ reviewResult, onStepChange, decisionText, verdictLine, hingeScore }) {
   const [current, setCurrent] = useState(-1);
+  const [visibleText, setVisibleText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [screenShake, setScreenShake] = useState(false);
+  const [goldFlash, setGoldFlash] = useState(false);
+  const [redFlash, setRedFlash] = useState(false);
+  const [vignetteActive, setVignetteActive] = useState(false);
+  const [finalLines, setFinalLines] = useState([false, false, false, false]);
 
   // Get score color matching the main results page
   const getScoreMeta = (label) => {
@@ -77,8 +84,94 @@ export default function DecisionDoor({ reviewResult, onStepChange, decisionText,
 
   const replay = () => {
     setCurrent(-1);
+    setFinalLines([false, false, false, false]);
     if (onStepChange) onStepChange(-1);
   };
+
+  // Typewriter effect for text
+  useEffect(() => {
+    if (current < 0 || current >= 5) {
+      setVisibleText('');
+      setIsTyping(false);
+      return;
+    }
+
+    const fullText = steps[current].heading;
+    const words = fullText.split(' ');
+    setVisibleText('');
+    setIsTyping(true);
+
+    let wordIndex = 0;
+    const interval = setInterval(() => {
+      if (wordIndex < words.length) {
+        setVisibleText(words.slice(0, wordIndex + 1).join(' '));
+        wordIndex++;
+      } else {
+        setIsTyping(false);
+        clearInterval(interval);
+      }
+    }, 30);
+
+    return () => clearInterval(interval);
+  }, [current, steps]);
+
+  // Layer transition effects
+  useEffect(() => {
+    if (current < 0) return;
+
+    // Layer 2 (Hinges) - screen shake
+    if (current === 1) {
+      setScreenShake(true);
+      setTimeout(() => setScreenShake(false), 200);
+    }
+
+    // Layer 3 (Lock) - haptic, sound, gold flash
+    if (current === 2) {
+      if (navigator.vibrate) {
+        navigator.vibrate(200);
+      }
+      // Play lock sound
+      const audio = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=');
+      audio.play().catch(() => {}); // Ignore if autoplay blocked
+
+      setGoldFlash(true);
+      setTimeout(() => setGoldFlash(false), 300);
+    }
+
+    // Layer 4 (Exit) - red flash
+    if (current === 3) {
+      setRedFlash(true);
+      setTimeout(() => setRedFlash(false), 300);
+    }
+
+    // Layer 5 (Trap) - vignette pulse
+    if (current === 4) {
+      setVignetteActive(true);
+      setTimeout(() => setVignetteActive(false), 2000);
+    }
+  }, [current]);
+
+  // Final state line-by-line reveal
+  useEffect(() => {
+    if (current !== 5) {
+      setFinalLines([false, false, false, false]);
+      return;
+    }
+
+    // 500ms pause, then reveal lines one by one
+    setTimeout(() => {
+      setFinalLines([true, false, false, false]);
+      setTimeout(() => {
+        setFinalLines([true, true, false, false]);
+        setTimeout(() => {
+          setFinalLines([true, true, true, false]);
+          setTimeout(() => {
+            setFinalLines([true, true, true, true]);
+          }, 400);
+        }, 400);
+      }, 400);
+    }, 500);
+  }, [current]);
 
   // Determine door type based on PAIRES scores
   const getDoorType = () => {
@@ -380,9 +473,75 @@ export default function DecisionDoor({ reviewResult, onStepChange, decisionText,
         .dd-btn-next-pulse {
           animation: nextButtonPulse 1.5s ease-in-out infinite;
         }
+        @keyframes screenShake {
+          0%, 100% { transform: translate(0, 0); }
+          25% { transform: translate(-3px, 0); }
+          75% { transform: translate(3px, 0); }
+        }
+        @keyframes goldFlash {
+          0%, 100% { border-color: rgba(255, 255, 255, 0.08); }
+          50% { border-color: #B8860B; box-shadow: 0 0 12px rgba(184, 134, 11, 0.6); }
+        }
+        @keyframes redFlash {
+          0%, 100% { border-color: rgba(255, 255, 255, 0.08); }
+          50% { border-color: #DC2626; box-shadow: 0 0 12px rgba(220, 38, 38, 0.6); }
+        }
+        @keyframes vignettePulse {
+          0%, 100% { opacity: 0; }
+          50% { opacity: 0.25; }
+        }
+        @keyframes fadeInLine {
+          from { opacity: 0; transform: translateY(4px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .screen-shake {
+          animation: screenShake 200ms ease-in-out;
+        }
+        .gold-flash {
+          animation: goldFlash 300ms ease-in-out;
+        }
+        .red-flash {
+          animation: redFlash 300ms ease-in-out;
+        }
+        .vignette-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          pointer-events: none;
+          box-shadow: inset 0 0 80px 40px rgba(0, 0, 0, 0.8);
+          animation: vignettePulse 2s ease-in-out;
+          z-index: 1000;
+        }
+        .screen-dim {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: black;
+          pointer-events: none;
+          transition: opacity 400ms ease-out;
+          z-index: 999;
+        }
+        .final-line {
+          opacity: 0;
+          animation: fadeInLine 600ms ease forwards;
+        }
+        .final-line-slow {
+          opacity: 0;
+          animation: fadeInLine 1000ms ease forwards;
+        }
       `}</style>
 
-      <div className="dd-wrap">
+      {/* Screen dim overlay */}
+      <div className="screen-dim" style={{ opacity: current >= 0 ? 0.15 : 0 }} />
+
+      {/* Vignette overlay for trap layer */}
+      {vignetteActive && <div className="vignette-overlay" />}
+
+      <div className={`dd-wrap ${screenShake ? 'screen-shake' : ''}`}>
         <svg width="100%" viewBox="0 0 680 560" role="img" style={{ display: 'block' }}>
           <defs>
             <linearGradient id="wallL" x1="0" y1="0" x2="1" y2="0">
@@ -726,7 +885,7 @@ export default function DecisionDoor({ reviewResult, onStepChange, decisionText,
             filter={current >= 3 ? 'url(#redGlow)' : undefined}
           >
             {current === 3 && (
-              <animate attributeName="opacity" values="1;0.2;1;0.3;1" dur="0.4s" repeatCount="1" begin="0.05s" />
+              <animate attributeName="opacity" values="1;0.1;1;0.2;1;0.05;1" dur="0.6s" repeatCount="1" begin="0s" />
             )}
           </rect>
           {/* EXIT text */}
@@ -885,7 +1044,7 @@ export default function DecisionDoor({ reviewResult, onStepChange, decisionText,
             <div
               key={i}
               className={`dd-dot ${i === current ? 'active' : i < current ? 'done' : ''}`}
-              onClick={() => setDoorStep(i)}
+              onClick={() => showStep(i)}
             />
           ))}
         </div>
@@ -903,43 +1062,74 @@ export default function DecisionDoor({ reviewResult, onStepChange, decisionText,
             }}>
               Walkthrough Complete
             </div>
-            <div style={{
-              fontSize: 14,
-              lineHeight: 1.7,
-              color: '#D3D1C7',
-              marginBottom: 12,
-            }}>
-              {reviewResult.snapshot.hinge}
-            </div>
-            <div style={{
-              fontSize: 14,
-              lineHeight: 1.7,
-              color: '#D3D1C7',
-              marginBottom: 12,
-            }}>
-              {reviewResult.snapshot.lock}
-            </div>
-            <div style={{
-              fontSize: 14,
-              lineHeight: 1.7,
-              color: '#D3D1C7',
-              marginBottom: 16,
-            }}>
-              {reviewResult.snapshot.exit}
-            </div>
-            <div style={{
-              fontSize: 15,
-              fontWeight: 600,
-              color: '#1D9E75',
-              lineHeight: 1.5,
-            }}>
-              Now you know what you&apos;re walking into.
-            </div>
+            {finalLines[0] && (
+              <div className="final-line" style={{
+                fontSize: 14,
+                lineHeight: 1.7,
+                color: '#D3D1C7',
+                marginBottom: 12,
+              }}>
+                {reviewResult.snapshot.hinge}
+              </div>
+            )}
+            {finalLines[1] && (
+              <div className="final-line" style={{
+                fontSize: 14,
+                lineHeight: 1.7,
+                color: '#D3D1C7',
+                marginBottom: 12,
+              }}>
+                {reviewResult.snapshot.lock}
+              </div>
+            )}
+            {finalLines[2] && (
+              <div className="final-line" style={{
+                fontSize: 14,
+                lineHeight: 1.7,
+                color: '#D3D1C7',
+                marginBottom: 16,
+              }}>
+                {reviewResult.snapshot.exit}
+              </div>
+            )}
+            {finalLines[3] && (
+              <div className="final-line-slow" style={{
+                fontSize: 15,
+                fontWeight: 600,
+                color: '#1D9E75',
+                lineHeight: 1.5,
+                marginBottom: 16,
+              }}>
+                Now you know what you&apos;re walking into.
+              </div>
+            )}
+            {finalLines[3] && (
+              <div style={{ marginTop: 12 }}>
+                <button
+                  onClick={replay}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#888780',
+                    fontSize: 12,
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    padding: 0,
+                    textDecoration: 'underline',
+                  }}
+                >
+                  ← Walk through again
+                </button>
+              </div>
+            )}
           </div>
         )}
 
         {current >= 0 && current < 5 && (
-          <div className="dd-reveal show">
+          <div
+            className={`dd-reveal show ${goldFlash ? 'gold-flash' : ''} ${redFlash ? 'red-flash' : ''}`}
+            style={{ background: current === 4 ? '#131211' : '#181614' }}
+          >
             <div className="dd-label">
               {(() => {
                 const label = steps[current].label;
@@ -976,7 +1166,12 @@ export default function DecisionDoor({ reviewResult, onStepChange, decisionText,
                 return framingText[steps[current].id] || '';
               })()}
             </div>
-            <div className="dd-heading">{steps[current].heading}</div>
+            <div
+              className="dd-heading"
+              style={{ color: current === 3 ? '#F1EFE8' : '#F1EFE8' }}
+            >
+              {visibleText || steps[current].heading}
+            </div>
             <div className="dd-actions">
               {steps[current].nextIndex !== null && (
                 <button
