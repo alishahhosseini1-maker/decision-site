@@ -869,29 +869,7 @@ export default function DecisionDoor({ reviewResult, onStepChange, decisionText,
             </g>
           )}
 
-          {/* COMPLETION STATE — dynamic summary */}
-          {current === 5 && (
-            <g>
-              {/* Background panel for summary */}
-              <rect
-                x="198"
-                y="220"
-                width="248"
-                height="120"
-                rx="8"
-                fill="rgba(15,110,86,0.15)"
-                stroke="#0F6E56"
-                strokeWidth="1.5"
-              />
-              {/* Multi-line summary text */}
-              <text x="322" y="245" textAnchor="middle" fontSize="10" fontWeight="500" fill="#F1EFE8" style={{ lineHeight: 1.5 }}>
-                <tspan x="322" dy="0">{reviewResult.snapshot.hinge}</tspan>
-                <tspan x="322" dy="16">{reviewResult.snapshot.lock}</tspan>
-                <tspan x="322" dy="16">{reviewResult.snapshot.exit}</tspan>
-                <tspan x="322" dy="20" fontWeight="600" fill="#1D9E75">Now you know what you&apos;re walking into.</tspan>
-              </text>
-            </g>
-          )}
+          {/* COMPLETION STATE — no overlay on door, summary shows in content card below */}
 
           {/* TAP ZONES */}
           <rect onClick={() => isZoneEnabled(0) && showStep(0)} x="198" y="62" width="252" height="440" fill="transparent" style={{ cursor: isZoneEnabled(0) ? 'pointer' : 'not-allowed', pointerEvents: isZoneEnabled(0) ? 'all' : 'none' }}/>
@@ -911,6 +889,54 @@ export default function DecisionDoor({ reviewResult, onStepChange, decisionText,
             />
           ))}
         </div>
+
+        {/* Completion summary - replaces layer content at final state */}
+        {current === 5 && (
+          <div className="dd-reveal show">
+            <div style={{
+              fontSize: 13,
+              fontWeight: 700,
+              letterSpacing: '0.05em',
+              textTransform: 'uppercase',
+              color: '#888780',
+              marginBottom: 16,
+            }}>
+              Walkthrough Complete
+            </div>
+            <div style={{
+              fontSize: 14,
+              lineHeight: 1.7,
+              color: '#D3D1C7',
+              marginBottom: 12,
+            }}>
+              {reviewResult.snapshot.hinge}
+            </div>
+            <div style={{
+              fontSize: 14,
+              lineHeight: 1.7,
+              color: '#D3D1C7',
+              marginBottom: 12,
+            }}>
+              {reviewResult.snapshot.lock}
+            </div>
+            <div style={{
+              fontSize: 14,
+              lineHeight: 1.7,
+              color: '#D3D1C7',
+              marginBottom: 16,
+            }}>
+              {reviewResult.snapshot.exit}
+            </div>
+            <div style={{
+              fontSize: 15,
+              fontWeight: 600,
+              color: '#1D9E75',
+              lineHeight: 1.5,
+            }}>
+              Now you know what you&apos;re walking into.
+            </div>
+          </div>
+        )}
 
         {current >= 0 && current < 5 && (
           <div className="dd-reveal show">
