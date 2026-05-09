@@ -34,10 +34,12 @@ export default function SampleDecisionPage() {
       <div style={{
         background: '#0E0C0A',
         color: '#F1EFE8',
-        padding: '16px 20px',
+        padding: '24px 20px',
         textAlign: 'center',
-        fontSize: 14,
-        fontWeight: 600,
+        fontSize: 16,
+        fontWeight: 700,
+        letterSpacing: '0.02em',
+        borderBottom: '3px solid #DC2626',
       }}>
         This is what a real paid verdict looks like. Yours gets the same treatment.
       </div>
@@ -154,6 +156,89 @@ export default function SampleDecisionPage() {
             }}>
               You are pricing 2% equity using the company&apos;s current valuation, not the diluted value you&apos;ll actually hold at exit after two more funding rounds.
             </div>
+          </div>
+        </div>
+
+        {/* Final Verdict */}
+        <div style={{
+          background: '#0E0C0A',
+          color: '#F1EFE8',
+          borderRadius: 12,
+          padding: 32,
+          marginBottom: 32,
+          border: '2px solid #DC2626',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+        }}>
+          <div style={{
+            fontSize: 13,
+            fontWeight: 700,
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            color: '#9CA3AF',
+            marginBottom: 16,
+          }}>
+            Final Verdict
+          </div>
+          <div style={{
+            fontSize: 17,
+            lineHeight: 1.7,
+            fontWeight: 500,
+          }}>
+            Do not commit until you have a fully executed offer letter with a vesting cliff date, anti-dilution clause, and a written answer to: what does the cap table look like after the next two rounds? This decision is not ready to commit.
+          </div>
+        </div>
+
+        {/* When This Changes */}
+        <div style={{
+          background: '#fff',
+          border: '1px solid rgba(0,0,0,0.1)',
+          borderRadius: 12,
+          padding: 24,
+          marginBottom: 24,
+        }}>
+          <div style={{
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            color: '#6B7280',
+            marginBottom: 12,
+          }}>
+            When This Changes
+          </div>
+          <div style={{
+            fontSize: 14,
+            lineHeight: 1.6,
+            color: '#4B5563',
+          }}>
+            When you have the cap table model showing your exit value at three scenarios (acqui-hire / Series C / IPO) and the number is still worth the risk at the worst case.
+          </div>
+        </div>
+
+        {/* Next Move */}
+        <div style={{
+          background: '#fff',
+          border: '1px solid rgba(0,0,0,0.1)',
+          borderRadius: 12,
+          padding: 24,
+          marginBottom: 32,
+        }}>
+          <div style={{
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            color: '#6B7280',
+            marginBottom: 12,
+          }}>
+            Next Move
+          </div>
+          <div style={{
+            fontSize: 14,
+            lineHeight: 1.6,
+            color: '#4B5563',
+          }}>
+            Send one email to the founder this week asking for the cap table and dilution model before your next conversation.
           </div>
         </div>
 
@@ -338,7 +423,7 @@ export default function SampleDecisionPage() {
           border: '1px solid rgba(0,0,0,0.1)',
           borderRadius: 12,
           padding: 24,
-          marginBottom: 24,
+          marginBottom: 32,
         }}>
           <div style={{
             fontSize: 11,
@@ -359,10 +444,10 @@ export default function SampleDecisionPage() {
           </div>
         </div>
 
-        {/* Final Verdict */}
+        {/* Decision Brief */}
         <div style={{
-          background: '#0E0C0A',
-          color: '#F1EFE8',
+          background: '#fff',
+          border: '1px solid rgba(0,0,0,0.1)',
           borderRadius: 12,
           padding: 24,
           marginBottom: 24,
@@ -372,168 +457,95 @@ export default function SampleDecisionPage() {
             fontWeight: 700,
             letterSpacing: '0.1em',
             textTransform: 'uppercase',
-            color: '#9CA3AF',
-            marginBottom: 12,
-          }}>
-            Final Verdict
-          </div>
-          <div style={{
-            fontSize: 15,
-            lineHeight: 1.7,
-            marginBottom: 24,
-          }}>
-            Do not commit until you have a fully executed offer letter with a vesting cliff date, anti-dilution clause, and a written answer to: what does the cap table look like after the next two rounds? This decision is not ready to commit.
-          </div>
-
-          <div style={{
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            color: '#9CA3AF',
-            marginBottom: 8,
-            marginTop: 24,
-          }}>
-            When This Changes
-          </div>
-          <div style={{
-            fontSize: 14,
-            lineHeight: 1.6,
-            marginBottom: 24,
-            color: '#D3D1C7',
-          }}>
-            When you have the cap table model showing your exit value at three scenarios (acqui-hire / Series C / IPO) and the number is still worth the risk at the worst case.
-          </div>
-
-          <div style={{
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            color: '#9CA3AF',
-            marginBottom: 8,
-            marginTop: 24,
-          }}>
-            Next Move
-          </div>
-          <div style={{
-            fontSize: 14,
-            lineHeight: 1.6,
-            color: '#D3D1C7',
-          }}>
-            Send one email to the founder this week asking for the cap table and dilution model before your next conversation.
-          </div>
-        </div>
-
-        {/* Decision Brief */}
-        <div style={{
-          background: '#fff',
-          border: '1px solid rgba(0,0,0,0.1)',
-          borderRadius: 12,
-          padding: 24,
-        }}>
-          <div style={{
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
             color: '#6B7280',
-            marginBottom: 20,
+            marginBottom: 24,
           }}>
             Decision Brief
           </div>
 
           {/* Hinge */}
-          <details open style={{ marginBottom: 20 }}>
-            <summary style={{
+          <div style={{ marginBottom: 24 }}>
+            <div style={{
               fontSize: 13,
               fontWeight: 700,
               letterSpacing: '0.05em',
               textTransform: 'uppercase',
-              color: '#6B7280',
-              cursor: 'pointer',
-              marginBottom: 12,
+              color: '#1E1C1A',
+              marginBottom: 10,
             }}>
               🔑 Hinge
-            </summary>
+            </div>
             <div style={{
               fontSize: 14,
               lineHeight: 1.6,
               color: '#4B5563',
-              paddingLeft: 20,
             }}>
               Your 2% will not be diluted below 0.8% before a liquidity event. Without the cap table model, you&apos;re betting on a number that doesn&apos;t exist yet.
             </div>
-          </details>
+          </div>
 
           {/* What Can't Be Undone */}
-          <details open style={{ marginBottom: 20 }}>
-            <summary style={{
+          <div style={{ marginBottom: 24 }}>
+            <div style={{
               fontSize: 13,
               fontWeight: 700,
               letterSpacing: '0.05em',
               textTransform: 'uppercase',
-              color: '#6B7280',
-              cursor: 'pointer',
-              marginBottom: 12,
+              color: '#1E1C1A',
+              marginBottom: 10,
             }}>
               🔒 What Can&apos;t Be Undone
-            </summary>
+            </div>
             <div style={{
               fontSize: 14,
               lineHeight: 1.6,
               color: '#4B5563',
-              paddingLeft: 20,
             }}>
               You permanently exit the Series B career track. Returning to a similar role after 18 months at a failed startup resets your trajectory. The market reads &quot;early-stage gamble&quot; not &quot;product leadership.&quot;
             </div>
-          </details>
+          </div>
 
           {/* Exit Condition */}
-          <details open style={{ marginBottom: 20 }}>
-            <summary style={{
+          <div style={{ marginBottom: 24 }}>
+            <div style={{
               fontSize: 13,
               fontWeight: 700,
               letterSpacing: '0.05em',
               textTransform: 'uppercase',
-              color: '#6B7280',
-              cursor: 'pointer',
-              marginBottom: 12,
+              color: '#1E1C1A',
+              marginBottom: 10,
             }}>
               🚪 Exit Condition
-            </summary>
+            </div>
             <div style={{
               fontSize: 14,
               lineHeight: 1.6,
               color: '#4B5563',
-              paddingLeft: 20,
             }}>
               If the startup has not hit Series A within 18 months or your equity is diluted below 1.2%, return to market immediately. Set a calendar reminder for month 17.
             </div>
-          </details>
+          </div>
 
           {/* Hidden Trap */}
-          <details open>
-            <summary style={{
+          <div>
+            <div style={{
               fontSize: 13,
               fontWeight: 700,
               letterSpacing: '0.05em',
               textTransform: 'uppercase',
-              color: '#6B7280',
-              cursor: 'pointer',
-              marginBottom: 12,
+              color: '#1E1C1A',
+              marginBottom: 10,
             }}>
               ⚠️ Hidden Trap
-            </summary>
+            </div>
             <div style={{
               fontSize: 14,
               lineHeight: 1.6,
               color: '#4B5563',
-              paddingLeft: 20,
             }}>
               Prestige of escape disguised as opportunity. You&apos;re leaving because the current role feels stale, not because this opportunity is exceptional. The startup story is compelling, but the math isn&apos;t there yet.
             </div>
-          </details>
+          </div>
         </div>
 
         {/* Lock the Verdict Box */}
@@ -578,38 +590,52 @@ export default function SampleDecisionPage() {
         {/* Footer CTA */}
         <div style={{
           marginTop: 40,
-          padding: 24,
-          background: '#F9FAFB',
+          padding: 32,
+          background: 'linear-gradient(135deg, #0E0C0A 0%, #1E1C1A 100%)',
           borderRadius: 12,
           textAlign: 'center',
+          border: '1px solid rgba(220,38,38,0.3)',
         }}>
           <div style={{
-            fontSize: 16,
-            fontWeight: 600,
+            fontSize: 20,
+            fontWeight: 700,
             marginBottom: 12,
+            color: '#F1EFE8',
+            lineHeight: 1.3,
           }}>
-            Every decision has a blind spot. Find yours.
+            Every decision has a blind spot.<br />Find yours before you commit.
           </div>
           <div style={{
-            fontSize: 13,
-            fontStyle: 'italic',
-            color: '#6B7280',
-            marginBottom: 16,
+            fontSize: 15,
+            color: '#9CA3AF',
+            marginBottom: 24,
+            lineHeight: 1.6,
+            maxWidth: 500,
+            margin: '0 auto 24px',
           }}>
-            ChatGPT will agree with you. Decision Layer will find what you missed.
+            ChatGPT will agree with you. Decision Layer will find what you missed — the assumption you didn&apos;t test, the exit you didn&apos;t plan, the risk you didn&apos;t see.
           </div>
           <Link href="/" style={{
             display: 'inline-block',
-            padding: '12px 24px',
-            background: '#1E1C1A',
+            padding: '16px 32px',
+            background: '#DC2626',
             color: '#fff',
             borderRadius: 8,
-            fontSize: 14,
-            fontWeight: 600,
+            fontSize: 15,
+            fontWeight: 700,
             textDecoration: 'none',
+            boxShadow: '0 4px 12px rgba(220, 38, 38, 0.4)',
+            transition: 'all 0.2s',
           }}>
-            Start Solo Decision → free preview, $99 to unlock
+            Get Your Verdict → Free preview, $99 to unlock
           </Link>
+          <div style={{
+            marginTop: 16,
+            fontSize: 12,
+            color: '#6B7280',
+          }}>
+            48-hour money-back guarantee · Your decision stays private
+          </div>
         </div>
       </div>
     </div>
