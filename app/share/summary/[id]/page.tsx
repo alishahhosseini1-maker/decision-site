@@ -1,7 +1,7 @@
-// app/share/summary/[id]/page.tsx
+// app/decision-summary/page.tsx
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/app/lib/supabase';
 
 type DecisionRecord = {
@@ -40,6 +40,13 @@ type DecisionRecord = {
   dismissed_at?: string | null;
 };
 
+type ComparisonDecision = {
+  id: string;
+  decision: string;
+  score: number | null;
+  created_at: string | null;
+};
+
 type DeepSection = { heading: string; lines: string[] };
 
 const DEEP_HEADINGS = new Set([
@@ -63,8 +70,13 @@ function parseDeepReview(text?: string | null): DeepSection[] {
     }
     if (!current) continue;
 
+    // Skip reflection prompts (numbered questions like "1. ", "2. ", "3. ")
     if (/^\d+\.\s/.test(raw)) continue;
+
+    // Skip any line that looks like a reflection prompt heading
     if (/reflection.*prompt/i.test(cleaned)) continue;
+
+    // Stop parsing when we hit the new prompt sections (STEP, SCRIPT, etc.)
     if (/^(STEP|SCRIPT|WALK AWAY IF|FAILURE MODES)$/i.test(cleaned)) {
       break;
     }
@@ -111,6 +123,7 @@ function getProgressColor(value?: number | null) {
 }
 
 function getFactorHint(name: string, value: number | null, decision: DecisionRecord | null) {
+  // Use LLM-generated rationale if available
   if (decision) {
     switch (name) {
       case 'Clarity':
@@ -130,27 +143,68 @@ function getFactorHint(name: string, value: number | null, decision: DecisionRec
         break;
     }
   }
+
+  // Fallback to empty string if no LLM-generated rationale
   return '';
 }
 
-function splitVerdict(text?: string | null) {
-  if (!text) return { title: '', lines: [] };
-  const trimmed = text.trim();
-  const firstNewline = trimmed.indexOf('\n');
-  if (firstNewline === -1) return { title: trimmed, lines: [] };
-  const title = trimmed.slice(0, firstNewline).trim();
-  const rest = trimmed.slice(firstNewline + 1).trim();
-  const lines = rest.split('\n').map((l) => l.trim()).filter(Boolean);
-  return { title, lines };
+function splitVerdict(verdict?: string | null) {
+  if (!verdict) return { title: 'No verdict saved', rationale: '' };
+  const clean = (s: string) => s.replace(/\*\*(.*?)\*\*/g, '$1').replace(/__(.*?)__/g, '$1');
+  const parts = verdict.split('\n\n').map((p) => p.trim()).filter(Boolean);
+  return {
+    title: clean(parts[0] || ''),
+    rationale: clean(parts.slice(1).join('\n\n') || ''),
+  };
 }
 
 function buildInsight(decision?: DecisionRecord | null) {
   if (!decision) return '—';
 
+  // Generate a crisp headline (15 words or fewer) naming the single biggest blocker
+  // Find the weakest dimension or most critical gap
+  const dims = [
+    { name: 'clarity', value: decision.readiness_clarity ?? 0, blocker: 'You have not defined what success looks like.' },
+    { name: 'assumptions', value: decision.readiness_assumptions ?? 0, blocker: 'You have not validated the things that must be true.' },
+    { name: 'reversibility', value: decision.readiness_reversibility ?? 0, blocker: 'You have not calculated what you cannot get back.' },
+    { name: 'risk', value: decision.readiness_risk ?? 0, blocker: 'You have not modeled what happens if this goes wrong.' },
+    { name: 'exit', value: decision.readiness_exit_logic ?? 0, blocker: 'You have not defined when you would walk away.' },
+  ];
+
+  const weakest = dims.sort((a, b) => a.value - b.value)[0];
+
+  // If there's a critically weak dimension (≤6), call it out
+  if (weakest.value <= 6) {
+    return weakest.blocker;
+  }
+
+  // If trap exists and is specific, synthesize from it
+  if (decision.trap?.trim() && decision.trap.length < 100) {
+    // Extract the core insight from trap (first clause or key phrase)
+    const trapCore = decision.trap.split(/[—,]/)[0].trim();
+    if (trapCore.length < 60) {
+      return `The hidden risk is ${trapCore.toLowerCase()}.`;
+    }
+  }
+
+  // Synthesize from score and context
+  const s = decision.score ?? 0;
+  if (s < 60) return 'The foundation is incomplete. More clarity is needed.';
+  if (s < 80) return 'The decision is viable but the step needs to be smaller.';
+  return 'The decision is survivable if you stay disciplined.';
+}
+
+function buildWhatOthersMiss(decision?: DecisionRecord | null) {
+  if (!decision) return '—';
+
+  console.log('[buildWhatOthersMiss] decision.what_others_miss:', decision.what_others_miss);
+
+  // Use LLM-generated what_others_miss if available
   if (decision.what_others_miss?.trim()) {
     return decision.what_others_miss;
   }
 
+  // Fallback: generate based on hinge or score
   if (decision.hinge?.trim()) {
     return `The entire decision pivots on something most people overlook: ${decision.hinge}`;
   }
@@ -166,6 +220,7 @@ function buildInsight(decision?: DecisionRecord | null) {
 function buildSupportingSentence(decision?: DecisionRecord | null) {
   if (!decision) return '—';
 
+  // Provide specific detail from trap, hinge, or weakest dimension
   if (decision.trap?.trim()) {
     return `The hidden risk: ${decision.trap.toLowerCase().charAt(0) + decision.trap.slice(1)}`;
   }
@@ -174,6 +229,7 @@ function buildSupportingSentence(decision?: DecisionRecord | null) {
     return `Everything pivots on: ${decision.hinge.toLowerCase().charAt(0) + decision.hinge.slice(1)}`;
   }
 
+  // Identify weakest dimension and call it out
   const dims = [
     { name: 'clarity', value: decision.readiness_clarity ?? 0, label: 'success criteria are unclear' },
     { name: 'assumptions', value: decision.readiness_assumptions ?? 0, label: 'key assumptions have not been validated' },
@@ -195,6 +251,7 @@ function buildSupportingSentence(decision?: DecisionRecord | null) {
 function buildWhatToDoNow(decision?: DecisionRecord | null) {
   if (!decision) return '—';
 
+  // Extract sharp action from verdict title or step
   if (decision.step?.trim()) {
     return decision.step;
   }
@@ -210,10 +267,14 @@ function buildWhatToDoNow(decision?: DecisionRecord | null) {
 function buildIfDelayed(decision?: DecisionRecord | null) {
   if (!decision) return '—';
 
+  console.log('[buildIfDelayed] decision.if_delayed:', decision.if_delayed);
+
+  // Use LLM-generated if_delayed if available
   if (decision.if_delayed?.trim()) {
     return decision.if_delayed;
   }
 
+  // Fallback: generate based on score
   const score = decision.score ?? 0;
 
   if (score >= 80) {
@@ -232,111 +293,285 @@ function buildWhatsWorking(decision?: DecisionRecord | null): string[] {
 
   const working: string[] = [];
 
+  // Generate short phrases (under 10 words) from high-scoring dimensions
   const clarity = decision.readiness_clarity ?? 0;
   const assumptions = decision.readiness_assumptions ?? 0;
   const reversibility = decision.readiness_reversibility ?? 0;
   const risk = decision.readiness_risk ?? 0;
   const exitLogic = decision.readiness_exit_logic ?? 0;
 
-  if (clarity >= 14) {
-    working.push('You know what success looks like');
-  }
-  if (assumptions >= 12) {
-    working.push('Core assumptions are validated');
-  }
-  if (reversibility >= 12) {
-    working.push('You can reverse course if needed');
-  }
-  if (risk >= 10) {
-    working.push('Downside is bounded');
-  }
-  if (exitLogic >= 12) {
-    working.push('Exit condition is clear');
+  if (clarity > 13) {
+    working.push('Success criteria are well-defined');
   }
 
-  if (working.length === 0) {
-    working.push('Decision framed clearly');
+  if (reversibility > 13) {
+    working.push('Exit costs are manageable');
+  }
+
+  if (risk > 13) {
+    working.push('Downside scenario is survivable');
+  }
+
+  if (exitLogic > 13) {
+    working.push('Exit conditions are clear');
+  }
+
+  if (assumptions > 13) {
+    working.push('Key assumptions have been validated');
+  }
+
+  // Extract genuine positives from context and deep review
+  const contextLower = (decision.context || '').toLowerCase();
+  const decisionLower = (decision.decision || '').toLowerCase();
+
+  // Financial signals
+  if (contextLower.includes('savings') || contextLower.includes('runway') || contextLower.includes('months')) {
+    if (working.length < 3) working.push('Financial cushion available');
+  }
+
+  // Housing/flexibility signals
+  if (contextLower.includes('rent') || decisionLower.includes('rent')) {
+    if (working.length < 3) working.push('Housing flexibility (renting)');
+  }
+
+  // Reversibility signals
+  if (contextLower.includes('reversible') || contextLower.includes('undo')) {
+    if (working.length < 3) working.push('Decision is reversible');
+  }
+
+  // Pull from "what must go right" but extract key phrases, not full text
+  if (working.length < 3 && decision.deep_review) {
+    const sections = parseDeepReview(decision.deep_review);
+    const mustGoRight = sections.find(s => s.heading.toLowerCase().includes('must go right'));
+    if (mustGoRight && mustGoRight.lines.length > 0) {
+      // Extract key phrase (first 8 words or up to comma/dash)
+      const firstLine = stripMarkdown(mustGoRight.lines[0]);
+      const shortPhrase = firstLine.split(/[—,]/)[0].trim().split(' ').slice(0, 8).join(' ');
+      if (shortPhrase.length > 20) {
+        working.push(shortPhrase);
+      }
+    }
+  }
+
+  // If still empty, extract from door or hinge
+  if (working.length === 0 && decision.door) {
+    working.push(`Decision type is clear: ${decision.door.toLowerCase()}`);
+  }
+
+  // Ensure we always have at least 2 items
+  if (working.length === 1) {
+    if (decision.hinge) {
+      working.push('Critical success factor identified');
+    } else {
+      working.push('Core risks mapped');
+    }
   }
 
   return working.slice(0, 3);
 }
 
-function buildTopRisk(decision?: DecisionRecord | null): string {
-  if (!decision) return '—';
+function stripMarkdown(text: string): string {
+  // Remove markdown bold (**text** or __text__)
+  return text.replace(/(\*\*|__)(.*?)\1/g, '$2');
+}
 
+function buildWhatsBreaking(decision?: DecisionRecord | null): string[] {
+  if (!decision) return [];
+
+  const breaking: string[] = [];
+
+  // Summarize trap to under 12 words (don't paste full text)
   if (decision.trap?.trim()) {
-    return decision.trap;
+    const trap = decision.trap;
+    // Extract key phrase up to first punctuation or limit to 12 words
+    const shortTrap = trap.split(/[—,;]/)[0].trim();
+    const words = shortTrap.split(' ');
+    if (words.length <= 12) {
+      breaking.push(shortTrap);
+    } else {
+      // Take first 12 words
+      breaking.push(words.slice(0, 12).join(' ') + '...');
+    }
   }
 
-  const dims = [
-    { name: 'Clarity', value: decision.readiness_clarity ?? 0, risk: 'The success criteria are not clear enough to measure progress.' },
-    { name: 'Assumptions', value: decision.readiness_assumptions ?? 0, risk: 'Core assumptions have not been validated before committing.' },
-    { name: 'Reversibility', value: decision.readiness_reversibility ?? 0, risk: 'This decision is hard to reverse if conditions change.' },
-    { name: 'Risk', value: decision.readiness_risk ?? 0, risk: 'The downside scenario is not well understood.' },
-    { name: 'Exit Logic', value: decision.readiness_exit_logic ?? 0, risk: 'No clear condition for when to walk away.' },
-  ];
+  // Pull from low scoring dimensions
+  if ((decision.readiness_clarity ?? 0) <= 6) {
+    breaking.push('Success criteria are vague');
+  }
+  if ((decision.readiness_assumptions ?? 0) <= 6) {
+    breaking.push('Assumptions have not been tested');
+  }
+  if ((decision.readiness_risk ?? 0) <= 6) {
+    breaking.push('Downside scenario is unclear');
+  }
+  if ((decision.readiness_exit_logic ?? 0) <= 6) {
+    breaking.push('Exit condition not defined');
+  }
+  if ((decision.readiness_reversibility ?? 0) <= 6) {
+    breaking.push('Sunk costs are high');
+  }
 
-  const weakest = dims.sort((a, b) => a.value - b.value)[0];
-  return weakest.risk;
+  return breaking.slice(0, 3);
 }
+
+function renderMarkdown(text: string): React.ReactNode {
+  // Simple markdown rendering for bold, headings, and inline code
+  let result: React.ReactNode[] = [];
+  let currentText = text;
+  let key = 0;
+
+  // Handle headings (## )
+  const headingMatch = currentText.match(/^##\s+(.+)$/m);
+  if (headingMatch) {
+    const parts = currentText.split(/^##\s+/m);
+    result.push(<span key={key++}>{parts[0]}</span>);
+    const remaining = parts[1];
+    if (remaining) {
+      const [heading, ...rest] = remaining.split('\n');
+      result.push(<strong key={key++} className="font-semibold">{heading}</strong>);
+      if (rest.length > 0) {
+        result.push(<span key={key++}>{'\n' + rest.join('\n')}</span>);
+      }
+    }
+    return <>{result}</>;
+  }
+
+  // Handle bold (**text** or __text__)
+  const boldRegex = /(\*\*|__)(.*?)\1/g;
+  const parts = currentText.split(boldRegex);
+
+  for (let i = 0; i < parts.length; i++) {
+    if (parts[i] === '**' || parts[i] === '__') {
+      // Next part is the bold text
+      result.push(<strong key={key++} className="font-semibold">{parts[i + 1]}</strong>);
+      i++; // Skip the closing marker
+    } else if (parts[i]) {
+      result.push(<span key={key++}>{parts[i]}</span>);
+    }
+  }
+
+  return <>{result}</>;
+}
+
+// ── Accordion component ─────────────────────────────────────────────────────
+
+function AccordionSection({
+  heading,
+  lines,
+  isOpen,
+  onToggle,
+}: {
+  heading: string;
+  lines: string[];
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <div className="border-b border-black/6 last:border-b-0">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex w-full items-center justify-between py-4 text-left"
+      >
+        <span className="text-sm font-medium text-black/70">{heading}</span>
+        <span
+          className="ml-4 flex-shrink-0 text-lg font-light text-black/30 transition-transform duration-150"
+          style={{ display: 'inline-block', transform: isOpen ? 'rotate(45deg)' : 'none' }}
+        >
+          +
+        </span>
+      </button>
+      {isOpen && (
+        <div className="pb-4 space-y-2">
+          {lines.map((line, i) => (
+            <p key={i} className="text-sm leading-7 text-black/60">{renderMarkdown(line)}</p>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Evidence row ────────────────────────────────────────────────────────────
+
+function EvidenceRow({ tag, text, highlight }: { tag: string; text: string; highlight?: boolean }) {
+  return (
+    <div className="border-b border-black/6 py-4 last:border-b-0">
+      <p
+        className="text-[9.5px] font-medium uppercase tracking-[0.13em]"
+        style={{ color: highlight ? '#A32D2D' : 'rgba(0,0,0,0.36)' }}
+      >
+        {tag}
+      </p>
+      <p className={`mt-1.5 text-sm leading-6 ${highlight ? 'font-medium text-black' : 'text-black/75'}`}>
+        {text}
+      </p>
+    </div>
+  );
+}
+
+// ── Anatomy row ─────────────────────────────────────────────────────────────
+
+function AnatomyRow({ label, sublabel, value, highlight }: { label: string; sublabel: string; value?: string | null; highlight?: boolean }) {
+  if (!value) return null;
+
+  // Special layout for Walk away if: full-width with label on its own line
+  if (label === 'Walk away if') {
+    return (
+      <div className="border-b border-black/6 py-3 last:border-b-0">
+        <p className={`text-[9.5px] font-medium uppercase tracking-[0.11em] ${highlight ? 'text-black/55' : 'text-black/36'}`}>
+          {label}:
+        </p>
+        <p className="text-[9.5px] text-black/28 mb-2">{sublabel}</p>
+        <p className={`text-sm leading-6 ${highlight ? 'font-medium text-black' : 'text-black/72'}`}>{value}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-[100px_1fr] items-baseline gap-0 border-b border-black/6 py-3 last:border-b-0">
+      <div>
+        <p className={`text-[9.5px] font-medium uppercase tracking-[0.11em] ${highlight ? 'text-black/55' : 'text-black/36'}`}>{label}</p>
+        <p className="text-[9.5px] text-black/28">{sublabel}</p>
+      </div>
+      <p className={`text-sm leading-6 ${highlight ? 'font-medium text-black' : 'text-black/72'}`}>{value}</p>
+    </div>
+  );
+}
+
+// ── Main page ───────────────────────────────────────────────────────────────
 
 export default function ShareBriefPage({ params }: { params: { id: string } }) {
   const id = params.id;
-  const [decision, setDecision] = useState<DecisionRecord | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [animateIn, setAnimateIn] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  const [decision, setDecision] = useState<DecisionRecord | null>(null);
+  const [comparisonDecisions, setComparisonDecisions] = useState<ComparisonDecision[]>([]);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    if (!id) return;
+  
 
-    let cancelled = false;
-
-    async function load() {
-      try {
-        const { data, error } = await supabase
-          .from('decisions')
-          .select(`
-            id, decision, context, score,
-            readiness_clarity, readiness_assumptions, readiness_reversibility,
-            readiness_risk, readiness_exit_logic,
-            readiness_rationale_clarity, readiness_rationale_assumptions,
-            readiness_rationale_reversibility, readiness_rationale_risk,
-            readiness_rationale_exit_logic,
-            verdict, door, hinge, lock, trap, exit, step, script,
-            tripwire, failure_modes, if_delayed, what_others_miss,
-            deep_review, final_thoughts, created_at
-          `)
-          .eq('id', id)
-          .single();
-
-        if (error) throw new Error('Decision not found');
-
-        if (!cancelled) {
-          setDecision(data as DecisionRecord);
-          setLoading(false);
-          setTimeout(() => setAnimateIn(true), 50);
-        }
-      } catch (err: any) {
-        if (!cancelled) {
-          setError(err?.message || 'Failed to load decision');
-          setLoading(false);
-        }
-      }
-    }
-
-    load();
-    return () => { cancelled = true; };
-  }, [id]);
+  const shareMenuRef = useRef<HTMLDivElement | null>(null);
 
   const scoreMeta = useMemo(() => getScoreMeta(decision?.score), [decision?.score]);
+  const verdictData = useMemo(() => splitVerdict(decision?.verdict), [decision?.verdict]);
   const deepSections = useMemo(() => parseDeepReview(decision?.deep_review), [decision?.deep_review]);
+
+  
+
+  
+
+  const toggleSection = (key: string) => {
+    setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
 
   if (loading) {
     return (
       <main className="min-h-screen bg-[#f7f7f2] px-6 py-12 text-black">
         <div className="mx-auto max-w-5xl">
-          <p className="text-sm text-black/55">Loading shared decision...</p>
+          <p className="text-sm text-black/55">Loading decision brief...</p>
         </div>
       </main>
     );
@@ -360,8 +595,20 @@ export default function ShareBriefPage({ params }: { params: { id: string } }) {
     );
   }
 
+  if (!decision) {
+    return (
+      <main className="min-h-screen bg-[#f7f7f2] px-6 py-12 text-black">
+        <div className="mx-auto max-w-5xl">
+          <p className="text-sm text-black/55">No decision brief available.</p>
+        </div>
+      </main>
+    );
+  }
+
   return (
-    <main className="min-h-screen bg-[#f7f7f2] px-6 py-12 text-black">
+    <main className="min-h-screen bg-[#f7f7f2] px-5 py-10 text-black">
+      
+
       <div
         className={`mx-auto max-w-5xl space-y-6 transition-all duration-700 ${
           animateIn ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'
@@ -472,127 +719,129 @@ export default function ShareBriefPage({ params }: { params: { id: string } }) {
                   <p className="text-xs text-black/50 italic leading-relaxed mt-1 mb-2 sm:ml-32">{factor.hint}</p>
                 </div>
               ))}
-
+              
               {/* Total row */}
               <div className="grid gap-2 items-center py-2 border-t border-black/9 mt-2 grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[120px_1fr_40px]">
                 <div className="space-y-1">
-                  <div className="text-xs font-bold text-black/72">Total</div>
+                  <div className={`text-xs font-bold ${scoreMeta.textClass}`}>Total</div>
+                  <div className="h-1 bg-black/8 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full ${scoreMeta.textClass.replace('text-', 'bg-')}`}
+                      style={{ width: `${safeNumber(decision.score) ?? 0}%` }}
+                    />
+                  </div>
                 </div>
-                <div />
-                <div className="text-sm font-bold text-black/75 text-right">{safeNumber(decision.score) ?? '—'}<span className="text-xs opacity-60">/100</span></div>
+                <div className={`text-xs font-bold ${scoreMeta.textClass} text-right`}>{safeNumber(decision.score) ?? '—'}</div>
               </div>
             </div>
           </details>
-        </div>
 
-          <div className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
-            <p className="text-[10px] uppercase tracking-[0.18em] text-black/36">IF DELAYED</p>
-            <p className="mt-3 text-sm leading-7 text-black/75">{buildIfDelayed(decision)}</p>
           </div>
+
+          {/* IF DELAYED */}
+          {decision.if_delayed?.trim() ? (
+          <details open className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
+            <summary className="cursor-pointer text-[10px] uppercase tracking-[0.18em] text-black/36 flex justify-between items-center list-none">
+              IF YOU WAIT
+              <span className="text-base text-black/28">▼</span>
+            </summary>
+            <p className="mt-3 text-sm leading-7 text-black/75">{buildIfDelayed(decision)}</p>
+          </details>
+          ) : null}
         </section>
 
-        {/* ── EVIDENCE (expandable deep review) ── */}
-        {deepSections.length > 0 && (
-          <details className="rounded-2xl border border-black/6 bg-white shadow-sm group">
-            <summary className="cursor-pointer px-7 py-6 list-none flex items-center justify-between">
-              <div>
-                <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 mb-1">Evidence</p>
-                <p className="text-base font-semibold text-black/80">The analysis behind the score</p>
-              </div>
-              <span className="text-lg text-black/30 transition-transform group-open:rotate-180">▼</span>
+        {/* ── WHAT OTHERS MAY MISS ── */}
+        <details open className="rounded-[20px] bg-black p-6 text-white shadow-[0_10px_24px_rgba(0,0,0,0.16)]">
+          <summary className="cursor-pointer text-[10px] uppercase tracking-[0.18em] text-white/50 flex justify-between items-center list-none">
+            What others may miss
+            <span className="text-base text-white/40">▼</span>
+          </summary>
+          <p className="mt-3 text-base font-medium italic leading-7 text-white">
+            {buildWhatOthersMiss(decision)}
+          </p>
+        </details>
+
+        {/* ── WHAT TO SAY (SCRIPT) ── */}
+        {decision.script?.trim() ? (
+          <details open className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
+            <summary className="cursor-pointer text-[10px] uppercase tracking-[0.18em] text-black/36 flex justify-between items-center list-none">
+              WHAT TO SAY
+              <span className="text-base text-black/28">▼</span>
             </summary>
-            <div className="px-7 pb-7 pt-2 space-y-6 border-t border-black/5">
-              {deepSections.map((sec, idx) => (
-                <div key={idx}>
-                  <h3 className="text-xs uppercase tracking-[0.14em] text-black/50 mb-3 font-semibold">
-                    {sec.heading}
-                  </h3>
-                  <ul className="space-y-2 text-sm leading-7 text-black/70">
-                    {sec.lines.map((line, i) => (
-                      <li key={i} className="flex gap-2">
-                        <span className="text-black/30 mt-0.5">•</span>
-                        <span>{line}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+            <p className="mt-3 text-sm leading-7 text-black/75 italic">{decision.script}</p>
+          </details>
+        ) : null}
+
+        {/* ── WALK AWAY IF ── */}
+        {decision.tripwire?.trim() ? (
+          <details open className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
+            <summary className="cursor-pointer text-[10px] uppercase tracking-[0.18em] text-black/36 flex justify-between items-center list-none">
+              WALK AWAY IF
+              <span className="text-base text-black/28">▼</span>
+            </summary>
+            <p className="mt-3 text-sm leading-7 text-black/75 font-semibold">{decision.tripwire}</p>
+          </details>
+        ) : null}
+
+        {/* ── EVIDENCE: Threat / Hinge / Trap ── */}
+        <details open className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
+          <summary className="cursor-pointer text-[10px] uppercase tracking-[0.18em] text-black/36 flex justify-between items-center list-none">
+            Evidence
+            <span className="text-base text-black/28">▼</span>
+          </summary>
+          <div className="border-t border-black/6 mt-3">
+            {decision.door ? (
+              <EvidenceRow tag="The decision" text={decision.door} />
+            ) : null}
+            {decision.hinge ? (
+              <EvidenceRow tag="The hinge" text={decision.hinge} highlight />
+            ) : null}
+            {decision.lock ? (
+              <EvidenceRow tag="What can't be undone" text={decision.lock} />
+            ) : null}
+            {decision.exit ? (
+              <EvidenceRow tag="Exit condition" text={decision.exit} />
+            ) : null}
+            {decision.trap ? (
+              <EvidenceRow tag="Hidden trap" text={decision.trap} />
+            ) : null}
+          </div>
+        </details>
+
+        {/* ── REASONING (accordion, collapsed by default) ── */}
+        {deepSections.length > 0 ? (
+          <section className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-black/36 mb-3">Reasoning</p>
+            <div className="border-t border-black/6">
+              {deepSections.map((section) => (
+                <AccordionSection
+                  key={section.heading}
+                  heading={section.heading}
+                  lines={section.lines}
+                  isOpen={Boolean(openSections[section.heading.toLowerCase()])}
+                  onToggle={() => toggleSection(section.heading.toLowerCase())}
+                />
               ))}
             </div>
+          </section>
+        ) : null}
+
+        {/* ── YOUR NOTES ── */}
+        {decision.final_thoughts ? (
+          <details className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
+            <summary className="cursor-pointer text-[10px] uppercase tracking-[0.18em] text-black/36 flex justify-between items-center list-none">
+              Your notes
+              <span className="text-base text-black/28">▼</span>
+            </summary>
+            <div className="mt-3 border-l-2 border-black/12 pl-4">
+              <p className="whitespace-pre-wrap text-sm leading-7 text-black/65">{decision.final_thoughts}</p>
+            </div>
           </details>
-        )}
+        ) : null}
 
-        {/* ── OPERATING SNAPSHOT ── */}
-        <section className="rounded-2xl border border-black/6 bg-white p-7 shadow-sm">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 mb-5">OPERATING SNAPSHOT</p>
+        
 
-          <div className="grid gap-6 md:grid-cols-2">
-            <div>
-              <h3 className="text-xs uppercase tracking-[0.14em] text-black/50 mb-3 font-semibold">
-                What&apos;s working
-              </h3>
-              <ul className="space-y-2 text-sm leading-7 text-black/70">
-                {buildWhatsWorking(decision).map((item, i) => (
-                  <li key={i} className="flex gap-2">
-                    <span className="text-emerald-600 mt-0.5">✓</span>
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-xs uppercase tracking-[0.14em] text-black/50 mb-3 font-semibold">
-                Top risk
-              </h3>
-              <p className="text-sm leading-7 text-black/70 flex gap-2">
-                <span className="text-rose-600 mt-0.5">!</span>
-                <span>{buildTopRisk(decision)}</span>
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* ── DOOR FRAMEWORK DETAILS ── */}
-        <section className="grid gap-6 md:grid-cols-2">
-          {decision.door && (
-            <div className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
-              <p className="text-[10px] uppercase tracking-[0.18em] text-black/36">DOOR · What you&apos;re deciding</p>
-              <p className="mt-3 text-sm leading-7 text-black/75">{decision.door}</p>
-            </div>
-          )}
-          {decision.hinge && (
-            <div className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
-              <p className="text-[10px] uppercase tracking-[0.18em] text-black/36">HINGE · What this pivots on</p>
-              <p className="mt-3 text-sm leading-7 text-black/75">{decision.hinge}</p>
-            </div>
-          )}
-          {decision.lock && (
-            <div className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
-              <p className="text-[10px] uppercase tracking-[0.18em] text-black/36">LOCK · Hard to undo</p>
-              <p className="mt-3 text-sm leading-7 text-black/75">{decision.lock}</p>
-            </div>
-          )}
-          {decision.exit && (
-            <div className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
-              <p className="text-[10px] uppercase tracking-[0.18em] text-black/36">EXIT · Walk away if</p>
-              <p className="mt-3 text-sm leading-7 text-black/75">{decision.exit}</p>
-            </div>
-          )}
-          {decision.trap && (
-            <div className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
-              <p className="text-[10px] uppercase tracking-[0.18em] text-black/36">TRAP · Hidden risk</p>
-              <p className="mt-3 text-sm leading-7 text-black/75">{decision.trap}</p>
-            </div>
-          )}
-          {decision.step && (
-            <div className="rounded-[20px] border border-black/6 bg-white p-6 shadow-sm">
-              <p className="text-[10px] uppercase tracking-[0.18em] text-black/36">STEP · Next move</p>
-              <p className="mt-3 text-sm leading-7 text-black/75">{decision.step}</p>
-            </div>
-          )}
-        </section>
-
-        {/* Footer */}
+        {/* ── Footer ── */}
         <footer className="mt-12 pt-8 border-t border-black/8 text-center">
           <a
             href="https://decisionlayer.dev"
@@ -603,7 +852,9 @@ export default function ShareBriefPage({ params }: { params: { id: string } }) {
             Reviewed with Decision Layer →
           </a>
         </footer>
+
       </div>
     </main>
   );
 }
+
