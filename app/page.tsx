@@ -2790,7 +2790,7 @@ export default function HomePage() {
               style={{
                 marginTop: 10,
                 fontFamily: serif,
-                fontSize: 24,
+                fontSize: 28,
                 fontStyle: 'italic',
                 fontWeight: 400,
                 letterSpacing: '0.01em',
@@ -2807,10 +2807,10 @@ export default function HomePage() {
               style={{
                 marginTop: 16,
                 fontFamily: serif,
-                fontSize: 20,
-                fontWeight: 500,
+                fontSize: 16,
+                fontWeight: 400,
                 letterSpacing: '0.01em',
-                opacity: 0.85,
+                color: '#888',
               }}
             >
               We find what everything else missed.
