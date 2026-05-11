@@ -2806,7 +2806,23 @@ export default function HomePage() {
                 opacity: 0.62,
               }}
             >
-              Every decision has a blind spot. Find it before you commit.
+              You&apos;ve already thought about it.
+              <br />
+              You&apos;ve probably already asked AI.
+              <br />
+              You&apos;re still not sure.
+            </div>
+            <div
+              style={{
+                marginTop: 16,
+                fontFamily: serif,
+                fontSize: 20,
+                fontWeight: 500,
+                letterSpacing: '0.01em',
+                opacity: 0.85,
+              }}
+            >
+              Decision Layer finds what everything else missed.
             </div>
 
             {/* Social proof */}
@@ -2823,38 +2839,36 @@ export default function HomePage() {
 
           {/* ── Mode selector ── */}
           <section style={{ maxWidth: 720, margin: '20px auto 0' }}>
-            <button
-              type="button"
-              onClick={() => {
-                setMode('solo');
-                resetReviewState();
-                setTimeout(() => {
-                  decisionInputRef.current?.focus();
-                }, 50);
-              }}
-              style={{
-                ...modeCardBase,
-                width: '100%',
-                border:
-                  mode === 'solo'
-                    ? '1px solid rgba(0,0,0,0.22)'
-                    : '1px solid rgba(0,0,0,0.16)',
-                background: mode === 'solo' ? '#ffffff' : 'rgba(255,255,255,0.65)',
-                boxShadow:
-                  mode === 'solo'
-                    ? '0 10px 24px rgba(0,0,0,0.06)'
-                    : '0 6px 16px rgba(0,0,0,0.04)',
-              }}
-            >
-              <div style={{ fontSize: 18, marginBottom: 6 }}>👤</div>
-              <div style={{ fontSize: 14, fontWeight: 800 }}>Solo Decision</div>
-              <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68, lineHeight: 1.45 }}>
-                Find the blind spot in your decision before it costs you.
-              </div>
-            </button>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('solo');
+                  resetReviewState();
+                  setTimeout(() => {
+                    decisionInputRef.current?.focus();
+                  }, 50);
+                }}
+                style={{
+                  ...modeCardBase,
+                  border:
+                    mode === 'solo'
+                      ? '1px solid rgba(0,0,0,0.22)'
+                      : '1px solid rgba(0,0,0,0.16)',
+                  background: mode === 'solo' ? '#ffffff' : 'rgba(255,255,255,0.65)',
+                  boxShadow:
+                    mode === 'solo'
+                      ? '0 10px 24px rgba(0,0,0,0.06)'
+                      : '0 6px 16px rgba(0,0,0,0.04)',
+                }}
+              >
+                <div style={{ fontSize: 18, marginBottom: 6 }}>👤</div>
+                <div style={{ fontSize: 14, fontWeight: 800 }}>Solo Decision</div>
+                <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68, lineHeight: 1.45 }}>
+                  Find the blind spot in your decision before it costs you.
+                </div>
+              </button>
 
-            {/* Team Review link */}
-            <div style={{ textAlign: 'center', marginTop: 12 }}>
               <button
                 type="button"
                 onClick={() => {
@@ -2862,21 +2876,23 @@ export default function HomePage() {
                   resetReviewState();
                 }}
                 style={{
-                  fontFamily: sans,
-                  fontSize: 13,
-                  fontWeight: 500,
-                  color: '#6B7280',
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '4px 8px',
-                  textDecoration: 'none',
-                  transition: 'color 0.15s ease',
+                  ...modeCardBase,
+                  border:
+                    mode === 'team'
+                      ? '1px solid rgba(0,0,0,0.22)'
+                      : '1px solid rgba(0,0,0,0.10)',
+                  background: mode === 'team' ? '#ffffff' : 'rgba(255,255,255,0.55)',
+                  boxShadow:
+                    mode === 'team'
+                      ? '0 10px 24px rgba(0,0,0,0.06)'
+                      : '0 4px 12px rgba(0,0,0,0.02)',
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = '#111'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = '#6B7280'; }}
               >
-                Working with a team? Team Review →
+                <div style={{ fontSize: 18, marginBottom: 6 }}>👥</div>
+                <div style={{ fontSize: 14, fontWeight: 800 }}>Team Review</div>
+                <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68, lineHeight: 1.45 }}>
+                  Surface what the room isn&apos;t saying before the decision is made.
+                </div>
               </button>
             </div>
 
