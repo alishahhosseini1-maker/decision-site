@@ -2823,67 +2823,38 @@ export default function HomePage() {
 
           {/* ── Mode selector ── */}
           <section style={{ maxWidth: 720, margin: '20px auto 0' }}>
-            {/* Product labels */}
-            <div style={{
-              display: 'flex',
-              gap: 12,
-              marginBottom: 12,
-            }}>
-              <div style={{
-                flex: 1,
-                fontFamily: sans,
-                fontSize: 11,
-                fontWeight: 600,
-                letterSpacing: '0.05em',
-                textTransform: 'uppercase',
-                color: '#6B7280',
-                textAlign: 'center',
-              }}>
-                For individuals
+            <button
+              type="button"
+              onClick={() => {
+                setMode('solo');
+                resetReviewState();
+                setTimeout(() => {
+                  decisionInputRef.current?.focus();
+                }, 50);
+              }}
+              style={{
+                ...modeCardBase,
+                width: '100%',
+                border:
+                  mode === 'solo'
+                    ? '1px solid rgba(0,0,0,0.22)'
+                    : '1px solid rgba(0,0,0,0.16)',
+                background: mode === 'solo' ? '#ffffff' : 'rgba(255,255,255,0.65)',
+                boxShadow:
+                  mode === 'solo'
+                    ? '0 10px 24px rgba(0,0,0,0.06)'
+                    : '0 6px 16px rgba(0,0,0,0.04)',
+              }}
+            >
+              <div style={{ fontSize: 18, marginBottom: 6 }}>👤</div>
+              <div style={{ fontSize: 14, fontWeight: 800 }}>Solo Decision</div>
+              <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68, lineHeight: 1.45 }}>
+                Find the blind spot in your decision before it costs you.
               </div>
-              <div style={{
-                flex: 1,
-                fontFamily: sans,
-                fontSize: 11,
-                fontWeight: 600,
-                letterSpacing: '0.05em',
-                textTransform: 'uppercase',
-                color: '#6B7280',
-                textAlign: 'center',
-              }}>
-                For teams
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: 12 }}>
-              <button
-                type="button"
-                onClick={() => {
-                  setMode('solo');
-                  resetReviewState();
-                  setTimeout(() => {
-                    decisionInputRef.current?.focus();
-                  }, 50);
-                }}
-                style={{
-                  ...modeCardBase,
-                  border:
-                    mode === 'solo'
-                      ? '1px solid rgba(0,0,0,0.22)'
-                      : '1px solid rgba(0,0,0,0.16)',
-                  background: mode === 'solo' ? '#ffffff' : 'rgba(255,255,255,0.65)',
-                  boxShadow:
-                    mode === 'solo'
-                      ? '0 10px 24px rgba(0,0,0,0.06)'
-                      : '0 6px 16px rgba(0,0,0,0.04)',
-                }}
-              >
-                <div style={{ fontSize: 18, marginBottom: 6 }}>👤</div>
-                <div style={{ fontSize: 14, fontWeight: 800 }}>Solo Decision</div>
-                <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68, lineHeight: 1.45 }}>
-                  Find the blind spot in your decision before it costs you.
-                </div>
-              </button>
+            </button>
 
+            {/* Team Review link */}
+            <div style={{ textAlign: 'center', marginTop: 12 }}>
               <button
                 type="button"
                 onClick={() => {
@@ -2891,23 +2862,21 @@ export default function HomePage() {
                   resetReviewState();
                 }}
                 style={{
-                  ...modeCardBase,
-                  border:
-                    mode === 'team'
-                      ? '1px solid rgba(0,0,0,0.22)'
-                      : '1px solid rgba(0,0,0,0.10)',
-                  background: mode === 'team' ? '#ffffff' : 'rgba(255,255,255,0.55)',
-                  boxShadow:
-                    mode === 'team'
-                      ? '0 10px 24px rgba(0,0,0,0.06)'
-                      : '0 4px 12px rgba(0,0,0,0.02)',
+                  fontFamily: sans,
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: '#6B7280',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '4px 8px',
+                  textDecoration: 'none',
+                  transition: 'color 0.15s ease',
                 }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = '#111'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = '#6B7280'; }}
               >
-                <div style={{ fontSize: 18, marginBottom: 6 }}>👥</div>
-                <div style={{ fontSize: 14, fontWeight: 800 }}>Team Review</div>
-                <div style={{ marginTop: 3, fontSize: 12.5, opacity: 0.68, lineHeight: 1.45 }}>
-                  Surface what the room isn&apos;t saying before the decision is made.
-                </div>
+                Working with a team? Team Review →
               </button>
             </div>
 
@@ -2961,7 +2930,7 @@ export default function HomePage() {
                       lineHeight: 1.2,
                     }}
                   >
-                    What decision are you about to make?
+                    What are you still deciding?
                   </div>
                   <div style={{ marginTop: 6, fontSize: 13.5, lineHeight: 1.55, opacity: 0.68 }}>
                     Decision Layer is built for decisions with real consequences. If you&apos;re deciding where to eat, this isn&apos;t for you.
