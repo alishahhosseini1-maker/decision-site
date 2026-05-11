@@ -2783,18 +2783,9 @@ export default function HomePage() {
 
           {/* ── Hero ── */}
           <section style={{ textAlign: 'center', marginTop: 38 }}>
-            <h1
-              style={{
-                fontFamily: serif,
-                fontSize: 64,
-                fontWeight: 400,
-                margin: 0,
-                letterSpacing: '-0.5px',
-                lineHeight: 1.05,
-              }}
-            >
+            <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#888', marginBottom: 32 }}>
               Decision Layer
-            </h1>
+            </p>
             <div
               style={{
                 marginTop: 10,
@@ -2822,7 +2813,7 @@ export default function HomePage() {
                 opacity: 0.85,
               }}
             >
-              Decision Layer finds what everything else missed.
+              We find what everything else missed.
             </div>
 
             {/* Social proof */}
