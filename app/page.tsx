@@ -2782,15 +2782,13 @@ export default function HomePage() {
             )}
 
           {/* ── Hero ── */}
-          <section style={{ textAlign: 'center', padding: '48px 24px 32px', maxWidth: 640, margin: '0 auto' }}>
-            <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#999', textAlign: 'center', display: 'block', marginBottom: 24 }}>
-              DECISION LAYER
-            </div>
+          <section style={{ maxWidth: 640, margin: '0 auto', textAlign: 'center', padding: 'clamp(32px, 6vw, 64px) 24px clamp(24px, 4vw, 40px)' }}>
             <div
               style={{
                 marginTop: 10,
                 fontFamily: serif,
                 fontSize: 'clamp(18px, 3.5vw, 26px)',
+                lineHeight: 1.5,
                 fontStyle: 'italic',
                 fontWeight: 400,
                 letterSpacing: '0.01em',
@@ -2807,12 +2805,12 @@ export default function HomePage() {
               style={{
                 marginTop: 16,
                 fontFamily: serif,
-                fontSize: 16,
+                fontSize: 'clamp(14px, 2vw, 17px)',
                 fontWeight: 400,
                 letterSpacing: '0.01em',
               }}
             >
-              <strong style={{ color: '#111', fontWeight: 700 }}>Decision Layer</strong> <span style={{ color: '#888', fontWeight: 400 }}>finds what everything else missed.</span>
+              <strong style={{ color: '#111', fontSize: '110%' }}>Decision Layer</strong> <span style={{ color: '#888', fontWeight: 400 }}>finds what everything else missed.</span>
             </div>
 
             {/* Social proof */}
