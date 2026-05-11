@@ -2790,7 +2790,7 @@ export default function HomePage() {
               style={{
                 marginTop: 10,
                 fontFamily: serif,
-                fontSize: 28,
+                fontSize: 24,
                 fontStyle: 'italic',
                 fontWeight: 400,
                 letterSpacing: '0.01em',
@@ -2801,7 +2801,7 @@ export default function HomePage() {
               <br />
               You&apos;ve probably already asked AI.
               <br />
-              You&apos;re still not sure.
+              <span style={{ fontWeight: 700 }}>You&apos;re still not sure.</span>
             </div>
             <div
               style={{
