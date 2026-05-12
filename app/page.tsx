@@ -4217,6 +4217,74 @@ export default function HomePage() {
           )}
           </div>
 
+          {/* ── Marketing Sections ── */}
+          <hr style={{ border: 'none', borderTop: '1px solid #e0e0dc', margin: '80px auto', maxWidth: 1200 }} />
+
+          {/* THE PROBLEM */}
+          <section style={{ textAlign: 'center', padding: '0 24px 72px', maxWidth: 720, margin: '0 auto' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 40 }}>
+              <p style={{ fontSize: 'clamp(16px, 2.5vw, 19px)', color: '#6b6b6b', lineHeight: 1.75, fontFamily: sans }}>
+                Every book explains what happened.
+              </p>
+              <p style={{ fontSize: 'clamp(16px, 2.5vw, 19px)', color: '#6b6b6b', lineHeight: 1.75, fontFamily: sans }}>
+                ChatGPT gives you more to think about.
+              </p>
+              <p style={{ fontSize: 'clamp(16px, 2.5vw, 19px)', color: '#6b6b6b', lineHeight: 1.75, fontFamily: sans }}>
+                Your friends tell you what you want to hear.
+              </p>
+              <p style={{ fontSize: 'clamp(16px, 2.5vw, 19px)', color: '#6b6b6b', lineHeight: 1.75, fontFamily: sans }}>
+                Your advisors have their own agenda.
+              </p>
+            </div>
+            <p style={{ fontSize: 'clamp(20px, 3.5vw, 28px)', fontWeight: 700, color: '#111', lineHeight: 1.3, letterSpacing: '-0.01em', fontStyle: 'italic', fontFamily: serif }}>
+              None of them give you a verdict.
+            </p>
+          </section>
+
+          <hr style={{ border: 'none', borderTop: '1px solid #e0e0dc', margin: '0 auto 80px', maxWidth: 1200 }} />
+
+          {/* HOW IT WORKS */}
+          <section style={{ maxWidth: 720, margin: '0 auto', padding: '0 24px 72px' }}>
+            <div style={{ fontFamily: sans, fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#aaa', marginBottom: 14 }}>
+              How it works
+            </div>
+            <h2 style={{ fontFamily: serif, fontSize: 'clamp(24px, 4vw, 32px)', fontWeight: 400, lineHeight: 1.3, marginBottom: 40, letterSpacing: '-0.01em' }}>
+              Five things Decision Layer looks for.<br />Most decisions only name one.
+            </h2>
+
+            <div style={{ display: 'grid', gap: 0, border: '1px solid #e0e0dc', borderRadius: 10, overflow: 'hidden' }}>
+              {[
+                { num: 1, title: 'The Door', body: "What you're actually deciding. Not what you think you're deciding. Most people name the surface question. The Door is the real one underneath it." },
+                { num: 2, title: 'The Hinge', body: "What the whole thing is hanging on. Usually one thing. Usually not the thing you named. Finding it changes everything that follows." },
+                { num: 3, title: 'The Lock', body: "What can't be undone. Most people skip this until it's too late. A decision with no reversibility is a different kind of decision." },
+                { num: 4, title: 'The Exit Sign', body: "How you get out if you're wrong. If you haven't thought about this, you're not ready to decide. This is the layer most people skip when they're confident." },
+                { num: 5, title: 'The Trap', body: "The thing everyone misses. The assumption you didn't test. The question you didn't ask. This is where bad decisions hide." }
+              ].map((layer, idx) => (
+                <div key={layer.num} style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'auto 1fr',
+                  borderTop: idx > 0 ? '1px solid #e0e0dc' : 'none',
+                }}>
+                  <div style={{
+                    padding: '20px 18px',
+                    borderRight: '1px solid #e0e0dc',
+                    background: '#fafaf9',
+                  }}>
+                    <div style={{ fontFamily: sans, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', color: '#aaa', marginBottom: 4 }}>
+                      Layer {layer.num}
+                    </div>
+                    <div style={{ fontFamily: serif, fontSize: 16, fontWeight: 600 }}>
+                      {layer.title}
+                    </div>
+                  </div>
+                  <div style={{ padding: '20px 18px', fontSize: 14, lineHeight: 1.6, color: '#4a4a4a', fontFamily: sans }}>
+                    {layer.body}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
           {/* ── Footer ── */}
           <footer
             style={{
