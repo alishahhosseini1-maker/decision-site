@@ -6,11 +6,11 @@ import { Analytics } from '@vercel/analytics/react';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Decision Layer — Before you commit.',
+  title: 'Decision Layer — Find what everything else missed',
   description: 'A structured pre-commitment review for high-stakes decisions. Not a pro/con list. Not therapy. A clear verdict.',
   metadataBase: new URL('https://decisionlayer.dev'),
   openGraph: {
-    title: 'Decision Layer — Before you commit.',
+    title: 'Decision Layer — Find what everything else missed',
     description: 'A structured pre-commitment review for high-stakes decisions. Not a pro/con list. Not therapy. A clear verdict.',
     url: 'https://decisionlayer.dev',
     siteName: 'Decision Layer',
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Decision Layer — Before you commit.',
+    title: 'Decision Layer — Find what everything else missed',
     description: 'A structured pre-commitment review for high-stakes decisions. Not a pro/con list. Not therapy. A clear verdict.',
     images: ['/api/og'],
   },
