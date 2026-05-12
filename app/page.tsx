@@ -2781,78 +2781,113 @@ export default function HomePage() {
               </section>
             )}
 
+          <style>{`
+            @media (min-width: 901px) {
+              .hero-grid-wrapper {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 64px 40px;
+                display: grid;
+                grid-template-columns: 1.1fr 0.9fr;
+                gap: 80px;
+                align-items: start;
+              }
+              .hero-section {
+                max-width: none !important;
+                margin: 0 !important;
+                text-align: left !important;
+                padding: 8px 0 0 0 !important;
+              }
+              .form-section {
+                max-width: none !important;
+                margin: 0 !important;
+              }
+            }
+          `}</style>
+
+          <div className="hero-grid-wrapper">
+
           {/* ── Hero ── */}
-          <section style={{ maxWidth: 640, margin: '0 auto', textAlign: 'center', padding: 'clamp(32px, 6vw, 64px) 24px clamp(24px, 4vw, 40px)' }}>
-            <div
-              style={{
-                marginTop: 10,
-                fontFamily: serif,
-                fontSize: 'clamp(18px, 3.5vw, 26px)',
-                lineHeight: 1.5,
-                fontStyle: 'italic',
-                fontWeight: 400,
-                letterSpacing: '0.01em',
-                opacity: 0.62,
-              }}
-            >
-              You&apos;ve already thought about it.
-              <br />
-              You&apos;ve probably already asked AI.
-              <br />
-              <span style={{ fontWeight: 700 }}>You&apos;re still not sure.</span>
+          <section className="hero-section" style={{ maxWidth: 640, margin: '0 auto', textAlign: 'center', padding: 'clamp(32px, 6vw, 64px) 24px clamp(24px, 4vw, 40px)' }}>
+            <div style={{
+              fontFamily: sans,
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: '#aaa',
+              marginBottom: 28,
+            }}>
+              Decision Layer
             </div>
-            <div
-              style={{
-                marginTop: 16,
-                fontFamily: serif,
-                fontSize: 'clamp(14px, 2vw, 17px)',
-                fontWeight: 400,
-                letterSpacing: '0.01em',
-              }}
-            >
-              <strong style={{ color: '#111', fontSize: '110%' }}>Decision Layer</strong> <span style={{ color: '#888', fontWeight: 400 }}>finds what everything else missed.</span>
-            </div>
+
+            <h1 style={{
+              fontFamily: serif,
+              fontSize: 'clamp(22px, 3vw, 36px)',
+              fontWeight: 400,
+              fontStyle: 'italic',
+              lineHeight: 1.45,
+              letterSpacing: '-0.01em',
+              color: '#111',
+              marginBottom: 22,
+            }}>
+              You&apos;ve already thought about it.<br />
+              You&apos;ve probably already asked AI.<br />
+              <em style={{ fontStyle: 'normal', fontWeight: 700 }}>You&apos;re still not sure.</em>
+            </h1>
+
+            <p style={{
+              fontFamily: sans,
+              fontSize: 'clamp(15px, 1.8vw, 18px)',
+              color: '#333',
+              fontWeight: 500,
+              lineHeight: 1.5,
+              marginBottom: 28,
+            }}>
+              Decision Layer finds what everything else missed.
+            </p>
 
             {/* Social proof */}
             <div style={{
-              marginTop: 20,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
               fontFamily: sans,
-              fontSize: 13,
-              color: '#6B7280',
-              textAlign: 'center',
+              fontSize: 12.5,
+              color: '#aaa',
+              marginBottom: 28,
             }}>
+              <span style={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                background: '#2d6a20',
+                flexShrink: 0,
+              }} />
               2,400+ decisions reviewed
             </div>
 
             {/* Sample verdict link */}
-            <div style={{ display: 'block', margin: '0 auto', textAlign: 'center', marginTop: 16 }}>
-              <a
-                href="/sample-decision"
-                style={{
-                  fontFamily: sans,
-                  fontSize: 15,
-                  fontWeight: 600,
-                  color: '#111',
-                  textDecoration: 'none',
-                  padding: '8px 16px',
-                  background: 'rgba(0,0,0,0.04)',
-                  borderRadius: 8,
-                  display: 'inline-block',
-                  transition: 'background 0.15s ease',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.08)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; }}
-              >
-                See a sample verdict →
-              </a>
-            </div>
+            <a
+              href="/sample-decision"
+              style={{
+                fontFamily: sans,
+                fontSize: 13,
+                color: '#6b6b6b',
+                textDecoration: 'underline',
+                textUnderlineOffset: 3,
+              }}
+            >
+              See a sample verdict →
+            </a>
           </section>
 
           {/* ══════════════════════════════════════════════════════════════════════
               SOLO MODE
           ══════════════════════════════════════════════════════════════════════ */}
           {mode === 'solo' ? (
-            <section style={{ maxWidth: 720, margin: '20px auto 0' }}>
+            <section className="form-section" style={{ maxWidth: 720, margin: '20px auto 0' }}>
 
               {/* Input shell */}
               <div
@@ -2865,20 +2900,29 @@ export default function HomePage() {
                   padding: 18,
                 }}
               >
-                <div style={{ marginBottom: 12 }}>
-                  <div
-                    style={{
-                      fontFamily: serif,
-                      fontSize: 22,
-                      fontWeight: 400,
-                      lineHeight: 1.2,
-                    }}
-                  >
+                <div style={{
+                  marginBottom: 22,
+                  paddingBottom: 18,
+                  borderBottom: '1px solid #e0e0dc',
+                }}>
+                  <h2 style={{
+                    fontFamily: serif,
+                    fontSize: 18,
+                    fontWeight: 700,
+                    letterSpacing: '-0.01em',
+                    marginBottom: 5,
+                  }}>
                     What are you still deciding?
-                  </div>
-                  <div style={{ marginTop: 6, fontSize: 13.5, lineHeight: 1.55, opacity: 0.68 }}>
-                    Decision Layer is built for decisions with real consequences. If you&apos;re deciding where to eat, this isn&apos;t for you.
-                  </div>
+                  </h2>
+                  <p style={{
+                    fontFamily: sans,
+                    fontSize: 13,
+                    color: '#6b6b6b',
+                    lineHeight: 1.5,
+                    margin: 0,
+                  }}>
+                    Built for decisions with real consequences. Not for where to eat.
+                  </p>
                 </div>
 
                 <div style={{ display: 'grid', gap: 12 }}>
@@ -4171,6 +4215,7 @@ export default function HomePage() {
               )}
             </section>
           )}
+          </div>
 
           {/* ── Footer ── */}
           <footer
