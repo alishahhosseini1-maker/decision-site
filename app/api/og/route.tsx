@@ -57,7 +57,7 @@ export async function GET() {
               letterSpacing: '-0.02em',
             }}
           >
-            Before you commit.
+            Find what everything else missed
           </div>
           <div
             style={{
@@ -66,11 +66,10 @@ export async function GET() {
               fontWeight: 400,
               color: 'rgba(0,0,0,0.50)',
               lineHeight: 1.5,
-              maxWidth: '640px',
+              maxWidth: '800px',
             }}
           >
-            A structured pre-commitment review for
-            high-stakes decisions.
+            A structured pre-commitment review for high-stakes decisions. Not a pro/con list. Not therapy. A clear verdict.
           </div>
         </div>
 
