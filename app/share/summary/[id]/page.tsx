@@ -559,19 +559,16 @@ export default function ShareBriefPage({ params }: { params: { id: string } }) {
         setLoading(true);
         setError(null);
 
-        // Fetch the decision by id (public access for share links)
-        const { data, error: fetchError } = await supabase
-          .from('decisions')
-          .select('*')
-          .eq('id', id)
-          .single();
+        // Fetch the decision via API endpoint (uses service role key for public access)
+        const response = await fetch(`/api/decision/load-shared?id=${id}`);
 
         if (cancelled) return;
 
-        if (fetchError || !data) {
+        if (!response.ok) {
           throw new Error('Decision not found');
         }
 
+        const data = await response.json();
         setDecision(data);
 
         // Small delay for animation
