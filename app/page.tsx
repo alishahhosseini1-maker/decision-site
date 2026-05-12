@@ -3110,7 +3110,7 @@ export default function HomePage() {
 
             {/* Loading placeholder */}
             {hasStarted && loading && !reviewResult && (
-              <div style={{ maxWidth: 960, margin: '20px auto 0', padding: '0 24px' }}>
+              <div style={{ maxWidth: 960, margin: '20px auto 0', padding: '0 24px', gridColumn: '1 / -1' }}>
                 <div
                   style={{
                     marginTop: 16,
@@ -3140,7 +3140,7 @@ export default function HomePage() {
 
               {/* ── Results: two-zone layout ── */}
               {reviewResult && (
-                <div style={{ maxWidth: 960, margin: '20px auto 0', padding: '0 24px' }}>
+                <div style={{ maxWidth: 960, margin: '20px auto 0', padding: '0 24px', gridColumn: '1 / -1' }}>
                   <div ref={snapshotRef} style={{ marginTop: 16 }}>
 
                   {/* ── ZONE 1: THE SIGNAL ── */}
