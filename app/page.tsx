@@ -4333,7 +4333,18 @@ export default function HomePage() {
               Five things Decision Layer looks for.<br />Most decisions only name one.
             </h2>
 
-            <div style={{ display: 'grid', gap: 0, border: '1.5px solid #e0e0dc', borderRadius: 10, overflow: 'hidden', background: '#ffffff' }}>
+            <div style={{ position: 'relative', display: 'grid', gap: 0, border: '1.5px solid #e0e0dc', borderRadius: 10, overflow: 'hidden', background: '#ffffff' }}>
+              {/* Continuous vertical divider */}
+              <div style={{
+                position: 'absolute',
+                left: '160px',
+                top: 0,
+                bottom: 0,
+                width: '1px',
+                background: '#e0e0dc',
+                zIndex: 1,
+              }} />
+
               {[
                 { num: 1, title: 'The Door', body: "What you're actually deciding. Not what you think you're deciding. Most people name the surface question. The Door is the real one underneath it." },
                 { num: 2, title: 'The Hinge', body: "What the whole thing is hanging on. Usually one thing. Usually not the thing you named. Finding it changes everything that follows." },
@@ -4343,12 +4354,11 @@ export default function HomePage() {
               ].map((layer, idx) => (
                 <div key={layer.num} style={{
                   display: 'grid',
-                  gridTemplateColumns: 'auto 1fr',
+                  gridTemplateColumns: '160px 1fr',
                   borderTop: idx > 0 ? '1px solid #e0e0dc' : 'none',
                 }}>
                   <div style={{
                     padding: '20px 18px',
-                    borderRight: '1px solid #e0e0dc',
                     background: '#fafaf9',
                   }}>
                     <div style={{ fontFamily: sans, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', color: '#aaa', marginBottom: 4 }}>
