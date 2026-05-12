@@ -4344,11 +4344,11 @@ export default function HomePage() {
                 <div key={layer.num} style={{
                   display: 'grid',
                   gridTemplateColumns: 'auto 1fr',
-                  borderTop: idx > 0 ? '1px solid #e0e0dc' : 'none',
+                  borderTop: idx > 0 ? '1.5px solid #e0e0dc' : 'none',
                 }}>
                   <div style={{
                     padding: '20px 18px',
-                    borderRight: '1px solid #e0e0dc',
+                    borderRight: '1.5px solid #e0e0dc',
                     background: '#fafaf9',
                   }}>
                     <div style={{ fontFamily: sans, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', color: '#aaa', marginBottom: 4 }}>
