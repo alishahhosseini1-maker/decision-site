@@ -2252,16 +2252,17 @@ export default function HomePage() {
 
   const inputStyle: React.CSSProperties = {
     width: '100%',
-    borderRadius: 14,
-    border: '1px solid rgba(0,0,0,0.15)',
-    padding: 14,
+    borderRadius: 6,
+    border: '1.5px solid #e0e0dc',
+    padding: '12px 13px',
     fontSize: 14,
-    lineHeight: 1.45,
-    background: '#fff',
+    lineHeight: 1.55,
+    background: '#f2f2ef',
     outline: 'none',
     fontFamily: sans,
     color: '#111',
     boxSizing: 'border-box',
+    transition: 'border-color 0.15s, background 0.15s',
   };
 
   const detailStyle: React.CSSProperties = {
@@ -2328,7 +2329,7 @@ export default function HomePage() {
   return (
     <>
       <link rel="stylesheet" href={FONT_URL} />
-      <div style={{ minHeight: '100vh', background: '#f4f5f6', color: '#111', fontFamily: sans }}>
+      <div style={{ minHeight: '100vh', background: '#f2f2ef', color: '#111', fontFamily: sans }}>
         <main style={{ maxWidth: 980, margin: '28px auto 60px', padding: '0 20px' }}>
 
           {/* ── Header ── */}
@@ -2902,46 +2903,53 @@ export default function HomePage() {
               SOLO MODE
           ══════════════════════════════════════════════════════════════════════ */}
           {mode === 'solo' ? (
-            <section className="form-section" style={{ maxWidth: 720, margin: '20px auto 0' }}>
-
-              {/* Input shell */}
-              <div
-                style={{
-                  border,
-                  borderRadius: 16,
-                  background: shellBg,
-                  boxShadow: '0 18px 40px rgba(0,0,0,0.05)',
-                  backdropFilter: 'blur(10px)',
-                  padding: 18,
-                }}
-              >
-                <div style={{
-                  marginBottom: 22,
-                  paddingBottom: 18,
-                  borderBottom: '1px solid #e0e0dc',
+            <section className="form-section" style={{
+              maxWidth: 720,
+              margin: '20px auto 0',
+              background: '#ffffff',
+              border: '1.5px solid #e0e0dc',
+              borderRadius: 10,
+              padding: '32px 28px',
+            }}>
+              <div style={{
+                marginBottom: 22,
+                paddingBottom: 18,
+                borderBottom: '1px solid #e0e0dc',
+              }}>
+                <h2 style={{
+                  fontFamily: serif,
+                  fontSize: 18,
+                  fontWeight: 700,
+                  letterSpacing: '-0.01em',
+                  marginBottom: 5,
                 }}>
-                  <h2 style={{
-                    fontFamily: serif,
-                    fontSize: 18,
-                    fontWeight: 700,
-                    letterSpacing: '-0.01em',
-                    marginBottom: 5,
-                  }}>
-                    What are you still deciding?
-                  </h2>
-                  <p style={{
-                    fontFamily: sans,
-                    fontSize: 13,
-                    color: '#6b6b6b',
-                    lineHeight: 1.5,
-                    margin: 0,
-                  }}>
-                    Built for decisions with real consequences. Not for where to eat.
-                  </p>
-                </div>
+                  What are you still deciding?
+                </h2>
+                <p style={{
+                  fontFamily: sans,
+                  fontSize: 13,
+                  color: '#6b6b6b',
+                  lineHeight: 1.5,
+                  margin: 0,
+                }}>
+                  Built for decisions with real consequences. Not for where to eat.
+                </p>
+              </div>
 
-                <div style={{ display: 'grid', gap: 12 }}>
-                  <div>
+              <div style={{ display: 'grid', gap: 16 }}>
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontFamily: sans,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.09em',
+                    color: '#6b6b6b',
+                    marginBottom: 7,
+                  }}>
+                    Your Decision
+                  </label>
                     <textarea
                       ref={decisionInputRef}
                       value={decision}
@@ -2967,9 +2975,18 @@ export default function HomePage() {
                   </div>
 
                   <div>
-                    <div style={{ fontSize: 12, color: '#6B7280', marginBottom: 6 }}>
+                    <label style={{
+                      display: 'block',
+                      fontFamily: sans,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.09em',
+                      color: '#6b6b6b',
+                      marginBottom: 7,
+                    }}>
                       Context
-                    </div>
+                    </label>
                     <textarea
                       ref={contextInputRef}
                       value={context}
@@ -3043,7 +3060,6 @@ export default function HomePage() {
                     )}
                   </div>
                 </div>
-              </div>
 
               {/* Loading placeholder */}
               {hasStarted && loading && !reviewResult && (
