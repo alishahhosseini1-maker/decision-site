@@ -23,6 +23,7 @@ export async function POST(req: Request) {
     const insertPayload = {
       decision: body.decision,
       context: body.context,
+      review_result: body.review_result ?? null, // Full review result object for post-payment loading
       score: body.score,
       verdict: body.verdict,
 

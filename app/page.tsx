@@ -1819,6 +1819,7 @@ export default function HomePage() {
           body: JSON.stringify({
             decision,
             context,
+            review_result: reviewResult, // Save full review result for post-payment loading
             score: reviewResult.readiness?.total ?? null,
             clarity: reviewResult.readiness?.clarity ?? null,
             assumptions: reviewResult.readiness?.assumptions ?? null,
