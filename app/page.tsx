@@ -2838,7 +2838,7 @@ export default function HomePage() {
 
             <h1 style={{
               fontFamily: serif,
-              fontSize: 'clamp(22px, 3vw, 36px)',
+              fontSize: 'clamp(20px, 2.8vw, 34px)',
               fontWeight: 400,
               fontStyle: 'italic',
               lineHeight: 1.45,
