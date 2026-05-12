@@ -2877,7 +2877,7 @@ export default function HomePage() {
 
             <h1 style={{
               fontFamily: serif,
-              fontSize: 'clamp(20px, 2.8vw, 34px)',
+              fontSize: 'clamp(22px, 3vw, 36px)',
               fontWeight: 400,
               fontStyle: 'italic',
               lineHeight: 1.45,
@@ -2941,6 +2941,7 @@ export default function HomePage() {
               SOLO MODE
           ══════════════════════════════════════════════════════════════════════ */}
           {mode === 'solo' ? (
+            <>
             <section className="form-section" style={{
               maxWidth: 720,
               margin: '20px auto 0',
@@ -3105,9 +3106,11 @@ export default function HomePage() {
                     </div>
                   )}
                 </div>
+            </section>
 
-              {/* Loading placeholder */}
-              {hasStarted && loading && !reviewResult && (
+            {/* Loading placeholder */}
+            {hasStarted && loading && !reviewResult && (
+              <div style={{ maxWidth: 960, margin: '20px auto 0', padding: '0 24px' }}>
                 <div
                   style={{
                     marginTop: 16,
@@ -3132,11 +3135,13 @@ export default function HomePage() {
                     {loadingMessageIndex === 3 && 'Finalizing the verdict.'}
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
               {/* ── Results: two-zone layout ── */}
               {reviewResult && (
-                <div ref={snapshotRef} style={{ marginTop: 16 }}>
+                <div style={{ maxWidth: 960, margin: '20px auto 0', padding: '0 24px' }}>
+                  <div ref={snapshotRef} style={{ marginTop: 16 }}>
 
                   {/* ── ZONE 1: THE SIGNAL ── */}
                   <div
@@ -4034,9 +4039,9 @@ export default function HomePage() {
                     </>
                   )}
                 </div>
+                </div>
               )}
-            </section>
-
+            </>
           ) : (
             /* ══════════════════════════════════════════════════════════════════════
                 TEAM MODE
@@ -4328,7 +4333,7 @@ export default function HomePage() {
               Five things Decision Layer looks for.<br />Most decisions only name one.
             </h2>
 
-            <div style={{ display: 'grid', gap: 0, border: '1px solid #e0e0dc', borderRadius: 10, overflow: 'hidden' }}>
+            <div style={{ display: 'grid', gap: 0, border: '1.5px solid #e0e0dc', borderRadius: 10, overflow: 'hidden', background: '#ffffff' }}>
               {[
                 { num: 1, title: 'The Door', body: "What you're actually deciding. Not what you think you're deciding. Most people name the surface question. The Door is the real one underneath it." },
                 { num: 2, title: 'The Hinge', body: "What the whole thing is hanging on. Usually one thing. Usually not the thing you named. Finding it changes everything that follows." },
