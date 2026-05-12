@@ -2297,16 +2297,18 @@ export default function HomePage() {
   };
 
   const ctaButtonStyle: React.CSSProperties = {
-    borderRadius: 999,
+    borderRadius: 100,
     border: 'none',
-    padding: '13px 18px',
-    background: '#0b0b0b',
+    padding: '13px 28px',
+    background: '#111',
     color: '#fff',
-    fontSize: 13,
-    fontWeight: 900,
+    fontSize: 15,
+    fontWeight: 600,
     cursor: 'pointer',
-    boxShadow: '0 10px 18px rgba(0,0,0,0.10)',
     fontFamily: sans,
+    letterSpacing: '0.01em',
+    width: '100%',
+    marginTop: 4,
   };
 
   const lightButtonStyle: React.CSSProperties = {
@@ -2330,56 +2332,92 @@ export default function HomePage() {
     <>
       <link rel="stylesheet" href={FONT_URL} />
       <div style={{ minHeight: '100vh', background: '#f2f2ef', color: '#111', fontFamily: sans }}>
-        <main style={{ maxWidth: 980, margin: '28px auto 60px', padding: '0 20px' }}>
+        <nav style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '18px 40px',
+          position: 'sticky',
+          top: 0,
+          background: '#f2f2ef',
+          zIndex: 100,
+          borderBottom: '1px solid #e0e0dc',
+        }}>
+          <a href="/" style={{
+            fontFamily: sans,
+            fontSize: 13,
+            fontWeight: 700,
+            letterSpacing: '0.06em',
+            textTransform: 'uppercase',
+            color: '#111',
+            textDecoration: 'none',
+          }}>
+            Decision Layer
+          </a>
 
-          {/* ── Header ── */}
-          <header
-            style={{
-              paddingTop: 6,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 12,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-              {!authLoading && user && (
-                <div style={{ fontSize: 12.5, opacity: 0.62 }}>{user.email || 'Signed in'}</div>
-              )}
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {!authLoading && (
+              <a
+                href="/history"
+                style={{
+                  background: 'none',
+                  border: '1.5px solid #c4c4c0',
+                  color: '#111',
+                  padding: '8px 18px',
+                  borderRadius: 100,
+                  fontSize: 13,
+                  fontFamily: sans,
+                  cursor: 'pointer',
+                  letterSpacing: '0.01em',
+                  textDecoration: 'none',
+                  display: 'inline-block',
+                }}
+              >
+                Decision History
+              </a>
+            )}
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-              {!authLoading && (
-                <a
-                  href="/history"
-                  style={{
-                    borderRadius: 999,
-                    border: '1px solid rgba(0,0,0,0.12)',
-                    padding: '10px 14px',
-                    background: '#fff',
-                    color: '#111',
-                    fontSize: 12.5,
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    textDecoration: 'none',
-                    fontFamily: sans,
-                  }}
-                >
-                  Decision History
-                </a>
-              )}
+            {authLoading ? null : user ? (
+              <button
+                type="button"
+                onClick={handleSignOut}
+                style={{
+                  background: '#111',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '8px 18px',
+                  borderRadius: 100,
+                  fontSize: 13,
+                  fontFamily: sans,
+                  cursor: 'pointer',
+                  letterSpacing: '0.01em',
+                }}
+              >
+                Sign Out
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleSignIn}
+                style={{
+                  background: '#111',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '8px 18px',
+                  borderRadius: 100,
+                  fontSize: 13,
+                  fontFamily: sans,
+                  cursor: 'pointer',
+                  letterSpacing: '0.01em',
+                }}
+              >
+                Sign In
+              </button>
+            )}
+          </div>
+        </nav>
 
-              {authLoading ? null : user ? (
-                <button type="button" onClick={handleSignOut} style={topActionButtonStyle}>
-                  Sign Out
-                </button>
-              ) : (
-                <button type="button" onClick={handleSignIn} style={topActionButtonStyle}>
-                  Sign In
-                </button>
-              )}
-            </div>
-          </header>
+        <main style={{ padding: 0 }}>
 
           {/* ── Auth error ── */}
           {authError && (
@@ -3037,28 +3075,35 @@ export default function HomePage() {
                     </div>
                   )}
 
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 0 }}>
-                    <div style={{ fontSize: 12, color: '#6B7280', fontStyle: 'italic', marginBottom: 8 }}>
-                      Free preview in seconds. Full verdict unlocks at $99.
+                  <button
+                    type="button"
+                    onClick={beginReview}
+                    disabled={loading}
+                    style={{
+                      ...ctaButtonStyle,
+                      opacity: loading ? 0.72 : 1,
+                      cursor: loading ? 'default' : 'pointer',
+                    }}
+                  >
+                    {loading ? 'Running Review...' : 'Run the Review'}
+                  </button>
+
+                  <p style={{
+                    fontFamily: sans,
+                    fontSize: 12,
+                    color: '#aaa',
+                    textAlign: 'center',
+                    marginTop: 12,
+                    lineHeight: 1.5,
+                  }}>
+                    Free preview in seconds. <strong>Full verdict unlocks at $99.</strong>
+                  </p>
+
+                  {showThinContextWarning && (
+                    <div style={{ marginTop: 6, fontSize: 12, color: 'rgba(0,0,0,0.42)', textAlign: 'center' }}>
+                      Your verdict will be sharper with more context — but running anyway.
                     </div>
-                    <button
-                      type="button"
-                      onClick={beginReview}
-                      disabled={loading}
-                      style={{
-                        ...ctaButtonStyle,
-                        opacity: loading ? 0.72 : 1,
-                        cursor: loading ? 'default' : 'pointer',
-                      }}
-                    >
-                      {loading ? 'Running Review...' : 'Run the Review'}
-                    </button>
-                    {showThinContextWarning && (
-                      <div style={{ marginTop: 6, fontSize: 12, color: 'rgba(0,0,0,0.42)' }}>
-                        Your verdict will be sharper with more context — but running anyway.
-                      </div>
-                    )}
-                  </div>
+                  )}
                 </div>
 
               {/* Loading placeholder */}
