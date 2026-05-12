@@ -69,7 +69,7 @@ export async function GET() {
               maxWidth: '800px',
             }}
           >
-            A structured pre-commitment review for high-stakes decisions. Not a pro/con list. Not therapy. A clear verdict.
+            A clear verdict for high-stakes decisions.
           </div>
         </div>
 
