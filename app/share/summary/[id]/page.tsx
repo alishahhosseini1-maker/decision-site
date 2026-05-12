@@ -551,7 +551,48 @@ export default function ShareBriefPage({ params }: { params: { id: string } }) {
   const [comparisonDecisions, setComparisonDecisions] = useState<ComparisonDecision[]>([]);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
 
-  
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch the decision by id (public access for share links)
+        const { data, error: fetchError } = await supabase
+          .from('decisions')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (cancelled) return;
+
+        if (fetchError || !data) {
+          throw new Error('Decision not found');
+        }
+
+        setDecision(data);
+
+        // Small delay for animation
+        setTimeout(() => setAnimateIn(true), 50);
+      } catch (err: any) {
+        if (!cancelled) {
+          setError(err?.message || 'Failed to load decision');
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
   const shareMenuRef = useRef<HTMLDivElement | null>(null);
 
