@@ -2014,6 +2014,7 @@ export default function HomePage() {
         body: JSON.stringify({
           decision,
           context,
+          review_result: reviewResult,
           score: reviewResult?.readiness?.total ?? null,
           clarity: reviewResult?.readiness?.clarity ?? null,
           assumptions: reviewResult?.readiness?.assumptions ?? null,

@@ -1,0 +1,2 @@
+ALTER TABLE decisions
+ADD COLUMN IF NOT EXISTS review_result JSONB;
