@@ -2803,6 +2803,21 @@ export default function HomePage() {
                 margin: 0 !important;
               }
             }
+            @media (max-width: 900px) {
+              .brief-preview-grid {
+                grid-template-columns: 1fr !important;
+              }
+              .brief-preview-card {
+                border-right: none !important;
+                border-bottom: 1px solid #e0e0dc !important;
+              }
+              .brief-preview-card:last-of-type {
+                border-bottom: none !important;
+              }
+              .pricing-grid {
+                grid-template-columns: 1fr !important;
+              }
+            }
           `}</style>
 
           <div className="hero-grid-wrapper">
@@ -4282,6 +4297,156 @@ export default function HomePage() {
                   </div>
                 </div>
               ))}
+            </div>
+          </section>
+
+          <hr style={{ border: 'none', borderTop: '1px solid #e0e0dc', margin: '80px auto', maxWidth: 1200 }} />
+
+          {/* TWO REAL OUTCOMES */}
+          <section style={{ maxWidth: 720, margin: '0 auto', padding: '0 24px 72px' }}>
+            <div style={{ fontFamily: sans, fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#aaa', marginBottom: 14 }}>
+              Similar Situations
+            </div>
+            <h2 style={{ fontFamily: serif, fontSize: 'clamp(24px, 4vw, 32px)', fontWeight: 400, lineHeight: 1.3, marginBottom: 40, letterSpacing: '-0.01em' }}>
+              Two real outcomes.
+            </h2>
+
+            <div style={{ marginBottom: 32, background: '#fff', border: '1.5px solid #e0e0dc', borderRadius: 12, padding: 28 }}>
+              <div style={{ fontSize: 12, color: '#aaa', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#2d6a20' }} />
+                Career decision · 6 months ago · Anonymized with permission
+              </div>
+              <div style={{ fontSize: 15, lineHeight: 1.7, color: '#4a4a4a', fontFamily: sans }}>
+                Someone brought us a career decision six months ago. They thought they were deciding whether to take a new job.
+                <br /><br />
+                The verdict said they were actually deciding <strong>whether they trusted themselves to find another opportunity if it didn&apos;t work out.</strong>
+                <br /><br />
+                They stayed. Three months later they got a promotion they&apos;d stopped expecting.
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 48, background: '#fff', border: '1.5px solid #e0e0dc', borderRadius: 12, padding: 28 }}>
+              <div style={{ fontSize: 12, color: '#aaa', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#2d6a20' }} />
+                Hiring decision · 3 months ago · Anonymized with permission
+              </div>
+              <div style={{ fontSize: 15, lineHeight: 1.7, color: '#4a4a4a', fontFamily: sans }}>
+                A founder came in deciding whether to hire their first head of sales. They had a candidate, a number, and a deadline.
+                <br /><br />
+                The verdict found the real question: <strong>whether their sales results were repeatable by anyone other than themselves.</strong>
+                <br /><br />
+                They didn&apos;t hire. They ran a 90-day co-sell test instead. The candidate proved it out — and joined with both sides confident.
+              </div>
+            </div>
+
+            {/* Brief preview */}
+            <div style={{ marginTop: 48 }}>
+              <p style={{ fontSize: 13, color: '#aaa', marginBottom: 16, fontFamily: sans }}>What you get — a sample from the decision brief</p>
+              <div style={{ border: '1.5px solid #e0e0dc', borderRadius: 12, overflow: 'hidden', position: 'relative' }}>
+                <div className="brief-preview-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 0 }}>
+                  <div className="brief-preview-card" style={{ padding: 20, borderRight: '1px solid #e0e0dc', background: '#fffbf5' }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', color: '#aaa', marginBottom: 10, fontFamily: sans }}>WHAT TO SAY TO THEM</div>
+                    <div style={{ fontSize: 14, lineHeight: 1.6, color: '#333', fontFamily: sans }}>
+                      &quot;I&apos;m testing our sales process scalability before committing to a head of sales role — are you interested in a 90-day senior AE position with potential to grow into the leadership role?&quot;
+                    </div>
+                  </div>
+                  <div className="brief-preview-card" style={{ padding: 20, background: '#fff' }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', color: '#aaa', marginBottom: 10, fontFamily: sans }}>WALK AWAY IF</div>
+                    <div style={{ fontSize: 14, lineHeight: 1.6, color: '#333', fontFamily: sans }}>
+                      <strong>If the candidate cannot close at least 2 deals in 90 days using your documented process, do not proceed with the head of sales hire.</strong>
+                    </div>
+                  </div>
+                </div>
+                <div style={{ padding: 20, background: '#fafaf9', borderTop: '1px solid #e0e0dc', filter: 'blur(3px)', opacity: 0.6 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', color: '#aaa', marginBottom: 10, fontFamily: sans }}>WHAT OTHERS MISS</div>
+                  <div style={{ fontSize: 14, lineHeight: 1.6, color: '#333', fontFamily: sans }}>
+                    The real test isn&apos;t whether they can sell — it&apos;s whether your customers will buy the same way from someone who isn&apos;t the founder.
+                  </div>
+                </div>
+                <div style={{ position: 'absolute', bottom: 20, left: 0, right: 0, textAlign: 'center', pointerEvents: 'none' }}>
+                  <span style={{ background: '#111', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 13, fontWeight: 600, fontFamily: sans }}>
+                    Unlock the full brief for $99 →
+                  </span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <hr style={{ border: 'none', borderTop: '1px solid #e0e0dc', margin: '80px auto', maxWidth: 1200 }} />
+
+          {/* WE'VE HEARD IT */}
+          <section style={{ maxWidth: 720, margin: '0 auto', padding: '0 24px 72px' }}>
+            <div style={{ fontFamily: sans, fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#aaa', marginBottom: 14 }}>
+              The obvious question
+            </div>
+            <h2 style={{ fontFamily: serif, fontSize: 'clamp(24px, 4vw, 32px)', fontWeight: 400, lineHeight: 1.3, marginBottom: 40, letterSpacing: '-0.01em' }}>
+              We&apos;ve heard it.
+            </h2>
+
+            <div style={{ background: '#fafaf9', border: '1.5px solid #e0e0dc', borderRadius: 12, padding: 28 }}>
+              <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, fontFamily: serif }}>
+                Can&apos;t I just ask ChatGPT?
+              </div>
+              <div style={{ fontSize: 15, lineHeight: 1.7, color: '#4a4a4a', fontFamily: sans }}>
+                <p style={{ marginBottom: 14 }}>You can. And you probably already have.</p>
+                <p style={{ marginBottom: 14 }}>ChatGPT answers the question you asked. Decision Layer finds the question underneath.</p>
+                <p style={{ fontStyle: 'italic', fontWeight: 600 }}>That&apos;s a different product.</p>
+              </div>
+            </div>
+          </section>
+
+          <hr style={{ border: 'none', borderTop: '1px solid #e0e0dc', margin: '80px auto', maxWidth: 1200 }} />
+
+          {/* PRICING */}
+          <section style={{ maxWidth: 720, margin: '0 auto', padding: '0 24px 72px', textAlign: 'center' }}>
+            <div style={{ fontFamily: sans, fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#aaa', marginBottom: 14 }}>
+              Pricing
+            </div>
+            <h2 style={{ fontFamily: serif, fontSize: 'clamp(24px, 4vw, 32px)', fontWeight: 400, lineHeight: 1.3, marginBottom: 24, letterSpacing: '-0.01em' }}>
+              One clearer decision is worth more<br />than a year of indecision.
+            </h2>
+            <p style={{ fontSize: 16, lineHeight: 1.7, color: '#4a4a4a', marginBottom: 48, fontFamily: sans }}>
+              Most people spend more on dinner than on the thing they&apos;ve been stuck on for three months.{' '}
+              <strong>The $99 verdict tells you what your decision is actually about — not what you think it&apos;s about.</strong>
+            </p>
+
+            <div className="pricing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, marginBottom: 32 }}>
+              <div style={{ background: '#fff', border: '1.5px solid #e0e0dc', borderRadius: 12, padding: 28, textAlign: 'left' }}>
+                <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, fontFamily: sans, opacity: 0.6 }}>Preview</div>
+                <div style={{ fontSize: 32, fontWeight: 700, marginBottom: 12, fontFamily: serif }}>Free</div>
+                <div style={{ fontSize: 14, lineHeight: 1.6, color: '#4a4a4a', marginBottom: 20, fontFamily: sans }}>
+                  Run your decision. See the first layer — what you&apos;re actually deciding. Instant.
+                </div>
+                <ul style={{ listStyle: 'none', padding: 0, fontSize: 14, lineHeight: 1.8, color: '#4a4a4a', fontFamily: sans }}>
+                  <li>• Your pre-commit readiness score</li>
+                  <li>• The real question underneath yours</li>
+                  <li>• What this decision is missing</li>
+                </ul>
+              </div>
+
+              <div style={{ background: '#111', color: '#fff', border: '2px solid #111', borderRadius: 12, padding: 28, textAlign: 'left', position: 'relative' }}>
+                <div style={{ position: 'absolute', top: -12, left: 28, background: '#111', padding: '4px 12px', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', border: '1px solid #fff', borderRadius: 6 }}>
+                  FULL VERDICT
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, fontFamily: sans, opacity: 0.7 }}>Complete Review</div>
+                <div style={{ fontSize: 32, fontWeight: 700, marginBottom: 4, fontFamily: serif }}>
+                  $99 <span style={{ fontSize: 14, fontWeight: 400, opacity: 0.6 }}>one decision</span>
+                </div>
+                <div style={{ fontSize: 14, lineHeight: 1.6, opacity: 0.85, marginBottom: 20, fontFamily: sans }}>
+                  Everything in the preview, plus the full brief.
+                </div>
+                <ul style={{ listStyle: 'none', padding: 0, fontSize: 14, lineHeight: 1.8, opacity: 0.9, fontFamily: sans }}>
+                  <li>• Your next move</li>
+                  <li>• What to say to them</li>
+                  <li>• When to walk away</li>
+                  <li>• What you haven&apos;t named yet</li>
+                  <li>• What gets worse if you wait</li>
+                </ul>
+              </div>
+            </div>
+
+            <div style={{ fontSize: 15, fontStyle: 'italic', color: '#6b6b6b', fontFamily: serif }}>
+              Every week you stay stuck on this is a week the decision is making itself.
             </div>
           </section>
 
