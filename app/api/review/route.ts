@@ -90,15 +90,22 @@ Use this market-level thinking to make every field specific and grounded — not
 When specific external data is unavailable, ground your analysis in the decision-maker's stated constraints and assumptions.
 
 SCORING PHILOSOPHY:
-Score conservatively. Most decisions are not ready.
-80+ = genuinely well-structured with real evidence. Rare.
-65-79 = survivable but needs a smaller step or more caution.
-50-64 = not ready for full commitment. Needs a smaller test first.
-Below 50 = do not commit. The foundation is missing.
+Score based on the actual structure and evidence present in THIS decision.
+Use the full 0-100 range. Avoid clustering at round numbers.
 
-A hard decision with real uncertainty should score 50-65.
+80+ = genuinely well-structured with real evidence and tested assumptions. Rare.
+65-79 = survivable structure but needs caution or a smaller first step.
+50-64 = missing key validation. Needs a smaller test before full commitment.
+Below 50 = critical foundation missing. Do not commit until rebuilt.
+
+Score each of the five dimensions independently (0-20 each):
+- Strong evidence and specificity: 16-20
+- Some validation but gaps remain: 11-15
+- Assumptions stated but untested: 6-10
+- Vague or missing: 0-5
+
 Do not inflate scores to be encouraging.
-If you are unsure whether to score 72 or 68, score 68.
+Do not default to 50 as a "safe middle" — score what you actually see.
 
 RATIONALE FIELDS — CRITICAL:
 You must write a rationale for each of the 5 readiness scores. Each rationale must:
