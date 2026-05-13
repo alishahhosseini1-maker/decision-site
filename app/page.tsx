@@ -2900,7 +2900,7 @@ export default function HomePage() {
               lineHeight: 1.5,
               marginBottom: 28,
             }}>
-              See the thing you already know but haven't named yet.
+              See the thing you already know but haven&apos;t named yet.
             </p>
 
             {/* Social proof */}
@@ -3087,7 +3087,7 @@ export default function HomePage() {
                     lineHeight: 1.4,
                     fontStyle: 'italic',
                   }}>
-                    A verdict on the decision you've been sitting on for three months.
+                    A verdict on the decision you&apos;ve been sitting on for three months.
                   </p>
 
                   <button
