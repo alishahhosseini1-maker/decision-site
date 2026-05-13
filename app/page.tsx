@@ -2325,7 +2325,7 @@ export default function HomePage() {
     fontFamily: sans,
   };
 
-  const decisionPlaceholder = 'launch · invest · hire · pivot · exit';
+  const decisionPlaceholder = 'quit · fire · raise · sell · leave';
   const contextPlaceholder = "stakes · deadline · who's affected · what you're risking";
 
   // ─── Render ───────────────────────────────────────────────────────────────────
@@ -2900,7 +2900,7 @@ export default function HomePage() {
               lineHeight: 1.5,
               marginBottom: 28,
             }}>
-              Decision Layer finds what everything else missed.
+              See the thing you already know but haven't named yet.
             </p>
 
             {/* Social proof */}
@@ -2921,7 +2921,7 @@ export default function HomePage() {
                 background: '#2d6a20',
                 flexShrink: 0,
               }} />
-              2,400+ decisions reviewed
+              Built from years of observing high-stakes decisions
             </div>
 
             {/* Sample verdict link */}
@@ -3078,6 +3078,18 @@ export default function HomePage() {
                     </div>
                   )}
 
+                  <p style={{
+                    fontFamily: serif,
+                    fontSize: 'clamp(16px, 2vw, 19px)',
+                    color: '#0E0C0A',
+                    textAlign: 'center',
+                    marginBottom: 16,
+                    lineHeight: 1.4,
+                    fontStyle: 'italic',
+                  }}>
+                    A verdict on the decision you've been sitting on for three months.
+                  </p>
+
                   <button
                     type="button"
                     onClick={beginReview}
@@ -3099,7 +3111,7 @@ export default function HomePage() {
                     marginTop: 12,
                     lineHeight: 1.5,
                   }}>
-                    Free preview in seconds. <strong>Full verdict unlocks at $99.</strong>
+                    See the first layer free. <strong>Unlock the full verdict for $99.</strong>
                   </p>
 
                   {showThinContextWarning && (
@@ -3492,7 +3504,7 @@ export default function HomePage() {
                             fontSize: 12,
                             color: '#6B7280',
                           }}>
-                            <span>2,400+ decisions reviewed</span>
+                            <span>Built from years of observing high-stakes decisions</span>
                             <span>·</span>
                             <span>Avg score improvement: +18 pts</span>
                             <span>·</span>
