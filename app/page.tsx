@@ -2900,7 +2900,7 @@ export default function HomePage() {
               lineHeight: 1.5,
               marginBottom: 28,
             }}>
-              See the thing you already know but haven&apos;t named yet.
+              Make sense of everything <strong>before you commit.</strong>
             </p>
 
             {/* Social proof */}
