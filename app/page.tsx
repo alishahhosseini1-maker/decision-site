@@ -2325,8 +2325,8 @@ export default function HomePage() {
     fontFamily: sans,
   };
 
-  const decisionPlaceholder = 'quit · fire · raise · sell · leave';
-  const contextPlaceholder = "stakes · deadline · who's affected · what you're risking";
+  const decisionPlaceholder = '';
+  const contextPlaceholder = '';
 
   // ─── Render ───────────────────────────────────────────────────────────────────
 
@@ -4314,6 +4314,67 @@ export default function HomePage() {
 
           {/* ── Marketing Sections ── */}
           <hr style={{ border: 'none', borderTop: '1px solid #e0e0dc', margin: '80px auto', maxWidth: 1200 }} />
+
+          {/* DECISIONS SECTION */}
+          <section style={{
+            padding: '80px',
+            borderBottom: '1px solid #dddad6',
+            background: '#EDECEA'
+          }}>
+            <p style={{
+              fontFamily: sans,
+              fontSize: '10px',
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              color: '#aaa',
+              marginBottom: '20px'
+            }}>
+              Before you commit.
+            </p>
+            <h2 style={{
+              fontFamily: serif,
+              fontSize: '36px',
+              fontWeight: 700,
+              color: '#111',
+              marginBottom: '48px',
+              lineHeight: 1.15
+            }}>
+              For founders, engineers, executives,<br />and operators. Decisions people bring here.
+            </h2>
+            <ul style={{
+              listStyle: 'none',
+              maxWidth: '560px',
+              margin: 0,
+              padding: 0
+            }}>
+              {[
+                'Whether to leave a company.',
+                'Whether to join a startup.',
+                'Whether to raise capital.',
+                'Whether to make a major hire.',
+                'Whether to open a second location.',
+                'Whether to sell — or wait.',
+                'Whether to relocate.',
+                'Whether to start a company.',
+                'Whether to deploy meaningful capital.',
+                'Whether to scale aggressively.'
+              ].map((item, idx, arr) => (
+                <li
+                  key={idx}
+                  style={{
+                    fontFamily: sans,
+                    fontSize: '16px',
+                    color: '#333',
+                    padding: '16px 0',
+                    borderBottom: idx === arr.length - 1 ? 'none' : '1px solid #dddad6',
+                    lineHeight: 1.4
+                  }}
+                >
+                  <span style={{ color: '#bbb', marginRight: '14px' }}>—</span>{item}
+                </li>
+              ))}
+            </ul>
+          </section>
 
           {/* THE PROBLEM */}
           <section style={{ textAlign: 'center', padding: '0 24px 72px', maxWidth: 720, margin: '0 auto' }}>
