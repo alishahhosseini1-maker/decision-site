@@ -588,6 +588,7 @@ export default function HomePage() {
   const [applicationSubmitted, setApplicationSubmitted] = useState(false);
   const [applicationSubmitting, setApplicationSubmitting] = useState(false);
   const [showCheckboxError, setShowCheckboxError] = useState(false);
+  const [applicationError, setApplicationError] = useState<string | null>(null);
   const [paymentEmail, setPaymentEmail] = useState<string | null>(null);
   const [unlockEmail, setUnlockEmail] = useState('');
 
@@ -2100,15 +2101,30 @@ export default function HomePage() {
 
     setApplicationSubmitting(true);
     setShowCheckboxError(false);
+    setApplicationError(null);
 
     try {
-      // Here you would typically send the application to your backend
-      // For now, we'll just simulate a successful submission
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await fetch('/api/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: applicationName,
+          email: applicationEmail,
+          decision: applicationDecision,
+          timeline: applicationTimeline,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Something went wrong. Please try again.');
+      }
 
       setApplicationSubmitted(true);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Application submission failed:', err);
+      setApplicationError(err.message || 'Something went wrong. Please try again.');
     } finally {
       setApplicationSubmitting(false);
     }
@@ -4976,6 +4992,18 @@ export default function HomePage() {
                       >
                         {applicationSubmitting ? 'Submitting...' : 'Submit application'}
                       </button>
+
+                      {applicationError && (
+                        <p style={{
+                          fontFamily: sans,
+                          fontSize: 12,
+                          color: '#dc2626',
+                          marginTop: 12,
+                          lineHeight: 1.5
+                        }}>
+                          {applicationError}
+                        </p>
+                      )}
 
                       <p style={{
                         fontFamily: sans,
