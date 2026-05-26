@@ -4638,18 +4638,16 @@ export default function HomePage() {
               One clearer decision is worth more<br />than a year of indecision.
             </h2>
             <p style={{ fontSize: 16, lineHeight: 1.7, color: '#4a4a4a', marginBottom: 48, fontFamily: sans }}>
-              Most people spend more on dinner than on the thing they&apos;ve been stuck on for three months.{' '}
-              <strong>The $99 verdict tells you what your decision is actually about — not what you think it&apos;s about.</strong>
+              Some decisions compound while you delay them.
             </p>
 
             <div className="pricing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12, maxWidth: 900, margin: '0 auto 2rem', alignItems: 'start' }}>
 
               {/* FREE */}
               <div style={{ background: '#fff', border: '0.5px solid #dddad6', borderRadius: 12, padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
-                <p style={{ fontFamily: sans, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#bbb', marginBottom: 12, fontWeight: 500 }}>Instant review</p>
+                <p style={{ fontFamily: sans, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#bbb', marginBottom: 12, fontWeight: 500 }}>Initial review</p>
                 <p style={{ fontFamily: serif, fontSize: 40, fontWeight: 700, lineHeight: 1, color: '#111' }}>Free</p>
-                <p style={{ fontFamily: sans, fontSize: 11, color: '#bbb', marginTop: 4, marginBottom: 20 }}>No payment required</p>
-                <p style={{ fontFamily: serif, fontStyle: 'italic', fontSize: 13, color: '#777', marginBottom: 16, paddingBottom: 16, borderBottom: '0.5px solid #e8e6e4' }}>&quot;I see something deeper here.&quot;</p>
+                <p style={{ fontFamily: serif, fontStyle: 'italic', fontSize: 13, color: '#777', marginBottom: 16, paddingBottom: 16, borderBottom: '0.5px solid #e8e6e4', marginTop: 20 }}>&quot;I see something deeper here.&quot;</p>
                 <ul style={{ listStyle: 'none', padding: 0, marginBottom: '1.5rem', flex: 1 }}>
                   <li style={{ fontFamily: sans, fontSize: 12, color: '#666', padding: '8px 0', borderBottom: '0.5px solid #f0eeec', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
                     <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#ccc', flexShrink: 0, marginTop: 7 }} />
@@ -4664,15 +4662,15 @@ export default function HomePage() {
                     One hidden risk
                   </li>
                 </ul>
-                <a href="#" style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, padding: '11px 18px', borderRadius: 8, background: '#f0eeec', color: '#111', textDecoration: 'none', display: 'inline-block', alignSelf: 'flex-start' }}>Run the review →</a>
+                <a href="#" style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, padding: '11px 18px', borderRadius: 8, background: '#f0eeec', color: '#111', textDecoration: 'none', display: 'inline-block', alignSelf: 'flex-start' }}>Start review →</a>
               </div>
 
               {/* $99 */}
               <div style={{ background: '#18181B', border: '0.5px solid #2a2a2d', borderRadius: 12, padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
-                <p style={{ fontFamily: sans, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#555', marginBottom: 12, fontWeight: 500 }}>Full verdict</p>
+                <p style={{ fontFamily: sans, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#555', marginBottom: 12, fontWeight: 500 }}>Decision brief</p>
                 <p style={{ fontFamily: serif, fontSize: 40, fontWeight: 700, lineHeight: 1, color: '#fff' }}>$99</p>
-                <p style={{ fontFamily: sans, fontSize: 11, color: '#444', marginTop: 4, marginBottom: 20 }}>One decision</p>
-                <p style={{ fontFamily: serif, fontStyle: 'italic', fontSize: 13, color: '#666', marginBottom: 16, paddingBottom: 16, borderBottom: '0.5px solid #2a2a2d' }}>&quot;I finally understand the decision.&quot;</p>
+                <p style={{ fontFamily: sans, fontSize: 11, color: '#444', marginTop: 4, marginBottom: 20 }}>Structured decision review</p>
+                <p style={{ fontFamily: serif, fontStyle: 'italic', fontSize: 13, color: '#666', marginBottom: 16, paddingBottom: 16, borderBottom: '0.5px solid #2a2a2d' }}>&quot;I finally understand what this is actually about.&quot;</p>
                 <ul style={{ listStyle: 'none', padding: 0, marginBottom: '1.5rem', flex: 1 }}>
                   <li style={{ fontFamily: sans, fontSize: 12, color: '#888', padding: '8px 0', borderBottom: '0.5px solid #222', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
                     <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#444', flexShrink: 0, marginTop: 7 }} />
@@ -4695,12 +4693,12 @@ export default function HomePage() {
                     What gets worse if you wait
                   </li>
                 </ul>
-                <a href="#" style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, padding: '11px 18px', borderRadius: 8, background: '#fff', color: '#111', textDecoration: 'none', display: 'inline-block', alignSelf: 'flex-start' }}>Get the verdict →</a>
+                <a href="#" style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, padding: '11px 18px', borderRadius: 8, background: '#fff', color: '#111', textDecoration: 'none', display: 'inline-block', alignSelf: 'flex-start' }}>Continue into the brief →</a>
               </div>
 
               {/* $10,000 */}
               <div style={{ background: '#0e0b06', border: '1px solid #2d1f08', borderRadius: 12, padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
-                <p style={{ fontFamily: sans, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#bf8c18', marginBottom: 12, fontWeight: 500 }}>Private verdict</p>
+                <p style={{ fontFamily: sans, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#bf8c18', marginBottom: 12, fontWeight: 500 }}>Private review</p>
                 <p style={{ fontFamily: serif, fontSize: 40, fontWeight: 700, lineHeight: 1, color: '#fff' }}>$10,000</p>
                 <p style={{ fontFamily: sans, fontSize: 11, color: '#6b4f18', marginTop: 4, marginBottom: 12 }}>One decision · application only</p>
                 <div style={{ background: '#120d04', border: '0.5px solid #2d1f08', borderRadius: 8, padding: '12px 14px', marginBottom: 16 }}>
