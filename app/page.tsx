@@ -4317,9 +4317,11 @@ export default function HomePage() {
 
           {/* DECISIONS SECTION */}
           <section style={{
-            padding: '80px',
+            padding: '120px 40px 80px',
             borderBottom: '1px solid #dddad6',
-            background: '#EDECEA'
+            background: '#EDECEA',
+            maxWidth: '1200px',
+            margin: '0 auto'
           }}>
             <p style={{
               fontFamily: sans,
