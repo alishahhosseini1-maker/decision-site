@@ -4597,7 +4597,7 @@ export default function HomePage() {
                 </div>
                 <div style={{ position: 'absolute', bottom: 20, left: 0, right: 0, textAlign: 'center', pointerEvents: 'none' }}>
                   <span style={{ background: '#111', color: '#fff', padding: '8px 16px', borderRadius: 6, fontSize: 13, fontWeight: 600, fontFamily: sans }}>
-                    Unlock the full brief for $99 →
+                    Continue into the full decision brief →
                   </span>
                 </div>
               </div>
