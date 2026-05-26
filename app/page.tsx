@@ -2990,7 +2990,7 @@ export default function HomePage() {
                 background: '#2d6a20',
                 flexShrink: 0,
               }} />
-              Built from years of observing high-stakes decisions
+              Each decision reviewed is anonymized, logged, and studied for recurring patterns.
             </div>
 
             {/* Sample verdict link */}
@@ -3573,7 +3573,7 @@ export default function HomePage() {
                             fontSize: 12,
                             color: '#6B7280',
                           }}>
-                            <span>Built from years of observing high-stakes decisions</span>
+                            <span>Each decision reviewed is anonymized, logged, and studied for recurring patterns.</span>
                             <span>·</span>
                             <span>Avg score improvement: +18 pts</span>
                             <span>·</span>
