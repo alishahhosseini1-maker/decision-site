@@ -4502,11 +4502,11 @@ export default function HomePage() {
               }} />
 
               {[
-                { num: 1, title: 'The Door', body: "What you're actually deciding. Not what you think you're deciding. Most people name the surface question. The Door is the real one underneath it." },
-                { num: 2, title: 'The Hinge', body: "What the whole thing is hanging on. Usually one thing. Usually not the thing you named. Finding it changes everything that follows." },
-                { num: 3, title: 'The Lock', body: "What can't be undone. Most people skip this until it's too late. A decision with no reversibility is a different kind of decision." },
-                { num: 4, title: 'The Exit Sign', body: "How you get out if you're wrong. If you haven't thought about this, you're not ready to decide. This is the layer most people skip when they're confident." },
-                { num: 5, title: 'The Trap', body: "The thing everyone misses. The assumption you didn't test. The question you didn't ask. This is where bad decisions hide." }
+                { num: 1, title: 'The Door', body: "Most people name the surface question. The Door finds the real decision underneath it." },
+                { num: 2, title: 'The Hinge', body: "Most decisions feel complex. Usually the whole thing hangs on one variable." },
+                { num: 3, title: 'The Lock', body: "Some decisions are expensive to reverse. The Lock identifies what cannot easily be undone." },
+                { num: 4, title: 'The Exit Sign', body: "Confidence makes people skip this layer. The Exit Sign asks how you recover if you're wrong." },
+                { num: 5, title: 'The Trap', body: "Bad decisions often hide inside untested assumptions. The Trap finds the thing quietly deciding the outcome." }
               ].map((layer, idx) => (
                 <div key={layer.num} style={{
                   display: 'grid',
