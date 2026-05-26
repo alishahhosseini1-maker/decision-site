@@ -2969,7 +2969,7 @@ export default function HomePage() {
               lineHeight: 1.5,
               marginBottom: 28,
             }}>
-              Make sense of everything <strong>before you commit.</strong>
+              See the decision clearly <strong>before you commit.</strong>
             </p>
 
             {/* Social proof */}
@@ -4474,7 +4474,7 @@ export default function HomePage() {
               </p>
             </div>
             <p style={{ fontSize: 'clamp(20px, 3.5vw, 28px)', fontWeight: 700, color: '#111', lineHeight: 1.3, letterSpacing: '-0.01em', fontStyle: 'italic', fontFamily: serif }}>
-              None of them give you a verdict.
+              None of them help you commit.
             </p>
           </section>
 
