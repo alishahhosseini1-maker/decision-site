@@ -3180,7 +3180,7 @@ export default function HomePage() {
                     marginTop: 12,
                     lineHeight: 1.5,
                   }}>
-                    See the first layer free. <strong>Unlock the full verdict for $99.</strong>
+                    The first layer is immediate. The full decision brief goes deeper.
                   </p>
 
                   {showThinContextWarning && (
