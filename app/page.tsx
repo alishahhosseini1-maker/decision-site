@@ -4317,10 +4317,9 @@ export default function HomePage() {
 
           {/* DECISIONS SECTION */}
           <section style={{
-            padding: '120px 40px 80px',
-            borderBottom: '1px solid #dddad6',
+            padding: '0 40px 80px',
             background: '#EDECEA',
-            maxWidth: '1200px',
+            maxWidth: '720px',
             margin: '0 auto'
           }}>
             <p style={{
@@ -4377,6 +4376,8 @@ export default function HomePage() {
               ))}
             </ul>
           </section>
+
+          <hr style={{ border: 'none', borderTop: '1px solid #e0e0dc', margin: '80px auto', maxWidth: 1200 }} />
 
           {/* THE PROBLEM */}
           <section style={{ textAlign: 'center', padding: '0 24px 72px', maxWidth: 720, margin: '0 auto' }}>
