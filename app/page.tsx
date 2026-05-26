@@ -4636,15 +4636,15 @@ export default function HomePage() {
                 <p style={{ fontFamily: serif, fontStyle: 'italic', fontSize: 13, color: '#777', marginBottom: 16, paddingBottom: 16, borderBottom: '0.5px solid #e8e6e4' }}>&quot;I see something deeper here.&quot;</p>
                 <ul style={{ listStyle: 'none', padding: 0, marginBottom: '1.5rem', flex: 1 }}>
                   <li style={{ fontFamily: sans, fontSize: 12, color: '#666', padding: '8px 0', borderBottom: '0.5px solid #f0eeec', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
-                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#ccc', flexShrink: 0, marginTop: 6 }} />
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#ccc', flexShrink: 0, marginTop: 7 }} />
                     The real question underneath yours
                   </li>
                   <li style={{ fontFamily: sans, fontSize: 12, color: '#666', padding: '8px 0', borderBottom: '0.5px solid #f0eeec', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
-                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#ccc', flexShrink: 0, marginTop: 6 }} />
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#ccc', flexShrink: 0, marginTop: 7 }} />
                     Pre-commit readiness score
                   </li>
                   <li style={{ fontFamily: sans, fontSize: 12, color: '#666', padding: '8px 0', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
-                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#ccc', flexShrink: 0, marginTop: 6 }} />
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#ccc', flexShrink: 0, marginTop: 7 }} />
                     One hidden risk
                   </li>
                 </ul>
@@ -4659,23 +4659,23 @@ export default function HomePage() {
                 <p style={{ fontFamily: serif, fontStyle: 'italic', fontSize: 13, color: '#666', marginBottom: 16, paddingBottom: 16, borderBottom: '0.5px solid #2a2a2d' }}>&quot;I finally understand the decision.&quot;</p>
                 <ul style={{ listStyle: 'none', padding: 0, marginBottom: '1.5rem', flex: 1 }}>
                   <li style={{ fontFamily: sans, fontSize: 12, color: '#888', padding: '8px 0', borderBottom: '0.5px solid #222', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
-                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#444', flexShrink: 0, marginTop: 6 }} />
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#444', flexShrink: 0, marginTop: 7 }} />
                     Your next move
                   </li>
                   <li style={{ fontFamily: sans, fontSize: 12, color: '#888', padding: '8px 0', borderBottom: '0.5px solid #222', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
-                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#444', flexShrink: 0, marginTop: 6 }} />
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#444', flexShrink: 0, marginTop: 7 }} />
                     What to say to them
                   </li>
                   <li style={{ fontFamily: sans, fontSize: 12, color: '#888', padding: '8px 0', borderBottom: '0.5px solid #222', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
-                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#444', flexShrink: 0, marginTop: 6 }} />
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#444', flexShrink: 0, marginTop: 7 }} />
                     When to walk away
                   </li>
                   <li style={{ fontFamily: sans, fontSize: 12, color: '#888', padding: '8px 0', borderBottom: '0.5px solid #222', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
-                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#444', flexShrink: 0, marginTop: 6 }} />
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#444', flexShrink: 0, marginTop: 7 }} />
                     What you haven&apos;t named yet
                   </li>
                   <li style={{ fontFamily: sans, fontSize: 12, color: '#888', padding: '8px 0', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
-                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#444', flexShrink: 0, marginTop: 6 }} />
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#444', flexShrink: 0, marginTop: 7 }} />
                     What gets worse if you wait
                   </li>
                 </ul>
@@ -4695,27 +4695,27 @@ export default function HomePage() {
                 <p style={{ fontFamily: serif, fontStyle: 'italic', fontSize: 13, color: '#7a5f28', marginBottom: 16, paddingBottom: 16, borderBottom: '0.5px solid #2d1f08' }}>&quot;I cannot afford to get this wrong.&quot;</p>
                 <ul style={{ listStyle: 'none', padding: 0, marginBottom: '1.5rem', flex: 1 }}>
                   <li style={{ fontFamily: sans, fontSize: 12, color: '#8a6d30', padding: '8px 0', borderBottom: '0.5px solid #1f1508', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
-                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#bf8c18', flexShrink: 0, marginTop: 6 }} />
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#bf8c18', flexShrink: 0, marginTop: 7 }} />
                     Live structured review
                   </li>
                   <li style={{ fontFamily: sans, fontSize: 12, color: '#8a6d30', padding: '8px 0', borderBottom: '0.5px solid #1f1508', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
-                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#bf8c18', flexShrink: 0, marginTop: 6 }} />
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#bf8c18', flexShrink: 0, marginTop: 7 }} />
                     Reversibility analysis
                   </li>
                   <li style={{ fontFamily: sans, fontSize: 12, color: '#8a6d30', padding: '8px 0', borderBottom: '0.5px solid #1f1508', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
-                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#bf8c18', flexShrink: 0, marginTop: 6 }} />
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#bf8c18', flexShrink: 0, marginTop: 7 }} />
                     Assumption stress-testing
                   </li>
                   <li style={{ fontFamily: sans, fontSize: 12, color: '#8a6d30', padding: '8px 0', borderBottom: '0.5px solid #1f1508', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
-                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#bf8c18', flexShrink: 0, marginTop: 6 }} />
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#bf8c18', flexShrink: 0, marginTop: 7 }} />
                     Written decision brief
                   </li>
                   <li style={{ fontFamily: sans, fontSize: 12, color: '#8a6d30', padding: '8px 0', borderBottom: '0.5px solid #1f1508', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
-                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#bf8c18', flexShrink: 0, marginTop: 6 }} />
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#bf8c18', flexShrink: 0, marginTop: 7 }} />
                     Async support during decision window
                   </li>
                   <li style={{ fontFamily: sans, fontSize: 12, color: '#8a6d30', padding: '8px 0', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
-                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#bf8c18', flexShrink: 0, marginTop: 6 }} />
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#bf8c18', flexShrink: 0, marginTop: 7 }} />
                     Six-month follow-up review
                   </li>
                 </ul>
