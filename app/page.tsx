@@ -2904,6 +2904,12 @@ export default function HomePage() {
               }
               .pricing-grid {
                 grid-template-columns: 1fr !important;
+                gap: 16px !important;
+              }
+            }
+            @media (max-width: 640px) {
+              #apply-form {
+                padding: 40px 16px !important;
               }
             }
           `}</style>
@@ -4620,7 +4626,7 @@ export default function HomePage() {
               <strong>The $99 verdict tells you what your decision is actually about — not what you think it&apos;s about.</strong>
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12, maxWidth: 900, margin: '0 auto 2rem', alignItems: 'start' }}>
+            <div className="pricing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12, maxWidth: 900, margin: '0 auto 2rem', alignItems: 'start' }}>
 
               {/* FREE */}
               <div style={{ background: '#fff', border: '0.5px solid #dddad6', borderRadius: 12, padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
@@ -4734,7 +4740,7 @@ export default function HomePage() {
               id="apply-form"
               style={{
                 background: '#EDECEA',
-                padding: '80px 40px',
+                padding: '60px 20px',
                 maxWidth: 1200,
                 margin: '0 auto'
               }}
@@ -4743,7 +4749,7 @@ export default function HomePage() {
                 background: '#fff',
                 border: '0.5px solid #dddad6',
                 borderRadius: 12,
-                padding: '2rem',
+                padding: '1.5rem',
                 maxWidth: 560,
                 margin: '0 auto'
               }}>
