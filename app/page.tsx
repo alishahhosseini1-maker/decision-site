@@ -577,6 +577,17 @@ export default function HomePage() {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [verifyingPayment, setVerifyingPayment] = useState(false);
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
+
+  // Private Verdict application form state
+  const [applicationFormVisible, setApplicationFormVisible] = useState(false);
+  const [applicationName, setApplicationName] = useState('');
+  const [applicationEmail, setApplicationEmail] = useState('');
+  const [applicationDecision, setApplicationDecision] = useState('');
+  const [applicationTimeline, setApplicationTimeline] = useState('');
+  const [applicationAgreed, setApplicationAgreed] = useState(false);
+  const [applicationSubmitted, setApplicationSubmitted] = useState(false);
+  const [applicationSubmitting, setApplicationSubmitting] = useState(false);
+  const [showCheckboxError, setShowCheckboxError] = useState(false);
   const [paymentEmail, setPaymentEmail] = useState<string | null>(null);
   const [unlockEmail, setUnlockEmail] = useState('');
 
@@ -2064,6 +2075,42 @@ export default function HomePage() {
     } finally {
       setSavingVerdict(false);
       isSavingRef.current = false;
+    }
+  };
+
+  const handleApplyPrivately = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    setApplicationFormVisible(true);
+    // Smooth scroll to the form section
+    setTimeout(() => {
+      const formSection = document.getElementById('apply-form');
+      if (formSection) {
+        formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+  };
+
+  const handleApplicationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!applicationAgreed) {
+      setShowCheckboxError(true);
+      return;
+    }
+
+    setApplicationSubmitting(true);
+    setShowCheckboxError(false);
+
+    try {
+      // Here you would typically send the application to your backend
+      // For now, we'll just simulate a successful submission
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      setApplicationSubmitted(true);
+    } catch (err) {
+      console.error('Application submission failed:', err);
+    } finally {
+      setApplicationSubmitting(false);
     }
   };
 
@@ -4670,7 +4717,7 @@ export default function HomePage() {
                 <p style={{ fontFamily: sans, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#3a3010', marginBottom: 8 }}>Included</p>
                 <p style={{ fontFamily: sans, fontSize: 11, color: '#7a5f28', padding: '3px 0', lineHeight: 1.5 }}>LinkedIn Network Intelligence Report</p>
                 <p style={{ fontFamily: sans, fontSize: 11, color: '#4a3818', padding: '3px 0', marginBottom: 16, lineHeight: 1.5, fontStyle: 'italic' }}>For decisions where the downside of being wrong is measured in years.</p>
-                <a href="#apply" style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, padding: '11px 18px', borderRadius: 8, background: '#bf8c18', color: '#1a1208', textDecoration: 'none', display: 'inline-block', alignSelf: 'flex-start' }}>Apply privately →</a>
+                <a href="#apply-form" onClick={handleApplyPrivately} style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, padding: '11px 18px', borderRadius: 8, background: '#bf8c18', color: '#1a1208', textDecoration: 'none', display: 'inline-block', alignSelf: 'flex-start' }}>Apply privately →</a>
                 <p style={{ fontFamily: sans, fontSize: 10, color: '#3a2a10', fontStyle: 'italic', marginTop: 8 }}>We review every application within 48 hours.</p>
               </div>
 
@@ -4680,6 +4727,287 @@ export default function HomePage() {
               Every week you stay stuck on this is a week the decision is making itself.
             </p>
           </section>
+
+          {/* APPLICATION FORM */}
+          {applicationFormVisible && (
+            <section
+              id="apply-form"
+              style={{
+                background: '#EDECEA',
+                padding: '80px 40px',
+                maxWidth: 1200,
+                margin: '0 auto'
+              }}
+            >
+              <div style={{
+                background: '#fff',
+                border: '0.5px solid #dddad6',
+                borderRadius: 12,
+                padding: '2rem',
+                maxWidth: 560,
+                margin: '0 auto'
+              }}>
+                {!applicationSubmitted ? (
+                  <>
+                    <p style={{
+                      fontFamily: sans,
+                      fontSize: 10,
+                      letterSpacing: '0.12em',
+                      textTransform: 'uppercase',
+                      color: '#aaa',
+                      marginBottom: 12,
+                      fontWeight: 500
+                    }}>
+                      Private Verdict · Application
+                    </p>
+                    <h2 style={{
+                      fontFamily: serif,
+                      fontSize: 28,
+                      fontWeight: 700,
+                      color: '#111',
+                      marginBottom: 16,
+                      lineHeight: 1.2
+                    }}>
+                      Tell us about your decision.
+                    </h2>
+                    <p style={{
+                      fontFamily: sans,
+                      fontSize: 14,
+                      color: '#666',
+                      lineHeight: 1.6,
+                      marginBottom: 32
+                    }}>
+                      We review every application personally and respond within 48 hours — whether it&apos;s a fit or not. Not every decision qualifies.
+                    </p>
+
+                    <form onSubmit={handleApplicationSubmit}>
+                      <div style={{ marginBottom: 20 }}>
+                        <label style={{
+                          fontFamily: sans,
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: '#333',
+                          display: 'block',
+                          marginBottom: 8
+                        }}>
+                          Your name
+                        </label>
+                        <input
+                          type="text"
+                          value={applicationName}
+                          onChange={(e) => setApplicationName(e.target.value)}
+                          required
+                          style={{
+                            fontFamily: sans,
+                            width: '100%',
+                            padding: '12px 14px',
+                            fontSize: 14,
+                            border: '1px solid #dddad6',
+                            borderRadius: 8,
+                            outline: 'none',
+                            boxSizing: 'border-box'
+                          }}
+                        />
+                      </div>
+
+                      <div style={{ marginBottom: 20 }}>
+                        <label style={{
+                          fontFamily: sans,
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: '#333',
+                          display: 'block',
+                          marginBottom: 8
+                        }}>
+                          Your email
+                        </label>
+                        <input
+                          type="email"
+                          value={applicationEmail}
+                          onChange={(e) => setApplicationEmail(e.target.value)}
+                          required
+                          style={{
+                            fontFamily: sans,
+                            width: '100%',
+                            padding: '12px 14px',
+                            fontSize: 14,
+                            border: '1px solid #dddad6',
+                            borderRadius: 8,
+                            outline: 'none',
+                            boxSizing: 'border-box'
+                          }}
+                        />
+                      </div>
+
+                      <div style={{ marginBottom: 20 }}>
+                        <label style={{
+                          fontFamily: sans,
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: '#333',
+                          display: 'block',
+                          marginBottom: 4
+                        }}>
+                          What&apos;s the decision?
+                        </label>
+                        <p style={{
+                          fontFamily: sans,
+                          fontSize: 11,
+                          color: '#888',
+                          marginBottom: 8
+                        }}>
+                          What are you deciding, and what makes it consequential?
+                        </p>
+                        <textarea
+                          value={applicationDecision}
+                          onChange={(e) => setApplicationDecision(e.target.value)}
+                          required
+                          rows={5}
+                          style={{
+                            fontFamily: sans,
+                            width: '100%',
+                            padding: '12px 14px',
+                            fontSize: 14,
+                            border: '1px solid #dddad6',
+                            borderRadius: 8,
+                            outline: 'none',
+                            minHeight: 120,
+                            resize: 'vertical',
+                            boxSizing: 'border-box'
+                          }}
+                        />
+                      </div>
+
+                      <div style={{ marginBottom: 24 }}>
+                        <label style={{
+                          fontFamily: sans,
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: '#333',
+                          display: 'block',
+                          marginBottom: 8
+                        }}>
+                          What&apos;s your timeline?
+                        </label>
+                        <input
+                          type="text"
+                          value={applicationTimeline}
+                          onChange={(e) => setApplicationTimeline(e.target.value)}
+                          required
+                          style={{
+                            fontFamily: sans,
+                            width: '100%',
+                            padding: '12px 14px',
+                            fontSize: 14,
+                            border: '1px solid #dddad6',
+                            borderRadius: 8,
+                            outline: 'none',
+                            boxSizing: 'border-box'
+                          }}
+                        />
+                      </div>
+
+                      <div style={{ marginBottom: 24 }}>
+                        <label style={{
+                          fontFamily: sans,
+                          fontSize: 13,
+                          color: '#444',
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: 10,
+                          cursor: 'pointer',
+                          lineHeight: 1.5
+                        }}>
+                          <input
+                            type="checkbox"
+                            checked={applicationAgreed}
+                            onChange={(e) => {
+                              setApplicationAgreed(e.target.checked);
+                              setShowCheckboxError(false);
+                            }}
+                            style={{
+                              marginTop: 2,
+                              width: 16,
+                              height: 16,
+                              cursor: 'pointer',
+                              border: showCheckboxError ? '2px solid #dc2626' : '1px solid #dddad6',
+                              flexShrink: 0
+                            }}
+                          />
+                          <span>
+                            I understand that $5,000 is due at booking. The second $5,000 is paid six months later — only if I&apos;d make the same decision again, knowing what I know then.
+                          </span>
+                        </label>
+                        {showCheckboxError && (
+                          <p style={{
+                            fontFamily: sans,
+                            fontSize: 11,
+                            color: '#dc2626',
+                            marginTop: 8,
+                            marginLeft: 26
+                          }}>
+                            Please confirm that you understand the payment terms.
+                          </p>
+                        )}
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={applicationSubmitting}
+                        style={{
+                          fontFamily: sans,
+                          fontSize: 13,
+                          fontWeight: 500,
+                          padding: '13px 20px',
+                          borderRadius: 8,
+                          background: '#111',
+                          color: '#fff',
+                          border: 'none',
+                          cursor: applicationSubmitting ? 'not-allowed' : 'pointer',
+                          width: '100%',
+                          opacity: applicationSubmitting ? 0.6 : 1
+                        }}
+                      >
+                        {applicationSubmitting ? 'Submitting...' : 'Submit application'}
+                      </button>
+
+                      <p style={{
+                        fontFamily: sans,
+                        fontSize: 11,
+                        color: '#888',
+                        fontStyle: 'italic',
+                        marginTop: 12,
+                        lineHeight: 1.5
+                      }}>
+                        We read every application personally. Not every decision qualifies for the Private Verdict.
+                      </p>
+                    </form>
+                  </>
+                ) : (
+                  <div>
+                    <h2 style={{
+                      fontFamily: serif,
+                      fontSize: 22,
+                      fontWeight: 400,
+                      color: '#111',
+                      marginBottom: 16,
+                      lineHeight: 1.3
+                    }}>
+                      Application received.
+                    </h2>
+                    <p style={{
+                      fontFamily: sans,
+                      fontSize: 14,
+                      color: '#666',
+                      lineHeight: 1.6
+                    }}>
+                      We&apos;ll read it carefully and respond within 48 hours — whether it&apos;s a fit or not. Check your inbox.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
 
           {/* ── Footer ── */}
           <footer
