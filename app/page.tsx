@@ -4337,11 +4337,20 @@ export default function HomePage() {
               fontSize: '36px',
               fontWeight: 700,
               color: '#111',
-              marginBottom: '48px',
+              marginBottom: '16px',
               lineHeight: 1.15
             }}>
               For founders, engineers, executives,<br />and operators. Decisions people bring here.
             </h2>
+            <p style={{
+              fontFamily: sans,
+              fontSize: '14px',
+              color: '#888',
+              fontStyle: 'italic',
+              marginBottom: '48px'
+            }}>
+              For decisions where the downside of being wrong is measured in years.
+            </p>
             <ul style={{
               listStyle: 'none',
               maxWidth: '560px',
@@ -4349,16 +4358,16 @@ export default function HomePage() {
               padding: 0
             }}>
               {[
-                'Whether to leave a company.',
+                'Whether to leave a stable company.',
                 'Whether to join a startup.',
+                'Whether to start a company.',
                 'Whether to raise capital.',
                 'Whether to make a major hire.',
-                'Whether to open a second location.',
+                'Whether to open another location.',
+                'Whether to scale aggressively.',
                 'Whether to sell — or wait.',
-                'Whether to relocate.',
-                'Whether to start a company.',
-                'Whether to deploy meaningful capital.',
-                'Whether to scale aggressively.'
+                'Whether to relocate your family.',
+                'Whether to make a concentrated investment.'
               ].map((item, idx, arr) => (
                 <li
                   key={idx}
