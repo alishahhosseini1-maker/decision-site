@@ -4573,44 +4573,112 @@ export default function HomePage() {
               <strong>The $99 verdict tells you what your decision is actually about — not what you think it&apos;s about.</strong>
             </p>
 
-            <div className="pricing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, marginBottom: 32 }}>
-              <div style={{ background: '#fff', border: '1.5px solid #e0e0dc', borderRadius: 12, padding: 28, textAlign: 'left' }}>
-                <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, fontFamily: sans, opacity: 0.6 }}>Preview</div>
-                <div style={{ fontSize: 32, fontWeight: 700, marginBottom: 12, fontFamily: serif }}>Free</div>
-                <div style={{ fontSize: 14, lineHeight: 1.6, color: '#4a4a4a', marginBottom: 20, fontFamily: sans }}>
-                  Run your decision. See the first layer — what you&apos;re actually deciding. Instant.
-                </div>
-                <ul style={{ listStyle: 'none', padding: 0, fontSize: 14, lineHeight: 1.8, color: '#4a4a4a', fontFamily: sans }}>
-                  <li>• Your pre-commit readiness score</li>
-                  <li>• The real question underneath yours</li>
-                  <li>• What this decision is missing</li>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12, maxWidth: 900, margin: '0 auto 2rem', alignItems: 'start' }}>
+
+              {/* FREE */}
+              <div style={{ background: '#fff', border: '0.5px solid #dddad6', borderRadius: 12, padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+                <p style={{ fontFamily: sans, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#bbb', marginBottom: 12, fontWeight: 500 }}>Instant review</p>
+                <p style={{ fontFamily: serif, fontSize: 40, fontWeight: 700, lineHeight: 1, color: '#111' }}>Free</p>
+                <p style={{ fontFamily: sans, fontSize: 11, color: '#bbb', marginTop: 4, marginBottom: 20 }}>No payment required</p>
+                <p style={{ fontFamily: serif, fontStyle: 'italic', fontSize: 13, color: '#777', marginBottom: 16, paddingBottom: 16, borderBottom: '0.5px solid #e8e6e4' }}>&quot;I see something deeper here.&quot;</p>
+                <ul style={{ listStyle: 'none', padding: 0, marginBottom: '1.5rem', flex: 1 }}>
+                  <li style={{ fontFamily: sans, fontSize: 12, color: '#666', padding: '8px 0', borderBottom: '0.5px solid #f0eeec', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#ccc', flexShrink: 0, marginTop: 6 }} />
+                    The real question underneath yours
+                  </li>
+                  <li style={{ fontFamily: sans, fontSize: 12, color: '#666', padding: '8px 0', borderBottom: '0.5px solid #f0eeec', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#ccc', flexShrink: 0, marginTop: 6 }} />
+                    Pre-commit readiness score
+                  </li>
+                  <li style={{ fontFamily: sans, fontSize: 12, color: '#666', padding: '8px 0', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#ccc', flexShrink: 0, marginTop: 6 }} />
+                    One hidden risk
+                  </li>
                 </ul>
+                <a href="#" style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, padding: '11px 18px', borderRadius: 8, background: '#f0eeec', color: '#111', textDecoration: 'none', display: 'inline-block', alignSelf: 'flex-start' }}>Run the review →</a>
               </div>
 
-              <div style={{ background: '#111', color: '#fff', border: '2px solid #111', borderRadius: 12, padding: 28, textAlign: 'left', position: 'relative' }}>
-                <div style={{ position: 'absolute', top: -12, left: 28, background: '#111', padding: '4px 12px', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', border: '1px solid #fff', borderRadius: 6 }}>
-                  FULL VERDICT
-                </div>
-                <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4, fontFamily: sans, opacity: 0.7 }}>Complete Review</div>
-                <div style={{ fontSize: 32, fontWeight: 700, marginBottom: 4, fontFamily: serif }}>
-                  $99 <span style={{ fontSize: 14, fontWeight: 400, opacity: 0.6 }}>one decision</span>
-                </div>
-                <div style={{ fontSize: 14, lineHeight: 1.6, opacity: 0.85, marginBottom: 20, fontFamily: sans }}>
-                  Everything in the preview, plus the full brief.
-                </div>
-                <ul style={{ listStyle: 'none', padding: 0, fontSize: 14, lineHeight: 1.8, opacity: 0.9, fontFamily: sans }}>
-                  <li>• Your next move</li>
-                  <li>• What to say to them</li>
-                  <li>• When to walk away</li>
-                  <li>• What you haven&apos;t named yet</li>
-                  <li>• What gets worse if you wait</li>
+              {/* $99 */}
+              <div style={{ background: '#18181B', border: '0.5px solid #2a2a2d', borderRadius: 12, padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+                <p style={{ fontFamily: sans, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#555', marginBottom: 12, fontWeight: 500 }}>Full verdict</p>
+                <p style={{ fontFamily: serif, fontSize: 40, fontWeight: 700, lineHeight: 1, color: '#fff' }}>$99</p>
+                <p style={{ fontFamily: sans, fontSize: 11, color: '#444', marginTop: 4, marginBottom: 20 }}>One decision</p>
+                <p style={{ fontFamily: serif, fontStyle: 'italic', fontSize: 13, color: '#666', marginBottom: 16, paddingBottom: 16, borderBottom: '0.5px solid #2a2a2d' }}>&quot;I finally understand the decision.&quot;</p>
+                <ul style={{ listStyle: 'none', padding: 0, marginBottom: '1.5rem', flex: 1 }}>
+                  <li style={{ fontFamily: sans, fontSize: 12, color: '#888', padding: '8px 0', borderBottom: '0.5px solid #222', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#444', flexShrink: 0, marginTop: 6 }} />
+                    Your next move
+                  </li>
+                  <li style={{ fontFamily: sans, fontSize: 12, color: '#888', padding: '8px 0', borderBottom: '0.5px solid #222', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#444', flexShrink: 0, marginTop: 6 }} />
+                    What to say to them
+                  </li>
+                  <li style={{ fontFamily: sans, fontSize: 12, color: '#888', padding: '8px 0', borderBottom: '0.5px solid #222', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#444', flexShrink: 0, marginTop: 6 }} />
+                    When to walk away
+                  </li>
+                  <li style={{ fontFamily: sans, fontSize: 12, color: '#888', padding: '8px 0', borderBottom: '0.5px solid #222', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#444', flexShrink: 0, marginTop: 6 }} />
+                    What you haven&apos;t named yet
+                  </li>
+                  <li style={{ fontFamily: sans, fontSize: 12, color: '#888', padding: '8px 0', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#444', flexShrink: 0, marginTop: 6 }} />
+                    What gets worse if you wait
+                  </li>
                 </ul>
+                <a href="#" style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, padding: '11px 18px', borderRadius: 8, background: '#fff', color: '#111', textDecoration: 'none', display: 'inline-block', alignSelf: 'flex-start' }}>Get the verdict →</a>
               </div>
+
+              {/* $10,000 */}
+              <div style={{ background: '#0e0b06', border: '1px solid #2d1f08', borderRadius: 12, padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+                <p style={{ fontFamily: sans, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#bf8c18', marginBottom: 12, fontWeight: 500 }}>Private verdict</p>
+                <p style={{ fontFamily: serif, fontSize: 40, fontWeight: 700, lineHeight: 1, color: '#fff' }}>$10,000</p>
+                <p style={{ fontFamily: sans, fontSize: 11, color: '#6b4f18', marginTop: 4, marginBottom: 12 }}>One decision · application only</p>
+                <div style={{ background: '#120d04', border: '0.5px solid #2d1f08', borderRadius: 8, padding: '12px 14px', marginBottom: 16 }}>
+                  <p style={{ fontFamily: sans, fontSize: 13, fontWeight: 500, color: '#e0bc6a', marginBottom: 6, lineHeight: 1.4 }}>$5,000 today · $5,000 at six months</p>
+                  <hr style={{ border: 'none', borderTop: '0.5px solid #2d1f08', margin: '8px 0' }} />
+                  <p style={{ fontFamily: sans, fontSize: 11, color: '#6b4f18', lineHeight: 1.6, fontStyle: 'italic' }}>The second half is paid only if you&apos;d make the same decision again — knowing what you know then.</p>
+                </div>
+                <p style={{ fontFamily: serif, fontStyle: 'italic', fontSize: 13, color: '#7a5f28', marginBottom: 16, paddingBottom: 16, borderBottom: '0.5px solid #2d1f08' }}>&quot;I cannot afford to get this wrong.&quot;</p>
+                <ul style={{ listStyle: 'none', padding: 0, marginBottom: '1.5rem', flex: 1 }}>
+                  <li style={{ fontFamily: sans, fontSize: 12, color: '#8a6d30', padding: '8px 0', borderBottom: '0.5px solid #1f1508', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#bf8c18', flexShrink: 0, marginTop: 6 }} />
+                    Live structured review
+                  </li>
+                  <li style={{ fontFamily: sans, fontSize: 12, color: '#8a6d30', padding: '8px 0', borderBottom: '0.5px solid #1f1508', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#bf8c18', flexShrink: 0, marginTop: 6 }} />
+                    Reversibility analysis
+                  </li>
+                  <li style={{ fontFamily: sans, fontSize: 12, color: '#8a6d30', padding: '8px 0', borderBottom: '0.5px solid #1f1508', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#bf8c18', flexShrink: 0, marginTop: 6 }} />
+                    Assumption stress-testing
+                  </li>
+                  <li style={{ fontFamily: sans, fontSize: 12, color: '#8a6d30', padding: '8px 0', borderBottom: '0.5px solid #1f1508', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#bf8c18', flexShrink: 0, marginTop: 6 }} />
+                    Written decision brief
+                  </li>
+                  <li style={{ fontFamily: sans, fontSize: 12, color: '#8a6d30', padding: '8px 0', borderBottom: '0.5px solid #1f1508', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#bf8c18', flexShrink: 0, marginTop: 6 }} />
+                    Async support during decision window
+                  </li>
+                  <li style={{ fontFamily: sans, fontSize: 12, color: '#8a6d30', padding: '8px 0', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#bf8c18', flexShrink: 0, marginTop: 6 }} />
+                    Six-month follow-up review
+                  </li>
+                </ul>
+                <hr style={{ border: 'none', borderTop: '0.5px solid #2d1f08', margin: '0 0 12px' }} />
+                <p style={{ fontFamily: sans, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#3a3010', marginBottom: 8 }}>Included</p>
+                <p style={{ fontFamily: sans, fontSize: 11, color: '#7a5f28', padding: '3px 0', lineHeight: 1.5 }}>LinkedIn Network Intelligence Report</p>
+                <p style={{ fontFamily: sans, fontSize: 11, color: '#4a3818', padding: '3px 0', marginBottom: 16, lineHeight: 1.5, fontStyle: 'italic' }}>For decisions where the downside of being wrong is measured in years.</p>
+                <a href="#apply" style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, padding: '11px 18px', borderRadius: 8, background: '#bf8c18', color: '#1a1208', textDecoration: 'none', display: 'inline-block', alignSelf: 'flex-start' }}>Apply privately →</a>
+                <p style={{ fontFamily: sans, fontSize: 10, color: '#3a2a10', fontStyle: 'italic', marginTop: 8 }}>We review every application within 48 hours.</p>
+              </div>
+
             </div>
 
-            <div style={{ fontSize: 15, fontStyle: 'italic', color: '#6b6b6b', fontFamily: serif }}>
+            <p style={{ fontFamily: serif, fontStyle: 'italic', fontSize: 14, color: '#999', textAlign: 'center', paddingTop: '1.5rem', borderTop: '0.5px solid #dddad6' }}>
               Every week you stay stuck on this is a week the decision is making itself.
-            </div>
+            </p>
           </section>
 
           {/* ── Footer ── */}
