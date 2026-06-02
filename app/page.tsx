@@ -4641,7 +4641,7 @@ export default function HomePage() {
               Some decisions compound while you delay them.
             </p>
 
-            <div className="pricing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12, maxWidth: 720, margin: '0 auto 2rem', alignItems: 'start' }}>
+            <div className="pricing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12, maxWidth: 900, margin: '0 auto 2rem', alignItems: 'start' }}>
 
               {/* FREE */}
               <div style={{ background: '#fff', border: '0.5px solid #dddad6', borderRadius: 12, padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
@@ -4694,6 +4694,44 @@ export default function HomePage() {
                   </li>
                 </ul>
                 <a href="#" style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, padding: '11px 18px', borderRadius: 8, background: '#fff', color: '#111', textDecoration: 'none', display: 'inline-block', alignSelf: 'flex-start' }}>Continue into the brief →</a>
+              </div>
+
+              {/* PRIVATE REVIEW */}
+              <div style={{ background: '#0e0b06', border: '1px solid #2d1f08', borderRadius: 12, padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+                <p style={{ fontFamily: sans, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#bf8c18', marginBottom: 12, fontWeight: 500 }}>Private review</p>
+                <p style={{ fontFamily: serif, fontStyle: 'italic', fontSize: 13, color: '#7a5f28', marginBottom: 16, paddingBottom: 16, borderBottom: '0.5px solid #2d1f08', marginTop: 20 }}>&quot;I cannot afford to get this wrong.&quot;</p>
+                <ul style={{ listStyle: 'none', padding: 0, marginBottom: '1.5rem', flex: 1 }}>
+                  <li style={{ fontFamily: sans, fontSize: 12, color: '#8a6d30', padding: '8px 0', borderBottom: '0.5px solid #1f1508', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#bf8c18', flexShrink: 0, marginTop: 7 }} />
+                    Live structured review
+                  </li>
+                  <li style={{ fontFamily: sans, fontSize: 12, color: '#8a6d30', padding: '8px 0', borderBottom: '0.5px solid #1f1508', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#bf8c18', flexShrink: 0, marginTop: 7 }} />
+                    Reversibility analysis
+                  </li>
+                  <li style={{ fontFamily: sans, fontSize: 12, color: '#8a6d30', padding: '8px 0', borderBottom: '0.5px solid #1f1508', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#bf8c18', flexShrink: 0, marginTop: 7 }} />
+                    Assumption stress-testing
+                  </li>
+                  <li style={{ fontFamily: sans, fontSize: 12, color: '#8a6d30', padding: '8px 0', borderBottom: '0.5px solid #1f1508', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#bf8c18', flexShrink: 0, marginTop: 7 }} />
+                    Written decision brief
+                  </li>
+                  <li style={{ fontFamily: sans, fontSize: 12, color: '#8a6d30', padding: '8px 0', borderBottom: '0.5px solid #1f1508', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#bf8c18', flexShrink: 0, marginTop: 7 }} />
+                    Async support during decision window
+                  </li>
+                  <li style={{ fontFamily: sans, fontSize: 12, color: '#8a6d30', padding: '8px 0', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
+                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#bf8c18', flexShrink: 0, marginTop: 7 }} />
+                    Six-month follow-up review
+                  </li>
+                </ul>
+                <hr style={{ border: 'none', borderTop: '0.5px solid #2d1f08', margin: '0 0 12px' }} />
+                <p style={{ fontFamily: sans, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#3a3010', marginBottom: 8 }}>Included</p>
+                <p style={{ fontFamily: sans, fontSize: 11, color: '#7a5f28', padding: '3px 0', lineHeight: 1.5 }}>LinkedIn Network Intelligence Report</p>
+                <p style={{ fontFamily: sans, fontSize: 11, color: '#4a3818', padding: '3px 0', marginBottom: 16, lineHeight: 1.5, fontStyle: 'italic' }}>For decisions where the downside of being wrong is measured in years.</p>
+                <a href="#apply-form" onClick={handleApplyPrivately} style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, padding: '11px 18px', borderRadius: 8, background: '#bf8c18', color: '#1a1208', textDecoration: 'none', display: 'inline-block', alignSelf: 'flex-start' }}>Apply privately →</a>
+                <p style={{ fontFamily: sans, fontSize: 10, color: '#3a2a10', fontStyle: 'italic', marginTop: 8 }}>We review every application within 48 hours.</p>
               </div>
 
             </div>
