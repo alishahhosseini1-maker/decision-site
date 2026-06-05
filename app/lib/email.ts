@@ -1,6 +1,13 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY || '');
+// Lazy initialization to avoid build-time errors when env var is missing
+let resend: Resend | null = null;
+function getResend() {
+  if (!resend) {
+    resend = new Resend(process.env.RESEND_API_KEY || '');
+  }
+  return resend;
+}
 
 type TeamSummary = {
   executive_signal?: string;
@@ -390,7 +397,7 @@ export async function sendSummaryEmail({
     </html>
   `;
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from: 'Decision Layer <info@decisionlayer.dev>',
     to,
     subject: `Summary: ${title}`,
@@ -494,7 +501,7 @@ export async function sendNetworkConfirmationEmail({
     </html>
   `;
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from: 'Decision Layer <info@decisionlayer.dev>',
     to,
     subject: 'Your Decision Layer report is confirmed — one last step',
@@ -584,7 +591,7 @@ export async function sendNetworkFlywheelEmail({
     </html>
   `;
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from: 'Decision Layer <info@decisionlayer.dev>',
     to,
     subject: 'Your outreach decisions — a shortcut',
