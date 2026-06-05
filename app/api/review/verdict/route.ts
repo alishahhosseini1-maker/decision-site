@@ -3,14 +3,14 @@ import Anthropic from '@anthropic-ai/sdk';
 
 export const runtime = 'nodejs';
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
 function cleanText(value: unknown) {
   return typeof value === 'string' ? value.trim() : '';
 }
 
 export async function POST(req: Request) {
   try {
+    // Initialize Anthropic client at runtime
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const body = await req.json();
     const decision = cleanText(body?.decision);
     const context = cleanText(body?.context);
