@@ -1816,68 +1816,8 @@ export default function HomePage() {
   };
 
   const handleUnlock = async () => {
-    setUnlockInProgress(true);
-
-    try {
-      // FIRST: Save decision to database so we can load it back after payment
-      // (localStorage gets cleared in private mode when navigating to Stripe)
-      let savedDecisionId = decisionId;
-
-      if (!savedDecisionId && reviewResult) {
-        console.log('[Unlock] Saving decision to database before checkout...');
-        const saveRes = await fetch('/api/decision/save', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            decision,
-            context,
-            review_result: reviewResult, // Save full review result for post-payment loading
-            score: reviewResult.readiness?.total ?? null,
-            clarity: reviewResult.readiness?.clarity ?? null,
-            assumptions: reviewResult.readiness?.assumptions ?? null,
-            reversibility: reviewResult.readiness?.reversibility ?? null,
-            risk: reviewResult.readiness?.risk ?? null,
-            exitLogic: reviewResult.readiness?.exitLogic ?? null,
-            hinge: reviewResult.snapshot?.hinge ?? null,
-            step: reviewResult.snapshot?.step ?? null,
-            deepReview: deepReview ?? null,
-            verdict: verdict ?? null,
-          }),
-        });
-
-        if (saveRes.ok) {
-          const saveData = await saveRes.json();
-          if (saveData?.id) {
-            savedDecisionId = saveData.id;
-            setDecisionId(savedDecisionId);
-            console.log('[Unlock] Decision saved with ID:', savedDecisionId);
-          }
-        }
-      }
-
-      // THEN: Create checkout session
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          decisionId: savedDecisionId || requestKey
-        }),
-      });
-
-      const data = await res.json();
-
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        console.error('[Unlock] No checkout URL returned');
-        setUnlockInProgress(false);
-        alert('Failed to create checkout session.');
-      }
-    } catch (err) {
-      console.error('[Unlock] Checkout failed:', err);
-      setUnlockInProgress(false);
-      alert('Checkout failed. Please try again.');
-    }
+    // Simply unlock the full analysis - no payment required
+    setIsUnlocked(true);
   };
 
   const handleGenerateVerdict = async () => {
@@ -3594,7 +3534,6 @@ export default function HomePage() {
                           <button
                             type="button"
                             onClick={handleUnlock}
-                            disabled={unlockInProgress || verifyingPayment}
                             style={{
                               width: '100%',
                               fontFamily: sans,
@@ -3605,13 +3544,11 @@ export default function HomePage() {
                               border: 'none',
                               padding: '18px 24px',
                               borderRadius: 8,
-                              cursor: (unlockInProgress || verifyingPayment) ? 'default' : 'pointer',
-                              opacity: (unlockInProgress || verifyingPayment) ? 0.42 : 1,
+                              cursor: 'pointer',
                               transition: 'opacity 0.15s ease',
                             }}
                           >
-                            {/* CRITICAL: Never show analysis loading states here */}
-                            {unlockInProgress ? 'Redirecting to checkout...' : verifyingPayment ? 'Verifying payment...' : 'UNLOCK THIS DECISION → $99'}
+                            CONTINUE TO FULL ANALYSIS →
                           </button>
                           <div
                             style={{
@@ -3624,7 +3561,7 @@ export default function HomePage() {
                               marginTop: '1rem',
                             }}
                           >
-                            If this isn&apos;t more specific than anything you&apos;ve tried, full refund. No questions asked.
+                            See exactly what&apos;s missing before you commit.
                           </div>
                         </div>
                       </div>
@@ -4665,11 +4602,11 @@ export default function HomePage() {
                 <a href="#" style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, padding: '11px 18px', borderRadius: 8, background: '#f0eeec', color: '#111', textDecoration: 'none', display: 'inline-block', alignSelf: 'flex-start' }}>Start review →</a>
               </div>
 
-              {/* $99 */}
+              {/* Free */}
               <div style={{ background: '#18181B', border: '0.5px solid #2a2a2d', borderRadius: 12, padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
                 <p style={{ fontFamily: sans, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#555', marginBottom: 12, fontWeight: 500 }}>Decision brief</p>
-                <p style={{ fontFamily: serif, fontSize: 40, fontWeight: 700, lineHeight: 1, color: '#fff' }}>$99</p>
-                <p style={{ fontFamily: sans, fontSize: 11, color: '#444', marginTop: 4, marginBottom: 20 }}>Structured decision review</p>
+                <p style={{ fontFamily: serif, fontSize: 40, fontWeight: 700, lineHeight: 1, color: '#fff' }}>Free</p>
+                <p style={{ fontFamily: sans, fontSize: 11, color: '#444', marginTop: 4, marginBottom: 20 }}>Full structured analysis</p>
                 <p style={{ fontFamily: serif, fontStyle: 'italic', fontSize: 13, color: '#666', marginBottom: 16, paddingBottom: 16, borderBottom: '0.5px solid #2a2a2d' }}>&quot;I finally understand what this is actually about.&quot;</p>
                 <ul style={{ listStyle: 'none', padding: 0, marginBottom: '1.5rem', flex: 1 }}>
                   <li style={{ fontFamily: sans, fontSize: 12, color: '#888', padding: '8px 0', borderBottom: '0.5px solid #222', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
