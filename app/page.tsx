@@ -4578,29 +4578,7 @@ export default function HomePage() {
               Some decisions compound while you delay them.
             </p>
 
-            <div className="pricing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12, maxWidth: 900, margin: '0 auto 2rem', alignItems: 'start' }}>
-
-              {/* FREE */}
-              <div style={{ background: '#fff', border: '0.5px solid #dddad6', borderRadius: 12, padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
-                <p style={{ fontFamily: sans, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#bbb', marginBottom: 12, fontWeight: 500 }}>Initial review</p>
-                <p style={{ fontFamily: serif, fontSize: 40, fontWeight: 700, lineHeight: 1, color: '#111' }}>Free</p>
-                <p style={{ fontFamily: serif, fontStyle: 'italic', fontSize: 13, color: '#777', marginBottom: 16, paddingBottom: 16, borderBottom: '0.5px solid #e8e6e4', marginTop: 20 }}>&quot;I see something deeper here.&quot;</p>
-                <ul style={{ listStyle: 'none', padding: 0, marginBottom: '1.5rem', flex: 1 }}>
-                  <li style={{ fontFamily: sans, fontSize: 12, color: '#666', padding: '8px 0', borderBottom: '0.5px solid #f0eeec', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
-                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#ccc', flexShrink: 0, marginTop: 7 }} />
-                    The real question underneath yours
-                  </li>
-                  <li style={{ fontFamily: sans, fontSize: 12, color: '#666', padding: '8px 0', borderBottom: '0.5px solid #f0eeec', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
-                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#ccc', flexShrink: 0, marginTop: 7 }} />
-                    Pre-commit readiness score
-                  </li>
-                  <li style={{ fontFamily: sans, fontSize: 12, color: '#666', padding: '8px 0', display: 'flex', gap: 8, alignItems: 'flex-start', lineHeight: 1.5 }}>
-                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#ccc', flexShrink: 0, marginTop: 7 }} />
-                    One hidden risk
-                  </li>
-                </ul>
-                <a href="#" style={{ fontFamily: sans, fontSize: 12, fontWeight: 500, padding: '11px 18px', borderRadius: 8, background: '#f0eeec', color: '#111', textDecoration: 'none', display: 'inline-block', alignSelf: 'flex-start' }}>Start review →</a>
-              </div>
+            <div className="pricing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12, maxWidth: 720, margin: '0 auto 2rem', alignItems: 'start' }}>
 
               {/* Free */}
               <div style={{ background: '#18181B', border: '0.5px solid #2a2a2d', borderRadius: 12, padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
