@@ -352,7 +352,7 @@ Return raw JSON only.
 `;
 
     const stream = anthropic.messages.stream({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 2500,
       temperature: 0.1,
       system: systemPrompt,
