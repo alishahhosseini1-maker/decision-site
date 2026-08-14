@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { researchCompanyEvidence } from '@/app/lib/perplexity';
 
 export const runtime = 'nodejs';
 
@@ -17,37 +18,28 @@ function fallbackSymbol(name: string) {
   return letters.slice(0, 5) || 'CO';
 }
 
-type Enrichment = {
+type Lookup = {
   sector: string | null;
   symbol: string | null;
-  lastRoundValue: number | null;
-  lastRoundDate: string | null;
-  secondaryValue: number | null;
-  secondaryDate: string | null;
 };
 
-async function enrichCompany(name: string): Promise<Enrichment> {
-  const empty: Enrichment = {
-    sector: null,
-    symbol: null,
-    lastRoundValue: null,
-    lastRoundDate: null,
-    secondaryValue: null,
-    secondaryDate: null,
-  };
+// Only looks up category metadata (sector, a display symbol) — not funding
+// figures. Those come exclusively from sourced, confirmable evidence via
+// researchCompanyEvidence, so the company header never shows an unsourced
+// number that could contradict the ledger.
+async function lookupCompanyMeta(name: string): Promise<Lookup> {
+  const empty: Lookup = { sector: null, symbol: null };
   const apiKey = process.env.PERPLEXITY_API_KEY;
   if (!apiKey) return empty;
 
   try {
-    const prompt = `For the private company "${name}", find its industry sector and known private-market valuation data.
+    const prompt = `For the private company "${name}", identify its industry sector.
 
 Respond with ONLY valid JSON, no markdown code fences, no preamble or trailing text, matching exactly this schema:
-{"sector": string or null, "symbol": string, "lastRoundValue": number or null, "lastRoundDate": string or null, "secondaryValue": number or null, "secondaryDate": string or null}
+{"sector": string or null, "symbol": string}
 
-"symbol" is a short 3-6 letter uppercase abbreviation for internal display (does not need to be a real public ticker) — always provide one.
-"lastRoundValue"/"secondaryValue" are valuations in billions of USD as plain numbers (e.g. 20.7), from the most recent primary funding round and any secondary-market activity respectively.
-"lastRoundDate"/"secondaryDate" are short human dates like "Mar 2025".
-Use null for anything you cannot find a real, reasonably confident source for.`;
+"sector" is a short phrase like "Foundation models" or "Defense technology"; null if you cannot identify the company.
+"symbol" is a short 3-6 letter uppercase abbreviation for internal display (does not need to be a real public ticker) — always provide one.`;
 
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
@@ -71,10 +63,6 @@ Use null for anything you cannot find a real, reasonably confident source for.`;
     return {
       sector: parsed.sector ? String(parsed.sector).trim() : null,
       symbol: parsed.symbol ? String(parsed.symbol).trim().toUpperCase().slice(0, 8) : null,
-      lastRoundValue: typeof parsed.lastRoundValue === 'number' ? parsed.lastRoundValue : null,
-      lastRoundDate: parsed.lastRoundDate ? String(parsed.lastRoundDate).trim() : null,
-      secondaryValue: typeof parsed.secondaryValue === 'number' ? parsed.secondaryValue : null,
-      secondaryDate: parsed.secondaryDate ? String(parsed.secondaryDate).trim() : null,
     };
   } catch {
     return empty;
@@ -129,8 +117,8 @@ export async function POST(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    const enrichment = await enrichCompany(name);
-    const symbol = enrichment.symbol || fallbackSymbol(name);
+    const meta = await lookupCompanyMeta(name);
+    const symbol = meta.symbol || fallbackSymbol(name);
 
     const baseSlug = slugify(name) || slugify(symbol) || 'company';
     let slug = baseSlug;
@@ -146,17 +134,21 @@ export async function POST(req: Request) {
         slug,
         name,
         symbol,
-        sector: enrichment.sector,
-        last_round_value: enrichment.lastRoundValue,
-        last_round_date: enrichment.lastRoundDate,
-        secondary_value: enrichment.secondaryValue,
-        secondary_date: enrichment.secondaryDate,
+        sector: meta.sector,
+        last_round_value: null,
+        last_round_date: null,
+        secondary_value: null,
+        secondary_date: null,
         created_by: contributor,
       })
       .select('*')
       .single();
 
     if (error) throw error;
+
+    // Populate the evidence ledger with sourced findings right away, rather
+    // than leaving a brand-new company empty.
+    await researchCompanyEvidence(supabase, data);
 
     return NextResponse.json({ company: { ...data, valuation: null } });
   } catch (err: any) {

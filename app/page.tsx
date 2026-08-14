@@ -445,7 +445,7 @@ export default function App() {
               </button>
             </div>
             <div style={{ fontSize: '11px', color: '#5A6470' }}>
-              Sector, symbol, and known funding data are looked up automatically.
+              Sector and symbol are looked up automatically, and the ledger is seeded with sourced evidence — no unsourced valuation numbers.
             </div>
             {addCompanyError && <div style={{ fontSize: '12px', color: '#E5484D' }}>{addCompanyError}</div>}
           </form>
