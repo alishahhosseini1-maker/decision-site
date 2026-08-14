@@ -51,12 +51,6 @@ const emptyForm = {
 
 const emptyCompanyForm = {
   name: '',
-  symbol: '',
-  sector: '',
-  lastRoundValue: '',
-  lastRoundDate: '',
-  secondaryValue: '',
-  secondaryDate: '',
 };
 
 export default function App() {
@@ -210,7 +204,10 @@ export default function App() {
 
   async function submitCompany(e: React.FormEvent) {
     e.preventDefault();
-    if (!companyForm.name.trim() || !companyForm.symbol.trim()) return;
+    if (!companyForm.name.trim()) {
+      setAddCompanyError('Company name is required.');
+      return;
+    }
     setAddingCompany(true);
     setAddCompanyError(null);
     try {
@@ -431,72 +428,26 @@ export default function App() {
                 <X size={14} />
               </button>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '8px' }}>
-              <Field label="Name">
-                <input
-                  value={companyForm.name}
-                  onChange={(e) => setCompanyForm((f) => ({ ...f, name: e.target.value }))}
-                  placeholder="e.g. OpenAI"
-                  style={inputStyle}
-                />
-              </Field>
-              <Field label="Symbol">
-                <input
-                  value={companyForm.symbol}
-                  onChange={(e) => setCompanyForm((f) => ({ ...f, symbol: e.target.value }))}
-                  placeholder="e.g. OPAI"
-                  style={inputStyle}
-                />
-              </Field>
-              <Field label="Sector">
-                <input
-                  value={companyForm.sector}
-                  onChange={(e) => setCompanyForm((f) => ({ ...f, sector: e.target.value }))}
-                  placeholder="e.g. Foundation models"
-                  style={inputStyle}
-                />
-              </Field>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '8px' }}>
-              <Field label="Last round ($B)">
-                <input
-                  value={companyForm.lastRoundValue}
-                  onChange={(e) => setCompanyForm((f) => ({ ...f, lastRoundValue: e.target.value }))}
-                  placeholder="e.g. 20"
-                  style={inputStyle}
-                />
-              </Field>
-              <Field label="Last round date">
-                <input
-                  value={companyForm.lastRoundDate}
-                  onChange={(e) => setCompanyForm((f) => ({ ...f, lastRoundDate: e.target.value }))}
-                  placeholder="e.g. Jan 2026"
-                  style={inputStyle}
-                />
-              </Field>
-              <Field label="Secondary ($B)">
-                <input
-                  value={companyForm.secondaryValue}
-                  onChange={(e) => setCompanyForm((f) => ({ ...f, secondaryValue: e.target.value }))}
-                  placeholder="optional"
-                  style={inputStyle}
-                />
-              </Field>
-              <Field label="Secondary date">
-                <input
-                  value={companyForm.secondaryDate}
-                  onChange={(e) => setCompanyForm((f) => ({ ...f, secondaryDate: e.target.value }))}
-                  placeholder="optional"
-                  style={inputStyle}
-                />
-              </Field>
-            </div>
-            {addCompanyError && <div style={{ fontSize: '12px', color: '#E5484D' }}>{addCompanyError}</div>}
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
+              <div style={{ flex: 1 }}>
+                <Field label="Company name">
+                  <input
+                    value={companyForm.name}
+                    onChange={(e) => setCompanyForm((f) => ({ ...f, name: e.target.value }))}
+                    placeholder="e.g. OpenAI"
+                    style={inputStyle}
+                    autoFocus
+                  />
+                </Field>
+              </div>
               <button type="submit" disabled={addingCompany} style={{ ...primaryBtnStyle, opacity: addingCompany ? 0.6 : 1 }}>
-                {addingCompany ? 'Adding…' : 'Add company'}
+                {addingCompany ? 'Researching…' : 'Add company'}
               </button>
             </div>
+            <div style={{ fontSize: '11px', color: '#5A6470' }}>
+              Sector, symbol, and known funding data are looked up automatically.
+            </div>
+            {addCompanyError && <div style={{ fontSize: '12px', color: '#E5484D' }}>{addCompanyError}</div>}
           </form>
         )}
 
