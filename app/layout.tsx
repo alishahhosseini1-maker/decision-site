@@ -6,29 +6,18 @@ import { Analytics } from '@vercel/analytics/react';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Decision Layer — Find what everything else missed',
-  description: 'A structured pre-commitment review for high-stakes decisions. Not a pro/con list. Not therapy. A clear verdict.',
-  metadataBase: new URL('https://decisionlayer.dev'),
+  title: 'Lumen — Private market evidence ledger',
+  description: 'A crowdsourced evidence ledger and AI-assisted valuation for private companies.',
   openGraph: {
-    title: 'Decision Layer — Find what everything else missed',
-    description: 'A structured pre-commitment review for high-stakes decisions. Not a pro/con list. Not therapy. A clear verdict.',
-    url: 'https://decisionlayer.dev',
-    siteName: 'Decision Layer',
-    images: [
-      {
-        url: '/api/og',
-        width: 1200,
-        height: 630,
-        alt: 'Decision Layer',
-      },
-    ],
+    title: 'Lumen — Private market evidence ledger',
+    description: 'A crowdsourced evidence ledger and AI-assisted valuation for private companies.',
+    siteName: 'Lumen',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Decision Layer — Find what everything else missed',
-    description: 'A structured pre-commitment review for high-stakes decisions. Not a pro/con list. Not therapy. A clear verdict.',
-    images: ['/api/og'],
+    title: 'Lumen — Private market evidence ledger',
+    description: 'A crowdsourced evidence ledger and AI-assisted valuation for private companies.',
   },
 };
 
