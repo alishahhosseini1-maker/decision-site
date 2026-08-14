@@ -42,6 +42,7 @@ export function confidenceColor(score: number) {
 }
 
 export function fmtB(n: number | string | null | undefined) {
+  if (n === null || n === undefined || n === '') return '—';
   const num = Number(n);
   if (Number.isNaN(num)) return '—';
   return `$${num.toFixed(1)}B`;
