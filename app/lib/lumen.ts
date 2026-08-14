@@ -5,6 +5,7 @@ export const CONFIDENCE_MAP: Record<string, number> = {
   'Investor Document': 90,
   'Reputable Publication': 90,
   'Industry Research': 75,
+  'AI Research': 65,
   'Verified Employee': 60,
   'Anonymous Tip': 25,
 };
@@ -20,7 +21,19 @@ export const CATEGORIES = [
   'Rumor',
 ];
 
+export const AI_RESEARCH_SOURCE_TYPE = 'AI Research';
+export const AI_RESEARCH_CONTRIBUTOR = 'perplexity-research';
+export const AI_RESEARCH_CONFIRMATIONS_NEEDED = 1;
+
+// Source types a human can pick when manually submitting evidence.
+// "AI Research" is reserved for entries inserted by the Perplexity research route.
+export const MANUAL_SOURCE_TYPES = Object.keys(CONFIDENCE_MAP).filter((s) => s !== AI_RESEARCH_SOURCE_TYPE);
+
 export const CONFIRMATIONS_NEEDED = 2;
+
+export function confirmationsNeededFor(sourceType: string) {
+  return sourceType === AI_RESEARCH_SOURCE_TYPE ? AI_RESEARCH_CONFIRMATIONS_NEEDED : CONFIRMATIONS_NEEDED;
+}
 
 export function confidenceColor(score: number) {
   if (score >= 85) return '#3FBF7F';

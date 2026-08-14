@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { CATEGORIES, CONFIDENCE_MAP } from '@/app/lib/lumen';
+import { CATEGORIES, MANUAL_SOURCE_TYPES } from '@/app/lib/lumen';
 
 export const runtime = 'nodejs';
 
@@ -10,7 +10,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const category = CATEGORIES.includes(body.category) ? body.category : CATEGORIES[0];
     const description = (body.description || '').trim();
     const value = (body.value || '').trim() || null;
-    const sourceType = Object.keys(CONFIDENCE_MAP).includes(body.sourceType) ? body.sourceType : Object.keys(CONFIDENCE_MAP)[0];
+    const sourceType = MANUAL_SOURCE_TYPES.includes(body.sourceType) ? body.sourceType : MANUAL_SOURCE_TYPES[0];
     const sourceLabel = (body.sourceLabel || '').trim();
     const date = (body.date || '').trim();
     const contributor = (body.contributor || 'anonymous').trim();

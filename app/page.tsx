@@ -15,8 +15,9 @@ import {
 import {
   CATEGORIES,
   CONFIDENCE_MAP,
-  CONFIRMATIONS_NEEDED,
+  MANUAL_SOURCE_TYPES,
   confidenceColor,
+  confirmationsNeededFor,
   fmtB,
   type Company,
   type Evidence,
@@ -43,7 +44,7 @@ const emptyForm = {
   category: CATEGORIES[0],
   description: '',
   value: '',
-  sourceType: Object.keys(CONFIDENCE_MAP)[0],
+  sourceType: MANUAL_SOURCE_TYPES[0],
   sourceLabel: '',
   date: '',
 };
@@ -92,6 +93,9 @@ export default function App() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
+
+  const [researching, setResearching] = useState(false);
+  const [researchError, setResearchError] = useState<string | null>(null);
 
   const [showAddCompany, setShowAddCompany] = useState(false);
   const [companyForm, setCompanyForm] = useState(emptyCompanyForm);
@@ -147,6 +151,7 @@ export default function App() {
     if (!activeId) return;
     setWhyOpen(false);
     setValuationError(null);
+    setResearchError(null);
     refreshDetail(activeId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeId]);
@@ -158,6 +163,27 @@ export default function App() {
 
   function updateForm(field: string, val: string) {
     setForm((f) => ({ ...f, [field]: val }));
+  }
+
+  async function researchCompany() {
+    if (!activeId) return;
+    setResearching(true);
+    setResearchError(null);
+    try {
+      const res = await fetch(`/api/lumen/companies/${activeId}/research`, { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Research failed.');
+      if (data.evidence && data.evidence.length > 0) {
+        setEvidence((prev) => [...data.evidence, ...prev]);
+        refreshContributors();
+      } else {
+        setResearchError('No new verifiable evidence found.');
+      }
+    } catch (err: any) {
+      setResearchError(err.message || 'Research failed. Try again.');
+    } finally {
+      setResearching(false);
+    }
   }
 
   async function submitEvidence(e: React.FormEvent) {
@@ -524,28 +550,55 @@ export default function App() {
               <h2 className="display" style={{ fontSize: '15px', fontWeight: 600, margin: 0, letterSpacing: '0.02em' }}>
                 Evidence ledger
               </h2>
-              <button
-                onClick={() => setShowAddForm((s) => !s)}
-                className="lumen-btn"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  background: '#141C26',
-                  border: '1px solid #26303C',
-                  color: '#E8EAED',
-                  borderRadius: '4px',
-                  padding: '6px 10px',
-                  fontSize: '12px',
-                  cursor: 'pointer',
-                }}
-              >
-                <Plus size={13} /> Add evidence
-              </button>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={researchCompany}
+                  disabled={researching}
+                  className="lumen-btn"
+                  title="Search the web for recent developments and add them as pending evidence"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    background: 'transparent',
+                    border: '1px solid #26303C',
+                    color: '#B5BDC6',
+                    borderRadius: '4px',
+                    padding: '6px 10px',
+                    fontSize: '12px',
+                    cursor: researching ? 'default' : 'pointer',
+                    opacity: researching ? 0.6 : 1,
+                  }}
+                >
+                  {researching && <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />}
+                  {researching ? 'Researching…' : 'Research this company'}
+                </button>
+                <button
+                  onClick={() => setShowAddForm((s) => !s)}
+                  className="lumen-btn"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    background: '#141C26',
+                    border: '1px solid #26303C',
+                    color: '#E8EAED',
+                    borderRadius: '4px',
+                    padding: '6px 10px',
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <Plus size={13} /> Add evidence
+                </button>
+              </div>
             </div>
             <div style={{ fontSize: '11px', color: '#5A6470', marginBottom: '10px' }}>
               {loadingDetail ? 'Loading ledger…' : 'Evidence and valuations here are shared with everyone using this ledger.'}
             </div>
+            {researchError && (
+              <div style={{ fontSize: '11px', color: '#E5484D', marginBottom: '10px' }}>{researchError}</div>
+            )}
 
             {showAddForm && (
               <form
@@ -591,7 +644,7 @@ export default function App() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
                   <Field label="Source type">
                     <select value={form.sourceType} onChange={(e) => updateForm('sourceType', e.target.value)} style={selectStyle}>
-                      {Object.keys(CONFIDENCE_MAP).map((s) => (
+                      {MANUAL_SOURCE_TYPES.map((s) => (
                         <option key={s} value={s}>
                           {s}
                         </option>
@@ -677,7 +730,7 @@ export default function App() {
                         )}
                         {ev.status === 'pending' && (
                           <span style={{ fontSize: '11px', color: '#8B95A1' }}>
-                            pending · {(ev.verified_by || []).length}/{CONFIRMATIONS_NEEDED} confirmations
+                            pending · {(ev.verified_by || []).length}/{confirmationsNeededFor(ev.source_type)} confirmations
                           </span>
                         )}
                         {ev.status === 'disputed' && (

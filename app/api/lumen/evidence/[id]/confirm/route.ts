@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { CONFIRMATIONS_NEEDED } from '@/app/lib/lumen';
+import { confirmationsNeededFor } from '@/app/lib/lumen';
 
 export const runtime = 'nodejs';
 
@@ -37,7 +37,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     }
 
     const verifiedBy = [...already, contributor];
-    const status = verifiedBy.length >= CONFIRMATIONS_NEEDED ? 'verified' : 'pending';
+    const status = verifiedBy.length >= confirmationsNeededFor(ev.source_type) ? 'verified' : 'pending';
 
     const { data: updated, error: updateError } = await supabase
       .from('lumen_evidence')
