@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { researchCompanyEvidence } from '@/app/lib/perplexity';
-import { generateValuation } from '@/app/lib/valuation';
+import { applyBestUnconfirmedFigures, generateValuation } from '@/app/lib/valuation';
 
 export const runtime = 'nodejs';
 
@@ -148,15 +148,22 @@ export async function POST(req: Request) {
     if (error) throw error;
 
     // Populate the evidence ledger with sourced findings right away, rather
-    // than leaving a brand-new company empty, then run an immediate
-    // best-estimate valuation over that (mostly unconfirmed) evidence so
-    // there's a reasoned number to look at right away.
-    await researchCompanyEvidence(supabase, data);
-    const valuation = await generateValuation(supabase, data);
+    // than leaving a brand-new company empty; use the most recent Funding /
+    // Secondary market item found to populate the header immediately too
+    // (marked unconfirmed until a human actually confirms one); then run a
+    // best-estimate valuation over that evidence so there's a reasoned
+    // number to look at right away.
+    const evidence = await researchCompanyEvidence(supabase, data);
+    await applyBestUnconfirmedFigures(supabase, data.id, evidence);
+
+    const { data: refreshed } = await supabase.from('lumen_companies').select('*').eq('id', data.id).single();
+    const company = refreshed || data;
+
+    const valuation = await generateValuation(supabase, company);
 
     return NextResponse.json({
       company: {
-        ...data,
+        ...company,
         valuation: valuation ? { base_case: valuation.base_case, confidence_score: valuation.confidence_score } : null,
       },
     });

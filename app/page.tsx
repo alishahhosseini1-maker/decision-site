@@ -256,8 +256,10 @@ export default function App() {
       body: JSON.stringify({ contributor }),
     });
     const data = await res.json();
-    if (data.evidence) {
-      setEvidence((prev) => prev.map((ev) => (ev.id === id ? data.evidence : ev)));
+    if (data.evidence && activeId) {
+      // Full refetch, not local state patching — confirming Funding/
+      // Secondary market evidence can update the company header itself.
+      await refreshDetail(activeId);
       refreshContributors();
     }
   }
@@ -483,8 +485,28 @@ export default function App() {
               border: '1px solid #1F2833',
             }}
           >
-            <ValueCell label="Last round" sub={company.last_round_date || '—'} value={fmtB(company.last_round_value)} />
-            <ValueCell label="Secondary implied" sub={company.secondary_date || '—'} value={fmtB(company.secondary_value)} />
+            <ValueCell
+              label="Last round"
+              sub={
+                company.last_round_date
+                  ? company.last_round_confirmed
+                    ? company.last_round_date
+                    : `${company.last_round_date} · unconfirmed`
+                  : '—'
+              }
+              value={fmtB(company.last_round_value)}
+            />
+            <ValueCell
+              label="Secondary implied"
+              sub={
+                company.secondary_date
+                  ? company.secondary_confirmed
+                    ? company.secondary_date
+                    : `${company.secondary_date} · unconfirmed`
+                  : '—'
+              }
+              value={fmtB(company.secondary_value)}
+            />
             <ValueCell
               label="AI / community fair value"
               sub={valuation ? `confidence ${valuation.confidence_score}/100` : 'not yet run'}
