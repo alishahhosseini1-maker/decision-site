@@ -38,7 +38,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     }
 
     const verifiedBy = [...already, contributor];
-    const status = verifiedBy.length >= confirmationsNeededFor(ev.source_type) ? 'verified' : 'pending';
+    const status = verifiedBy.length >= confirmationsNeededFor(ev.contributor) ? 'verified' : 'pending';
 
     const { data: updated, error: updateError } = await supabase
       .from('lumen_evidence')

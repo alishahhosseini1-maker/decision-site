@@ -39,6 +39,12 @@ function getContributorId() {
 
 type CompanyWithValuation = Company & { valuation: { base_case: number; confidence_score: number } | null };
 type Contributor = { name: string; total: number; verified: number; rejected: number; accuracy: number | null };
+type Comp = { name: string; ticker: string; multiple: number; sourceLabel: string; impliedValuation: number };
+type CompsResult = {
+  revenueBillions: number;
+  revenueSource: { description: string; sourceLabel: string; date: string };
+  comps: Comp[];
+};
 
 const emptyForm = {
   category: CATEGORIES[0],
@@ -82,6 +88,10 @@ export default function App() {
 
   const [loadingValuation, setLoadingValuation] = useState(false);
   const [valuationError, setValuationError] = useState<string | null>(null);
+
+  const [comps, setComps] = useState<CompsResult | null>(null);
+  const [loadingComps, setLoadingComps] = useState(false);
+  const [compsError, setCompsError] = useState<string | null>(null);
   const [whyOpen, setWhyOpen] = useState(false);
 
   const [showAddForm, setShowAddForm] = useState(false);
@@ -146,6 +156,8 @@ export default function App() {
     setWhyOpen(false);
     setValuationError(null);
     setResearchError(null);
+    setComps(null);
+    setCompsError(null);
     refreshDetail(activeId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeId]);
@@ -298,6 +310,22 @@ export default function App() {
       setValuationError(err.message || "Couldn't generate a valuation. Try again.");
     } finally {
       setLoadingValuation(false);
+    }
+  }
+
+  async function findCompsForCompany() {
+    if (!activeId) return;
+    setLoadingComps(true);
+    setCompsError(null);
+    try {
+      const res = await fetch(`/api/lumen/companies/${activeId}/comps`, { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to find comps.');
+      setComps(data);
+    } catch (err: any) {
+      setCompsError(err.message || "Couldn't find comparable companies. Try again.");
+    } finally {
+      setLoadingComps(false);
     }
   }
 
@@ -703,7 +731,7 @@ export default function App() {
                         )}
                         {ev.status === 'pending' && (
                           <span style={{ fontSize: '11px', color: '#8B95A1' }}>
-                            pending · {(ev.verified_by || []).length}/{confirmationsNeededFor(ev.source_type)} confirmations
+                            pending · {(ev.verified_by || []).length}/{confirmationsNeededFor(ev.contributor)} confirmations
                           </span>
                         )}
                         {ev.status === 'disputed' && (
@@ -879,6 +907,62 @@ export default function App() {
                     <ChevronDown size={13} style={{ transform: whyOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
                   </button>
                   {whyOpen && <div style={{ fontSize: '12px', color: '#B5BDC6', marginTop: '6px', lineHeight: 1.5 }}>{valuation.explanation}</div>}
+                </div>
+              )}
+            </div>
+
+            {/* Comparable companies */}
+            <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 className="display" style={{ fontSize: '13px', fontWeight: 600, margin: 0 }}>
+                  Comparable companies
+                </h3>
+                <button
+                  onClick={findCompsForCompany}
+                  disabled={loadingComps}
+                  style={{ ...primaryBtnStyle, opacity: loadingComps ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  {loadingComps && <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />}
+                  {comps ? 'Re-run' : 'Find comps'}
+                </button>
+              </div>
+
+              {compsError && <div style={{ fontSize: '12px', color: '#E5484D', marginTop: '8px' }}>{compsError}</div>}
+
+              {!comps && !loadingComps && !compsError && (
+                <div style={{ fontSize: '12px', color: '#8B95A1', marginTop: '8px' }}>
+                  Applies real public comps&apos; current revenue multiples to this company&apos;s own confirmed revenue, sourced and cited.
+                </div>
+              )}
+
+              {comps && (
+                <div style={{ marginTop: '12px' }}>
+                  <div className="mono" style={{ fontSize: '11px', color: '#5A6470', marginBottom: '8px' }}>
+                    Revenue: {fmtB(comps.revenueBillions)} — {comps.revenueSource.sourceLabel}, {comps.revenueSource.date}
+                  </div>
+                  <div style={{ display: 'grid', gap: '6px' }}>
+                    {comps.comps.map((c, i) => (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: '12px' }}>
+                        <span>
+                          {c.name}
+                          {c.ticker && (
+                            <span className="mono" style={{ color: '#5A6470' }}>
+                              {' '}
+                              ({c.ticker})
+                            </span>
+                          )}
+                          <span style={{ color: '#5A6470' }}> · {c.multiple.toFixed(1)}x</span>
+                        </span>
+                        <span className="mono" style={{ color: '#C9A227', fontWeight: 500 }}>
+                          {fmtB(c.impliedValuation)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#5A6470', marginTop: '8px' }}>
+                    Implied range: {fmtB(Math.min(...comps.comps.map((c) => c.impliedValuation)))} –{' '}
+                    {fmtB(Math.max(...comps.comps.map((c) => c.impliedValuation)))}
+                  </div>
                 </div>
               )}
             </div>

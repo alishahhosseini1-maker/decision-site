@@ -1,20 +1,23 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import Anthropic from '@anthropic-ai/sdk';
-import { AI_RESEARCH_SOURCE_TYPE, CONFIDENCE_MAP, fmtB } from './lumen';
+import { AI_RESEARCH_CONTRIBUTOR, CONFIDENCE_MAP, computeContributorStats, fmtB } from './lumen';
 
-type EvidenceRow = {
+export type EvidenceRow = {
   id: string;
   category: string;
   description: string;
   value: string | null;
+  source_type: string;
+  source_label: string;
   date: string;
 };
 
-// Extracts the total company valuation implied by a single evidence item
-// (not the amount raised — the resulting valuation), in billions of USD.
+// Extracts a single dollar figure from an evidence item's free text, in
+// billions of USD. `subject` tells the model which figure to pull out (e.g.
+// "the resulting company valuation" vs. "the annualized revenue figure").
 // Returns null if the model can't confidently extract one or the API call
 // fails; callers should leave the existing figure untouched in that case.
-async function extractValuationBillions(description: string, value: string | null): Promise<number | null> {
+async function extractBillionsFigure(subject: string, description: string, value: string | null): Promise<number | null> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return null;
 
@@ -26,11 +29,11 @@ async function extractValuationBillions(description: string, value: string | nul
       messages: [
         {
           role: 'user',
-          content: `Extract the total company valuation implied by this event (not the amount raised — the resulting company valuation), in billions of USD as a plain number.
+          content: `Extract ${subject}, in billions of USD as a plain number.
 
 Event: ${description}${value ? ` (${value})` : ''}
 
-Respond with ONLY JSON, no markdown, no prose: {"valuationBillions": number or null}`,
+Respond with ONLY JSON, no markdown, no prose: {"valueBillions": number or null}`,
         },
       ],
     });
@@ -40,27 +43,51 @@ Respond with ONLY JSON, no markdown, no prose: {"valuationBillions": number or n
 
     const cleaned = textBlock.text.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(cleaned);
-    return typeof parsed.valuationBillions === 'number' ? parsed.valuationBillions : null;
+    return typeof parsed.valueBillions === 'number' ? parsed.valueBillions : null;
   } catch {
     return null;
   }
 }
 
-function pickMostRecent(evidence: EvidenceRow[], category: string): EvidenceRow | null {
+function extractValuationBillions(description: string, value: string | null) {
+  return extractBillionsFigure(
+    'the total company valuation implied by this event (not the amount raised — the resulting company valuation)',
+    description,
+    value
+  );
+}
+
+export function extractRevenueBillions(description: string, value: string | null) {
+  return extractBillionsFigure(
+    'the annualized revenue figure mentioned in this event (not funding raised, not a valuation — the actual revenue or ARR number)',
+    description,
+    value
+  );
+}
+
+// Picks the item from the highest credibility tier (SEC filing beats a
+// blog post regardless of which is newer); within the same tier, the most
+// recent event date wins.
+export function pickMostCredible(evidence: EvidenceRow[], category: string): EvidenceRow | null {
   const matches = evidence.filter((e) => e.category === category);
   if (matches.length === 0) return null;
-  return matches.reduce((best, e) => (e.date > best.date ? e : best));
+  return matches.reduce((best, e) => {
+    const bestConf = CONFIDENCE_MAP[best.source_type] ?? 0;
+    const eConf = CONFIDENCE_MAP[e.source_type] ?? 0;
+    if (eConf !== bestConf) return eConf > bestConf ? e : best;
+    return e.date > best.date ? e : best;
+  });
 }
 
 // Called right after a company is created and freshly researched. Picks the
-// most recent Funding / Secondary market item found and uses it to populate
-// Last round / Secondary implied immediately — grounded in a real, specific
-// citation rather than a blind guess, but marked unconfirmed since no human
-// has reviewed it yet.
+// most credible Funding / Secondary market item found and uses it to
+// populate Last round / Secondary implied immediately — grounded in a real,
+// specific citation rather than a blind guess, but marked unconfirmed since
+// no human has reviewed it yet.
 export async function applyBestUnconfirmedFigures(supabase: SupabaseClient, companyId: string, evidence: EvidenceRow[]) {
   const patch: Record<string, unknown> = {};
 
-  const funding = pickMostRecent(evidence, 'Funding');
+  const funding = pickMostCredible(evidence, 'Funding');
   if (funding) {
     const val = await extractValuationBillions(funding.description, funding.value);
     if (val !== null) {
@@ -70,7 +97,7 @@ export async function applyBestUnconfirmedFigures(supabase: SupabaseClient, comp
     }
   }
 
-  const secondary = pickMostRecent(evidence, 'Secondary market');
+  const secondary = pickMostCredible(evidence, 'Secondary market');
   if (secondary) {
     const val = await extractValuationBillions(secondary.description, secondary.value);
     if (val !== null) {
@@ -117,12 +144,16 @@ export async function applyConfirmedFigure(supabase: SupabaseClient, companyId: 
 
 // Generates a bear/base/bull valuation from a company's evidence and saves
 // it. Includes not just confirmed evidence but also not-yet-confirmed
-// "AI Research" findings (never unconfirmed manual submissions — those
-// haven't been sanity-checked by anyone yet), explicitly labeled so the
-// model can widen its range and lower confidence when it's relying on
-// unreviewed sources. Returns the saved row, or null if ANTHROPIC_API_KEY
-// is unset or the call fails — callers that need to surface that failure
-// to a user should check process.env.ANTHROPIC_API_KEY themselves first.
+// findings from the AI research bot (never unconfirmed manual submissions —
+// those haven't been sanity-checked by anyone), explicitly labeled by
+// review status so the model widens its range and lowers confidence when
+// relying on unreviewed sources. Confirmed evidence is further weighted by
+// the confirming contributors' historical accuracy — a claim confirmed by
+// someone with a strong track record counts for more than one confirmed by
+// a brand-new contributor. Returns the saved row, or null if
+// ANTHROPIC_API_KEY is unset or the call fails — callers that need to
+// surface that failure to a user should check process.env.ANTHROPIC_API_KEY
+// themselves first.
 export async function generateValuation(
   supabase: SupabaseClient,
   company: { id: string; name: string; sector: string | null; last_round_value: number | null; last_round_date: string | null; secondary_value: number | null; secondary_date: string | null }
@@ -139,13 +170,29 @@ export async function generateValuation(
     if (evidenceError) return null;
 
     const evidence = (allEvidence || []).filter(
-      (e) => e.status === 'verified' || (e.status === 'pending' && e.source_type === AI_RESEARCH_SOURCE_TYPE)
+      (e) => e.status === 'verified' || (e.status === 'pending' && e.contributor === AI_RESEARCH_CONTRIBUTOR)
     );
+
+    // Contributor accuracy is a global track record across the whole
+    // ledger, not just this company, so pull every contributor's history.
+    const { data: allContributorEvidence } = await supabase.from('lumen_evidence').select('contributor, status');
+    const contributorStats = computeContributorStats(allContributorEvidence || []);
 
     const evidenceLines = evidence
       .map((e) => {
         const conf = CONFIDENCE_MAP[e.source_type] ?? 50;
-        const reviewStatus = e.status === 'verified' ? 'confirmed by a human reviewer' : 'NOT yet reviewed by a human';
+        let reviewStatus: string;
+        if (e.status === 'verified') {
+          const confirmerAccuracies = (e.verified_by || [])
+            .map((name: string) => contributorStats.get(name)?.accuracy)
+            .filter((a: number | null | undefined): a is number => a !== null && a !== undefined);
+          reviewStatus =
+            confirmerAccuracies.length > 0
+              ? `confirmed by contributor(s) averaging ${Math.round(confirmerAccuracies.reduce((a: number, b: number) => a + b, 0) / confirmerAccuracies.length)}% historical accuracy`
+              : 'confirmed by a contributor with no track record yet';
+        } else {
+          reviewStatus = 'NOT yet reviewed by a human';
+        }
         return `- [${e.category}] ${e.description}${e.value ? ` (${e.value})` : ''} — source: ${e.source_type} (confidence ${conf}, ${reviewStatus}), dated ${e.date}`;
       })
       .join('\n');
@@ -160,7 +207,7 @@ Secondary market implied valuation: ${fmtB(company.secondary_value)} (${company.
 Evidence (${unconfirmedCount} of ${evidence.length} items are not yet human-reviewed):
 ${evidenceLines || '(none)'}
 
-Weight human-confirmed evidence more heavily than not-yet-reviewed evidence. If sources disagree with each other, or most evidence is unreviewed, widen the bear/bull range and lower confidenceScore accordingly, and say so directly in the explanation rather than picking one figure silently.
+Weight human-confirmed evidence more heavily than not-yet-reviewed evidence, and weight evidence confirmed by contributors with strong historical accuracy more heavily than evidence confirmed by new or unproven contributors. If sources disagree with each other, or most evidence is unreviewed or confirmed only by unproven contributors, widen the bear/bull range and lower confidenceScore accordingly, and say so directly in the explanation rather than picking one figure silently.
 
 Respond with ONLY valid JSON, no markdown code fences, no preamble or trailing text, matching exactly this schema:
 {"bearCase": number, "baseCase": number, "bullCase": number, "confidenceScore": number, "keyDrivers": [{"label": string, "impact": "+" or "-", "note": string}], "explanation": string}
