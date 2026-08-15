@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { confirmationsNeededFor } from '@/app/lib/lumen';
-import { applyConfirmedFigure } from '@/app/lib/valuation';
 
 export const runtime = 'nodejs';
 
@@ -38,7 +37,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     }
 
     const verifiedBy = [...already, contributor];
-    const status = verifiedBy.length >= confirmationsNeededFor(ev.contributor) ? 'verified' : 'pending';
+    const status = verifiedBy.length >= confirmationsNeededFor(ev.source_type) ? 'verified' : 'pending';
 
     const { data: updated, error: updateError } = await supabase
       .from('lumen_evidence')
@@ -48,10 +47,6 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       .single();
 
     if (updateError) throw updateError;
-
-    if (updated.status === 'verified') {
-      await applyConfirmedFigure(supabase, updated.company_id, updated);
-    }
 
     return NextResponse.json({ evidence: updated });
   } catch (err: any) {

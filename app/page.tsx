@@ -39,13 +39,6 @@ function getContributorId() {
 
 type CompanyWithValuation = Company & { valuation: { base_case: number; confidence_score: number } | null };
 type Contributor = { name: string; total: number; verified: number; rejected: number; accuracy: number | null };
-type Comp = { name: string; ticker: string; multiple: number; sourceLabel: string; impliedValuation: number };
-type CompsResult = {
-  revenueBillions: number;
-  revenueSource: { description: string; sourceLabel: string; date: string };
-  comps: Comp[];
-  ownMultiples: { lastRound: number | null; lastRoundConfirmed: boolean; aiFairValue: number | null };
-};
 
 const emptyForm = {
   category: CATEGORIES[0],
@@ -58,6 +51,12 @@ const emptyForm = {
 
 const emptyCompanyForm = {
   name: '',
+  symbol: '',
+  sector: '',
+  lastRoundValue: '',
+  lastRoundDate: '',
+  secondaryValue: '',
+  secondaryDate: '',
 };
 
 export default function App() {
@@ -89,10 +88,6 @@ export default function App() {
 
   const [loadingValuation, setLoadingValuation] = useState(false);
   const [valuationError, setValuationError] = useState<string | null>(null);
-
-  const [comps, setComps] = useState<CompsResult | null>(null);
-  const [loadingComps, setLoadingComps] = useState(false);
-  const [compsError, setCompsError] = useState<string | null>(null);
   const [whyOpen, setWhyOpen] = useState(false);
 
   const [showAddForm, setShowAddForm] = useState(false);
@@ -157,10 +152,7 @@ export default function App() {
     setWhyOpen(false);
     setValuationError(null);
     setResearchError(null);
-    setComps(null);
-    setCompsError(null);
     refreshDetail(activeId);
-    findCompsForCompany();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeId]);
 
@@ -218,10 +210,7 @@ export default function App() {
 
   async function submitCompany(e: React.FormEvent) {
     e.preventDefault();
-    if (!companyForm.name.trim()) {
-      setAddCompanyError('Company name is required.');
-      return;
-    }
+    if (!companyForm.name.trim() || !companyForm.symbol.trim()) return;
     setAddingCompany(true);
     setAddCompanyError(null);
     try {
@@ -270,10 +259,8 @@ export default function App() {
       body: JSON.stringify({ contributor }),
     });
     const data = await res.json();
-    if (data.evidence && activeId) {
-      // Full refetch, not local state patching — confirming Funding/
-      // Secondary market evidence can update the company header itself.
-      await refreshDetail(activeId);
+    if (data.evidence) {
+      setEvidence((prev) => prev.map((ev) => (ev.id === id ? data.evidence : ev)));
       refreshContributors();
     }
   }
@@ -312,22 +299,6 @@ export default function App() {
       setValuationError(err.message || "Couldn't generate a valuation. Try again.");
     } finally {
       setLoadingValuation(false);
-    }
-  }
-
-  async function findCompsForCompany() {
-    if (!activeId) return;
-    setLoadingComps(true);
-    setCompsError(null);
-    try {
-      const res = await fetch(`/api/lumen/companies/${activeId}/comps`, { method: 'POST' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to find comps.');
-      setComps(data);
-    } catch (err: any) {
-      setCompsError(err.message || "Couldn't find comparable companies. Try again.");
-    } finally {
-      setLoadingComps(false);
     }
   }
 
@@ -460,26 +431,72 @@ export default function App() {
                 <X size={14} />
               </button>
             </div>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
-              <div style={{ flex: 1 }}>
-                <Field label="Company name">
-                  <input
-                    value={companyForm.name}
-                    onChange={(e) => setCompanyForm((f) => ({ ...f, name: e.target.value }))}
-                    placeholder="e.g. OpenAI"
-                    style={inputStyle}
-                    autoFocus
-                  />
-                </Field>
-              </div>
-              <button type="submit" disabled={addingCompany} style={{ ...primaryBtnStyle, opacity: addingCompany ? 0.6 : 1 }}>
-                {addingCompany ? 'Researching…' : 'Add company'}
-              </button>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '8px' }}>
+              <Field label="Name">
+                <input
+                  value={companyForm.name}
+                  onChange={(e) => setCompanyForm((f) => ({ ...f, name: e.target.value }))}
+                  placeholder="e.g. OpenAI"
+                  style={inputStyle}
+                />
+              </Field>
+              <Field label="Symbol">
+                <input
+                  value={companyForm.symbol}
+                  onChange={(e) => setCompanyForm((f) => ({ ...f, symbol: e.target.value }))}
+                  placeholder="e.g. OPAI"
+                  style={inputStyle}
+                />
+              </Field>
+              <Field label="Sector">
+                <input
+                  value={companyForm.sector}
+                  onChange={(e) => setCompanyForm((f) => ({ ...f, sector: e.target.value }))}
+                  placeholder="e.g. Foundation models"
+                  style={inputStyle}
+                />
+              </Field>
             </div>
-            <div style={{ fontSize: '11px', color: '#5A6470' }}>
-              Sector and symbol are looked up automatically, and the ledger is seeded with sourced evidence — no unsourced valuation numbers.
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '8px' }}>
+              <Field label="Last round ($B)">
+                <input
+                  value={companyForm.lastRoundValue}
+                  onChange={(e) => setCompanyForm((f) => ({ ...f, lastRoundValue: e.target.value }))}
+                  placeholder="e.g. 20"
+                  style={inputStyle}
+                />
+              </Field>
+              <Field label="Last round date">
+                <input
+                  value={companyForm.lastRoundDate}
+                  onChange={(e) => setCompanyForm((f) => ({ ...f, lastRoundDate: e.target.value }))}
+                  placeholder="e.g. Jan 2026"
+                  style={inputStyle}
+                />
+              </Field>
+              <Field label="Secondary ($B)">
+                <input
+                  value={companyForm.secondaryValue}
+                  onChange={(e) => setCompanyForm((f) => ({ ...f, secondaryValue: e.target.value }))}
+                  placeholder="optional"
+                  style={inputStyle}
+                />
+              </Field>
+              <Field label="Secondary date">
+                <input
+                  value={companyForm.secondaryDate}
+                  onChange={(e) => setCompanyForm((f) => ({ ...f, secondaryDate: e.target.value }))}
+                  placeholder="optional"
+                  style={inputStyle}
+                />
+              </Field>
             </div>
             {addCompanyError && <div style={{ fontSize: '12px', color: '#E5484D' }}>{addCompanyError}</div>}
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button type="submit" disabled={addingCompany} style={{ ...primaryBtnStyle, opacity: addingCompany ? 0.6 : 1 }}>
+                {addingCompany ? 'Adding…' : 'Add company'}
+              </button>
+            </div>
           </form>
         )}
 
@@ -515,28 +532,8 @@ export default function App() {
               border: '1px solid #1F2833',
             }}
           >
-            <ValueCell
-              label="Last round"
-              sub={
-                company.last_round_date
-                  ? company.last_round_confirmed
-                    ? company.last_round_date
-                    : `${company.last_round_date} · unconfirmed`
-                  : '—'
-              }
-              value={fmtB(company.last_round_value)}
-            />
-            <ValueCell
-              label="Secondary implied"
-              sub={
-                company.secondary_date
-                  ? company.secondary_confirmed
-                    ? company.secondary_date
-                    : `${company.secondary_date} · unconfirmed`
-                  : '—'
-              }
-              value={fmtB(company.secondary_value)}
-            />
+            <ValueCell label="Last round" sub={company.last_round_date || '—'} value={fmtB(company.last_round_value)} />
+            <ValueCell label="Secondary implied" sub={company.secondary_date || '—'} value={fmtB(company.secondary_value)} />
             <ValueCell
               label="AI / community fair value"
               sub={valuation ? `confidence ${valuation.confidence_score}/100` : 'not yet run'}
@@ -733,7 +730,7 @@ export default function App() {
                         )}
                         {ev.status === 'pending' && (
                           <span style={{ fontSize: '11px', color: '#8B95A1' }}>
-                            pending · {(ev.verified_by || []).length}/{confirmationsNeededFor(ev.contributor)} confirmations
+                            pending · {(ev.verified_by || []).length}/{confirmationsNeededFor(ev.source_type)} confirmations
                           </span>
                         )}
                         {ev.status === 'disputed' && (
@@ -842,83 +839,6 @@ export default function App() {
 
           {/* Right column */}
           <div style={{ display: 'grid', gap: '16px' }}>
-            {/* Comparable companies */}
-            <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 className="display" style={{ fontSize: '13px', fontWeight: 600, margin: 0 }}>
-                  Comparable companies
-                </h3>
-                <button
-                  onClick={findCompsForCompany}
-                  disabled={loadingComps}
-                  style={{ ...primaryBtnStyle, opacity: loadingComps ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                  {loadingComps && <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />}
-                  {comps ? 'Re-run' : 'Find comps'}
-                </button>
-              </div>
-
-              {loadingComps && !comps && (
-                <div style={{ fontSize: '12px', color: '#8B95A1', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> Finding comparable public companies…
-                </div>
-              )}
-
-              {compsError && <div style={{ fontSize: '12px', color: '#E5484D', marginTop: '8px' }}>{compsError}</div>}
-
-              {!comps && !loadingComps && !compsError && (
-                <div style={{ fontSize: '12px', color: '#8B95A1', marginTop: '8px' }}>
-                  Applies real public comps&apos; current revenue multiples to this company&apos;s own confirmed revenue, sourced and cited.
-                </div>
-              )}
-
-              {comps && (
-                <div style={{ marginTop: '12px' }}>
-                  <div className="mono" style={{ fontSize: '11px', color: '#5A6470', marginBottom: '8px' }}>
-                    Revenue: {fmtB(comps.revenueBillions)} — {comps.revenueSource.sourceLabel}, {comps.revenueSource.date}
-                  </div>
-                  {(comps.ownMultiples.lastRound !== null || comps.ownMultiples.aiFairValue !== null) && (
-                    <div style={{ fontSize: '12px', color: '#8B95A1', marginBottom: '10px' }}>
-                      {company?.name}&apos;s own multiple:{' '}
-                      {comps.ownMultiples.lastRound !== null && (
-                        <span style={{ color: '#E8EAED' }}>
-                          {comps.ownMultiples.lastRound.toFixed(1)}x last round
-                          {!comps.ownMultiples.lastRoundConfirmed && ' (unconfirmed)'}
-                        </span>
-                      )}
-                      {comps.ownMultiples.lastRound !== null && comps.ownMultiples.aiFairValue !== null && ' · '}
-                      {comps.ownMultiples.aiFairValue !== null && (
-                        <span style={{ color: '#E8EAED' }}>{comps.ownMultiples.aiFairValue.toFixed(1)}x AI fair value</span>
-                      )}
-                    </div>
-                  )}
-                  <div style={{ display: 'grid', gap: '6px' }}>
-                    {comps.comps.map((c, i) => (
-                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: '12px' }}>
-                        <span>
-                          {c.name}
-                          {c.ticker && (
-                            <span className="mono" style={{ color: '#5A6470' }}>
-                              {' '}
-                              ({c.ticker})
-                            </span>
-                          )}
-                          <span style={{ color: '#5A6470' }}> · {c.multiple.toFixed(1)}x</span>
-                        </span>
-                        <span className="mono" style={{ color: '#C9A227', fontWeight: 500 }}>
-                          {fmtB(c.impliedValuation)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  <div style={{ fontSize: '11px', color: '#5A6470', marginTop: '8px' }}>
-                    Implied range: {fmtB(Math.min(...comps.comps.map((c) => c.impliedValuation)))} –{' '}
-                    {fmtB(Math.max(...comps.comps.map((c) => c.impliedValuation)))}
-                  </div>
-                </div>
-              )}
-            </div>
-
             {/* AI valuation panel */}
             <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px', background: '#0E1319' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
