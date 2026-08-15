@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { researchCompanyEvidence } from '@/app/lib/perplexity';
+import { generateValuation } from '@/app/lib/valuation';
 
 export const runtime = 'nodejs';
 
@@ -147,10 +148,18 @@ export async function POST(req: Request) {
     if (error) throw error;
 
     // Populate the evidence ledger with sourced findings right away, rather
-    // than leaving a brand-new company empty.
+    // than leaving a brand-new company empty, then run an immediate
+    // best-estimate valuation over that (mostly unconfirmed) evidence so
+    // there's a reasoned number to look at right away.
     await researchCompanyEvidence(supabase, data);
+    const valuation = await generateValuation(supabase, data);
 
-    return NextResponse.json({ company: { ...data, valuation: null } });
+    return NextResponse.json({
+      company: {
+        ...data,
+        valuation: valuation ? { base_case: valuation.base_case, confidence_score: valuation.confidence_score } : null,
+      },
+    });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Failed to add company.' }, { status: 500 });
   }
