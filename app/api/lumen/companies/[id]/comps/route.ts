@@ -52,6 +52,12 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       return NextResponse.json({ error: 'No comparable public companies with sourced multiples found.' }, { status: 400 });
     }
 
+    const { data: valuationRow } = await supabase
+      .from('lumen_valuations')
+      .select('base_case')
+      .eq('company_id', params.id)
+      .maybeSingle();
+
     return NextResponse.json({
       revenueBillions,
       revenueSource: {
@@ -63,6 +69,11 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         ...c,
         impliedValuation: Math.round(revenueBillions * c.multiple * 10) / 10,
       })),
+      ownMultiples: {
+        lastRound: company.last_round_value != null ? Math.round((company.last_round_value / revenueBillions) * 10) / 10 : null,
+        lastRoundConfirmed: company.last_round_confirmed,
+        aiFairValue: valuationRow?.base_case != null ? Math.round((valuationRow.base_case / revenueBillions) * 10) / 10 : null,
+      },
     });
   } catch (err: any) {
     console.error('[lumen/comps] error:', err);

@@ -44,6 +44,7 @@ type CompsResult = {
   revenueBillions: number;
   revenueSource: { description: string; sourceLabel: string; date: string };
   comps: Comp[];
+  ownMultiples: { lastRound: number | null; lastRoundConfirmed: boolean; aiFairValue: number | null };
 };
 
 const emptyForm = {
@@ -159,6 +160,7 @@ export default function App() {
     setComps(null);
     setCompsError(null);
     refreshDetail(activeId);
+    findCompsForCompany();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeId]);
 
@@ -840,6 +842,83 @@ export default function App() {
 
           {/* Right column */}
           <div style={{ display: 'grid', gap: '16px' }}>
+            {/* Comparable companies */}
+            <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 className="display" style={{ fontSize: '13px', fontWeight: 600, margin: 0 }}>
+                  Comparable companies
+                </h3>
+                <button
+                  onClick={findCompsForCompany}
+                  disabled={loadingComps}
+                  style={{ ...primaryBtnStyle, opacity: loadingComps ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  {loadingComps && <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />}
+                  {comps ? 'Re-run' : 'Find comps'}
+                </button>
+              </div>
+
+              {loadingComps && !comps && (
+                <div style={{ fontSize: '12px', color: '#8B95A1', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> Finding comparable public companies…
+                </div>
+              )}
+
+              {compsError && <div style={{ fontSize: '12px', color: '#E5484D', marginTop: '8px' }}>{compsError}</div>}
+
+              {!comps && !loadingComps && !compsError && (
+                <div style={{ fontSize: '12px', color: '#8B95A1', marginTop: '8px' }}>
+                  Applies real public comps&apos; current revenue multiples to this company&apos;s own confirmed revenue, sourced and cited.
+                </div>
+              )}
+
+              {comps && (
+                <div style={{ marginTop: '12px' }}>
+                  <div className="mono" style={{ fontSize: '11px', color: '#5A6470', marginBottom: '8px' }}>
+                    Revenue: {fmtB(comps.revenueBillions)} — {comps.revenueSource.sourceLabel}, {comps.revenueSource.date}
+                  </div>
+                  {(comps.ownMultiples.lastRound !== null || comps.ownMultiples.aiFairValue !== null) && (
+                    <div style={{ fontSize: '12px', color: '#8B95A1', marginBottom: '10px' }}>
+                      {company?.name}&apos;s own multiple:{' '}
+                      {comps.ownMultiples.lastRound !== null && (
+                        <span style={{ color: '#E8EAED' }}>
+                          {comps.ownMultiples.lastRound.toFixed(1)}x last round
+                          {!comps.ownMultiples.lastRoundConfirmed && ' (unconfirmed)'}
+                        </span>
+                      )}
+                      {comps.ownMultiples.lastRound !== null && comps.ownMultiples.aiFairValue !== null && ' · '}
+                      {comps.ownMultiples.aiFairValue !== null && (
+                        <span style={{ color: '#E8EAED' }}>{comps.ownMultiples.aiFairValue.toFixed(1)}x AI fair value</span>
+                      )}
+                    </div>
+                  )}
+                  <div style={{ display: 'grid', gap: '6px' }}>
+                    {comps.comps.map((c, i) => (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: '12px' }}>
+                        <span>
+                          {c.name}
+                          {c.ticker && (
+                            <span className="mono" style={{ color: '#5A6470' }}>
+                              {' '}
+                              ({c.ticker})
+                            </span>
+                          )}
+                          <span style={{ color: '#5A6470' }}> · {c.multiple.toFixed(1)}x</span>
+                        </span>
+                        <span className="mono" style={{ color: '#C9A227', fontWeight: 500 }}>
+                          {fmtB(c.impliedValuation)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#5A6470', marginTop: '8px' }}>
+                    Implied range: {fmtB(Math.min(...comps.comps.map((c) => c.impliedValuation)))} –{' '}
+                    {fmtB(Math.max(...comps.comps.map((c) => c.impliedValuation)))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* AI valuation panel */}
             <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px', background: '#0E1319' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -907,62 +986,6 @@ export default function App() {
                     <ChevronDown size={13} style={{ transform: whyOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
                   </button>
                   {whyOpen && <div style={{ fontSize: '12px', color: '#B5BDC6', marginTop: '6px', lineHeight: 1.5 }}>{valuation.explanation}</div>}
-                </div>
-              )}
-            </div>
-
-            {/* Comparable companies */}
-            <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 className="display" style={{ fontSize: '13px', fontWeight: 600, margin: 0 }}>
-                  Comparable companies
-                </h3>
-                <button
-                  onClick={findCompsForCompany}
-                  disabled={loadingComps}
-                  style={{ ...primaryBtnStyle, opacity: loadingComps ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                  {loadingComps && <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />}
-                  {comps ? 'Re-run' : 'Find comps'}
-                </button>
-              </div>
-
-              {compsError && <div style={{ fontSize: '12px', color: '#E5484D', marginTop: '8px' }}>{compsError}</div>}
-
-              {!comps && !loadingComps && !compsError && (
-                <div style={{ fontSize: '12px', color: '#8B95A1', marginTop: '8px' }}>
-                  Applies real public comps&apos; current revenue multiples to this company&apos;s own confirmed revenue, sourced and cited.
-                </div>
-              )}
-
-              {comps && (
-                <div style={{ marginTop: '12px' }}>
-                  <div className="mono" style={{ fontSize: '11px', color: '#5A6470', marginBottom: '8px' }}>
-                    Revenue: {fmtB(comps.revenueBillions)} — {comps.revenueSource.sourceLabel}, {comps.revenueSource.date}
-                  </div>
-                  <div style={{ display: 'grid', gap: '6px' }}>
-                    {comps.comps.map((c, i) => (
-                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: '12px' }}>
-                        <span>
-                          {c.name}
-                          {c.ticker && (
-                            <span className="mono" style={{ color: '#5A6470' }}>
-                              {' '}
-                              ({c.ticker})
-                            </span>
-                          )}
-                          <span style={{ color: '#5A6470' }}> · {c.multiple.toFixed(1)}x</span>
-                        </span>
-                        <span className="mono" style={{ color: '#C9A227', fontWeight: 500 }}>
-                          {fmtB(c.impliedValuation)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  <div style={{ fontSize: '11px', color: '#5A6470', marginTop: '8px' }}>
-                    Implied range: {fmtB(Math.min(...comps.comps.map((c) => c.impliedValuation)))} –{' '}
-                    {fmtB(Math.max(...comps.comps.map((c) => c.impliedValuation)))}
-                  </div>
                 </div>
               )}
             </div>

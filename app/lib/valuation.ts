@@ -65,18 +65,67 @@ export function extractRevenueBillions(description: string, value: string | null
   );
 }
 
-// Picks the item from the highest credibility tier (SEC filing beats a
-// blog post regardless of which is newer); within the same tier, the most
-// recent event date wins.
-export function pickMostCredible(evidence: EvidenceRow[], category: string): EvidenceRow | null {
-  const matches = evidence.filter((e) => e.category === category);
-  if (matches.length === 0) return null;
-  return matches.reduce((best, e) => {
+function highestTier(items: EvidenceRow[]): EvidenceRow {
+  return items.reduce((best, e) => {
     const bestConf = CONFIDENCE_MAP[best.source_type] ?? 0;
     const eConf = CONFIDENCE_MAP[e.source_type] ?? 0;
     if (eConf !== bestConf) return eConf > bestConf ? e : best;
     return e.date > best.date ? e : best;
   });
+}
+
+// Groups same-category evidence into rough "same underlying event" clusters
+// by temporal proximity, since evidence rows don't carry an explicit event
+// id. Two items within `windowDays` of each other are treated as plausibly
+// describing the same event (e.g. a funding round reported by three outlets
+// within a couple weeks of each other).
+function clusterByProximity(items: EvidenceRow[], windowDays = 45): EvidenceRow[][] {
+  const sorted = [...items].sort((a, b) => a.date.localeCompare(b.date));
+  const clusters: EvidenceRow[][] = [];
+  for (const item of sorted) {
+    const last = clusters[clusters.length - 1];
+    const lastMaxDate = last?.reduce((max, e) => (e.date > max ? e.date : max), last[0].date);
+    const gapDays = last ? (new Date(item.date).getTime() - new Date(lastMaxDate!).getTime()) / 86_400_000 : Infinity;
+    if (last && gapDays <= windowDays) {
+      last.push(item);
+    } else {
+      clusters.push([item]);
+    }
+  }
+  return clusters;
+}
+
+const CORROBORATION_MIN_CONFIDENCE = 75;
+
+// Picks the item from the highest credibility tier (SEC filing beats a
+// blog post regardless of which is newer); within the same tier, the most
+// recent event date wins. Exception: if a *more recent* event is
+// independently corroborated by two or more distinct sources -- and at
+// least one of them clears a real credibility bar, not just two low-grade
+// tips -- that corroborated event outranks an older single-source item even
+// from a nominally higher tier. Independent corroboration of a newer event
+// is itself a stronger signal than one uncorroborated older filing, and a
+// bare tier label on its own can't capture that.
+export function pickMostCredible(evidence: EvidenceRow[], category: string): EvidenceRow | null {
+  const matches = evidence.filter((e) => e.category === category);
+  if (matches.length === 0) return null;
+
+  const tierWinner = highestTier(matches);
+
+  let corroboratedWinner: EvidenceRow | null = null;
+  for (const cluster of clusterByProximity(matches)) {
+    const distinctSources = new Set(cluster.map((e) => e.source_label));
+    const hasCredibleAnchor = cluster.some((e) => (CONFIDENCE_MAP[e.source_type] ?? 0) >= CORROBORATION_MIN_CONFIDENCE);
+    if (distinctSources.size < 2 || !hasCredibleAnchor) continue;
+
+    const clusterBest = highestTier(cluster);
+    if (clusterBest.date <= tierWinner.date) continue;
+    if (!corroboratedWinner || clusterBest.date > corroboratedWinner.date) {
+      corroboratedWinner = clusterBest;
+    }
+  }
+
+  return corroboratedWinner || tierWinner;
 }
 
 // Called right after a company is created and freshly researched. Picks the
