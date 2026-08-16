@@ -149,10 +149,25 @@ export function pickMostCredible(evidence: EvidenceRow[], category: string): Evi
   const matches = evidence.filter((e) => {
     if (e.category !== category) return false;
 
-    // CRITICAL: Affiliated evidence requires verification before it can be picked
+    // CRITICAL: Affiliated evidence requires independent verification before it can be picked
     // @ts-ignore - affiliation_disclosed may not be in EvidenceRow type yet
-    if (e.affiliation_disclosed === true && e.status !== 'verified') {
-      return false; // Block uncorroborated affiliated evidence
+    if (e.affiliation_disclosed === true) {
+      // @ts-ignore - status exists at runtime
+      if (e.status !== 'verified') {
+        return false; // Block pending affiliated evidence
+      }
+
+      // Even if verified, check if it has 2+ independent (non-affiliated) verifiers
+      // @ts-ignore - verified_by exists at runtime
+      const verifiers = e.verified_by || [];
+      const independentCount = verifiers.filter((v: any) => {
+        if (typeof v === 'string') return true; // Legacy verifiers assumed independent
+        return v.affiliation_disclosed === false;
+      }).length;
+
+      if (independentCount < 2) {
+        return false; // Block affiliated evidence without 2+ independent verifiers
+      }
     }
 
     return true;
@@ -272,11 +287,23 @@ export async function generateValuation(
     if (evidenceError) return null;
 
     const evidence = (allEvidence || []).filter((e) => {
-      // CRITICAL: Affiliated evidence is INERT until verified
-      // Affiliated evidence (affiliation_disclosed = true) can only be used if status = 'verified'
-      // This requires independent corroboration before it affects valuations
-      if (e.affiliation_disclosed === true && e.status !== 'verified') {
-        return false; // Block uncorroborated affiliated evidence
+      // CRITICAL: Affiliated evidence is INERT until independently verified
+      // Affiliated evidence (affiliation_disclosed = true) requires 2+ non-affiliated verifiers
+      if (e.affiliation_disclosed === true) {
+        if (e.status !== 'verified') {
+          return false; // Block pending affiliated evidence
+        }
+
+        // Even if verified, check if it has 2+ independent (non-affiliated) verifiers
+        const verifiers = e.verified_by || [];
+        const independentCount = verifiers.filter((v: any) => {
+          if (typeof v === 'string') return true; // Legacy verifiers assumed independent
+          return v.affiliation_disclosed === false;
+        }).length;
+
+        if (independentCount < 2) {
+          return false; // Block affiliated evidence without 2+ independent verifiers
+        }
       }
 
       // Non-affiliated evidence: standard rules

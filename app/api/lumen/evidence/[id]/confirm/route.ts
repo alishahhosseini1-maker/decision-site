@@ -9,6 +9,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   try {
     const body = await req.json();
     const contributor = (body.contributor || '').trim();
+    const affiliationDisclosed = Boolean(body.affiliationDisclosed);
+
     if (!contributor) {
       return NextResponse.json({ error: 'Missing contributor identity.' }, { status: 400 });
     }
@@ -32,13 +34,37 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     if (ev.contributor === contributor) {
       return NextResponse.json({ error: "You can't confirm your own submission." }, { status: 400 });
     }
-    const already: string[] = ev.verified_by || [];
-    if (already.includes(contributor)) {
+
+    // verified_by is now an array of {name, affiliation_disclosed}
+    // For backward compatibility, handle legacy string[] format
+    const already: Array<string | { name: string; affiliation_disclosed: boolean }> = ev.verified_by || [];
+    const alreadyNames = already.map((v) => (typeof v === 'string' ? v : v.name));
+
+    if (alreadyNames.includes(contributor)) {
       return NextResponse.json({ evidence: ev });
     }
 
-    const verifiedBy = [...already, contributor];
-    const status = verifiedBy.length >= confirmationsNeededFor(ev.contributor) ? 'verified' : 'pending';
+    const verifiedBy = [...already, { name: contributor, affiliation_disclosed: affiliationDisclosed }];
+
+    // For affiliated evidence: count only non-affiliated verifiers
+    // For non-affiliated evidence: count all verifiers (standard threshold)
+    let independentVerifierCount = 0;
+    if (ev.affiliation_disclosed === true) {
+      // CRITICAL: For affiliated evidence, only count non-affiliated verifiers
+      independentVerifierCount = verifiedBy.filter((v) => {
+        if (typeof v === 'string') return true; // Legacy verifiers assumed independent
+        return v.affiliation_disclosed === false;
+      }).length;
+    } else {
+      // Non-affiliated evidence: standard threshold
+      independentVerifierCount = verifiedBy.length;
+    }
+
+    const requiredConfirmations = ev.affiliation_disclosed === true
+      ? 2 // ALWAYS require 2 independent verifiers for affiliated evidence
+      : confirmationsNeededFor(ev.contributor); // Standard threshold for non-affiliated
+
+    const status = independentVerifierCount >= requiredConfirmations ? 'verified' : 'pending';
 
     const { data: updated, error: updateError } = await supabase
       .from('lumen_evidence')

@@ -310,10 +310,19 @@ export default function App() {
   }
 
   async function confirmEvidence(id: string) {
+    // CRITICAL: Ask verifiers to disclose affiliation
+    // Their confirmation won't count toward independent verification threshold if affiliated
+    const affiliationDisclosed = window.confirm(
+      'Before confirming: Are you affiliated with this company (employee, investor, founder, advisor, or competitor)?\n\n' +
+        'Click OK if you ARE affiliated.\n' +
+        'Click Cancel if you are NOT affiliated.\n\n' +
+        '⚠️ Affiliated confirmations do not count toward independent verification.'
+    );
+
     const res = await fetch(`/api/lumen/evidence/${id}/confirm`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contributor }),
+      body: JSON.stringify({ contributor, affiliationDisclosed }),
     });
     const data = await res.json();
     if (data.evidence && activeId) {
@@ -925,7 +934,18 @@ export default function App() {
                         )}
                         {ev.status === 'pending' && (
                           <span style={{ fontSize: '11px', color: '#8B95A1' }}>
-                            pending · {(ev.verified_by || []).length}/{confirmationsNeededFor(ev.contributor)} confirmations
+                            pending ·{' '}
+                            {ev.affiliation_disclosed
+                              ? (() => {
+                                  // For affiliated evidence: count only non-affiliated verifiers
+                                  const verifiers = ev.verified_by || [];
+                                  const independentCount = verifiers.filter((v: any) => {
+                                    if (typeof v === 'string') return true; // Legacy verifiers assumed independent
+                                    return v.affiliation_disclosed === false;
+                                  }).length;
+                                  return `${independentCount}/2 independent confirmations`;
+                                })()
+                              : `${(ev.verified_by || []).length}/${confirmationsNeededFor(ev.contributor)} confirmations`}
                           </span>
                         )}
                         {ev.status === 'disputed' && (
@@ -988,13 +1008,17 @@ export default function App() {
                           {ev.status === 'pending' && (
                             <button
                               onClick={() => confirmEvidence(ev.id)}
-                              disabled={ev.contributor === contributor || (ev.verified_by || []).includes(contributor)}
+                              disabled={
+                                ev.contributor === contributor ||
+                                (ev.verified_by || []).some((v: any) => (typeof v === 'string' ? v === contributor : v.name === contributor))
+                              }
                               title={ev.contributor === contributor ? "You can't confirm your own submission" : undefined}
                               style={{
                                 background: 'none',
                                 border: 'none',
                                 color:
-                                  ev.contributor === contributor || (ev.verified_by || []).includes(contributor)
+                                  ev.contributor === contributor ||
+                                  (ev.verified_by || []).some((v: any) => (typeof v === 'string' ? v === contributor : v.name === contributor))
                                     ? '#3A4048'
                                     : '#3FBF7F',
                                 fontSize: '11px',
@@ -1002,7 +1026,9 @@ export default function App() {
                                 padding: 0,
                               }}
                             >
-                              {(ev.verified_by || []).includes(contributor) ? 'You confirmed this' : 'Confirm this'}
+                              {(ev.verified_by || []).some((v: any) => (typeof v === 'string' ? v === contributor : v.name === contributor))
+                                ? 'You confirmed this'
+                                : 'Confirm this'}
                             </button>
                           )}
                           {ev.status === 'disputed' && (
