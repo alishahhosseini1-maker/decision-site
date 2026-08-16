@@ -8,6 +8,7 @@ type ResearchItem = {
   sourceLabel: string;
   sourceType: string;
   date: string;
+  citationUrl: string; // REQUIRED for AI research - URL to source for fact-checking
 };
 
 const CLASSIFIABLE_SOURCE_TYPES = Object.keys(CONFIDENCE_MAP).filter((t) => t !== AI_RESEARCH_SOURCE_TYPE);
