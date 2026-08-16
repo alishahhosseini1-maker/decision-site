@@ -10,13 +10,19 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
+    console.log('[valuation-history] Querying for company_id:', params.id);
+
     const { data: history, error } = await supabase
       .from('lumen_valuation_history')
       .select('*')
       .eq('company_id', params.id)
       .order('date', { ascending: true });
 
-    if (error) throw error;
+    console.log('[valuation-history] Query returned:', history?.length || 0, 'rows');
+    if (error) {
+      console.error('[valuation-history] Query error:', error);
+      throw error;
+    }
 
     // Group by date to handle multiple valuations on same day
     // (e.g., last_round and secondary on same date)
@@ -45,7 +51,15 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       a.date.localeCompare(b.date)
     );
 
-    return NextResponse.json({ history: timeline });
+    // Debug: include company_id in response to verify it's correct
+    return NextResponse.json({
+      history: timeline,
+      debug: {
+        company_id: params.id,
+        raw_count: history?.length || 0,
+        grouped_count: timeline.length
+      }
+    });
   } catch (err: any) {
     console.error('[lumen/valuation-history] error:', err);
     return NextResponse.json({ error: 'Failed to fetch valuation history' }, { status: 500 });
