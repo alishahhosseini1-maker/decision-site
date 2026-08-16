@@ -1,0 +1,212 @@
+[
+  {
+    "name": "ByteDance",
+    "symbol": "BYTE",
+    "sector": "Social Media / Content",
+    "estimated_value": 225,
+    "source": "CB Insights 2024"
+  },
+  {
+    "name": "SpaceX",
+    "symbol": "SPCX",
+    "sector": "Aerospace",
+    "estimated_value": 350,
+    "source": "Public reports"
+  },
+  {
+    "name": "OpenAI",
+    "symbol": "OPENAI",
+    "sector": "Artificial Intelligence",
+    "estimated_value": 157,
+    "source": "Public reports"
+  },
+  {
+    "name": "Stripe",
+    "symbol": "STRP",
+    "sector": "Fintech / Payments",
+    "estimated_value": 95,
+    "source": "CB Insights 2024"
+  },
+  {
+    "name": "Shein",
+    "symbol": "SHEIN",
+    "sector": "E-commerce / Fashion",
+    "estimated_value": 66,
+    "source": "Public reports"
+  },
+  {
+    "name": "Databricks",
+    "symbol": "DATA",
+    "sector": "Data / AI Infrastructure",
+    "estimated_value": 62,
+    "source": "CB Insights 2024"
+  },
+  {
+    "name": "Anthropic",
+    "symbol": "ANTH",
+    "sector": "Artificial Intelligence",
+    "estimated_value": 183,
+    "source": "Public reports"
+  },
+  {
+    "name": "Canva",
+    "symbol": "CANV",
+    "sector": "Design Software",
+    "estimated_value": 40,
+    "source": "CB Insights 2024"
+  },
+  {
+    "name": "Klarna",
+    "symbol": "KLRN",
+    "sector": "Fintech / BNPL",
+    "estimated_value": 46,
+    "source": "Public reports"
+  },
+  {
+    "name": "Epic Games",
+    "symbol": "EPIC",
+    "sector": "Gaming",
+    "estimated_value": 32,
+    "source": "Public reports"
+  },
+  {
+    "name": "Revolut",
+    "symbol": "RVLT",
+    "sector": "Fintech / Banking",
+    "estimated_value": 45,
+    "source": "CB Insights 2024"
+  },
+  {
+    "name": "Chime",
+    "symbol": "CHIM",
+    "sector": "Fintech / Banking",
+    "estimated_value": 25,
+    "source": "Public reports"
+  },
+  {
+    "name": "Plaid",
+    "symbol": "PLAID",
+    "sector": "Fintech / Infrastructure",
+    "estimated_value": 13.4,
+    "source": "CB Insights 2024"
+  },
+  {
+    "name": "Notion",
+    "symbol": "NTION",
+    "sector": "Productivity Software",
+    "estimated_value": 10,
+    "source": "Public reports"
+  },
+  {
+    "name": "Discord",
+    "symbol": "DSCRD",
+    "sector": "Social / Communication",
+    "estimated_value": 15,
+    "source": "Public reports"
+  },
+  {
+    "name": "Figma",
+    "symbol": "FIGM",
+    "sector": "Design Software",
+    "estimated_value": 20,
+    "source": "Adobe acquisition attempt"
+  },
+  {
+    "name": "Instacart",
+    "symbol": "INST",
+    "sector": "E-commerce / Delivery",
+    "estimated_value": 24,
+    "source": "Public reports"
+  },
+  {
+    "name": "Fanatics",
+    "symbol": "FNTC",
+    "sector": "Sports Commerce",
+    "estimated_value": 31,
+    "source": "CB Insights 2024"
+  },
+  {
+    "name": "Airtable",
+    "symbol": "AIRTBL",
+    "sector": "Productivity / Database",
+    "estimated_value": 11,
+    "source": "Public reports"
+  },
+  {
+    "name": "Gusto",
+    "symbol": "GSTO",
+    "sector": "HR / Payroll Software",
+    "estimated_value": 10,
+    "source": "Public reports"
+  },
+  {
+    "name": "Reddit",
+    "symbol": "RDDT",
+    "sector": "Social Media",
+    "estimated_value": 15,
+    "source": "IPO filing 2024"
+  },
+  {
+    "name": "Gitlab",
+    "symbol": "GTLB",
+    "sector": "DevTools / CI/CD",
+    "estimated_value": 14,
+    "source": "Public company"
+  },
+  {
+    "name": "Flexport",
+    "symbol": "FLXP",
+    "sector": "Logistics / Supply Chain",
+    "estimated_value": 8,
+    "source": "Public reports"
+  },
+  {
+    "name": "Anduril",
+    "symbol": "ANDRL",
+    "sector": "Defense Technology",
+    "estimated_value": 14,
+    "source": "Public reports"
+  },
+  {
+    "name": "Celonis",
+    "symbol": "CELO",
+    "sector": "Enterprise Software",
+    "estimated_value": 13,
+    "source": "CB Insights 2024"
+  },
+  {
+    "name": "UiPath",
+    "symbol": "PATH",
+    "sector": "RPA / Automation",
+    "estimated_value": 7,
+    "source": "Public company"
+  },
+  {
+    "name": "ServiceTitan",
+    "symbol": "SRVC",
+    "sector": "Field Service Software",
+    "estimated_value": 9.5,
+    "source": "Public reports"
+  },
+  {
+    "name": "Brex",
+    "symbol": "BREX",
+    "sector": "Fintech / Corporate Cards",
+    "estimated_value": 12.3,
+    "source": "CB Insights 2024"
+  },
+  {
+    "name": "Navan",
+    "symbol": "NVFN",
+    "sector": "Travel / Expense Management",
+    "estimated_value": 9.2,
+    "source": "Public reports"
+  },
+  {
+    "name": "Rippling",
+    "symbol": "RPPL",
+    "sector": "HR / IT Management",
+    "estimated_value": 13.5,
+    "source": "CB Insights 2024"
+  }
+]
