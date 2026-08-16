@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { pickMostCredible } from '@/app/lib/valuation';
 
 export const runtime = 'nodejs';
 
@@ -56,20 +55,15 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
       const best = sorted[0];
 
-      // Extract funding amount from description if present
-      // Look for patterns like "$110B", "$40 billion", etc.
-      let fundingAmount: string | null = null;
-      const amountMatch = best.description.match(/\$[\d.]+\s*(?:billion|B|million|M)/i);
-      if (amountMatch) {
-        fundingAmount = amountMatch[0];
-      }
+      // Parse valuation from evidence.value field (which is stored in billions as a string)
+      const valuationBillions = best.value ? parseFloat(best.value) : 0;
 
       return {
         id: best.id,
         date: best.date,
-        value: parseValuationFromEvidence(best),
+        value: valuationBillions, // Valuation in billions
         round_type: best.round_type,
-        funding_amount: best.value || fundingAmount, // Use evidence.value if set, otherwise parse
+        funding_amount: best.value ? `$${best.value}B` : null, // Display format
         source_label: best.source_label,
         description: best.description,
         status: best.status,
@@ -87,27 +81,3 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-/**
- * Extracts valuation in billions from evidence.
- * Tries: description mentions, value field.
- */
-function parseValuationFromEvidence(evidence: any): number {
-  // Look for valuation mentions in description
-  // Patterns: "at a $852 billion valuation", "valued at $300B", etc.
-  const desc = evidence.description || '';
-
-  // Try to find "valued at $X billion" or "valuation of $X billion"
-  const valuationMatch = desc.match(/valuation.*?\$?([\d.]+)\s*(?:billion|B)/i);
-  if (valuationMatch) {
-    return parseFloat(valuationMatch[1]);
-  }
-
-  // Try "at $X billion" or "at a $X billion valuation"
-  const atMatch = desc.match(/at.*?\$?([\d.]+)\s*(?:billion|B)/i);
-  if (atMatch) {
-    return parseFloat(atMatch[1]);
-  }
-
-  // Fallback: return 0 (will need to be handled in UI)
-  return 0;
-}

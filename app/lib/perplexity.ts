@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { AI_RESEARCH_CONTRIBUTOR, AI_RESEARCH_SOURCE_TYPE, CATEGORIES, CONFIDENCE_MAP } from './lumen';
+import { parseValuationFromText, parseRoundTypeFromText } from './valuationParser';
 
 type ResearchItem = {
   category: string;
@@ -86,20 +87,39 @@ Return at most 6 items. If you find nothing verifiable with citation URLs, retur
         return true;
       })
       .slice(0, 6)
-      .map((item) => ({
-        company_id: company.id,
-        category: CATEGORIES.includes(item.category) ? item.category : CATEGORIES[0],
-        description: String(item.description).trim(),
-        value: item.value ? String(item.value).trim() : null,
-        source_type: Object.keys(CONFIDENCE_MAP).includes(item.sourceType) ? item.sourceType : AI_RESEARCH_SOURCE_TYPE,
-        source_label: String(item.sourceLabel).trim(),
-        date: /^\d{4}-\d{2}-\d{2}$/.test(item.date) ? item.date : today,
-        contributor: AI_RESEARCH_CONTRIBUTOR,
-        status: 'pending' as const,
-        verified_by: [] as string[],
-        citation_url: String(item.citationUrl).trim(), // REQUIRED for AI research
-        affiliation_disclosed: false, // AI research is never affiliated
-      }));
+      .map((item) => {
+        const category = CATEGORIES.includes(item.category) ? item.category : CATEGORIES[0];
+        const description = String(item.description).trim();
+        let value = item.value ? String(item.value).trim() : null;
+        let roundType = null;
+
+        // Auto-extract valuation and round type for Funding evidence
+        if (category === 'Funding') {
+          if (!value) {
+            const parsedValue = parseValuationFromText(description);
+            if (parsedValue !== null) {
+              value = parsedValue.toString();
+            }
+          }
+          roundType = parseRoundTypeFromText(description);
+        }
+
+        return {
+          company_id: company.id,
+          category,
+          description,
+          value,
+          round_type: roundType,
+          source_type: Object.keys(CONFIDENCE_MAP).includes(item.sourceType) ? item.sourceType : AI_RESEARCH_SOURCE_TYPE,
+          source_label: String(item.sourceLabel).trim(),
+          date: /^\d{4}-\d{2}-\d{2}$/.test(item.date) ? item.date : today,
+          contributor: AI_RESEARCH_CONTRIBUTOR,
+          status: 'pending' as const,
+          verified_by: [] as string[],
+          citation_url: String(item.citationUrl).trim(), // REQUIRED for AI research
+          affiliation_disclosed: false, // AI research is never affiliated
+        };
+      });
 
     if (rows.length === 0) return [];
 

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { CATEGORIES, MANUAL_SOURCE_TYPES } from '@/app/lib/lumen';
+import { parseValuationFromText, parseRoundTypeFromText } from '@/app/lib/valuationParser';
 
 export const runtime = 'nodejs';
 
@@ -9,13 +10,27 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const body = await req.json();
     const category = CATEGORIES.includes(body.category) ? body.category : CATEGORIES[0];
     const description = (body.description || '').trim();
-    const value = (body.value || '').trim() || null;
+    let value = (body.value || '').trim() || null;
     const sourceType = MANUAL_SOURCE_TYPES.includes(body.sourceType) ? body.sourceType : MANUAL_SOURCE_TYPES[0];
     const sourceLabel = (body.sourceLabel || '').trim();
     const date = (body.date || '').trim();
     const contributor = (body.contributor || 'anonymous').trim();
     const affiliationDisclosed = Boolean(body.affiliationDisclosed);
     const affiliationType = affiliationDisclosed ? (body.affiliationType || '').trim() || null : null;
+
+    // Auto-extract valuation for Funding evidence if not provided
+    let roundType = body.roundType || null;
+    if (category === 'Funding') {
+      if (!value) {
+        const parsedValue = parseValuationFromText(description);
+        if (parsedValue !== null) {
+          value = parsedValue.toString();
+        }
+      }
+      if (!roundType) {
+        roundType = parseRoundTypeFromText(description);
+      }
+    }
 
     if (!description || !sourceLabel || !date) {
       return NextResponse.json({ error: 'Description, source, and date are required.' }, { status: 400 });
@@ -33,6 +48,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         category,
         description,
         value,
+        round_type: roundType, // Auto-extracted for Funding evidence
         source_type: sourceType,
         source_label: sourceLabel,
         date,
