@@ -628,6 +628,57 @@ export default function App() {
               accent
             />
           </div>
+
+          {/* Delta/Trend Banner */}
+          {(() => {
+            const deltas: string[] = [];
+            const currentVal = company.secondary_value || company.last_round_value;
+
+            // Last round → Current
+            if (company.last_round_value && company.secondary_value && company.last_round_value !== company.secondary_value) {
+              const pct = ((company.secondary_value - company.last_round_value) / company.last_round_value) * 100;
+              deltas.push(`${pct > 0 ? '+' : ''}${pct.toFixed(0)}% from last round`);
+            }
+
+            // vs Peer average (from cached comps)
+            if (cachedComps && cachedComps.private.length > 0 && cachedComps.target.multiple !== null) {
+              const peerMultiples = cachedComps.private
+                .map((c: any) => c.comp_revenue_multiple)
+                .filter((m: any): m is number => m !== null);
+
+              if (peerMultiples.length > 0) {
+                const peerAvg = peerMultiples.reduce((a: number, b: number) => a + b, 0) / peerMultiples.length;
+                const delta = ((cachedComps.target.multiple - peerAvg) / peerAvg) * 100;
+                deltas.push(`${delta > 0 ? '+' : ''}${delta.toFixed(0)}% vs peers`);
+              }
+            }
+
+            if (deltas.length === 0) return null;
+
+            return (
+              <div
+                style={{
+                  marginTop: '16px',
+                  padding: '12px 16px',
+                  background: 'linear-gradient(90deg, rgba(201,162,39,0.08) 0%, rgba(201,162,39,0.02) 100%)',
+                  border: '1px solid rgba(201,162,39,0.2)',
+                  borderRadius: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '16px',
+                  fontSize: '13px',
+                }}
+              >
+                <span style={{ color: '#C9A227', fontWeight: 600 }}>{fmtB(currentVal)}</span>
+                {deltas.map((d, i) => (
+                  <span key={i} style={{ color: '#E8EAED' }}>
+                    {i > 0 && <span style={{ color: '#5A6470', margin: '0 8px' }}>|</span>}
+                    {d}
+                  </span>
+                ))}
+              </div>
+            );
+          })()}
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '20px', alignItems: 'start' }}>
@@ -1017,6 +1068,41 @@ export default function App() {
                 </h3>
                 <div style={{ fontSize: '12px', color: '#8B95A1' }}>
                   Comps will be computed automatically during the next daily refresh cycle.
+                </div>
+              </div>
+            )}
+
+            {/* Public Market Context (Secondary) */}
+            {cachedComps && cachedComps.public && cachedComps.public.length > 0 && (
+              <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '12px', background: '#0A0F14' }}>
+                <h4 className="display" style={{ fontSize: '12px', fontWeight: 600, margin: '0 0 8px 0', color: '#8B95A1' }}>
+                  Market Context
+                </h4>
+                <div style={{ fontSize: '11px', color: '#8B95A1', lineHeight: '1.5' }}>
+                  {(() => {
+                    const publicMultiples = cachedComps.public
+                      .map((c: any) => c.comp_revenue_multiple)
+                      .filter((m: any): m is number => m !== null);
+
+                    if (publicMultiples.length === 0 || !cachedComps.target.multiple) {
+                      return 'Public company comps will be computed during the next refresh.';
+                    }
+
+                    const publicAvg = publicMultiples.reduce((a: number, b: number) => a + b, 0) / publicMultiples.length;
+                    const premium = ((cachedComps.target.multiple - publicAvg) / publicAvg) * 100;
+
+                    return (
+                      <>
+                        Public {cachedComps.target.sector || 'sector'} companies trade at{' '}
+                        <span style={{ color: '#E8EAED', fontWeight: 500 }}>{publicAvg.toFixed(1)}x</span> revenue.{' '}
+                        {cachedComps.target.name} implies a{' '}
+                        <span style={{ color: premium > 0 ? '#3FBF7F' : '#E5484D', fontWeight: 500 }}>
+                          {premium > 0 ? '+' : ''}{premium.toFixed(0)}%
+                        </span>
+                        {' '}{premium > 0 ? 'premium' : 'discount'} to public markets.
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             )}
