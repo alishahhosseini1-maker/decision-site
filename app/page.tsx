@@ -113,6 +113,7 @@ export default function App() {
   const [loadingComps, setLoadingComps] = useState(false);
   const [compsError, setCompsError] = useState<string | null>(null);
   const [whyOpen, setWhyOpen] = useState(false);
+  const [methodologyOpen, setMethodologyOpen] = useState(false);
 
   // Cached comps (private + public) loaded automatically
   const [cachedComps, setCachedComps] = useState<{
@@ -696,7 +697,143 @@ export default function App() {
           })()}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '20px', alignItems: 'start' }}>
+        {/* Methodology Section */}
+        {valuation && (
+          <div style={{ marginTop: '16px', border: '1px solid #1F2833', borderRadius: '6px', overflow: 'hidden' }}>
+            <button
+              onClick={() => setMethodologyOpen(!methodologyOpen)}
+              style={{
+                width: '100%',
+                background: methodologyOpen ? '#0F1419' : 'transparent',
+                border: 'none',
+                padding: '12px 14px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                cursor: 'pointer',
+                color: '#E8EAED',
+                fontSize: '13px',
+                fontWeight: 500,
+              }}
+            >
+              <span>How we calculated this</span>
+              <ChevronDown
+                size={16}
+                style={{
+                  transform: methodologyOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition: 'transform 0.2s',
+                  color: '#8B95A1',
+                }}
+              />
+            </button>
+
+            {methodologyOpen && (
+              <div style={{ padding: '14px', paddingTop: '0', fontSize: '12px', color: '#B5BDC6', lineHeight: '1.6' }}>
+                {/* Evidence Used */}
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ fontWeight: 600, color: '#E8EAED', marginBottom: '8px' }}>Evidence Used</div>
+                  {(() => {
+                    const verified = evidence.filter((e) => e.status === 'verified');
+                    const pending = evidence.filter((e) => e.status === 'pending' && e.contributor === 'perplexity-research');
+                    const affiliated = evidence.filter((e) => e.affiliation_disclosed === true);
+                    const total = verified.length + pending.length;
+
+                    return (
+                      <div style={{ fontSize: '11px' }}>
+                        <div>• <strong>{verified.length}</strong> verified items (community-confirmed)</div>
+                        <div>• <strong>{pending.length}</strong> pending AI research items (awaiting review)</div>
+                        {affiliated.length > 0 && (
+                          <div style={{ color: '#E5484D' }}>
+                            • <strong>{affiliated.length}</strong> affiliated submissions (require 2+ independent confirmations)
+                          </div>
+                        )}
+                        <div style={{ marginTop: '6px', color: '#8B95A1' }}>
+                          Total: <strong>{total}</strong> items factored into valuation
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* Credibility Tiers */}
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ fontWeight: 600, color: '#E8EAED', marginBottom: '8px' }}>Credibility Ranking</div>
+                  <div style={{ fontSize: '11px' }}>
+                    Evidence is ranked by source credibility:
+                    <ul style={{ margin: '6px 0', paddingLeft: '20px', color: '#8B95A1' }}>
+                      <li><strong style={{ color: '#B5BDC6' }}>Verified Transaction</strong> (90%) – actual secondary market trades</li>
+                      <li><strong style={{ color: '#B5BDC6' }}>SEC / Government Filing</strong> (85%) – official regulatory filings</li>
+                      <li><strong style={{ color: '#B5BDC6' }}>Investor Document</strong> (80%) – investor memos, board materials</li>
+                      <li><strong style={{ color: '#B5BDC6' }}>Reputable Publication</strong> (75%) – major news outlets (WSJ, Bloomberg, Reuters)</li>
+                      <li><strong style={{ color: '#B5BDC6' }}>Company Announcement</strong> (70%) – official press releases, blog posts</li>
+                      <li><strong style={{ color: '#B5BDC6' }}>Industry Research</strong> (65%) – PitchBook, Crunchbase, analyst reports</li>
+                      <li><strong style={{ color: '#B5BDC6' }}>AI Research</strong> (50%) – Perplexity-sourced findings (lowest tier)</li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Corroboration */}
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ fontWeight: 600, color: '#E8EAED', marginBottom: '8px' }}>Corroboration Logic</div>
+                  <div style={{ fontSize: '11px' }}>
+                    More recent evidence is preferred <strong>if</strong> it's corroborated by multiple independent sources:
+                    <ul style={{ margin: '6px 0', paddingLeft: '20px', color: '#8B95A1' }}>
+                      <li>At least <strong style={{ color: '#B5BDC6' }}>2 distinct sources</strong> reporting similar figures</li>
+                      <li>At least one source with <strong style={{ color: '#B5BDC6' }}>≥65% credibility</strong></li>
+                      <li>Values within <strong style={{ color: '#B5BDC6' }}>±10%</strong> of each other</li>
+                    </ul>
+                    If recent evidence isn't corroborated, the most credible single source wins.
+                  </div>
+                </div>
+
+                {/* Contributor Weighting */}
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ fontWeight: 600, color: '#E8EAED', marginBottom: '8px' }}>Contributor Track Records</div>
+                  <div style={{ fontSize: '11px', color: '#8B95A1' }}>
+                    Verified evidence is weighted by the confirming contributors' historical accuracy. Contributors with a strong track record
+                    (high verification rate, low dispute rate) increase confidence in the evidence they confirm.
+                  </div>
+                </div>
+
+                {/* COI Enforcement */}
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ fontWeight: 600, color: '#E8EAED', marginBottom: '8px' }}>Conflict of Interest Protection</div>
+                  <div style={{ fontSize: '11px' }}>
+                    Affiliated evidence (submitted by employees, investors, founders, etc.) is <strong style={{ color: '#E5484D' }}>blocked from valuations</strong> until:
+                    <ul style={{ margin: '6px 0', paddingLeft: '20px', color: '#8B95A1' }}>
+                      <li>At least <strong style={{ color: '#B5BDC6' }}>2 non-affiliated contributors</strong> verify it</li>
+                      <li>The original submitter <strong style={{ color: '#B5BDC6' }}>cannot verify their own</strong> evidence</li>
+                      <li>Affiliated verifiers <strong style={{ color: '#B5BDC6' }}>don't count</strong> toward the threshold</li>
+                    </ul>
+                    This prevents self-dealing while allowing insider information that's independently corroborated.
+                  </div>
+                </div>
+
+                {/* AI Reasoning */}
+                {valuation.explanation && (
+                  <div>
+                    <div style={{ fontWeight: 600, color: '#E8EAED', marginBottom: '8px' }}>AI Valuation Reasoning</div>
+                    <div
+                      style={{
+                        fontSize: '11px',
+                        color: '#8B95A1',
+                        background: '#0A0F14',
+                        padding: '10px',
+                        borderRadius: '4px',
+                        border: '1px solid #1F2833',
+                        whiteSpace: 'pre-wrap',
+                      }}
+                    >
+                      {valuation.explanation}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '20px', alignItems: 'start', marginTop: '16px' }}>
           {/* Left: evidence ledger */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
