@@ -25,8 +25,8 @@ const supabase = createClient(
   env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// Load seed data
-const seedData = JSON.parse(readFileSync('data/ticker-companies-seed.json', 'utf-8'));
+// Load normalized seed data (with fixed sector taxonomy)
+const seedData = JSON.parse(readFileSync('data/ticker-companies-seed-normalized.json', 'utf-8'));
 
 console.log(`Seeding ${seedData.length} ticker companies...\n`);
 
@@ -57,6 +57,7 @@ for (const company of seedData) {
       name: company.name,
       symbol: company.symbol,
       sector: company.sector,
+      secondary_sectors: company.secondary_sectors || [],
       // Use estimated_value as last_round_value (placeholder until researched)
       last_round_value: company.estimated_value,
       last_round_date: null,

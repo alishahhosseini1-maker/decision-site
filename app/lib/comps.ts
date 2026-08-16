@@ -60,15 +60,22 @@ export async function computePrivatePeers(
   for (const peer of sectorPeers) {
     let similarityScore = 0;
 
-    // Sector match (most important)
+    // Sector matching: primary OR secondary sectors
+    // Direct primary match (strongest signal)
     if (company.sector && peer.sector && company.sector === peer.sector) {
       similarityScore += 60;
-    } else if (company.sector && peer.sector) {
-      // Partial match for related sectors (e.g., "AI" and "Enterprise Software")
-      const sectors = [company.sector.toLowerCase(), peer.sector.toLowerCase()];
-      if (sectors.some(s => s.includes('ai')) && sectors.every(s => s.includes('ai') || s.includes('software'))) {
-        similarityScore += 30;
-      }
+    }
+    // Target's primary matches peer's secondary
+    else if (company.sector && peer.secondary_sectors?.includes(company.sector)) {
+      similarityScore += 50;
+    }
+    // Target's secondary matches peer's primary
+    else if (peer.sector && company.secondary_sectors?.includes(peer.sector)) {
+      similarityScore += 50;
+    }
+    // Target's secondary matches peer's secondary
+    else if (company.secondary_sectors?.some(s => peer.secondary_sectors?.includes(s))) {
+      similarityScore += 40;
     }
 
     // Has valuation data

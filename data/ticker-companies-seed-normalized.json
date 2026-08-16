@@ -1,0 +1,242 @@
+[
+  {
+    "name": "ByteDance",
+    "symbol": "BYTE",
+    "sector": "Social & Communications",
+    "secondary_sectors": [],
+    "estimated_value": 225,
+    "source": "CB Insights 2024"
+  },
+  {
+    "name": "SpaceX",
+    "symbol": "SPCX",
+    "sector": "Aerospace & Defense",
+    "secondary_sectors": [],
+    "estimated_value": 350,
+    "source": "Public reports"
+  },
+  {
+    "name": "OpenAI",
+    "symbol": "OPENAI",
+    "sector": "Artificial Intelligence",
+    "secondary_sectors": [],
+    "estimated_value": 157,
+    "source": "Public reports"
+  },
+  {
+    "name": "Stripe",
+    "symbol": "STRP",
+    "sector": "Fintech",
+    "secondary_sectors": ["Infrastructure & Cloud", "Developer Tools"],
+    "estimated_value": 95,
+    "source": "CB Insights 2024"
+  },
+  {
+    "name": "Shein",
+    "symbol": "SHEIN",
+    "sector": "E-commerce & Marketplace",
+    "secondary_sectors": [],
+    "estimated_value": 66,
+    "source": "Public reports"
+  },
+  {
+    "name": "Databricks",
+    "symbol": "DATA",
+    "sector": "Artificial Intelligence",
+    "secondary_sectors": ["Infrastructure & Cloud", "Enterprise Software"],
+    "estimated_value": 62,
+    "source": "CB Insights 2024"
+  },
+  {
+    "name": "Anthropic",
+    "symbol": "ANTH",
+    "sector": "Artificial Intelligence",
+    "secondary_sectors": [],
+    "estimated_value": 183,
+    "source": "Public reports"
+  },
+  {
+    "name": "Canva",
+    "symbol": "CANV",
+    "sector": "Consumer Apps",
+    "secondary_sectors": ["Enterprise Software"],
+    "estimated_value": 26,
+    "source": "CB Insights 2024"
+  },
+  {
+    "name": "Klarna",
+    "symbol": "KLRN",
+    "sector": "Fintech",
+    "secondary_sectors": [],
+    "estimated_value": 46,
+    "source": "Public reports"
+  },
+  {
+    "name": "Epic Games",
+    "symbol": "EPIC",
+    "sector": "Gaming & Entertainment",
+    "secondary_sectors": [],
+    "estimated_value": 31.5,
+    "source": "Public reports"
+  },
+  {
+    "name": "Revolut",
+    "symbol": "RVLT",
+    "sector": "Fintech",
+    "secondary_sectors": [],
+    "estimated_value": 45,
+    "source": "Public reports"
+  },
+  {
+    "name": "Chime",
+    "symbol": "CHIM",
+    "sector": "Fintech",
+    "secondary_sectors": [],
+    "estimated_value": 25,
+    "source": "CB Insights 2024"
+  },
+  {
+    "name": "Plaid",
+    "symbol": "PLAD",
+    "sector": "Fintech",
+    "secondary_sectors": ["Infrastructure & Cloud", "Developer Tools"],
+    "estimated_value": 13.4,
+    "source": "Public reports"
+  },
+  {
+    "name": "Notion",
+    "symbol": "NOTN",
+    "sector": "Enterprise Software",
+    "secondary_sectors": ["Consumer Apps"],
+    "estimated_value": 10,
+    "source": "Public reports"
+  },
+  {
+    "name": "Discord",
+    "symbol": "DISC",
+    "sector": "Social & Communications",
+    "secondary_sectors": [],
+    "estimated_value": 15,
+    "source": "Public reports"
+  },
+  {
+    "name": "Figma",
+    "symbol": "FIGM",
+    "sector": "Enterprise Software",
+    "secondary_sectors": ["Consumer Apps"],
+    "estimated_value": 20,
+    "source": "Adobe acquisition attempt"
+  },
+  {
+    "name": "Instacart",
+    "symbol": "INST",
+    "sector": "E-commerce & Marketplace",
+    "secondary_sectors": [],
+    "estimated_value": 24,
+    "source": "Public reports"
+  },
+  {
+    "name": "Fanatics",
+    "symbol": "FNTC",
+    "sector": "E-commerce & Marketplace",
+    "secondary_sectors": [],
+    "estimated_value": 31,
+    "source": "Public reports"
+  },
+  {
+    "name": "Airtable",
+    "symbol": "ARTB",
+    "sector": "Enterprise Software",
+    "secondary_sectors": [],
+    "estimated_value": 11,
+    "source": "CB Insights 2024"
+  },
+  {
+    "name": "Gusto",
+    "symbol": "GSTO",
+    "sector": "Enterprise Software",
+    "secondary_sectors": [],
+    "estimated_value": 9.6,
+    "source": "Public reports"
+  },
+  {
+    "name": "Reddit",
+    "symbol": "RDDT",
+    "sector": "Social & Communications",
+    "secondary_sectors": [],
+    "estimated_value": 10,
+    "source": "Pre-IPO (went public 2024)"
+  },
+  {
+    "name": "GitLab",
+    "symbol": "GTLB",
+    "sector": "Developer Tools",
+    "secondary_sectors": ["Enterprise Software"],
+    "estimated_value": 6,
+    "source": "Public reports"
+  },
+  {
+    "name": "Flexport",
+    "symbol": "FLXP",
+    "sector": "E-commerce & Marketplace",
+    "secondary_sectors": ["Enterprise Software"],
+    "estimated_value": 8,
+    "source": "Public reports"
+  },
+  {
+    "name": "Anduril",
+    "symbol": "ANDR",
+    "sector": "Aerospace & Defense",
+    "secondary_sectors": ["Hardware & Manufacturing"],
+    "estimated_value": 14,
+    "source": "Public reports"
+  },
+  {
+    "name": "Celonis",
+    "symbol": "CELN",
+    "sector": "Enterprise Software",
+    "secondary_sectors": [],
+    "estimated_value": 13,
+    "source": "Public reports"
+  },
+  {
+    "name": "UiPath",
+    "symbol": "UIPT",
+    "sector": "Enterprise Software",
+    "secondary_sectors": [],
+    "estimated_value": 10.2,
+    "source": "Post-IPO valuation"
+  },
+  {
+    "name": "ServiceTitan",
+    "symbol": "SRVT",
+    "sector": "Enterprise Software",
+    "secondary_sectors": [],
+    "estimated_value": 18,
+    "source": "Public reports"
+  },
+  {
+    "name": "Brex",
+    "symbol": "BREX",
+    "sector": "Fintech",
+    "secondary_sectors": ["Enterprise Software"],
+    "estimated_value": 12.3,
+    "source": "Public reports"
+  },
+  {
+    "name": "Navan",
+    "symbol": "NAVN",
+    "sector": "Enterprise Software",
+    "secondary_sectors": [],
+    "estimated_value": 9.2,
+    "source": "Public reports"
+  },
+  {
+    "name": "Rippling",
+    "symbol": "RPPL",
+    "sector": "Enterprise Software",
+    "secondary_sectors": [],
+    "estimated_value": 13.5,
+    "source": "Public reports"
+  }
+]

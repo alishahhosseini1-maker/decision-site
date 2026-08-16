@@ -1,3 +1,23 @@
+// Fixed sector taxonomy to prevent fragmentation
+export const SECTORS = [
+  'Artificial Intelligence',
+  'Enterprise Software',
+  'Fintech',
+  'Healthcare Tech',
+  'Developer Tools',
+  'E-commerce & Marketplace',
+  'Infrastructure & Cloud',
+  'Social & Communications',
+  'Hardware & Manufacturing',
+  'Cybersecurity',
+  'Aerospace & Defense',
+  'Gaming & Entertainment',
+  'Consumer Apps',
+  'Energy & Climate Tech',
+] as const;
+
+export type Sector = typeof SECTORS[number];
+
 export const CONFIDENCE_MAP: Record<string, number> = {
   'SEC / Government Filing': 100,
   'Company Announcement': 95,
@@ -88,7 +108,8 @@ export type Company = {
   slug: string;
   name: string;
   symbol: string;
-  sector: string | null;
+  sector: string | null; // Primary sector
+  secondary_sectors: string[]; // Optional secondary sectors (e.g., ['Infrastructure & Cloud', 'Developer Tools'])
   last_round_value: number | null;
   last_round_raised: number | null;
   last_round_date: string | null;
