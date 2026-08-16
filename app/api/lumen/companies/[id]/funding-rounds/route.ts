@@ -122,7 +122,15 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     // Sort by date
     rounds.sort((a, b) => a.date.localeCompare(b.date));
 
-    return NextResponse.json({ rounds });
+    return NextResponse.json({
+      rounds,
+      debug: {
+        companyId,
+        totalFundingEvidence: allFundingEvidence?.length || 0,
+        filteredToCompany: fundingEvidence.length,
+        roundsReturned: rounds.length
+      }
+    });
   } catch (err: any) {
     console.error('[lumen/funding-rounds] error:', err);
     return NextResponse.json({ error: 'Failed to fetch funding rounds' }, { status: 500 });
