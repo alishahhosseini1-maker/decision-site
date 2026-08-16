@@ -11,15 +11,21 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     );
 
     // Look up company by slug to get UUID
+    console.log('[funding-rounds] Looking up company by slug:', params.id);
     const { data: company, error: companyError } = await supabase
       .from('lumen_companies')
       .select('id')
       .eq('slug', params.id)
       .single();
 
+    console.log('[funding-rounds] Company lookup result:', { company, error: companyError });
+
     if (companyError || !company) {
+      console.log('[funding-rounds] Company not found, returning empty');
       return NextResponse.json({ rounds: [] });
     }
+
+    console.log('[funding-rounds] Found company UUID:', company.id);
 
     // Fetch all Funding evidence for this company
     const { data: allFundingEvidence, error } = await supabase
@@ -31,9 +37,12 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     if (error) throw error;
 
     // Filter to this company using the UUID
+    console.log('[funding-rounds] Total Funding evidence:', allFundingEvidence?.length || 0);
     const fundingEvidence = (allFundingEvidence || []).filter(e => e.company_id === company.id);
+    console.log('[funding-rounds] Filtered to company:', fundingEvidence.length);
 
     if (fundingEvidence.length === 0) {
+      console.log('[funding-rounds] No evidence found for this company');
       return NextResponse.json({ rounds: [] });
     }
 
