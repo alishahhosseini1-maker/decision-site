@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 export const runtime = 'nodejs';
+// RLS disabled 2026-08-16 - force redeploy
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
