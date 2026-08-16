@@ -10,6 +10,17 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
+    // Look up company by slug to get UUID
+    const { data: company, error: companyError } = await supabase
+      .from('lumen_companies')
+      .select('id')
+      .eq('slug', params.id)
+      .single();
+
+    if (companyError || !company) {
+      return NextResponse.json({ rounds: [] });
+    }
+
     // Fetch all Funding evidence for this company
     const { data: allFundingEvidence, error } = await supabase
       .from('lumen_evidence')
@@ -19,8 +30,8 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
     if (error) throw error;
 
-    // Filter to this company in JS (workaround for .eq() bug)
-    const fundingEvidence = (allFundingEvidence || []).filter(e => e.company_id === params.id);
+    // Filter to this company using the UUID
+    const fundingEvidence = (allFundingEvidence || []).filter(e => e.company_id === company.id);
 
     if (fundingEvidence.length === 0) {
       return NextResponse.json({ rounds: [] });
