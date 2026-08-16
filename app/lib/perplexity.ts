@@ -36,15 +36,18 @@ export async function researchCompanyEvidence(
     const today = new Date().toISOString().slice(0, 10);
     const prompt = `Research recent, verifiable developments about ${company.name} (${company.sector || 'unknown sector'}) relevant to a private-market valuation: funding rounds, revenue, contracts, secondary-market transactions, headcount changes, customer retention, or comparable company moves.
 
-CRITICAL FOR FUNDING ROUNDS: Use Crunchbase as the primary source. For each funding round, cite the Crunchbase company page and extract:
+CRITICAL FOR FUNDING ROUNDS: Each individual funding round MUST be categorized as "Funding" (not "Comparable" or any other category). Use Crunchbase as the primary source. For each funding round, create a SEPARATE item with category "Funding" and extract:
 - Date of the funding round (close date)
-- Amount raised (if disclosed)
-- Post-money valuation (if disclosed)
+- Amount raised (if disclosed) - this goes in the description as "raised $XB"
+- Post-money valuation (if disclosed) - this goes in the description as "at $XB valuation"
 - Round type (Seed, Series A, etc.)
+
+Example correct format for a funding round:
+{"category": "Funding", "description": "OpenAI raised $6.6B at a $157B post-money valuation in October 2024", "value": null, "sourceLabel": "Crunchbase", "sourceType": "Industry Research", "date": "2024-10-15", "citationUrl": "https://www.crunchbase.com/organization/openai"}
 
 For funding data, ONLY cite Crunchbase unless Crunchbase does not have the information. If Crunchbase lacks data, you may cite SEC filings, Bloomberg, or Reuters as backup sources.
 
-For non-funding items (revenue, contracts, etc.), use any verifiable source.
+For non-funding items (revenue, contracts, comparables, etc.), use any verifiable source and appropriate category.
 
 Respond with ONLY a JSON array, no markdown code fences, no preamble or trailing text, matching exactly this schema:
 [{"category": string, "description": string, "value": string or null, "sourceLabel": string, "sourceType": string, "date": string, "citationUrl": string}]
