@@ -577,7 +577,7 @@ export default function App() {
             }}
           >
             <ValueCell
-              label="Last round"
+              label="Last round valuation"
               sub={
                 company.last_round_date
                   ? company.last_round_confirmed
@@ -588,7 +588,7 @@ export default function App() {
               value={fmtB(company.last_round_value)}
             />
             <ValueCell
-              label="Secondary implied"
+              label="Secondary implied estimated valuation"
               sub={
                 company.secondary_date
                   ? company.secondary_confirmed
