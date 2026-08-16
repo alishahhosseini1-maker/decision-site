@@ -698,18 +698,23 @@ export default function App() {
             </div>
           )}
 
-          {/* Delta/Trend Banner */}
+          {/* Growth Dashboard */}
           {(() => {
-            const deltas: string[] = [];
+            const metrics: Array<{ label: string; value: string; change: number; icon: any }> = [];
             const currentVal = company.secondary_value || company.last_round_value;
 
-            // Last round → Current
+            // Last round → Current growth
             if (company.last_round_value && company.secondary_value && company.last_round_value !== company.secondary_value) {
               const pct = ((company.secondary_value - company.last_round_value) / company.last_round_value) * 100;
-              deltas.push(`${pct > 0 ? '+' : ''}${pct.toFixed(0)}% from last round`);
+              metrics.push({
+                label: 'From Last Round',
+                value: `${pct > 0 ? '+' : ''}${pct.toFixed(0)}%`,
+                change: pct,
+                icon: pct > 0 ? TrendingUp : TrendingDown
+              });
             }
 
-            // vs Peer average (from cached comps)
+            // vs Peer average
             if (cachedComps && cachedComps.private.length > 0 && cachedComps.target.multiple !== null) {
               const peerMultiples = cachedComps.private
                 .map((c: any) => c.comp_revenue_multiple)
@@ -718,33 +723,120 @@ export default function App() {
               if (peerMultiples.length > 0) {
                 const peerAvg = peerMultiples.reduce((a: number, b: number) => a + b, 0) / peerMultiples.length;
                 const delta = ((cachedComps.target.multiple - peerAvg) / peerAvg) * 100;
-                deltas.push(`${delta > 0 ? '+' : ''}${delta.toFixed(0)}% vs peers`);
+                metrics.push({
+                  label: 'vs Peer Average',
+                  value: `${delta > 0 ? '+' : ''}${delta.toFixed(0)}%`,
+                  change: delta,
+                  icon: delta > 0 ? TrendingUp : TrendingDown
+                });
               }
             }
 
-            if (deltas.length === 0) return null;
+            if (metrics.length === 0) return null;
 
             return (
-              <div
-                style={{
-                  marginTop: '16px',
+              <div style={{ marginTop: '20px' }}>
+                {/* Current Valuation Header */}
+                <div style={{
+                  fontSize: '13px',
+                  color: '#8B95A1',
+                  marginBottom: '12px',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em'
+                }}>
+                  Growth Metrics
+                </div>
+
+                {/* Metrics Grid */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: `repeat(${metrics.length}, 1fr)`,
+                  gap: '12px'
+                }}>
+                  {metrics.map((metric, i) => {
+                    const Icon = metric.icon;
+                    const isPositive = metric.change > 0;
+                    const isNegative = metric.change < 0;
+
+                    return (
+                      <div
+                        key={i}
+                        style={{
+                          padding: '16px',
+                          background: isPositive
+                            ? 'linear-gradient(135deg, rgba(63,191,127,0.1) 0%, rgba(63,191,127,0.02) 100%)'
+                            : isNegative
+                            ? 'linear-gradient(135deg, rgba(229,72,77,0.1) 0%, rgba(229,72,77,0.02) 100%)'
+                            : '#0A0F14',
+                          border: `1px solid ${isPositive ? 'rgba(63,191,127,0.3)' : isNegative ? 'rgba(229,72,77,0.3)' : '#1F2833'}`,
+                          borderRadius: '8px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '8px'
+                        }}
+                      >
+                        {/* Label */}
+                        <div style={{
+                          fontSize: '11px',
+                          color: '#8B95A1',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.05em',
+                          fontWeight: 600
+                        }}>
+                          {metric.label}
+                        </div>
+
+                        {/* Value with Icon */}
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}>
+                          <Icon
+                            size={24}
+                            style={{
+                              color: isPositive ? '#3FBF7F' : isNegative ? '#E5484D' : '#8B95A1'
+                            }}
+                          />
+                          <span style={{
+                            fontSize: '28px',
+                            fontWeight: 700,
+                            color: isPositive ? '#3FBF7F' : isNegative ? '#E5484D' : '#E8EAED',
+                            fontFamily: 'monospace'
+                          }}>
+                            {metric.value}
+                          </span>
+                        </div>
+
+                        {/* Context */}
+                        <div style={{
+                          fontSize: '11px',
+                          color: '#5A6470',
+                          marginTop: '4px'
+                        }}>
+                          {isPositive ? '📈 Growth' : isNegative ? '📉 Decline' : '— Flat'}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Current Value Display */}
+                <div style={{
+                  marginTop: '12px',
                   padding: '12px 16px',
                   background: 'linear-gradient(90deg, rgba(201,162,39,0.08) 0%, rgba(201,162,39,0.02) 100%)',
                   border: '1px solid rgba(201,162,39,0.2)',
                   borderRadius: '6px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '16px',
-                  fontSize: '13px',
-                }}
-              >
-                <span style={{ color: '#C9A227', fontWeight: 600 }}>{fmtB(currentVal)}</span>
-                {deltas.map((d, i) => (
-                  <span key={i} style={{ color: '#E8EAED' }}>
-                    {i > 0 && <span style={{ color: '#5A6470', margin: '0 8px' }}>|</span>}
-                    {d}
-                  </span>
-                ))}
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}>
+                  <span style={{ fontSize: '12px', color: '#8B95A1' }}>Current Valuation:</span>
+                  <span style={{ fontSize: '16px', color: '#C9A227', fontWeight: 700 }}>{fmtB(currentVal)}</span>
+                </div>
               </div>
             );
           })()}
