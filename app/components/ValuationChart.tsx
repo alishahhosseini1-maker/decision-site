@@ -4,7 +4,12 @@
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 export function ValuationChart({ data }: { data: any[] }) {
-  if (!data || data.length === 0) return null;
+  console.log('ValuationChart received data:', data, 'length:', data?.length);
+  if (!data || data.length === 0) {
+    console.log('ValuationChart: No data, not rendering');
+    return null;
+  }
+  console.log('ValuationChart: Rendering with', data.length, 'data points');
 
   return (
     <div style={{ marginTop: '16px', border: '1px solid #1F2833', borderRadius: '6px', padding: '16px' }}>
