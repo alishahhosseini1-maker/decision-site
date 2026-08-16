@@ -60,23 +60,12 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       console.log('[funding-rounds] Sample evidence company_id:', allFundingEvidence[0].company_id, 'type:', typeof allFundingEvidence[0].company_id);
     }
 
-    const fundingEvidence = (allFundingEvidence || []).filter(e => {
-      const matches = e.company_id === companyId;
+    // Log ALL company_ids in evidence for debugging
+    if (allFundingEvidence && allFundingEvidence.length > 0) {
+      console.log('[funding-rounds] Company IDs in evidence:', allFundingEvidence.slice(0, 3).map(e => e.company_id));
+    }
 
-      // Log first mismatch with detailed info
-      if (!matches && allFundingEvidence) {
-        const first = allFundingEvidence.find(ev => ev.company_id === companyId);
-        if (!first && allFundingEvidence.length > 0) {
-          console.log('[funding-rounds] Comparison details:');
-          console.log('  Looking for:', JSON.stringify(companyId));
-          console.log('  First evidence:', JSON.stringify(e.company_id));
-          console.log('  Are equal:', e.company_id === companyId);
-          console.log('  Loose equal:', e.company_id == companyId);
-        }
-      }
-
-      return matches;
-    });
+    const fundingEvidence = (allFundingEvidence || []).filter(e => e.company_id === companyId);
     console.log('[funding-rounds] Filtered to company:', fundingEvidence.length);
 
     if (fundingEvidence.length === 0) {
