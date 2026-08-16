@@ -776,13 +776,13 @@ export default function App() {
                 <div style={{ marginBottom: '16px' }}>
                   <div style={{ fontWeight: 600, color: '#E8EAED', marginBottom: '8px' }}>Corroboration Logic</div>
                   <div style={{ fontSize: '11px' }}>
-                    More recent evidence is preferred <strong>if</strong> it's corroborated by multiple independent sources:
+                    More recent evidence is preferred <strong>if</strong> it&apos;s corroborated by multiple independent sources:
                     <ul style={{ margin: '6px 0', paddingLeft: '20px', color: '#8B95A1' }}>
                       <li>At least <strong style={{ color: '#B5BDC6' }}>2 distinct sources</strong> reporting the same event</li>
                       <li>At least one source with <strong style={{ color: '#B5BDC6' }}>≥75% credibility</strong></li>
                       <li>Events reported within <strong style={{ color: '#B5BDC6' }}>45 days</strong> of each other</li>
                     </ul>
-                    If recent evidence isn't corroborated, the most credible single source wins.
+                    If recent evidence isn&apos;t corroborated, the most credible single source wins.
                   </div>
                 </div>
 
@@ -790,7 +790,7 @@ export default function App() {
                 <div style={{ marginBottom: '16px' }}>
                   <div style={{ fontWeight: 600, color: '#E8EAED', marginBottom: '8px' }}>Contributor Track Records</div>
                   <div style={{ fontSize: '11px', color: '#8B95A1' }}>
-                    Verified evidence is weighted by the confirming contributors' historical accuracy. Contributors with a strong track record
+                    Verified evidence is weighted by the confirming contributors&apos; historical accuracy. Contributors with a strong track record
                     (high verification rate, low dispute rate) increase confidence in the evidence they confirm.
                   </div>
                 </div>
@@ -803,9 +803,9 @@ export default function App() {
                     <ul style={{ margin: '6px 0', paddingLeft: '20px', color: '#8B95A1' }}>
                       <li>At least <strong style={{ color: '#B5BDC6' }}>2 non-affiliated contributors</strong> verify it</li>
                       <li>The original submitter <strong style={{ color: '#B5BDC6' }}>cannot verify their own</strong> evidence</li>
-                      <li>Affiliated verifiers <strong style={{ color: '#B5BDC6' }}>don't count</strong> toward the threshold</li>
+                      <li>Affiliated verifiers <strong style={{ color: '#B5BDC6' }}>don&apos;t count</strong> toward the threshold</li>
                     </ul>
-                    This prevents self-dealing while allowing insider information that's independently corroborated.
+                    This prevents self-dealing while allowing insider information that&apos;s independently corroborated.
                   </div>
                 </div>
 
