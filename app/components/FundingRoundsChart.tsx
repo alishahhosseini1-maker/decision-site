@@ -37,14 +37,23 @@ export function FundingRoundsChart({ rounds, companyName }: Props) {
   // Sort by date
   const sortedRounds = [...rounds].sort((a, b) => a.date.localeCompare(b.date));
 
-  // Prepare data for chart
-  const chartData = sortedRounds.map((round) => ({
-    ...round,
-    displayLabel: getRoundLabel(round.round_type, round.funding_amount),
-    dateLabel: new Date(round.date).toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
-    color: getRoundColor(round.round_type),
-    valueBillions: round.value,
-  }));
+  // Prepare data for chart with growth deltas
+  const chartData = sortedRounds.map((round, idx) => {
+    let delta = null;
+    if (idx > 0 && sortedRounds[idx - 1].value > 0 && round.value > 0) {
+      const prevValue = sortedRounds[idx - 1].value;
+      delta = ((round.value - prevValue) / prevValue) * 100;
+    }
+
+    return {
+      ...round,
+      displayLabel: getRoundLabel(round.round_type, round.funding_amount),
+      dateLabel: new Date(round.date).toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
+      color: getRoundColor(round.round_type),
+      valueBillions: round.value,
+      growthPct: delta,
+    };
+  });
 
   return (
     <div style={{ marginTop: '16px', border: '1px solid #1F2833', borderRadius: '6px', padding: '20px', background: '#0A0F14' }}>
@@ -124,7 +133,25 @@ export function FundingRoundsChart({ rounds, companyName }: Props) {
               );
             }}
           />
-          <Bar dataKey="valueBillions" radius={[4, 4, 0, 0]}>
+          <Bar dataKey="valueBillions" radius={[4, 4, 0, 0]} label={(props: any) => {
+            const { x, y, width, index } = props;
+            const data = chartData[index];
+            if (!data.growthPct) return null;
+
+            const isPositive = data.growthPct > 0;
+            return (
+              <text
+                x={x + width / 2}
+                y={y - 8}
+                fill={isPositive ? '#3FBF7F' : '#E5484D'}
+                textAnchor="middle"
+                fontSize="11px"
+                fontWeight="600"
+              >
+                {isPositive ? '+' : ''}{data.growthPct.toFixed(0)}%
+              </text>
+            );
+          }}>
             {chartData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />
             ))}
