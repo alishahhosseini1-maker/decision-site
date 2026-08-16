@@ -14,22 +14,22 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     console.log('[valuation-history] company_id type:', typeof params.id);
     console.log('[valuation-history] company_id length:', params.id?.length);
 
-    // Try query without filter first to see if table is readable
-    const { data: allRows } = await supabase
+    // WORKAROUND: .eq() fails on UUID comparison, so fetch all and filter in JS
+    const { data: allRows, error } = await supabase
       .from('lumen_valuation_history')
       .select('*')
-      .limit(10);
-
-    console.log('[valuation-history] Total rows accessible:', allRows?.length || 0);
-
-    const { data: history, error } = await supabase
-      .from('lumen_valuation_history')
-      .select('*')
-      .eq('company_id', params.id)
       .order('date', { ascending: true });
 
-    console.log('[valuation-history] Filtered query returned:', history?.length || 0, 'rows');
-    console.log('[valuation-history] First filtered row company_id:', history?.[0]?.company_id);
+    if (error) {
+      console.error('[valuation-history] Query error:', error);
+      throw error;
+    }
+
+    // Filter in JavaScript instead of SQL
+    const history = (allRows || []).filter(row => row.company_id === params.id);
+
+    console.log('[valuation-history] Total rows fetched:', allRows?.length || 0);
+    console.log('[valuation-history] Rows matching company:', history?.length || 0);
     if (error) {
       console.error('[valuation-history] Query error:', error);
       throw error;
@@ -62,18 +62,14 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       a.date.localeCompare(b.date)
     );
 
-    // Debug: include detailed info in response
+    // Debug: verify the fix worked
     return NextResponse.json({
       history: timeline,
       debug: {
         company_id: params.id,
-        company_id_type: typeof params.id,
-        company_id_length: params.id?.length,
-        total_rows_accessible: allRows?.length || 0,
-        raw_count: history?.length || 0,
-        grouped_count: timeline.length,
-        first_row_company_id: history?.[0]?.company_id,
-        sample_all_rows: allRows?.slice(0, 2).map(r => ({ id: r.id, company_id: r.company_id }))
+        total_rows_fetched: allRows?.length || 0,
+        filtered_count: history?.length || 0,
+        grouped_count: timeline.length
       }
     });
   } catch (err: any) {
