@@ -104,18 +104,30 @@ Return at most 6 items. If you find nothing verifiable with citation URLs, retur
           roundType = parseRoundTypeFromText(description);
         }
 
+        const sourceType = Object.keys(CONFIDENCE_MAP).includes(item.sourceType) ? item.sourceType : AI_RESEARCH_SOURCE_TYPE;
+
+        // Auto-verify high credibility sources (SEC, Reputable Publication, etc.)
+        const HIGH_CREDIBILITY_SOURCES = [
+          'SEC / Government Filing',
+          'Reputable Publication',
+          'Investor Document',
+          'Company Announcement',
+          'Verified Transaction'
+        ];
+        const isHighCredibility = HIGH_CREDIBILITY_SOURCES.includes(sourceType);
+
         return {
           company_id: company.id,
           category,
           description,
           value,
           round_type: roundType,
-          source_type: Object.keys(CONFIDENCE_MAP).includes(item.sourceType) ? item.sourceType : AI_RESEARCH_SOURCE_TYPE,
+          source_type: sourceType,
           source_label: String(item.sourceLabel).trim(),
           date: /^\d{4}-\d{2}-\d{2}$/.test(item.date) ? item.date : today,
           contributor: AI_RESEARCH_CONTRIBUTOR,
-          status: 'pending' as const,
-          verified_by: [] as string[],
+          status: isHighCredibility ? 'verified' as const : 'pending' as const,
+          verified_by: isHighCredibility ? [AI_RESEARCH_CONTRIBUTOR] : [] as string[],
           citation_url: String(item.citationUrl).trim(), // REQUIRED for AI research
           affiliation_disclosed: false, // AI research is never affiliated
         };

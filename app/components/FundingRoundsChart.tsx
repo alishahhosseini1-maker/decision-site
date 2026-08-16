@@ -20,17 +20,8 @@ type Props = {
 };
 
 export function FundingRoundsChart({ rounds, companyName }: Props) {
-  // Minimum 2 rounds required
-  if (!rounds || rounds.length < 2) {
-    if (rounds?.length === 1) {
-      return (
-        <div style={{ marginTop: '16px', padding: '16px', border: '1px solid #1F2833', borderRadius: '6px', background: '#0A0F14' }}>
-          <div style={{ fontSize: '13px', color: '#8B95A1', textAlign: 'center' }}>
-            1 funding round on record — not enough for a timeline view
-          </div>
-        </div>
-      );
-    }
+  // Show chart with 1+ rounds (simplified to always show progress)
+  if (!rounds || rounds.length === 0) {
     return null; // 0 rounds = no component at all
   }
 
