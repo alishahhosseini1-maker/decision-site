@@ -10,13 +10,27 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Look up company by slug to get UUID
-    console.log('[funding-rounds] Looking up company by slug:', params.id);
-    const { data: company, error: companyError } = await supabase
+    // Look up company by slug OR UUID
+    console.log('[funding-rounds] Looking up company:', params.id);
+
+    // Try by slug first, then by UUID
+    let { data: company, error: companyError } = await supabase
       .from('lumen_companies')
       .select('id')
       .eq('slug', params.id)
-      .single();
+      .maybeSingle();
+
+    // If not found by slug, try by UUID
+    if (!company) {
+      const result = await supabase
+        .from('lumen_companies')
+        .select('id')
+        .eq('id', params.id)
+        .maybeSingle();
+
+      company = result.data;
+      companyError = result.error;
+    }
 
     console.log('[funding-rounds] Company lookup result:', { company, error: companyError });
 
