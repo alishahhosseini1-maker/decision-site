@@ -581,8 +581,8 @@ export default function App() {
               sub={
                 company.last_round_date
                   ? company.last_round_confirmed
-                    ? company.last_round_date
-                    : `${company.last_round_date} · unconfirmed`
+                    ? `${company.last_round_raised ? `Raised: ${fmtB(company.last_round_raised)} · ` : ''}${company.last_round_date}`
+                    : `${company.last_round_raised ? `Raised: ${fmtB(company.last_round_raised)} · ` : ''}${company.last_round_date} · unconfirmed`
                   : '—'
               }
               value={fmtB(company.last_round_value)}

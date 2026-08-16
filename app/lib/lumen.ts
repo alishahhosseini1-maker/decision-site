@@ -87,6 +87,7 @@ export type Company = {
   symbol: string;
   sector: string | null;
   last_round_value: number | null;
+  last_round_raised: number | null;
   last_round_date: string | null;
   last_round_confirmed: boolean;
   secondary_value: number | null;

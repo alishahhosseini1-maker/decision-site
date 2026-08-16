@@ -57,6 +57,44 @@ function extractValuationBillions(description: string, value: string | null) {
   );
 }
 
+// Extracts BOTH raise amount and resulting valuation from funding evidence
+async function extractFundingDetails(description: string, value: string | null): Promise<{ raised: number | null; valuation: number | null }> {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) return { raised: null, valuation: null };
+
+  try {
+    const anthropic = new Anthropic({ apiKey });
+    const response = await anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 100,
+      messages: [
+        {
+          role: 'user',
+          content: `Extract both the amount raised AND the resulting company valuation from this funding event, in billions of USD as plain numbers.
+
+Event: ${description}${value ? ` (${value})` : ''}
+
+Respond with ONLY JSON, no markdown, no prose: {"raisedBillions": number or null, "valuationBillions": number or null}
+
+If only one is mentioned, return null for the missing one.`,
+        },
+      ],
+    });
+
+    const textBlock = response.content.find((b): b is Anthropic.TextBlock => b.type === 'text');
+    if (!textBlock) return { raised: null, valuation: null };
+
+    const cleaned = textBlock.text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+    return {
+      raised: typeof parsed.raisedBillions === 'number' ? parsed.raisedBillions : null,
+      valuation: typeof parsed.valuationBillions === 'number' ? parsed.valuationBillions : null,
+    };
+  } catch {
+    return { raised: null, valuation: null };
+  }
+}
+
 export function extractRevenueBillions(description: string, value: string | null) {
   return extractBillionsFigure(
     'the annualized revenue figure mentioned in this event (not funding raised, not a valuation — the actual revenue or ARR number)',
@@ -138,11 +176,14 @@ export async function applyBestUnconfirmedFigures(supabase: SupabaseClient, comp
 
   const funding = pickMostCredible(evidence, 'Funding');
   if (funding) {
-    const val = await extractValuationBillions(funding.description, funding.value);
-    if (val !== null) {
-      patch.last_round_value = val;
+    const details = await extractFundingDetails(funding.description, funding.value);
+    if (details.valuation !== null) {
+      patch.last_round_value = details.valuation;
       patch.last_round_date = funding.date;
       patch.last_round_confirmed = false;
+    }
+    if (details.raised !== null) {
+      patch.last_round_raised = details.raised;
     }
   }
 
