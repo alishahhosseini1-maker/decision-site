@@ -71,6 +71,8 @@ const emptyForm = {
   sourceType: MANUAL_SOURCE_TYPES[0],
   sourceLabel: '',
   date: '',
+  affiliationDisclosed: false,
+  affiliationType: '',
 };
 
 const emptyCompanyForm = {
@@ -209,7 +211,7 @@ export default function App() {
     [evidence]
   );
 
-  function updateForm(field: string, val: string) {
+  function updateForm(field: string, val: string | boolean) {
     setForm((f) => ({ ...f, [field]: val }));
   }
 
@@ -237,6 +239,10 @@ export default function App() {
   async function submitEvidence(e: React.FormEvent) {
     e.preventDefault();
     if (!activeId || !form.description.trim() || !form.sourceLabel.trim() || !form.date) return;
+    if (form.affiliationDisclosed && !form.affiliationType) {
+      alert('Please select an affiliation type.');
+      return;
+    }
     setSubmitting(true);
     try {
       const res = await fetch(`/api/lumen/companies/${activeId}/evidence`, {
@@ -812,6 +818,46 @@ export default function App() {
                     <input type="date" value={form.date} onChange={(e) => updateForm('date', e.target.value)} style={inputStyle} />
                   </Field>
                 </div>
+
+                {/* Conflict of Interest Disclosure */}
+                <div style={{ marginTop: '8px', padding: '12px', background: '#0A0F14', border: '1px solid #1F2833', borderRadius: '4px' }}>
+                  <div style={{ fontSize: '12px', fontWeight: 600, color: '#E8EAED', marginBottom: '8px' }}>
+                    Conflict of Interest Disclosure
+                  </div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#E8EAED', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={form.affiliationDisclosed}
+                      onChange={(e) => {
+                        updateForm('affiliationDisclosed', e.target.checked);
+                        if (!e.target.checked) updateForm('affiliationType', '');
+                      }}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    I am affiliated with this company
+                  </label>
+                  {form.affiliationDisclosed && (
+                    <div style={{ marginTop: '8px' }}>
+                      <select
+                        value={form.affiliationType}
+                        onChange={(e) => updateForm('affiliationType', e.target.value)}
+                        style={{ ...selectStyle, fontSize: '12px' }}
+                        required
+                      >
+                        <option value="">Select affiliation type...</option>
+                        <option value="employee">Employee</option>
+                        <option value="investor">Investor</option>
+                        <option value="founder">Founder</option>
+                        <option value="advisor">Advisor</option>
+                        <option value="competitor">Competitor</option>
+                      </select>
+                      <div style={{ fontSize: '11px', color: '#8B95A1', marginTop: '6px' }}>
+                        ⚠️ Affiliated evidence requires independent corroboration before it can affect displayed valuations.
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
                   <span className="mono" style={{ fontSize: '11px', color: '#8B95A1', alignSelf: 'center', marginRight: 'auto' }}>
                     Assigned confidence: {CONFIDENCE_MAP[form.sourceType]}/100

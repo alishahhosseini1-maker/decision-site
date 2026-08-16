@@ -14,6 +14,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const sourceLabel = (body.sourceLabel || '').trim();
     const date = (body.date || '').trim();
     const contributor = (body.contributor || 'anonymous').trim();
+    const affiliationDisclosed = Boolean(body.affiliationDisclosed);
+    const affiliationType = affiliationDisclosed ? (body.affiliationType || '').trim() || null : null;
 
     if (!description || !sourceLabel || !date) {
       return NextResponse.json({ error: 'Description, source, and date are required.' }, { status: 400 });
@@ -37,6 +39,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         contributor,
         status: 'pending',
         verified_by: [],
+        affiliation_disclosed: affiliationDisclosed,
+        affiliation_type: affiliationType,
+        citation_url: null, // Human submissions don't require citation URLs (only AI research does)
       })
       .select('*')
       .single();

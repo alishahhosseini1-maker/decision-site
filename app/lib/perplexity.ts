@@ -37,13 +37,14 @@ export async function researchCompanyEvidence(
 Only include items you can cite an actual source for. Do not speculate or include anything you are not reasonably confident is accurate.
 
 Respond with ONLY a JSON array, no markdown code fences, no preamble or trailing text, matching exactly this schema:
-[{"category": string, "description": string, "value": string or null, "sourceLabel": string, "sourceType": string, "date": string}]
+[{"category": string, "description": string, "value": string or null, "sourceLabel": string, "sourceType": string, "date": string, "citationUrl": string}]
 
 "category" must be exactly one of: ${CATEGORIES.join(', ')}.
-"sourceLabel" should identify the actual source (publication name or URL).
+"sourceLabel" should identify the actual source (publication name).
 "sourceType" must be exactly one of: ${CLASSIFIABLE_SOURCE_TYPES.join(', ')}, or "${AI_RESEARCH_SOURCE_TYPE}" only if none of those genuinely fit. Classify by what the source actually is, e.g. a wire/major outlet story (Reuters, Bloomberg, WSJ, TechCrunch) is "Reputable Publication"; an official company blog post or press release is "Company Announcement"; an SEC or government filing/database is "SEC / Government Filing"; a funding/deal database (Crunchbase, PitchBook) is "Industry Research"; a secondary-market platform record is "Verified Transaction"; an investor letter or update memo is "Investor Document".
+"citationUrl" MUST be a direct URL to the source article/filing/page where this information can be verified. This is REQUIRED for every item - do not include any item without a citation URL.
 "date" should be the date of the underlying event or report in YYYY-MM-DD format; use ${today} if unknown.
-Return at most 6 items. If you find nothing verifiable, return [].`;
+Return at most 6 items. If you find nothing verifiable with citation URLs, return [].`;
 
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
@@ -72,7 +73,17 @@ Return at most 6 items. If you find nothing verifiable, return [].`;
     if (!Array.isArray(items)) items = [];
 
     const rows = items
-      .filter((item) => item && item.description && item.sourceLabel)
+      .filter((item) => {
+        // CRITICAL: Enforce citation URL for all AI research
+        // Reject any item without a valid citation URL
+        if (!item) return false;
+        if (!item.description || !item.sourceLabel) return false;
+        if (!item.citationUrl || typeof item.citationUrl !== 'string' || item.citationUrl.trim() === '') {
+          console.warn('[Perplexity] Rejected item without citation URL:', item.sourceLabel);
+          return false;
+        }
+        return true;
+      })
       .slice(0, 6)
       .map((item) => ({
         company_id: company.id,
@@ -85,6 +96,8 @@ Return at most 6 items. If you find nothing verifiable, return [].`;
         contributor: AI_RESEARCH_CONTRIBUTOR,
         status: 'pending' as const,
         verified_by: [] as string[],
+        citation_url: String(item.citationUrl).trim(), // REQUIRED for AI research
+        affiliation_disclosed: false, // AI research is never affiliated
       }));
 
     if (rows.length === 0) return [];
