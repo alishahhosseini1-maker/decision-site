@@ -4,87 +4,130 @@ import type { Company, Comp } from './lumen';
 const PRIVATE_PEER_THRESHOLD = 3; // Minimum private peers before showing prominently
 
 // Sector similarity mapping for fallback when exact match is sparse
+// Maps primary sector → related sectors that are acceptable fallback matches
 const RELATED_SECTORS: Record<string, string[]> = {
-  'AI Infrastructure': ['Enterprise Software', 'AI', 'Cloud Infrastructure'],
-  'AI': ['AI Infrastructure', 'Enterprise Software', 'Machine Learning'],
-  'Fintech': ['Financial Services', 'Payments', 'Banking'],
-  'Healthcare Tech': ['Healthcare', 'SaaS', 'Digital Health'],
-  'Enterprise Software': ['SaaS', 'B2B Software', 'AI Infrastructure'],
-  // Add more as needed
+  'Artificial Intelligence': ['Infrastructure & Cloud', 'Enterprise Software', 'Developer Tools'],
+  'Enterprise Software': ['Infrastructure & Cloud', 'Developer Tools', 'Artificial Intelligence'],
+  'Fintech': ['Infrastructure & Cloud', 'Developer Tools', 'Enterprise Software'],
+  'Healthcare Tech': ['Enterprise Software', 'Artificial Intelligence'],
+  'Developer Tools': ['Infrastructure & Cloud', 'Enterprise Software', 'Artificial Intelligence'],
+  'E-commerce & Marketplace': ['Consumer Apps', 'Social & Communications'],
+  'Infrastructure & Cloud': ['Enterprise Software', 'Developer Tools', 'Artificial Intelligence'],
+  'Social & Communications': ['Consumer Apps', 'E-commerce & Marketplace'],
+  'Hardware & Manufacturing': ['Aerospace & Defense', 'Infrastructure & Cloud'],
+  'Cybersecurity': ['Enterprise Software', 'Infrastructure & Cloud'],
+  'Aerospace & Defense': ['Hardware & Manufacturing'],
+  'Gaming & Entertainment': ['Consumer Apps', 'Social & Communications'],
+  'Consumer Apps': ['Social & Communications', 'E-commerce & Marketplace'],
+  'Energy & Climate Tech': ['Hardware & Manufacturing', 'Infrastructure & Cloud'],
 };
 
 function getRelatedSectors(sector: string | null): string[] {
   if (!sector) return [];
   const related = RELATED_SECTORS[sector] || [];
-  return [sector, ...related];
+  return related; // Don't include the primary sector itself
+}
+
+// Helper to check if a peer matches the target company's sectors
+function matchesSector(
+  targetSector: string | null,
+  targetSecondarySectors: string[],
+  peerSector: string | null,
+  peerSecondarySectors: string[]
+): { matches: boolean; isExact: boolean; score: number } {
+  // Direct primary match (exact, strongest signal)
+  if (targetSector && peerSector && targetSector === peerSector) {
+    return { matches: true, isExact: true, score: 60 };
+  }
+  // Target's primary matches peer's secondary (exact)
+  if (targetSector && peerSecondarySectors?.includes(targetSector)) {
+    return { matches: true, isExact: true, score: 50 };
+  }
+  // Target's secondary matches peer's primary (exact)
+  if (peerSector && targetSecondarySectors?.includes(peerSector)) {
+    return { matches: true, isExact: true, score: 50 };
+  }
+  // Target's secondary matches peer's secondary (exact)
+  if (targetSecondarySectors?.some(s => peerSecondarySectors?.includes(s))) {
+    return { matches: true, isExact: true, score: 40 };
+  }
+
+  return { matches: false, isExact: false, score: 0 };
 }
 
 // Finds and caches PRIVATE sector peers from lumen_companies
+// Implements fallback to related sectors if <3 exact matches found
 export async function computePrivatePeers(
   supabase: SupabaseClient,
   company: Company
 ): Promise<Comp[]> {
-  // Get the company's revenue for multiple calculation
-  const { data: revenueEvidence } = await supabase
-    .from('lumen_evidence')
-    .select('*')
-    .eq('company_id', company.id)
-    .eq('category', 'Revenue')
-    .eq('status', 'verified')
-    .order('date', { ascending: false })
-    .limit(1);
-
-  const hasRevenue = revenueEvidence && revenueEvidence.length > 0;
-
-  // If no revenue, can't compute meaningful revenue multiples
-  // But we can still find sector peers for context
-  if (!hasRevenue && !company.sector) {
+  if (!company.sector) {
     return [];
   }
 
-  // Find other companies in same sector with valuations
-  const { data: sectorPeers } = await supabase
+  // Get all companies except this one
+  const { data: allCompanies } = await supabase
     .from('lumen_companies')
     .select('*')
     .neq('id', company.id)
     .order('last_researched_at', { ascending: false, nullsFirst: false })
-    .limit(50); // Get top 50 recently researched companies
+    .limit(50);
 
-  if (!sectorPeers || sectorPeers.length === 0) {
+  if (!allCompanies || allCompanies.length === 0) {
     return [];
   }
 
-  // Score similarity and compute multiples
+  // First pass: find exact sector matches
+  const exactMatches: Array<{ peer: typeof allCompanies[0]; score: number }> = [];
+  const relatedSectors = getRelatedSectors(company.sector);
+
+  for (const peer of allCompanies) {
+    const match = matchesSector(
+      company.sector,
+      company.secondary_sectors || [],
+      peer.sector,
+      peer.secondary_sectors || []
+    );
+
+    if (match.matches && match.isExact) {
+      exactMatches.push({ peer, score: match.score });
+    }
+  }
+
+  // If we have ≥3 exact matches, use only those
+  // Otherwise, add related-sector fallback matches
+  let finalPeers: Array<{ peer: typeof allCompanies[0]; score: number; matchType: 'exact' | 'related' }> = [];
+
+  if (exactMatches.length >= PRIVATE_PEER_THRESHOLD) {
+    finalPeers = exactMatches.map(m => ({ ...m, matchType: 'exact' as const }));
+  } else {
+    // Add exact matches first
+    finalPeers = exactMatches.map(m => ({ ...m, matchType: 'exact' as const }));
+
+    // Add related-sector matches to reach threshold
+    for (const peer of allCompanies) {
+      // Skip if already in exact matches
+      if (exactMatches.some(m => m.peer.id === peer.id)) continue;
+
+      // Check if peer is in a related sector
+      const isRelated =
+        (peer.sector && relatedSectors.includes(peer.sector)) ||
+        peer.secondary_sectors?.some(s => relatedSectors.includes(s));
+
+      if (isRelated) {
+        finalPeers.push({ peer, score: 30, matchType: 'related' }); // Lower score for related matches
+      }
+    }
+  }
+
+  // Convert to Comp objects with revenue multiples
   const comps: Comp[] = [];
 
-  for (const peer of sectorPeers) {
-    let similarityScore = 0;
-
-    // Sector matching: primary OR secondary sectors
-    // Direct primary match (strongest signal)
-    if (company.sector && peer.sector && company.sector === peer.sector) {
-      similarityScore += 60;
-    }
-    // Target's primary matches peer's secondary
-    else if (company.sector && peer.secondary_sectors?.includes(company.sector)) {
-      similarityScore += 50;
-    }
-    // Target's secondary matches peer's primary
-    else if (peer.sector && company.secondary_sectors?.includes(peer.sector)) {
-      similarityScore += 50;
-    }
-    // Target's secondary matches peer's secondary
-    else if (company.secondary_sectors?.some(s => peer.secondary_sectors?.includes(s))) {
-      similarityScore += 40;
-    }
-
-    // Has valuation data
+  for (const { peer, score, matchType } of finalPeers) {
     const peerValuation = peer.secondary_value || peer.last_round_value;
-    if (peerValuation) {
-      similarityScore += 20;
-    }
+    if (!peerValuation) continue;
 
-    // Has revenue data (for multiple calculation)
+    // Get revenue data for multiple calculation
     const { data: peerRevenue } = await supabase
       .from('lumen_evidence')
       .select('value')
@@ -94,13 +137,6 @@ export async function computePrivatePeers(
       .order('date', { ascending: false })
       .limit(1)
       .maybeSingle();
-
-    if (peerRevenue) {
-      similarityScore += 20;
-    }
-
-    // Only include if similarity score meets threshold
-    if (similarityScore < 40) continue;
 
     // Extract revenue value
     const revenueValue = peerRevenue?.value
@@ -112,17 +148,22 @@ export async function computePrivatePeers(
       ? peerValuation / revenueValue
       : null;
 
+    // Boost score if has revenue data
+    let finalScore = score;
+    if (peerRevenue) finalScore += 20;
+
     comps.push({
       company_id: company.id,
       comp_type: 'private',
       comp_name: peer.name,
       comp_slug: peer.slug,
-      comp_ticker: null, // Private companies don't have tickers
+      comp_ticker: null,
       comp_valuation: peerValuation,
       comp_revenue: revenueValue,
       comp_revenue_multiple: revenueMultiple,
       sector: peer.sector,
-      similarity_score: similarityScore,
+      similarity_score: finalScore,
+      match_type: matchType,
       computed_at: new Date().toISOString(),
     });
   }
@@ -194,6 +235,7 @@ export async function computePublicComps(
     comp_revenue_multiple: c.multiple,
     sector: company.sector,
     similarity_score: 80, // Public comps from Perplexity are already vetted as close matches
+    match_type: 'exact', // Public comps are always exact matches (Perplexity-selected)
     computed_at: new Date().toISOString(),
   }));
 

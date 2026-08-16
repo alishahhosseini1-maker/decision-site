@@ -168,6 +168,7 @@ export type Comp = {
   comp_revenue_multiple: number | null;
   sector: string | null;
   similarity_score: number;
+  match_type: 'exact' | 'related'; // Whether this is an exact sector match or related-sector fallback
   computed_at: string;
 };
 
