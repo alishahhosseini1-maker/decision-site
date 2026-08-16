@@ -12,7 +12,7 @@ import {
   ShieldCheck,
   X,
 } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { ValuationChart } from './components/ValuationChart';
 import {
   CATEGORIES,
   CONFIDENCE_MAP,
@@ -859,90 +859,7 @@ export default function App() {
         )}
 
         {/* Valuation History Chart */}
-        {valuationHistory.length > 0 && (
-          <div style={{ marginTop: '16px', border: '1px solid #1F2833', borderRadius: '6px', padding: '16px' }}>
-            <h3 className="display" style={{ fontSize: '14px', fontWeight: 600, margin: '0 0 12px 0' }}>
-              Valuation History
-            </h3>
-            {/* @ts-ignore - recharts types conflict with React version */}
-            <ResponsiveContainer width="100%" height={250}>
-              {/* @ts-ignore */}
-              <LineChart data={valuationHistory} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-                {/* @ts-ignore */}
-                <XAxis
-                  dataKey="date"
-                  stroke="#5A6470"
-                  style={{ fontSize: '11px' }}
-                  tickFormatter={(date) => {
-                    const d = new Date(date);
-                    return d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-                  }}
-                />
-                {/* @ts-ignore */}
-                <YAxis
-                  stroke="#5A6470"
-                  style={{ fontSize: '11px' }}
-                  tickFormatter={(value) => `$${value}B`}
-                />
-                {/* @ts-ignore */}
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#0F1419',
-                    border: '1px solid #1F2833',
-                    borderRadius: '4px',
-                    fontSize: '12px',
-                  }}
-                  labelStyle={{ color: '#E8EAED', marginBottom: '4px' }}
-                  itemStyle={{ color: '#B5BDC6' }}
-                  formatter={(value: any) => [`$${value}B`, '']}
-                  labelFormatter={(date) => {
-                    const d = new Date(date as string);
-                    return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-                  }}
-                />
-                {/* @ts-ignore */}
-                <Legend
-                  wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }}
-                  iconType="line"
-                />
-                {/* Last Round valuations */}
-                {/* @ts-ignore */}
-                <Line
-                  type="monotone"
-                  dataKey="last_round"
-                  stroke="#C9A227"
-                  strokeWidth={2}
-                  dot={{ fill: '#C9A227', r: 3 }}
-                  name="Last Round"
-                  connectNulls
-                />
-                {/* Secondary Market valuations */}
-                {/* @ts-ignore */}
-                <Line
-                  type="monotone"
-                  dataKey="secondary"
-                  stroke="#3FBF7F"
-                  strokeWidth={2}
-                  dot={{ fill: '#3FBF7F', r: 3 }}
-                  name="Secondary Market"
-                  connectNulls
-                />
-                {/* AI Estimated valuations */}
-                {/* @ts-ignore */}
-                <Line
-                  type="monotone"
-                  dataKey="ai_estimated"
-                  stroke="#8B95A1"
-                  strokeWidth={2}
-                  dot={{ fill: '#8B95A1', r: 3 }}
-                  strokeDasharray="5 5"
-                  name="AI Estimate"
-                  connectNulls
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        )}
+        <ValuationChart data={valuationHistory} />
 
         <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '20px', alignItems: 'start', marginTop: '16px' }}>
           {/* Left: evidence ledger */}
