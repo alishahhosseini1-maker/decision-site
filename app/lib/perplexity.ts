@@ -90,18 +90,19 @@ Return at most 6 items. If you find nothing verifiable with citation URLs, retur
       .map((item) => {
         const category = CATEGORIES.includes(item.category) ? item.category : CATEGORIES[0];
         const description = String(item.description).trim();
-        let value = item.value ? String(item.value).trim() : null;
+        let value = null;
         let roundType = null;
 
-        // Auto-extract valuation and round type for Funding evidence
+        // Always parse Funding evidence (ignore Perplexity's value field, which is often text)
         if (category === 'Funding') {
-          if (!value) {
-            const parsedValue = parseValuationFromText(description);
-            if (parsedValue !== null) {
-              value = parsedValue.toString();
-            }
+          const parsedValue = parseValuationFromText(description);
+          if (parsedValue !== null) {
+            value = parsedValue.toString();
           }
           roundType = parseRoundTypeFromText(description);
+        } else {
+          // For non-Funding categories, use Perplexity's value if provided
+          value = item.value ? String(item.value).trim() : null;
         }
 
         const sourceType = Object.keys(CONFIDENCE_MAP).includes(item.sourceType) ? item.sourceType : AI_RESEARCH_SOURCE_TYPE;
