@@ -54,7 +54,19 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
     // Filter to this company using the UUID
     console.log('[funding-rounds] Total Funding evidence:', allFundingEvidence?.length || 0);
-    const fundingEvidence = (allFundingEvidence || []).filter(e => e.company_id === companyId);
+    console.log('[funding-rounds] Looking for companyId:', companyId, 'type:', typeof companyId);
+
+    if (allFundingEvidence && allFundingEvidence.length > 0) {
+      console.log('[funding-rounds] Sample evidence company_id:', allFundingEvidence[0].company_id, 'type:', typeof allFundingEvidence[0].company_id);
+    }
+
+    const fundingEvidence = (allFundingEvidence || []).filter(e => {
+      const matches = e.company_id === companyId;
+      if (!matches && allFundingEvidence && allFundingEvidence.length < 5) {
+        console.log('[funding-rounds] No match:', e.company_id, '!==', companyId);
+      }
+      return matches;
+    });
     console.log('[funding-rounds] Filtered to company:', fundingEvidence.length);
 
     if (fundingEvidence.length === 0) {
