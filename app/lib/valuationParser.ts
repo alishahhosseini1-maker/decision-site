@@ -17,9 +17,17 @@
 export function parseValuationFromText(text: string): number | null {
   if (!text) return null;
 
+  // Pattern 0: "at $X post-money" or "$X post-money valuation" (HIGHEST PRIORITY)
+  // Matches: "$965B post-money", "at $380B post-money", "$61.5B post-money valuation"
+  const postMoneyPattern = /(?:at\s+)?\$\s*([\d,.]+)\s*(?:billion|B)\s+post-money/i;
+  let match = text.match(postMoneyPattern);
+  if (match) {
+    return parseFloat(match[1].replace(/,/g, ''));
+  }
+
   // Pattern 1: "valued at $X billion/B" or "valuation of $X billion/B"
   const valuationPattern = /(?:valued at|valuation of|valuation:|at a)\s*\$?\s*([\d,.]+)\s*(?:billion|B)(?:\s|,|\.|\))/i;
-  let match = text.match(valuationPattern);
+  match = text.match(valuationPattern);
   if (match) {
     return parseFloat(match[1].replace(/,/g, ''));
   }
