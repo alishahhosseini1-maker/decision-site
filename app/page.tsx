@@ -936,6 +936,12 @@ export default function App() {
                         {ev.status === 'rejected' && (
                           <span style={{ fontSize: '11px', color: '#5A6470' }}>removed after dispute</span>
                         )}
+                        {ev.affiliation_disclosed && (
+                          <span style={{ fontSize: '11px', color: '#E5484D', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                            ⚠️ Affiliated contributor
+                            {ev.status === 'pending' && <span style={{ color: '#8B95A1' }}>(requires verification)</span>}
+                          </span>
+                        )}
                       </div>
                       <div
                         style={{
