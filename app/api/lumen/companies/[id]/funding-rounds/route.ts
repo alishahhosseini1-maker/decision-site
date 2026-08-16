@@ -90,31 +90,29 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       });
     }
 
-    // Group by date + round_type to handle multiple sources reporting same round
-    // Use credibility-weighted tie-breaking (same as pickMostCredible)
+    // Group by valuation amount to handle multiple sources reporting same round
+    // (Same valuation = same round, even if reported on different dates)
     const roundGroups: Record<string, typeof fundingEvidence> = {};
 
     for (const evidence of fundingEvidence) {
-      // Create a key combining date and round_type
-      const key = `${evidence.date}-${evidence.round_type || 'unspecified'}`;
-      if (!roundGroups[key]) {
-        roundGroups[key] = [];
+      // Create a key from the valuation amount (in billions)
+      const valuationKey = evidence.value || 'unknown';
+      if (!roundGroups[valuationKey]) {
+        roundGroups[valuationKey] = [];
       }
-      roundGroups[key].push(evidence);
+      roundGroups[valuationKey].push(evidence);
     }
 
-    // For each group, pick the most credible evidence
+    // For each valuation group, pick the most credible evidence with earliest date
     const rounds = Object.values(roundGroups).map(group => {
-      // Use pickMostCredible logic but for a specific date/round combo
-      // Sort by credibility (verified > pending, higher source confidence)
+      // Sort by credibility first, then by date (earliest)
       const sorted = group.sort((a, b) => {
         // Verified beats pending
         if (a.status === 'verified' && b.status !== 'verified') return -1;
         if (b.status === 'verified' && a.status !== 'verified') return 1;
 
-        // If both same status, prefer higher source type confidence
-        // (This is simplified - full logic is in pickMostCredible)
-        return 0;
+        // If both same status, prefer earlier date (first reported)
+        return a.date.localeCompare(b.date);
       });
 
       const best = sorted[0];
