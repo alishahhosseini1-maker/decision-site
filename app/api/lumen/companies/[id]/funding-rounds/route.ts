@@ -39,7 +39,9 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       return NextResponse.json({ rounds: [] });
     }
 
-    console.log('[funding-rounds] Found company UUID:', company.id);
+    // TypeScript type guard - company is definitely not null here
+    const companyId = company.id;
+    console.log('[funding-rounds] Found company UUID:', companyId);
 
     // Fetch all Funding evidence for this company
     const { data: allFundingEvidence, error } = await supabase
@@ -52,7 +54,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
     // Filter to this company using the UUID
     console.log('[funding-rounds] Total Funding evidence:', allFundingEvidence?.length || 0);
-    const fundingEvidence = (allFundingEvidence || []).filter(e => e.company_id === company.id);
+    const fundingEvidence = (allFundingEvidence || []).filter(e => e.company_id === companyId);
     console.log('[funding-rounds] Filtered to company:', fundingEvidence.length);
 
     if (fundingEvidence.length === 0) {
