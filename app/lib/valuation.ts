@@ -273,7 +273,8 @@ export async function applyConfirmedFigure(supabase: SupabaseClient, companyId: 
 // themselves first.
 export async function generateValuation(
   supabase: SupabaseClient,
-  company: { id: string; name: string; sector: string | null; last_round_value: number | null; last_round_date: string | null; secondary_value: number | null; secondary_date: string | null }
+  company: { id: string; name: string; sector: string | null; last_round_value: number | null; last_round_date: string | null; secondary_value: number | null; secondary_date: string | null },
+  options?: { asOf?: string } // Optional: only consider evidence dated before this date (for benchmarking)
 ) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return null;
@@ -287,6 +288,15 @@ export async function generateValuation(
     if (evidenceError) return null;
 
     const evidence = (allEvidence || []).filter((e) => {
+      // Date filter for benchmarking: exclude evidence after cutoff date
+      if (options?.asOf) {
+        const evidenceDate = new Date(e.date);
+        const cutoffDate = new Date(options.asOf);
+        if (evidenceDate > cutoffDate) {
+          return false; // Exclude evidence after cutoff (for benchmark accuracy testing)
+        }
+      }
+
       // CRITICAL: Affiliated evidence is INERT until independently verified
       // Affiliated evidence (affiliation_disclosed = true) requires 2+ non-affiliated verifiers
       if (e.affiliation_disclosed === true) {

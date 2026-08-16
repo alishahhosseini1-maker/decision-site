@@ -23,7 +23,11 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
     if (companyError) throw companyError;
 
-    const valuation = await generateValuation(supabase, company);
+    // Parse optional asOf date for benchmark testing (non-destructive evidence filtering)
+    const body = await req.json().catch(() => ({}));
+    const options = body.asOf ? { asOf: body.asOf } : undefined;
+
+    const valuation = await generateValuation(supabase, company, options);
     if (!valuation) {
       return NextResponse.json({ error: "Couldn't generate a valuation. Try again." }, { status: 500 });
     }
