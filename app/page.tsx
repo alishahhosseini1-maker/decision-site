@@ -778,9 +778,9 @@ export default function App() {
                   <div style={{ fontSize: '11px' }}>
                     More recent evidence is preferred <strong>if</strong> it's corroborated by multiple independent sources:
                     <ul style={{ margin: '6px 0', paddingLeft: '20px', color: '#8B95A1' }}>
-                      <li>At least <strong style={{ color: '#B5BDC6' }}>2 distinct sources</strong> reporting similar figures</li>
-                      <li>At least one source with <strong style={{ color: '#B5BDC6' }}>≥65% credibility</strong></li>
-                      <li>Values within <strong style={{ color: '#B5BDC6' }}>±10%</strong> of each other</li>
+                      <li>At least <strong style={{ color: '#B5BDC6' }}>2 distinct sources</strong> reporting the same event</li>
+                      <li>At least one source with <strong style={{ color: '#B5BDC6' }}>≥75% credibility</strong></li>
+                      <li>Events reported within <strong style={{ color: '#B5BDC6' }}>45 days</strong> of each other</li>
                     </ul>
                     If recent evidence isn't corroborated, the most credible single source wins.
                   </div>
