@@ -36,15 +36,23 @@ export async function researchCompanyEvidence(
     const today = new Date().toISOString().slice(0, 10);
     const prompt = `Research recent, verifiable developments about ${company.name} (${company.sector || 'unknown sector'}) relevant to a private-market valuation: funding rounds, revenue, contracts, secondary-market transactions, headcount changes, customer retention, or comparable company moves.
 
-Only include items you can cite an actual source for. Do not speculate or include anything you are not reasonably confident is accurate.
+CRITICAL FOR FUNDING ROUNDS: Use Crunchbase as the primary source. For each funding round, cite the Crunchbase company page and extract:
+- Date of the funding round (close date)
+- Amount raised (if disclosed)
+- Post-money valuation (if disclosed)
+- Round type (Seed, Series A, etc.)
+
+For funding data, ONLY cite Crunchbase unless Crunchbase does not have the information. If Crunchbase lacks data, you may cite SEC filings, Bloomberg, or Reuters as backup sources.
+
+For non-funding items (revenue, contracts, etc.), use any verifiable source.
 
 Respond with ONLY a JSON array, no markdown code fences, no preamble or trailing text, matching exactly this schema:
 [{"category": string, "description": string, "value": string or null, "sourceLabel": string, "sourceType": string, "date": string, "citationUrl": string}]
 
 "category" must be exactly one of: ${CATEGORIES.join(', ')}.
-"sourceLabel" should identify the actual source (publication name).
+"sourceLabel" should identify the actual source (publication name or "Crunchbase").
 "sourceType" must be exactly one of: ${CLASSIFIABLE_SOURCE_TYPES.join(', ')}, or "${AI_RESEARCH_SOURCE_TYPE}" only if none of those genuinely fit. Classify by what the source actually is, e.g. a wire/major outlet story (Reuters, Bloomberg, WSJ, TechCrunch) is "Reputable Publication"; an official company blog post or press release is "Company Announcement"; an SEC or government filing/database is "SEC / Government Filing"; a funding/deal database (Crunchbase, PitchBook) is "Industry Research"; a secondary-market platform record is "Verified Transaction"; an investor letter or update memo is "Investor Document".
-"citationUrl" MUST be a direct URL to the source article/filing/page where this information can be verified. This is REQUIRED for every item - do not include any item without a citation URL.
+"citationUrl" MUST be a direct URL to the source article/filing/page where this information can be verified. This is REQUIRED for every item - do not include any item without a citation URL. For Crunchbase funding data, use the company's Crunchbase URL.
 "date" should be the date of the underlying event or report in YYYY-MM-DD format; use ${today} if unknown.
 Return at most 6 items. If you find nothing verifiable with citation URLs, return [].`;
 
