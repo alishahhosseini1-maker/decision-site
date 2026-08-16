@@ -670,6 +670,34 @@ export default function App() {
             />
           </div>
 
+          {/* Valuation Disclaimer */}
+          {valuation && (
+            <div style={{
+              marginTop: '8px',
+              fontSize: '11px',
+              color: '#5A6470',
+              fontStyle: 'italic',
+              lineHeight: '1.5'
+            }}>
+              Estimates derived from crowdsourced evidence and AI inference. Not investment advice.{' '}
+              <button
+                onClick={() => setMethodologyOpen(true)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#8B95A1',
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
+                  padding: 0,
+                  fontSize: '11px',
+                  fontStyle: 'italic'
+                }}
+              >
+                See methodology
+              </button>
+            </div>
+          )}
+
           {/* Delta/Trend Banner */}
           {(() => {
             const deltas: string[] = [];

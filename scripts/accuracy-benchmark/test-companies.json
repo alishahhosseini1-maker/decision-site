@@ -1,0 +1,56 @@
+{
+  "metadata": {
+    "created": "2026-08-16",
+    "purpose": "Accuracy benchmark for Lumen AI valuations",
+    "target_count": 20,
+    "instructions": "For each company, record a verifiable price point, then run Lumen's pipeline using only evidence dated BEFORE that price point"
+  },
+  "companies": [
+    {
+      "id": 1,
+      "name": "",
+      "sector": "",
+      "stage": "",
+      "known_price_point": {
+        "valuation_billions": null,
+        "date": "",
+        "source": "",
+        "source_url": "",
+        "type": "funding_round | secondary_trade | 409a | other"
+      },
+      "lumen_estimate": {
+        "valuation_billions": null,
+        "confidence_score": null,
+        "evidence_count": null,
+        "evidence_avg_credibility": null,
+        "run_date": "",
+        "notes": ""
+      },
+      "analysis": {
+        "error_pct": null,
+        "error_absolute": null,
+        "within_confidence_range": null,
+        "notes": ""
+      }
+    }
+  ],
+  "target_mix": {
+    "by_sector": {
+      "ai": 3,
+      "fintech": 3,
+      "enterprise_saas": 3,
+      "consumer": 3,
+      "other": 8
+    },
+    "by_stage": {
+      "seed": 3,
+      "series_a_b": 5,
+      "series_c_d": 7,
+      "late_stage": 5
+    },
+    "by_evidence_density": {
+      "well_covered": 10,
+      "thin_coverage": 10
+    }
+  }
+}
