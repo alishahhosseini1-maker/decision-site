@@ -145,7 +145,19 @@ const CORROBORATION_MIN_CONFIDENCE = 75;
 // is itself a stronger signal than one uncorroborated older filing, and a
 // bare tier label on its own can't capture that.
 export function pickMostCredible(evidence: EvidenceRow[], category: string): EvidenceRow | null {
-  const matches = evidence.filter((e) => e.category === category);
+  // Filter to category AND exclude uncorroborated affiliated evidence
+  const matches = evidence.filter((e) => {
+    if (e.category !== category) return false;
+
+    // CRITICAL: Affiliated evidence requires verification before it can be picked
+    // @ts-ignore - affiliation_disclosed may not be in EvidenceRow type yet
+    if (e.affiliation_disclosed === true && e.status !== 'verified') {
+      return false; // Block uncorroborated affiliated evidence
+    }
+
+    return true;
+  });
+
   if (matches.length === 0) return null;
 
   const tierWinner = highestTier(matches);
@@ -259,9 +271,17 @@ export async function generateValuation(
 
     if (evidenceError) return null;
 
-    const evidence = (allEvidence || []).filter(
-      (e) => e.status === 'verified' || (e.status === 'pending' && e.contributor === AI_RESEARCH_CONTRIBUTOR)
-    );
+    const evidence = (allEvidence || []).filter((e) => {
+      // CRITICAL: Affiliated evidence is INERT until verified
+      // Affiliated evidence (affiliation_disclosed = true) can only be used if status = 'verified'
+      // This requires independent corroboration before it affects valuations
+      if (e.affiliation_disclosed === true && e.status !== 'verified') {
+        return false; // Block uncorroborated affiliated evidence
+      }
+
+      // Non-affiliated evidence: standard rules
+      return e.status === 'verified' || (e.status === 'pending' && e.contributor === AI_RESEARCH_CONTRIBUTOR);
+    });
 
     // Contributor accuracy is a global track record across the whole
     // ledger, not just this company, so pull every contributor's history.
