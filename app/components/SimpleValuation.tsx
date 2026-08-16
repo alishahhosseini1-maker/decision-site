@@ -3,8 +3,8 @@
 type Props = {
   value: number | null;
   source: 'ai' | 'secondary' | 'last_round';
-  confidence?: number;
-  date?: string;
+  confidence?: number | null;
+  date?: string | null;
   onMethodologyClick?: () => void;
 };
 
