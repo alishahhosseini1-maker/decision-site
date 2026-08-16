@@ -472,19 +472,26 @@ export default function App() {
           className="lumen-btn"
           title="Add a company to the ledger"
           style={{
+            position: 'absolute',
+            right: '20px',
+            top: '50%',
+            transform: 'translateY(-50%)',
             display: 'flex',
             alignItems: 'center',
-            gap: '4px',
-            padding: '0 16px',
-            background: 'transparent',
+            gap: '6px',
+            padding: '8px 16px',
+            background: '#C9A227',
             border: 'none',
-            color: '#8B95A1',
+            borderRadius: '4px',
+            color: '#0E1319',
             cursor: 'pointer',
             fontSize: '13px',
+            fontWeight: 600,
             whiteSpace: 'nowrap',
+            zIndex: 20,
           }}
         >
-          <Plus size={14} /> Add company
+          <Plus size={16} /> Add Company
         </button>
       </div>
 
