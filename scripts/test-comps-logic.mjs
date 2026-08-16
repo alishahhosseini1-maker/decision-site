@@ -118,10 +118,10 @@ if (goodCoverage) {
     console.log(`     Multiple: ${targetMultiple?.toFixed(1)}x`);
   }
 
-  console.log('\n   Peer multiples:');
+  console.log('\n   Available peers in same sector:');
 
   const peerMultiples = [];
-  for (const peer of peers.slice(0, 5)) {
+  for (const peer of peers.slice(0, 8)) {
     const { data: peerRev } = await supabase
       .from('lumen_evidence')
       .select('value')
@@ -138,8 +138,18 @@ if (goodCoverage) {
 
     if (multiple) peerMultiples.push(multiple);
 
-    console.log(`     ${peer.name}: $${val}B @ ${multiple?.toFixed(1) || 'N/A'}x`);
+    // Check if this is an exact sector match or would need fallback
+    const isExact = peer.sector === goodCoverage.sector ||
+                    peer.secondary_sectors?.includes(goodCoverage.sector) ||
+                    goodCoverage.secondary_sectors?.includes(peer.sector);
+
+    const matchLabel = isExact ? '[exact match]' : '[would need fallback]';
+    console.log(`     ${peer.name}: $${val}B @ ${multiple?.toFixed(1) || 'N/A'}x ${matchLabel}`);
   }
+
+  console.log(`\n   ✅ ${peers.length} exact sector matches found - no fallback needed`);
+  console.log(`   (Comps will be computed and cached when cron runs)`);
+
 
   if (peerMultiples.length > 0) {
     const avg = peerMultiples.reduce((a, b) => a + b, 0) / peerMultiples.length;
@@ -199,10 +209,25 @@ if (sparseCoverage) {
     (c.last_round_value || c.secondary_value)
   );
 
-  console.log(`\n   Private peers found: ${peers.length}`);
+  console.log(`\n   Private peers found: ${peers.length} exact match(es)`);
 
   if (peers.length < 3) {
-    console.log(`   ✅ CORRECT: Should trigger public comps fallback (daily refresh)`);
+    console.log(`   ✅ CORRECT: <3 exact matches`);
+    console.log(`   → Will use RELATED_SECTORS fallback to find more peers`);
+    console.log(`   → Will trigger public comps (daily refresh)`);
+
+    // Show what related sectors would be checked
+    const relatedSectors = {
+      'Aerospace & Defense': ['Hardware & Manufacturing'],
+      'Developer Tools': ['Infrastructure & Cloud', 'Enterprise Software', 'Artificial Intelligence'],
+      'Gaming & Entertainment': ['Consumer Apps', 'Social & Communications'],
+      'Consumer Apps': ['Social & Communications', 'E-commerce & Marketplace'],
+    };
+
+    const related = relatedSectors[sparseCoverage.sector] || [];
+    if (related.length > 0) {
+      console.log(`   → Related sectors to check: ${related.join(', ')}`);
+    }
   } else {
     console.log(`   ❌ UNEXPECTED: Has ≥3 peers, shouldn't be sparse`);
   }

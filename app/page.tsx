@@ -112,6 +112,13 @@ export default function App() {
   const [compsError, setCompsError] = useState<string | null>(null);
   const [whyOpen, setWhyOpen] = useState(false);
 
+  // Cached comps (private + public) loaded automatically
+  const [cachedComps, setCachedComps] = useState<{
+    private: any[];
+    public: any[];
+    target: { name: string; sector: string; revenue: number | null; valuation: number | null; multiple: number | null };
+  } | null>(null);
+
   const [showAddForm, setShowAddForm] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
@@ -169,6 +176,21 @@ export default function App() {
     }
   }
 
+  async function loadCachedComps(id: string) {
+    try {
+      const res = await fetch(`/api/lumen/companies/${id}/cached-comps`);
+      const data = await res.json();
+      if (data.private || data.public) {
+        setCachedComps(data);
+      } else {
+        setCachedComps(null);
+      }
+    } catch (err) {
+      console.error('Failed to load cached comps:', err);
+      setCachedComps(null);
+    }
+  }
+
   useEffect(() => {
     if (!activeId) return;
     setWhyOpen(false);
@@ -176,8 +198,9 @@ export default function App() {
     setResearchError(null);
     setComps(null);
     setCompsError(null);
+    setCachedComps(null);
     refreshDetail(activeId);
-    findCompsForCompany();
+    loadCachedComps(activeId); // Load cached comps automatically
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeId]);
 
@@ -914,82 +937,89 @@ export default function App() {
 
           {/* Right column */}
           <div style={{ display: 'grid', gap: '16px' }}>
-            {/* Comparable companies */}
-            <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 className="display" style={{ fontSize: '13px', fontWeight: 600, margin: 0 }}>
-                  Comparable companies
-                </h3>
-                <button
-                  onClick={findCompsForCompany}
-                  disabled={loadingComps}
-                  style={{ ...primaryBtnStyle, opacity: loadingComps ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                  {loadingComps && <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />}
-                  {comps ? 'Re-run' : 'Find comps'}
-                </button>
-              </div>
-
-              {loadingComps && !comps && (
-                <div style={{ fontSize: '12px', color: '#8B95A1', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> Finding comparable public companies…
-                </div>
-              )}
-
-              {compsError && <div style={{ fontSize: '12px', color: '#E5484D', marginTop: '8px' }}>{compsError}</div>}
-
-              {!comps && !loadingComps && !compsError && (
-                <div style={{ fontSize: '12px', color: '#8B95A1', marginTop: '8px' }}>
-                  Applies real public comps&apos; current revenue multiples to this company&apos;s own confirmed revenue, sourced and cited.
-                </div>
-              )}
-
-              {comps && (
-                <div style={{ marginTop: '12px' }}>
-                  <div className="mono" style={{ fontSize: '11px', color: '#5A6470', marginBottom: '8px' }}>
-                    Revenue: {fmtB(comps.revenueBillions)} — {comps.revenueSource.sourceLabel}, {comps.revenueSource.date}
-                  </div>
-                  {(comps.ownMultiples.lastRound !== null || comps.ownMultiples.aiFairValue !== null) && (
-                    <div style={{ fontSize: '12px', color: '#8B95A1', marginBottom: '10px' }}>
-                      {company?.name}&apos;s own multiple:{' '}
-                      {comps.ownMultiples.lastRound !== null && (
-                        <span style={{ color: '#E8EAED' }}>
-                          {comps.ownMultiples.lastRound.toFixed(1)}x last round
-                          {!comps.ownMultiples.lastRoundConfirmed && ' (unconfirmed)'}
-                        </span>
-                      )}
-                      {comps.ownMultiples.lastRound !== null && comps.ownMultiples.aiFairValue !== null && ' · '}
-                      {comps.ownMultiples.aiFairValue !== null && (
-                        <span style={{ color: '#E8EAED' }}>{comps.ownMultiples.aiFairValue.toFixed(1)}x AI fair value</span>
-                      )}
-                    </div>
+            {/* Private Comparable Companies (Prominent) */}
+            {cachedComps && cachedComps.private.length > 0 && (
+              <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <h3 className="display" style={{ fontSize: '13px', fontWeight: 600, margin: 0 }}>
+                    Comparable Companies
+                  </h3>
+                  {cachedComps.private.length < 3 && (
+                    <span style={{ fontSize: '11px', color: '#C9A227', background: 'rgba(201,162,39,0.1)', padding: '2px 6px', borderRadius: '3px' }}>
+                      Limited peer data ({cachedComps.private.length} {cachedComps.private.length === 1 ? 'company' : 'companies'})
+                    </span>
                   )}
-                  <div style={{ display: 'grid', gap: '6px' }}>
-                    {comps.comps.map((c, i) => (
-                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: '12px' }}>
-                        <span>
-                          {c.name}
-                          {c.ticker && (
-                            <span className="mono" style={{ color: '#5A6470' }}>
-                              {' '}
-                              ({c.ticker})
+                </div>
+
+                {/* Target company's own multiple */}
+                {cachedComps.target.multiple !== null && (
+                  <div style={{ fontSize: '12px', color: '#8B95A1', marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid #1F2833' }}>
+                    <span style={{ color: '#E8EAED', fontWeight: 500 }}>{cachedComps.target.name}</span>: {fmtB(cachedComps.target.valuation)} @ <span style={{ color: '#E8EAED', fontWeight: 500 }}>{cachedComps.target.multiple.toFixed(1)}x</span> revenue
+                  </div>
+                )}
+
+                {/* Peer list */}
+                <div style={{ display: 'grid', gap: '8px' }}>
+                  {cachedComps.private.map((comp: any, i: number) => {
+                    const isExact = comp.match_type === 'exact';
+                    return (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1 }}>
+                          <span style={{ color: '#E8EAED' }}>{comp.comp_name}</span>
+                          {!isExact && (
+                            <span style={{ fontSize: '10px', color: '#8B95A1', background: 'rgba(139,149,161,0.1)', padding: '1px 4px', borderRadius: '2px' }}>
+                              related sector
                             </span>
                           )}
-                          <span style={{ color: '#5A6470' }}> · {c.multiple.toFixed(1)}x</span>
-                        </span>
-                        <span className="mono" style={{ color: '#C9A227', fontWeight: 500 }}>
-                          {fmtB(c.impliedValuation)}
-                        </span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                          {comp.comp_revenue_multiple !== null && (
+                            <span style={{ color: '#8B95A1', fontSize: '11px' }}>{comp.comp_revenue_multiple.toFixed(1)}x</span>
+                          )}
+                          <span className="mono" style={{ color: '#C9A227', fontWeight: 500 }}>
+                            {fmtB(comp.comp_valuation)}
+                          </span>
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                  <div style={{ fontSize: '11px', color: '#5A6470', marginTop: '8px' }}>
-                    Implied range: {fmtB(Math.min(...comps.comps.map((c) => c.impliedValuation)))} –{' '}
-                    {fmtB(Math.max(...comps.comps.map((c) => c.impliedValuation)))}
-                  </div>
+                    );
+                  })}
                 </div>
-              )}
-            </div>
+
+                {/* Peer average & delta */}
+                {(() => {
+                  const peerMultiples = cachedComps.private
+                    .map((c: any) => c.comp_revenue_multiple)
+                    .filter((m: any): m is number => m !== null && m !== undefined);
+
+                  if (peerMultiples.length === 0 || cachedComps.target.multiple === null) return null;
+
+                  const peerAvg = peerMultiples.reduce((a: number, b: number) => a + b, 0) / peerMultiples.length;
+                  const delta = ((cachedComps.target.multiple - peerAvg) / peerAvg) * 100;
+
+                  return (
+                    <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #1F2833', fontSize: '12px', color: '#8B95A1' }}>
+                      Peer avg: {peerAvg.toFixed(1)}x · {cachedComps.target.name} is{' '}
+                      <span style={{ color: delta > 0 ? '#3FBF7F' : '#E5484D', fontWeight: 500 }}>
+                        {delta > 0 ? '+' : ''}{delta.toFixed(1)}%
+                      </span>
+                      {' '}{delta > 0 ? 'premium' : 'discount'}
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
+            {/* Placeholder if no private comps yet */}
+            {(!cachedComps || cachedComps.private.length === 0) && (
+              <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px' }}>
+                <h3 className="display" style={{ fontSize: '13px', fontWeight: 600, margin: '0 0 8px 0' }}>
+                  Comparable Companies
+                </h3>
+                <div style={{ fontSize: '12px', color: '#8B95A1' }}>
+                  Comps will be computed automatically during the next daily refresh cycle.
+                </div>
+              </div>
+            )}
 
             {/* AI valuation panel */}
             <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px', background: '#0E1319' }}>
