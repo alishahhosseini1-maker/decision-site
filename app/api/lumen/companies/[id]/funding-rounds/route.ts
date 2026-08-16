@@ -120,12 +120,15 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       // Parse valuation from evidence.value field (which is stored in billions as a string)
       const valuationBillions = best.value ? parseFloat(best.value) : 0;
 
+      // Use the actual funding_amount field (amount raised in this round)
+      const amountRaisedBillions = best.funding_amount ? parseFloat(best.funding_amount.toString()) : null;
+
       return {
         id: best.id,
         date: best.date,
-        value: valuationBillions, // Valuation in billions
+        value: valuationBillions, // Post-money valuation in billions
         round_type: best.round_type,
-        funding_amount: best.value ? `$${best.value}B` : null, // Display format
+        funding_amount: amountRaisedBillions ? `$${amountRaisedBillions}B` : null, // Amount raised (display format)
         source_label: best.source_label,
         description: best.description,
         status: best.status,

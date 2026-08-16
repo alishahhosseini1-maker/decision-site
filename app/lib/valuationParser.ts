@@ -61,6 +61,43 @@ export function parseValuationFromText(text: string): number | null {
 }
 
 /**
+ * Extracts the amount raised (funding amount) from text.
+ * Returns amount in billions, or null if not found.
+ *
+ * Patterns matched:
+ * - "raised $6.6B" or "raised $6.6 billion"
+ * - "raising $40 billion"
+ * - "$122B funding round"
+ * - "$65B raise"
+ */
+export function parseFundingAmountFromText(text: string): number | null {
+  if (!text) return null;
+
+  // Pattern 1: "raised/raising $XB"
+  const raisedPattern = /(?:raised|raising|raise of)\s*\$\s*([\d,.]+)\s*(?:billion|B)/i;
+  let match = text.match(raisedPattern);
+  if (match) {
+    return parseFloat(match[1].replace(/,/g, ''));
+  }
+
+  // Pattern 2: "$XB funding round" or "$XB round"
+  const fundingRoundPattern = /\$\s*([\d,.]+)\s*(?:billion|B)\s+(?:funding round|round|raise)/i;
+  match = text.match(fundingRoundPattern);
+  if (match) {
+    return parseFloat(match[1].replace(/,/g, ''));
+  }
+
+  // Pattern 3: "new funding of $XB" or "funding round of $XB"
+  const ofPattern = /(?:funding|round)\s+of\s+\$\s*([\d,.]+)\s*(?:billion|B)/i;
+  match = text.match(ofPattern);
+  if (match) {
+    return parseFloat(match[1].replace(/,/g, ''));
+  }
+
+  return null;
+}
+
+/**
  * Extracts round type from text.
  * Returns the round type (e.g., "Series C") or null.
  */

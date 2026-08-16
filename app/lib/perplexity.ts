@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { AI_RESEARCH_CONTRIBUTOR, AI_RESEARCH_SOURCE_TYPE, CATEGORIES, CONFIDENCE_MAP } from './lumen';
-import { parseValuationFromText, parseRoundTypeFromText } from './valuationParser';
+import { parseValuationFromText, parseRoundTypeFromText, parseFundingAmountFromText } from './valuationParser';
 
 type ResearchItem = {
   category: string;
@@ -100,13 +100,22 @@ Return at most 6 items. If you find nothing verifiable with citation URLs, retur
         const description = String(item.description).trim();
         let value = null;
         let roundType = null;
+        let fundingAmount = null;
 
         // Always parse Funding evidence (ignore Perplexity's value field, which is often text)
         if (category === 'Funding') {
+          // Parse post-money valuation
           const parsedValue = parseValuationFromText(description);
           if (parsedValue !== null) {
             value = parsedValue.toString();
           }
+
+          // Parse amount raised in this round
+          const parsedFundingAmount = parseFundingAmountFromText(description);
+          if (parsedFundingAmount !== null) {
+            fundingAmount = parsedFundingAmount;
+          }
+
           roundType = parseRoundTypeFromText(description);
         } else {
           // For non-Funding categories, use Perplexity's value if provided
@@ -130,6 +139,7 @@ Return at most 6 items. If you find nothing verifiable with citation URLs, retur
           category,
           description,
           value,
+          funding_amount: fundingAmount,
           round_type: roundType,
           source_type: sourceType,
           source_label: String(item.sourceLabel).trim(),
