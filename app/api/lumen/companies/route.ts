@@ -79,8 +79,7 @@ export async function GET() {
 
     const { data: companies, error } = await supabase
       .from('lumen_companies')
-      .select('*')
-      .order('created_at', { ascending: true });
+      .select('*');
 
     if (error) throw error;
 
@@ -92,11 +91,20 @@ export async function GET() {
 
     const valByCompany = new Map((valuations || []).map((v) => [v.company_id, v]));
 
+    // Sort by estimated value (secondary > AI valuation > last round > created_at)
+    const companiesWithVal = (companies || []).map((c) => ({
+      ...c,
+      valuation: valByCompany.get(c.id) || null,
+    }));
+
+    companiesWithVal.sort((a, b) => {
+      const aVal = a.secondary_value || a.valuation?.base_case || a.last_round_value || 0;
+      const bVal = b.secondary_value || b.valuation?.base_case || b.last_round_value || 0;
+      return bVal - aVal; // Descending (highest first)
+    });
+
     return NextResponse.json({
-      companies: (companies || []).map((c) => ({
-        ...c,
-        valuation: valByCompany.get(c.id) || null,
-      })),
+      companies: companiesWithVal,
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Failed to load companies.' }, { status: 500 });
@@ -156,10 +164,24 @@ export async function POST(req: Request) {
     const evidence = await researchCompanyEvidence(supabase, data);
     await applyBestUnconfirmedFigures(supabase, data.id, evidence);
 
+    // Set last_researched_at timestamp since we just ran research
+    await supabase
+      .from('lumen_companies')
+      .update({ last_researched_at: new Date().toISOString() })
+      .eq('id', data.id);
+
     const { data: refreshed } = await supabase.from('lumen_companies').select('*').eq('id', data.id).single();
     const company = refreshed || data;
 
     const valuation = await generateValuation(supabase, company);
+
+    // Set last_valuation_at timestamp since we just generated a valuation
+    if (valuation) {
+      await supabase
+        .from('lumen_companies')
+        .update({ last_valuation_at: new Date().toISOString() })
+        .eq('id', data.id);
+    }
 
     return NextResponse.json({
       company: {

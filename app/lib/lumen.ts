@@ -94,6 +94,8 @@ export type Company = {
   secondary_confirmed: boolean;
   created_by: string | null;
   created_at: string;
+  last_researched_at: string | null;
+  last_valuation_at: string | null;
 };
 
 export type ContributorStats = { name: string; total: number; verified: number; rejected: number; accuracy: number | null };

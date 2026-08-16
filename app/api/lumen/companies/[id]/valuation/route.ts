@@ -28,6 +28,12 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       return NextResponse.json({ error: "Couldn't generate a valuation. Try again." }, { status: 500 });
     }
 
+    // Update last_valuation_at timestamp
+    await supabase
+      .from('lumen_companies')
+      .update({ last_valuation_at: new Date().toISOString() })
+      .eq('id', params.id);
+
     return NextResponse.json({ valuation });
   } catch (err: any) {
     console.error('[lumen/valuation] error:', err);

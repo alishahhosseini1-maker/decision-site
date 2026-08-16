@@ -25,6 +25,12 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
     const evidence = await researchCompanyEvidence(supabase, company);
 
+    // Update last_researched_at timestamp
+    await supabase
+      .from('lumen_companies')
+      .update({ last_researched_at: new Date().toISOString() })
+      .eq('id', params.id);
+
     return NextResponse.json({ evidence });
   } catch (err: any) {
     console.error('[lumen/research] error:', err);

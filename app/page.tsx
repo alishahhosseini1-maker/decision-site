@@ -37,6 +37,23 @@ function getContributorId() {
   return id;
 }
 
+function formatRelativeTime(timestamp: string | null | undefined): string {
+  if (!timestamp) return 'never';
+  const now = new Date();
+  const then = new Date(timestamp);
+  const diffMs = now.getTime() - then.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return 'just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays === 1) return 'yesterday';
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return then.toLocaleDateString();
+}
+
 type CompanyWithValuation = Company & { valuation: { base_case: number; confidence_score: number } | null };
 type Contributor = { name: string; total: number; verified: number; rejected: number; accuracy: number | null };
 type Comp = { name: string; ticker: string; multiple: number; sourceLabel: string; impliedValuation: number };
@@ -358,6 +375,21 @@ export default function App() {
         .lumen-scroll::-webkit-scrollbar-thumb { background: #26303C; border-radius: 2px; }
         button.lumen-btn:hover { filter: brightness(1.15); }
         .ev-row:hover { background: #161D26; }
+
+        @keyframes ticker-scroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+
+        .ticker-track {
+          display: flex;
+          gap: 1px;
+          animation: ticker-scroll 90s linear infinite;
+        }
+
+        .ticker-track:hover {
+          animation-play-state: paused;
+        }
       `}</style>
 
       {/* Ticker bar */}
@@ -367,8 +399,9 @@ export default function App() {
           display: 'flex',
           gap: '1px',
           borderBottom: '1px solid #1F2833',
-          overflowX: 'auto',
+          overflow: 'hidden',
           background: '#0E1319',
+          position: 'relative',
         }}
       >
         <div
@@ -381,15 +414,34 @@ export default function App() {
             color: '#C9A227',
             whiteSpace: 'nowrap',
             borderRight: '1px solid #1F2833',
+            position: 'sticky',
+            left: 0,
+            background: '#0E1319',
+            zIndex: 10,
           }}
         >
           LUMEN
         </div>
-        {companies.map((c) => {
+        <div className="ticker-track">
+        {[...companies, ...companies].map((c, idx) => {
           const isActive = c.id === activeId;
+          // Determine current estimated valuation (prioritize: secondary > AI valuation > last round)
+          let currentValuation = null;
+          let valuationLabel = '';
+          if (c.secondary_value) {
+            currentValuation = c.secondary_value;
+            valuationLabel = 'Current Est.';
+          } else if (c.valuation) {
+            currentValuation = c.valuation.base_case;
+            valuationLabel = 'AI Fair Value';
+          } else if (c.last_round_value) {
+            currentValuation = c.last_round_value;
+            valuationLabel = 'Last Round';
+          }
+
           return (
             <button
-              key={c.id}
+              key={`${c.id}-${idx}`}
               onClick={() => setActiveId(c.id)}
               className="lumen-btn"
               style={{
@@ -403,16 +455,18 @@ export default function App() {
                 minWidth: '140px',
               }}
             >
-              <div style={{ fontSize: '12px', color: '#8B95A1' }} className="mono">
-                {c.symbol}
+              <div style={{ fontSize: '14px', fontWeight: 500, color: isActive ? '#E8EAED' : '#B5BDC6', marginBottom: '4px' }}>
+                {c.name}
               </div>
-              <div style={{ fontSize: '13px', fontWeight: 500, color: isActive ? '#E8EAED' : '#B5BDC6' }}>{c.name}</div>
-              <div className="mono" style={{ fontSize: '12px', color: c.valuation ? '#3FBF7F' : '#5A6470' }}>
-                {c.valuation ? fmtB(c.valuation.base_case) : 'unvalued'}
-              </div>
+              {currentValuation && (
+                <div className="mono" style={{ fontSize: '11px', color: '#3FBF7F' }}>
+                  {fmtB(currentValuation)}
+                </div>
+              )}
             </button>
           );
         })}
+        </div>
         <button
           onClick={() => setShowAddCompany((s) => !s)}
           className="lumen-btn"
@@ -550,9 +604,20 @@ export default function App() {
           {/* Left: evidence ledger */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-              <h2 className="display" style={{ fontSize: '15px', fontWeight: 600, margin: 0, letterSpacing: '0.02em' }}>
-                Evidence ledger
-              </h2>
+              <div>
+                <h2 className="display" style={{ fontSize: '15px', fontWeight: 600, margin: 0, letterSpacing: '0.02em' }}>
+                  Evidence ledger
+                </h2>
+                {company?.last_researched_at ? (
+                  <div style={{ fontSize: '11px', color: '#5A6470', marginTop: '4px' }}>
+                    Last updated: {formatRelativeTime(company.last_researched_at)}
+                  </div>
+                ) : evidence.length === 0 ? (
+                  <div style={{ fontSize: '11px', color: '#8B95A1', marginTop: '4px' }}>
+                    {researching ? 'Researching...' : 'Click "Research this company" to populate'}
+                  </div>
+                ) : null}
+              </div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button
                   onClick={researchCompany}
@@ -922,9 +987,16 @@ export default function App() {
             {/* AI valuation panel */}
             <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px', background: '#0E1319' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 className="display" style={{ fontSize: '13px', fontWeight: 600, margin: 0 }}>
-                  AI valuation
-                </h3>
+                <div>
+                  <h3 className="display" style={{ fontSize: '13px', fontWeight: 600, margin: 0 }}>
+                    AI valuation
+                  </h3>
+                  {company?.last_valuation_at && (
+                    <div style={{ fontSize: '11px', color: '#5A6470', marginTop: '4px' }}>
+                      Last updated: {formatRelativeTime(company.last_valuation_at)}
+                    </div>
+                  )}
+                </div>
                 <button
                   onClick={runValuation}
                   disabled={loadingValuation}
