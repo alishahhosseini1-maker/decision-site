@@ -112,7 +112,7 @@ export async function computePrivatePeers(
       // Check if peer is in a related sector
       const isRelated =
         (peer.sector && relatedSectors.includes(peer.sector)) ||
-        peer.secondary_sectors?.some(s => relatedSectors.includes(s));
+        peer.secondary_sectors?.some((s: string) => relatedSectors.includes(s));
 
       if (isRelated) {
         finalPeers.push({ peer, score: 30, matchType: 'related' }); // Lower score for related matches
