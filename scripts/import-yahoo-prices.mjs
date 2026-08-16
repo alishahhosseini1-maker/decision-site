@@ -22,44 +22,62 @@ import { createClient } from '@supabase/supabase-js';
 const INPUT_FILE = process.argv[2] || 'yahoo-data.tsv';
 const DRY_RUN = process.argv.includes('--dry-run');
 
-// Parse Yahoo Finance table data (TSV format from copy-paste)
+// Parse Yahoo Finance table data (multi-line format from copy-paste)
 function parseYahooData(tsvContent) {
   const lines = tsvContent.trim().split('\n');
   const companies = [];
 
-  for (const line of lines) {
-    // Tab-separated: Symbol | Company | Price | Change% | Valuation | ...
-    const cols = line.split('\t');
+  // Yahoo table copies as 4 lines per company:
+  // Line 1: Symbol (e.g., "ANTH.PVT")
+  // Line 2: Company Name (e.g., "Anthropic")
+  // Line 3: Price (e.g., "589.01")
+  // Line 4: Rest (Change%, Valuation, Funding, etc. - tab separated)
 
-    if (cols.length < 5) continue; // Skip header or malformed rows
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
 
-    const [symbol, name, priceStr, changeStr, valuationStr, ...rest] = cols;
+    // Skip header lines and empty lines
+    if (!line || line === 'Symbol' || line.startsWith('Price') || line.startsWith('52 Wk')) continue;
 
-    // Skip header row
-    if (name === 'Company' || name === 'Symbol') continue;
+    // Look for symbol pattern (e.g., "ANTH.PVT", "OPAI.PVT")
+    if (line.match(/^[A-Z]{4}\.PVT$/)) {
+      const symbol = line;
+      const name = lines[i + 1]?.trim();
+      const priceStr = lines[i + 2]?.trim();
+      const restLine = lines[i + 3]?.trim();
 
-    // Parse price (e.g., "721.85" or "$721.85")
-    const price = parseFloat(priceStr.replace(/[$,]/g, ''));
-    if (isNaN(price)) continue;
+      if (!name || !priceStr || !restLine) continue;
 
-    // Parse valuation (e.g., "894.326B" or "$894B")
-    let valuation = null;
-    if (valuationStr) {
-      const match = valuationStr.match(/([\d.]+)\s*([BMT])/i);
-      if (match) {
-        const num = parseFloat(match[1]);
-        const unit = match[2].toUpperCase();
-        valuation = unit === 'T' ? num * 1000 : unit === 'M' ? num / 1000 : num;
+      // Parse price
+      const price = parseFloat(priceStr.replace(/[$,]/g, ''));
+      if (isNaN(price)) continue;
+
+      // Parse rest line: Change%\tValuation\tFunding\t...
+      const restCols = restLine.split('\t');
+      const valuationStr = restCols[1]; // Second column is valuation
+
+      // Parse valuation (e.g., "894.326B" or "$894B")
+      let valuation = null;
+      if (valuationStr) {
+        const match = valuationStr.match(/([\d.]+)\s*([BMT])/i);
+        if (match) {
+          const num = parseFloat(match[1]);
+          const unit = match[2].toUpperCase();
+          valuation = unit === 'T' ? num * 1000 : unit === 'M' ? num / 1000 : num;
+        }
       }
-    }
 
-    companies.push({
-      symbol: symbol.trim(),
-      name: name.trim(),
-      price,
-      valuation,
-      rawLine: line
-    });
+      companies.push({
+        symbol,
+        name,
+        price,
+        valuation,
+        rawLine: `${symbol} | ${name} | ${price} | ${valuationStr}`
+      });
+
+      // Skip the next 3 lines (already processed)
+      i += 3;
+    }
   }
 
   return companies;
