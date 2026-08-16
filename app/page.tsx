@@ -233,6 +233,18 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeId]);
 
+  // Auto-research if no evidence exists
+  useEffect(() => {
+    if (!activeId || loadingDetail || researching) return;
+
+    // Only auto-research if evidence is empty (no data at all)
+    if (evidence.length === 0 && company) {
+      console.log('[auto-research] No evidence found, triggering research');
+      researchCompany();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeId, evidence.length, loadingDetail, company]);
+
   const sortedEvidence = useMemo(
     () => [...evidence].sort((a, b) => (a.date < b.date ? 1 : -1)),
     [evidence]
