@@ -632,6 +632,7 @@ export default function App() {
           {/* Current Valuation */}
           <SimpleValuation
             value={valuation?.base_case || company.secondary_value || company.last_round_value}
+            pricePerShare={company.secondary_price_per_share}
             source={
               valuation?.base_case
                 ? 'ai'

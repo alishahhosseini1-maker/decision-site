@@ -2,13 +2,14 @@
 
 type Props = {
   value: number | null;
+  pricePerShare?: number | null;
   source: 'ai' | 'secondary' | 'last_round';
   confidence?: number | null;
   date?: string | null;
   onMethodologyClick?: () => void;
 };
 
-export function SimpleValuation({ value, source, confidence, date, onMethodologyClick }: Props) {
+export function SimpleValuation({ value, pricePerShare, source, confidence, date, onMethodologyClick }: Props) {
   if (!value) {
     return (
       <div style={{ marginTop: '24px', textAlign: 'center', color: '#5A6470', fontSize: '13px' }}>
@@ -64,11 +65,24 @@ export function SimpleValuation({ value, source, confidence, date, onMethodology
             color: '#C9A227',
             fontFamily: 'monospace',
             lineHeight: 1,
-            marginBottom: '12px',
+            marginBottom: pricePerShare ? '8px' : '12px',
           }}
         >
           {formatBillions(value)}
         </div>
+
+        {pricePerShare && (
+          <div style={{
+            fontSize: '24px',
+            fontWeight: 600,
+            color: '#8B95A1',
+            fontFamily: 'monospace',
+            marginBottom: '12px'
+          }}>
+            ${pricePerShare.toFixed(2)}/share
+          </div>
+        )}
+
         <div style={{ fontSize: '11px', color: '#5A6470' }}>{getSourceLabel()}</div>
       </div>
 

@@ -117,6 +117,7 @@ export type Company = {
   secondary_value: number | null;
   secondary_date: string | null;
   secondary_confirmed: boolean;
+  secondary_price_per_share: number | null; // Price per share on secondary markets (e.g., $721.85)
   created_by: string | null;
   created_at: string;
   last_researched_at: string | null;
