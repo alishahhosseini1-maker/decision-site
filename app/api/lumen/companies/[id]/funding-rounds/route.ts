@@ -37,7 +37,14 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
     if (companyError || !company) {
       console.log('[funding-rounds] Company not found, returning empty');
-      return NextResponse.json({ rounds: [] });
+      return NextResponse.json({
+        rounds: [],
+        debug: {
+          error: 'Company not found',
+          lookupParam: params.id,
+          companyError: companyError?.message
+        }
+      });
     }
 
     // TypeScript type guard - company is definitely not null here
@@ -71,7 +78,15 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
     if (fundingEvidence.length === 0) {
       console.log('[funding-rounds] No evidence found for this company');
-      return NextResponse.json({ rounds: [] });
+      return NextResponse.json({
+        rounds: [],
+        debug: {
+          error: 'No funding evidence for this company',
+          companyId,
+          totalFundingEvidence: allFundingEvidence?.length || 0,
+          filteredToCompany: 0
+        }
+      });
     }
 
     // Group by date + round_type to handle multiple sources reporting same round
