@@ -78,6 +78,9 @@ export type Evidence = {
   verified_by: string[];
   dispute_note: string | null;
   created_at: string;
+  affiliation_disclosed: boolean;
+  affiliation_type: string | null;
+  citation_url: string | null;
 };
 
 export type Company = {
@@ -131,4 +134,26 @@ export type Valuation = {
   key_drivers: { label: string; impact: '+' | '-'; note: string }[];
   explanation: string;
   generated_at: string;
+};
+
+export type Comp = {
+  company_id: string;
+  comp_name: string;
+  comp_slug: string;
+  comp_valuation: number | null;
+  comp_revenue: number | null;
+  comp_revenue_multiple: number | null;
+  sector: string | null;
+  similarity_score: number;
+  computed_at: string;
+};
+
+export type ValuationHistory = {
+  id: string;
+  company_id: string;
+  valuation_type: 'last_round' | 'secondary' | 'ai_estimated';
+  value: number;
+  date: string;
+  source: string | null;
+  created_at: string;
 };

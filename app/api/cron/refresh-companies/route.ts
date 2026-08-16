@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { researchCompanyEvidence } from '@/app/lib/perplexity';
 import { generateValuation } from '@/app/lib/valuation';
+import { computeComparables } from '@/app/lib/comps';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300; // 5 minutes max (Vercel limit)
@@ -63,6 +64,28 @@ export async function GET(req: Request) {
               .from('lumen_companies')
               .update({ last_valuation_at: new Date().toISOString() })
               .eq('id', company.id);
+          }
+        }
+
+        // Compute comparable companies
+        await computeComparables(supabase, company);
+
+        // Snapshot current valuation for historical tracking
+        const currentVal = company.secondary_value || company.last_round_value;
+        if (currentVal) {
+          const valuationType = company.secondary_value ? 'secondary' : 'last_round';
+          const date = company.secondary_value
+            ? company.secondary_date
+            : company.last_round_date;
+
+          if (date) {
+            await supabase.from('lumen_valuation_history').insert({
+              company_id: company.id,
+              valuation_type: valuationType,
+              value: currentVal,
+              date,
+              source: 'cron_refresh',
+            });
           }
         }
 
