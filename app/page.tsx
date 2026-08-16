@@ -12,7 +12,7 @@ import {
   ShieldCheck,
   X,
 } from 'lucide-react';
-import { ValuationChart } from './components/ValuationChart';
+import { FundingRoundsChart } from './components/FundingRoundsChart';
 import {
   CATEGORIES,
   CONFIDENCE_MAP,
@@ -116,9 +116,9 @@ export default function App() {
   const [whyOpen, setWhyOpen] = useState(false);
   const [methodologyOpen, setMethodologyOpen] = useState(false);
 
-  // Valuation history timeline
-  const [valuationHistory, setValuationHistory] = useState<any[]>([]);
-  const [loadingHistory, setLoadingHistory] = useState(false);
+  // Funding rounds data
+  const [fundingRounds, setFundingRounds] = useState<any[]>([]);
+  const [loadingRounds, setLoadingRounds] = useState(false);
 
   // Cached comps (private + public) loaded automatically
   const [cachedComps, setCachedComps] = useState<{
@@ -199,21 +199,21 @@ export default function App() {
     }
   }
 
-  async function loadValuationHistory(id: string) {
-    setLoadingHistory(true);
+  async function loadFundingRounds(id: string) {
+    setLoadingRounds(true);
     try {
-      const res = await fetch(`/api/lumen/companies/${id}/valuation-history`);
+      const res = await fetch(`/api/lumen/companies/${id}/funding-rounds`);
       const data = await res.json();
-      if (data.history) {
-        setValuationHistory(data.history);
+      if (data.rounds) {
+        setFundingRounds(data.rounds);
       } else {
-        setValuationHistory([]);
+        setFundingRounds([]);
       }
     } catch (err) {
-      console.error('Failed to load valuation history:', err);
-      setValuationHistory([]);
+      console.error('Failed to load funding rounds:', err);
+      setFundingRounds([]);
     } finally {
-      setLoadingHistory(false);
+      setLoadingRounds(false);
     }
   }
 
@@ -225,10 +225,10 @@ export default function App() {
     setComps(null);
     setCompsError(null);
     setCachedComps(null);
-    setValuationHistory([]);
+    setFundingRounds([]);
     refreshDetail(activeId);
     loadCachedComps(activeId); // Load cached comps automatically
-    loadValuationHistory(activeId); // Load valuation history for timeline chart
+    loadFundingRounds(activeId); // Load funding rounds for chart
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeId]);
 
@@ -858,8 +858,8 @@ export default function App() {
           </div>
         )}
 
-        {/* Valuation History Chart */}
-        <ValuationChart data={valuationHistory} />
+        {/* Funding Rounds Chart */}
+        <FundingRoundsChart rounds={fundingRounds} companyName={company?.name || ''} />
 
         <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '20px', alignItems: 'start', marginTop: '16px' }}>
           {/* Left: evidence ledger */}
