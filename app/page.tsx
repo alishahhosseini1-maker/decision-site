@@ -866,7 +866,9 @@ export default function App() {
             </h3>
             {/* @ts-ignore - recharts types conflict with React version */}
             <ResponsiveContainer width="100%" height={250}>
+              {/* @ts-ignore */}
               <LineChart data={valuationHistory} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                {/* @ts-ignore */}
                 <XAxis
                   dataKey="date"
                   stroke="#5A6470"
@@ -876,11 +878,13 @@ export default function App() {
                     return d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
                   }}
                 />
+                {/* @ts-ignore */}
                 <YAxis
                   stroke="#5A6470"
                   style={{ fontSize: '11px' }}
                   tickFormatter={(value) => `$${value}B`}
                 />
+                {/* @ts-ignore */}
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#0F1419',
@@ -896,11 +900,13 @@ export default function App() {
                     return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
                   }}
                 />
+                {/* @ts-ignore */}
                 <Legend
                   wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }}
                   iconType="line"
                 />
                 {/* Last Round valuations */}
+                {/* @ts-ignore */}
                 <Line
                   type="monotone"
                   dataKey="last_round"
@@ -911,6 +917,7 @@ export default function App() {
                   connectNulls
                 />
                 {/* Secondary Market valuations */}
+                {/* @ts-ignore */}
                 <Line
                   type="monotone"
                   dataKey="secondary"
@@ -921,6 +928,7 @@ export default function App() {
                   connectNulls
                 />
                 {/* AI Estimated valuations */}
+                {/* @ts-ignore */}
                 <Line
                   type="monotone"
                   dataKey="ai_estimated"
