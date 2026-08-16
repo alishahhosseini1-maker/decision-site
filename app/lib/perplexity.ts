@@ -42,8 +42,14 @@ CRITICAL FOR FUNDING ROUNDS: Each individual funding round MUST be categorized a
 - Post-money valuation (if disclosed) - this goes in the description as "at $XB valuation"
 - Round type (Seed, Series A, etc.)
 
-Example correct format for a funding round:
+Example correct format for a funding round (MUST include BOTH amount raised AND post-money valuation):
 {"category": "Funding", "description": "OpenAI raised $6.6B at a $157B post-money valuation in October 2024", "value": null, "sourceLabel": "Crunchbase", "sourceType": "Industry Research", "date": "2024-10-15", "citationUrl": "https://www.crunchbase.com/organization/openai"}
+
+CRITICAL: Each funding round description MUST include BOTH:
+1. Amount raised: "raised $XB"
+2. Post-money valuation: "at $YB post-money valuation" or "at $YB valuation"
+
+If Crunchbase does not provide the post-money valuation for a round, search for that specific round in Bloomberg, Reuters, TechCrunch, or other news sources to find the valuation. Do NOT include a round if you cannot find BOTH the amount raised AND the post-money valuation.
 
 For funding data, ONLY cite Crunchbase unless Crunchbase does not have the information. If Crunchbase lacks data, you may cite SEC filings, Bloomberg, or Reuters as backup sources.
 

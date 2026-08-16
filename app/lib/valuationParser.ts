@@ -47,9 +47,16 @@ export function parseValuationFromText(text: string): number | null {
   }
 
   // Pattern 4: Just "$XB" or "$X billion" anywhere in text (looser fallback)
+  // BUT exclude if it's part of "raised $XB" (that's funding amount, not valuation)
   const loosePattern = /\$\s*([\d,.]+)\s*(?:billion|B)(?:\s|,|\.|\)|$)/i;
   match = text.match(loosePattern);
   if (match) {
+    // Check if this is preceded by "raised" or "raising" - if so, skip (it's funding amount)
+    const beforeMatch = text.substring(0, match.index || 0).toLowerCase();
+    if (beforeMatch.match(/(?:raised|raising|raise)\s*$/)) {
+      return null; // This is funding amount, not valuation
+    }
+
     const value = parseFloat(match[1].replace(/,/g, ''));
     // Only accept if reasonable (0.1B to 10,000B)
     if (value >= 0.1 && value <= 10000) {
