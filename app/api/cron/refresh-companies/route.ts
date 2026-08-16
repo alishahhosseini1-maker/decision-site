@@ -67,8 +67,38 @@ export async function GET(req: Request) {
           }
         }
 
-        // Compute comparable companies
-        await computeComparables(supabase, company);
+        // Compute comparable companies (both private and public)
+        const { private: privateComps } = await computeComparables(supabase, company);
+
+        // Decide whether to refresh public comps:
+        // - If <3 private peers: compute daily (necessary for coverage)
+        // - If ≥3 private peers: compute weekly (quota savings)
+        const shouldRefreshPublicComps = privateComps.length < 3;
+
+        if (!shouldRefreshPublicComps) {
+          // Check if public comps are stale (>7 days old)
+          const { data: existingPublicComps } = await supabase
+            .from('lumen_comps')
+            .select('computed_at')
+            .eq('company_id', company.id)
+            .eq('comp_type', 'public')
+            .order('computed_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          const weekAgo = new Date();
+          weekAgo.setDate(weekAgo.getDate() - 7);
+
+          const isStale = !existingPublicComps || new Date(existingPublicComps.computed_at) < weekAgo;
+
+          if (isStale) {
+            // Refresh public comps (weekly cadence for well-covered companies)
+            await computeComparables(supabase, company);
+          }
+        } else {
+          // Sparse coverage: always refresh public comps (daily cadence)
+          await computeComparables(supabase, company);
+        }
 
         // Snapshot current valuation for historical tracking
         const currentVal = company.secondary_value || company.last_round_value;

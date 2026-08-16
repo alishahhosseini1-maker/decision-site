@@ -1,15 +1,17 @@
--- Comparable companies cache
+-- Comparable companies cache (both private peers and public market context)
 CREATE TABLE IF NOT EXISTS lumen_comps (
   company_id UUID REFERENCES lumen_companies(id) ON DELETE CASCADE,
+  comp_type TEXT NOT NULL CHECK (comp_type IN ('private', 'public')),
   comp_name TEXT NOT NULL,
   comp_slug TEXT NOT NULL,
+  comp_ticker TEXT, -- For public companies
   comp_valuation NUMERIC,
   comp_revenue NUMERIC,
   comp_revenue_multiple NUMERIC,
   sector TEXT,
   similarity_score INTEGER, -- 0-100, how similar to target company
   computed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (company_id, comp_slug)
+  PRIMARY KEY (company_id, comp_type, comp_slug)
 );
 
 CREATE INDEX lumen_comps_company_idx ON lumen_comps(company_id);

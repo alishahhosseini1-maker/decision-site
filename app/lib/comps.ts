@@ -1,8 +1,26 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Company, Comp } from './lumen';
 
-// Finds and caches comparable companies based on sector and business model
-export async function computeComparables(
+const PRIVATE_PEER_THRESHOLD = 3; // Minimum private peers before showing prominently
+
+// Sector similarity mapping for fallback when exact match is sparse
+const RELATED_SECTORS: Record<string, string[]> = {
+  'AI Infrastructure': ['Enterprise Software', 'AI', 'Cloud Infrastructure'],
+  'AI': ['AI Infrastructure', 'Enterprise Software', 'Machine Learning'],
+  'Fintech': ['Financial Services', 'Payments', 'Banking'],
+  'Healthcare Tech': ['Healthcare', 'SaaS', 'Digital Health'],
+  'Enterprise Software': ['SaaS', 'B2B Software', 'AI Infrastructure'],
+  // Add more as needed
+};
+
+function getRelatedSectors(sector: string | null): string[] {
+  if (!sector) return [];
+  const related = RELATED_SECTORS[sector] || [];
+  return [sector, ...related];
+}
+
+// Finds and caches PRIVATE sector peers from lumen_companies
+export async function computePrivatePeers(
   supabase: SupabaseClient,
   company: Company
 ): Promise<Comp[]> {
@@ -89,8 +107,10 @@ export async function computeComparables(
 
     comps.push({
       company_id: company.id,
+      comp_type: 'private',
       comp_name: peer.name,
       comp_slug: peer.slug,
+      comp_ticker: null, // Private companies don't have tickers
       comp_valuation: peerValuation,
       comp_revenue: revenueValue,
       comp_revenue_multiple: revenueMultiple,
@@ -107,11 +127,12 @@ export async function computeComparables(
 
   // Cache in database
   if (topComps.length > 0) {
-    // Delete old comps
+    // Delete old private comps (keep public comps)
     await supabase
       .from('lumen_comps')
       .delete()
-      .eq('company_id', company.id);
+      .eq('company_id', company.id)
+      .eq('comp_type', 'private');
 
     // Insert new comps
     await supabase
@@ -120,6 +141,82 @@ export async function computeComparables(
   }
 
   return topComps;
+}
+
+// Finds and caches PUBLIC comparable companies via Perplexity
+export async function computePublicComps(
+  supabase: SupabaseClient,
+  company: Company
+): Promise<Comp[]> {
+  // Dynamic import to avoid circular dependency
+  const { findComps } = await import('./perplexity');
+  const { extractRevenueBillions, pickMostCredible } = await import('./valuation');
+
+  // Get revenue evidence to compute multiples
+  const { data: evidence } = await supabase
+    .from('lumen_evidence')
+    .select('*')
+    .eq('company_id', company.id);
+
+  const revenueEvidence = pickMostCredible(evidence || [], 'Revenue');
+  if (!revenueEvidence) {
+    // No revenue evidence = can't compute meaningful public comps
+    return [];
+  }
+
+  const revenueBillions = await extractRevenueBillions(revenueEvidence.description, revenueEvidence.value);
+  if (revenueBillions === null || revenueBillions === 0) {
+    return [];
+  }
+
+  // Call Perplexity to find public company comps
+  const publicComps = await findComps(company.name, company.sector);
+  if (publicComps.length === 0) {
+    return [];
+  }
+
+  // Convert to Comp type and add metadata
+  const comps: Comp[] = publicComps.map((c) => ({
+    company_id: company.id,
+    comp_type: 'public',
+    comp_name: c.name,
+    comp_slug: c.ticker.toLowerCase(), // Use ticker as slug for public companies
+    comp_ticker: c.ticker,
+    comp_valuation: Math.round(revenueBillions * c.multiple * 10) / 10, // Implied valuation
+    comp_revenue: revenueBillions, // All share same target company revenue
+    comp_revenue_multiple: c.multiple,
+    sector: company.sector,
+    similarity_score: 80, // Public comps from Perplexity are already vetted as close matches
+    computed_at: new Date().toISOString(),
+  }));
+
+  // Cache in database
+  if (comps.length > 0) {
+    // Delete old public comps (keep private comps)
+    await supabase
+      .from('lumen_comps')
+      .delete()
+      .eq('company_id', company.id)
+      .eq('comp_type', 'public');
+
+    // Insert new public comps
+    await supabase
+      .from('lumen_comps')
+      .insert(comps);
+  }
+
+  return comps;
+}
+
+// Main function that computes both private and public comps
+export async function computeComparables(
+  supabase: SupabaseClient,
+  company: Company
+): Promise<{ private: Comp[]; public: Comp[] }> {
+  const privateComps = await computePrivatePeers(supabase, company);
+  const publicComps = await computePublicComps(supabase, company);
+
+  return { private: privateComps, public: publicComps };
 }
 
 // Computes delta/trend statistics for a company

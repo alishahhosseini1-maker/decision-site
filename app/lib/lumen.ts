@@ -138,8 +138,10 @@ export type Valuation = {
 
 export type Comp = {
   company_id: string;
+  comp_type: 'private' | 'public';
   comp_name: string;
   comp_slug: string;
+  comp_ticker: string | null;
   comp_valuation: number | null;
   comp_revenue: number | null;
   comp_revenue_multiple: number | null;
