@@ -34,9 +34,9 @@ export async function researchCompanyEvidence(
 
   try {
     const today = new Date().toISOString().slice(0, 10);
-    const prompt = `Research recent, verifiable developments about ${company.name} (${company.sector || 'unknown sector'}) relevant to a private-market valuation: funding rounds, revenue, contracts, secondary-market transactions, headcount changes, customer retention, or comparable company moves.
+    const prompt = `Research ALL funding rounds in the complete funding history of ${company.name} from Crunchbase. Also include other recent, verifiable developments relevant to a private-market valuation: revenue, contracts, secondary-market transactions, headcount changes, customer retention, or comparable company moves.
 
-CRITICAL FOR FUNDING ROUNDS: Each individual funding round MUST be categorized as "Funding" (not "Comparable" or any other category). Use Crunchbase as the primary source. For each funding round, create a SEPARATE item with category "Funding" and extract:
+CRITICAL FOR FUNDING ROUNDS: Each individual funding round MUST be categorized as "Funding" (not "Comparable" or any other category). Use Crunchbase as the primary source. Extract the COMPLETE funding timeline - ALL rounds from earliest to most recent. For each funding round, create a SEPARATE item with category "Funding" and extract:
 - Date of the funding round (close date)
 - Amount raised (if disclosed) - this goes in the description as "raised $XB"
 - Post-money valuation (if disclosed) - this goes in the description as "at $XB valuation"
@@ -57,7 +57,8 @@ Respond with ONLY a JSON array, no markdown code fences, no preamble or trailing
 "sourceType" must be exactly one of: ${CLASSIFIABLE_SOURCE_TYPES.join(', ')}, or "${AI_RESEARCH_SOURCE_TYPE}" only if none of those genuinely fit. Classify by what the source actually is, e.g. a wire/major outlet story (Reuters, Bloomberg, WSJ, TechCrunch) is "Reputable Publication"; an official company blog post or press release is "Company Announcement"; an SEC or government filing/database is "SEC / Government Filing"; a funding/deal database (Crunchbase, PitchBook) is "Industry Research"; a secondary-market platform record is "Verified Transaction"; an investor letter or update memo is "Investor Document".
 "citationUrl" MUST be a direct URL to the source article/filing/page where this information can be verified. This is REQUIRED for every item - do not include any item without a citation URL. For Crunchbase funding data, use the company's Crunchbase URL.
 "date" should be the date of the underlying event or report in YYYY-MM-DD format; use ${today} if unknown.
-Return at most 6 items. If you find nothing verifiable with citation URLs, return [].`;
+
+PRIORITIZATION: Return ALL funding rounds first (complete timeline from Crunchbase), then add other evidence types (revenue, contracts, etc.) up to a maximum of 25 total items. If you find nothing verifiable with citation URLs, return [].`;
 
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
