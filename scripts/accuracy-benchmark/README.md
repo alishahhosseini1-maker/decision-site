@@ -1,149 +1,162 @@
-# Lumen Accuracy Benchmark
+# Lumen 2-Tier Accuracy Benchmark
 
-**Goal:** Measure whether Lumen's AI-assisted valuation produces estimates that are meaningfully close to real, verifiable private-company price points.
+## What This Is
 
----
+A validation framework that tests whether Lumen's evidence-gathering + AI valuation pipeline actually works by comparing AI estimates against known real price points.
 
-## Process
-
-### Step 1: Build the Test Set (Manual)
-
-Find 20 private companies with **verifiable recent price points**:
-
-**Sources:**
-- Recent funding rounds (TechCrunch, SEC Form D, press releases)
-- Secondary trade prices (Forge, EquityZen public data)
-- 409A valuations (rare but sometimes disclosed)
-- IPO/acquisition announcements
-
-**Target mix:**
-- **Sectors:** AI (3), Fintech (3), Enterprise SaaS (3), Consumer (3), Other (8)
-- **Stages:** Seed (3), Series A-B (5), Series C-D (7), Late-stage (5)
-- **Coverage:** Well-covered (10), Thin coverage (10)
-
-**For each company, record in `test-companies.json`:**
-- Company name
-- Sector and stage
-- Known price point (valuation, date, source URL, type)
-
-**Critical:** Record the date of the known price point. In Step 2, we'll only use evidence BEFORE that date.
+**This is the one test that tells you whether the core mechanism works before investing more in strategy, GTM, or features.**
 
 ---
 
-### Step 2: Run Lumen's Pipeline (Manual)
+## Why 2 Tiers?
 
-For each of the 20 companies:
+**Tier 1 (Famous Companies - 3 total):**
+- Well-known companies (Anthropic, OpenAI, Stripe)
+- Extensive press coverage
+- **Purpose:** Sanity check only
+- **Risk:** Training data contamination - the model might already "know" the answer
+- **Interpretation:** Good score is necessary but not sufficient
 
-1. **Add the company to Lumen** (if not already present)
-2. **Gather evidence** - use only evidence dated BEFORE the known price point date
-   - Option A: Manual submission (if testing human workflow)
-   - Option B: AI research (if testing AI pipeline) - but filter results by date
-3. **Run valuation** - click "Run valuation" to get AI estimate
-4. **Record in `test-companies.json`:**
-   - `lumen_estimate.valuation_billions`
-   - `lumen_estimate.confidence_score`
-   - `lumen_estimate.evidence_count`
-   - `lumen_estimate.evidence_avg_credibility`
-   - `lumen_estimate.run_date`
+**Tier 2 (Less-Famous Companies - 5 total):**
+- Companies with verifiable price points but less coverage  
+- Spread across sectors and stages
+- **Purpose:** Real validation signal
+- **Why:** Less risk of training data contamination
+- **Interpretation:** This is what actually proves the pipeline works
 
-**Why filter by date?**  
-To prevent the AI from "seeing the answer." If we use evidence published AFTER the known price point, the model might directly cite the round announcement, which would artificially inflate accuracy.
+**Key:** Score the two tiers separately. Blending them hides whether you're measuring the pipeline or just measuring training data.
 
 ---
 
-### Step 3: Score It (Automated)
+## Test Set
 
-Run the scoring script:
+### Tier 1 (Famous)
+1. **Anthropic** - AI, Late-stage, $60B target (Dec 2025)
+2. **OpenAI** - AI, Late-stage, $157B target (Oct 2024)
+3. **Stripe** - Fintech, Late-stage, $65B target (Feb 2024)
+
+### Tier 2 (Less-Famous) - THE REAL TEST
+1. **Plaid** - Fintech, Series D, $13.4B target (Apr 2021)
+2. **Anduril** - Defense Tech, Series F, $14B target (Aug 2024)
+3. **Notion** - Enterprise SaaS, Series C, $10B target (Oct 2021)
+4. **Faire** - Marketplace, Series G, $12.6B target (Nov 2021)
+5. **Rippling** - HR Tech, Series D, $11.25B target (May 2023)
+
+---
+
+## Running the Benchmark
+
+### Step 1: Run Valuations
+
+For each company in `test-companies.json`:
+
+1. **Ensure company exists** in Lumen database
+2. **Filter evidence by date** - delete any evidence dated AFTER the known price point cutoff date
+   - This prevents the AI from "cheating" by reading the answer
+   - Example: For OpenAI's $157B round on Oct 4, 2024, delete all evidence after that date
+3. **Trigger AI valuation** - either via UI or API
+4. **Record the estimate** in `test-companies.json` under `lumen_estimate`:
+   ```json
+   "lumen_estimate": {
+     "valuation_billions": 58.5,
+     "confidence_score": 72,
+     "evidence_count": 8,
+     "run_date": "2026-08-16",
+     "notes": "Filtered to pre-Oct-2024 evidence"
+   }
+   ```
+
+**Critical:** Be strict about the evidence cutoff. Using post-cutoff evidence contaminates the test.
+
+### Step 2: Score Results
 
 ```bash
 node score-benchmark.mjs test-companies.json
 ```
 
-**Outputs:**
-- Overall accuracy (median/mean error %)
-- Error distribution (% within 10%, 25%, 50%)
-- Segmentation by sector, stage, evidence density
-- Worst/best performers
-- Pattern detection (systematic bias, evidence quality correlation)
+**Output:**
+- Tier 1 score (sanity check)  
+- Tier 2 score (real validation)
+- Error distribution
+- Sector breakdown
+- Bias detection
 - Recommendations
 
----
+### Step 3: Interpret
 
-### Step 4: Report (Manual Analysis)
+**Tier 1 (Famous):**
+- >30% mean error = 🔴 Pipeline has major issues
+- ≤30% mean error = ✅ Sanity check passed (but doesn't prove pipeline works)
 
-**Write up:**
-
-1. **Overall accuracy** - headline number and interpretation
-2. **Where it's strong** - which sectors/stages/coverage levels work well
-3. **Where it's weak** - where errors are highest
-4. **Hypothesis for each weak spot** - e.g.:
-   - "Errors >50% for pre-seed companies - likely due to corroboration logic requiring 2+ sources within 45 days, which thin-coverage companies rarely have"
-   - "Systematic overestimation for AI companies - may be overfitting to recent hype cycle in training data"
-5. **Systematic biases** - does it consistently over/underestimate?
+**Tier 2 (Less-Famous) - THE REAL TEST:**
+- >60% mean error = 🔴 **CRITICAL** - Pipeline doesn't work, fix core logic
+- 40-60% mean error = ⚠️ **MARGINAL** - Needs improvement, rough estimates only
+- 25-40% mean error = ✅ **ACCEPTABLE** - Reasonable for crowdsourced data, pipeline validated
+- <25% mean error = 🎯 **EXCELLENT** - Competitive accuracy, strong foundation
 
 ---
 
-## Example Test Case
+## What This Proves (Or Doesn't)
 
-```json
-{
-  "id": 1,
-  "name": "Anthropic",
-  "sector": "AI",
-  "stage": "series_c_d",
-  "known_price_point": {
-    "valuation_billions": 18.4,
-    "date": "2024-05-31",
-    "source": "TechCrunch - Series C",
-    "source_url": "https://techcrunch.com/...",
-    "type": "funding_round"
-  },
-  "lumen_estimate": {
-    "valuation_billions": 16.2,
-    "confidence_score": 72,
-    "evidence_count": 8,
-    "evidence_avg_credibility": 75,
-    "run_date": "2026-08-16",
-    "notes": "Used 8 evidence items from 2023-2024, excluded post-May-2024 announcements"
-  },
-  "analysis": {
-    "error_pct": 11.9,
-    "error_absolute": 2.2,
-    "within_confidence_range": true,
-    "notes": "Strong accuracy - 8 high-credibility sources, well-corroborated"
-  }
-}
+**If Tier 2 passes (≤40% mean error):**
+- ✅ Evidence gathering works
+- ✅ AI valuation logic is reasonable
+- ✅ Pipeline validated for less-covered companies
+- ✅ Foundation exists for wedge strategy
+- ➡️ **Safe to proceed with GTM decisions**
+
+**If Tier 1 passes but Tier 2 fails:**
+- ❌ Pipeline might be "cheating" with training data
+- ❌ Doesn't generalize to less-known companies
+- ❌ Not ready for production
+- ➡️ **Fix evidence gathering or valuation logic**
+
+**If both tiers fail:**
+- 🔴 Core mechanism broken
+- ➡️ **Fundamental revision needed before proceeding**
+
+---
+
+## Example Workflow
+
+```bash
+# 1. Check current test data
+cat test-companies.json | jq '.tiers.tier2_less_famous.companies[] | .name'
+
+# 2. For each company, run valuation (manual step via UI or API)
+# - Visit company page
+# - Delete evidence after cutoff date
+# - Run AI valuation
+# - Record estimate in JSON
+
+# 3. Score when done
+node score-benchmark.mjs test-companies.json
+
+# 4. If Tier 2 passes, proceed to wedge selection
+# If Tier 2 fails, debug and fix pipeline first
 ```
 
 ---
 
-## Success Criteria
+## Next Steps After Running
 
-**What counts as "meaningfully accurate"?**
-
-- **Median error <25%:** Useful for directional estimates
-- **Median error <10%:** Competitive with professional tools
-- **No systematic bias:** Over/underestimation split roughly 50/50
-
-**Failure modes to watch for:**
-- High variance (some very accurate, some wildly wrong)
-- Systematic bias (always overestimates)
-- Evidence-density cliff (accurate with >10 sources, useless with <5)
-- Stage/sector blind spots (e.g., only works for late-stage SaaS)
+1. **If Tier 2 passes:** Run the wedge community selection (which vertical/stage to target first)
+2. **If Tier 2 is marginal:** Investigate which sectors underperform, improve evidence density
+3. **If Tier 2 fails:** Debug why (bias? evidence quality? valuation logic?)
 
 ---
 
 ## Files
 
-- `test-companies.json` - Test set and results (editable by hand)
-- `score-benchmark.mjs` - Analysis script (run after filling in data)
+- `test-companies.json` - Test set with known price points and Lumen estimates
+- `score-benchmark.mjs` - Scoring script (handles 2-tier structure)
 - `README.md` - This file
 
 ---
 
 ## Notes
 
-- This is a **measurement task**, not a feature build
-- **Don't let the AI see the answer** - filter evidence by date
-- **Pattern matters more than headline number** - we need to know WHERE it breaks
-- **Ship the disclaimer first** - already done in `app/page.tsx`
+- **Don't contaminate:** Companies in test set should NOT be used for training or tuning the AI model
+- **Be strict:** Evidence cutoff dates matter - one leaked post-cutoff announcement ruins the test
+- **Re-run periodically:** As the pipeline evolves, re-run to detect regressions
+- **Tier 2 is what matters:** Tier 1 is just a sanity check

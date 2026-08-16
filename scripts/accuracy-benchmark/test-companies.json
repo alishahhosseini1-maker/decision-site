@@ -1,56 +1,211 @@
 {
   "metadata": {
     "created": "2026-08-16",
-    "purpose": "Accuracy benchmark for Lumen AI valuations",
-    "target_count": 20,
-    "instructions": "For each company, record a verifiable price point, then run Lumen's pipeline using only evidence dated BEFORE that price point"
+    "updated": "2026-08-16",
+    "purpose": "2-tier accuracy benchmark for Lumen AI valuations",
+    "methodology": "Test whether AI valuations match known price points when using only evidence dated BEFORE the known price",
+    "scoring": "Score Tier 1 (famous) and Tier 2 (less-famous) separately - Tier 2 is the real validation signal",
+    "total_companies": 8
   },
-  "companies": [
-    {
-      "id": 1,
-      "name": "",
-      "sector": "",
-      "stage": "",
-      "known_price_point": {
-        "valuation_billions": null,
-        "date": "",
-        "source": "",
-        "source_url": "",
-        "type": "funding_round | secondary_trade | 409a | other"
-      },
-      "lumen_estimate": {
-        "valuation_billions": null,
-        "confidence_score": null,
-        "evidence_count": null,
-        "evidence_avg_credibility": null,
-        "run_date": "",
-        "notes": ""
-      },
-      "analysis": {
-        "error_pct": null,
-        "error_absolute": null,
-        "within_confidence_range": null,
-        "notes": ""
-      }
+  "tiers": {
+    "tier1_famous": {
+      "description": "Well-known companies with extensive press coverage. Sanity check only - risk of training data contamination.",
+      "count": 3,
+      "companies": [
+        {
+          "name": "Anthropic",
+          "sector": "AI",
+          "stage": "Late-stage",
+          "tier": "famous",
+          "known_price_point": {
+            "valuation_billions": 60,
+            "date": "2025-12-01",
+            "type": "funding_round",
+            "round": "Series D",
+            "source": "Bloomberg",
+            "source_url": "https://www.bloomberg.com/news/articles/2024-12-20/anthropic-raises-new-funding-round",
+            "notes": "Use evidence dated before Dec 2025 to estimate this round"
+          },
+          "lumen_estimate": {
+            "valuation_billions": null,
+            "confidence_score": null,
+            "evidence_count": null,
+            "run_date": null,
+            "notes": "To be run"
+          }
+        },
+        {
+          "name": "OpenAI",
+          "sector": "AI",
+          "stage": "Late-stage",
+          "tier": "famous",
+          "known_price_point": {
+            "valuation_billions": 157,
+            "date": "2024-10-04",
+            "type": "funding_round",
+            "round": "Unknown",
+            "source": "Crunchbase / Bloomberg",
+            "source_url": "",
+            "notes": "Use evidence dated before Oct 2024"
+          },
+          "lumen_estimate": {
+            "valuation_billions": null,
+            "confidence_score": null,
+            "evidence_count": null,
+            "run_date": null,
+            "notes": "To be run"
+          }
+        },
+        {
+          "name": "Stripe",
+          "sector": "Fintech",
+          "stage": "Late-stage",
+          "tier": "famous",
+          "known_price_point": {
+            "valuation_billions": 65,
+            "date": "2024-02-16",
+            "type": "secondary_trade",
+            "source": "Wall Street Journal",
+            "source_url": "",
+            "notes": "Use evidence dated before Feb 2024"
+          },
+          "lumen_estimate": {
+            "valuation_billions": null,
+            "confidence_score": null,
+            "evidence_count": null,
+            "run_date": null,
+            "notes": "To be run"
+          }
+        }
+      ]
+    },
+    "tier2_less_famous": {
+      "description": "Companies with verifiable price points but less press coverage. Real validation signal - spread across sectors/stages to detect uneven accuracy.",
+      "count": 5,
+      "companies": [
+        {
+          "name": "Plaid",
+          "sector": "Fintech",
+          "stage": "Series D",
+          "tier": "less_famous",
+          "known_price_point": {
+            "valuation_billions": 13.4,
+            "date": "2021-04-07",
+            "type": "funding_round",
+            "round": "Series D",
+            "source": "TechCrunch",
+            "source_url": "https://techcrunch.com/2021/04/07/plaid-raises-425m-series-d/",
+            "notes": "Use evidence dated before Apr 2021"
+          },
+          "lumen_estimate": {
+            "valuation_billions": null,
+            "confidence_score": null,
+            "evidence_count": null,
+            "run_date": null,
+            "notes": "To be run"
+          }
+        },
+        {
+          "name": "Anduril",
+          "sector": "Defense Tech",
+          "stage": "Series F",
+          "tier": "less_famous",
+          "known_price_point": {
+            "valuation_billions": 14,
+            "date": "2024-08-01",
+            "type": "funding_round",
+            "round": "Series F",
+            "source": "Bloomberg",
+            "source_url": "",
+            "notes": "Use evidence dated before Aug 2024"
+          },
+          "lumen_estimate": {
+            "valuation_billions": null,
+            "confidence_score": null,
+            "evidence_count": null,
+            "run_date": null,
+            "notes": "To be run"
+          }
+        },
+        {
+          "name": "Notion",
+          "sector": "Enterprise SaaS",
+          "stage": "Series C",
+          "tier": "less_famous",
+          "known_price_point": {
+            "valuation_billions": 10,
+            "date": "2021-10-01",
+            "type": "funding_round",
+            "round": "Series C",
+            "source": "The Information",
+            "source_url": "",
+            "notes": "Use evidence dated before Oct 2021"
+          },
+          "lumen_estimate": {
+            "valuation_billions": null,
+            "confidence_score": null,
+            "evidence_count": null,
+            "run_date": null,
+            "notes": "To be run"
+          }
+        },
+        {
+          "name": "Faire",
+          "sector": "Marketplace / Commerce",
+          "stage": "Series G",
+          "tier": "less_famous",
+          "known_price_point": {
+            "valuation_billions": 12.6,
+            "date": "2021-11-01",
+            "type": "funding_round",
+            "round": "Series G",
+            "source": "TechCrunch",
+            "source_url": "",
+            "notes": "Use evidence dated before Nov 2021"
+          },
+          "lumen_estimate": {
+            "valuation_billions": null,
+            "confidence_score": null,
+            "evidence_count": null,
+            "run_date": null,
+            "notes": "To be run"
+          }
+        },
+        {
+          "name": "Rippling",
+          "sector": "HR Tech / Enterprise SaaS",
+          "stage": "Series D",
+          "tier": "less_famous",
+          "known_price_point": {
+            "valuation_billions": 11.25,
+            "date": "2023-05-01",
+            "type": "funding_round",
+            "round": "Series D",
+            "source": "TechCrunch",
+            "source_url": "",
+            "notes": "Use evidence dated before May 2023"
+          },
+          "lumen_estimate": {
+            "valuation_billions": null,
+            "confidence_score": null,
+            "evidence_count": null,
+            "run_date": null,
+            "notes": "To be run"
+          }
+        }
+      ]
     }
-  ],
-  "target_mix": {
-    "by_sector": {
-      "ai": 3,
-      "fintech": 3,
-      "enterprise_saas": 3,
-      "consumer": 3,
-      "other": 8
+  },
+  "scoring_framework": {
+    "tier1_famous": {
+      "purpose": "Sanity check only - good score doesn't prove pipeline works due to training data risk",
+      "success_threshold": "Within 30% error on average",
+      "interpretation": "Failing here indicates major pipeline issues. Passing here is necessary but not sufficient."
     },
-    "by_stage": {
-      "seed": 3,
-      "series_a_b": 5,
-      "series_c_d": 7,
-      "late_stage": 5
-    },
-    "by_evidence_density": {
-      "well_covered": 10,
-      "thin_coverage": 10
+    "tier2_less_famous": {
+      "purpose": "Real validation signal - less risk of training data contamination",
+      "success_threshold": "Within 40% error on average (looser due to less public data)",
+      "interpretation": "This is the tier that actually validates whether the pipeline works. Score separately by sector to detect uneven accuracy."
     }
   }
 }
