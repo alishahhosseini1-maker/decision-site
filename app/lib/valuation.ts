@@ -194,7 +194,7 @@ export function pickMostCredible(evidence: EvidenceRow[], category: string): Evi
 }
 
 // Called right after a company is created and freshly researched. Picks the
-// most credible Funding / Secondary market item found and uses it to
+// most credible Funding / Secondary item found and uses it to
 // populate Last round / Secondary implied immediately — grounded in a real,
 // specific citation rather than a blind guess, but marked unconfirmed since
 // no human has reviewed it yet.
@@ -214,7 +214,7 @@ export async function applyBestUnconfirmedFigures(supabase: SupabaseClient, comp
     }
   }
 
-  const secondary = pickMostCredible(evidence, 'Secondary market');
+  const secondary = pickMostCredible(evidence, 'Secondary');
   if (secondary) {
     const val = await extractValuationBillions(secondary.description, secondary.value);
     if (val !== null) {
@@ -229,12 +229,12 @@ export async function applyBestUnconfirmedFigures(supabase: SupabaseClient, comp
   await supabase.from('lumen_companies').update(patch).eq('id', companyId);
 }
 
-// Called when a Funding / Secondary market evidence item is confirmed by a
+// Called when a Funding / Secondary evidence item is confirmed by a
 // human. That confirmed figure always wins over an unconfirmed one; among
 // confirmed figures, only a more recent event date overwrites the existing
 // one, so an older confirmation can't clobber a newer one confirmed earlier.
 export async function applyConfirmedFigure(supabase: SupabaseClient, companyId: string, evidence: EvidenceRow) {
-  if (evidence.category !== 'Funding' && evidence.category !== 'Secondary market') return;
+  if (evidence.category !== 'Funding' && evidence.category !== 'Secondary') return;
 
   const { data: company, error } = await supabase
     .from('lumen_companies')
@@ -449,7 +449,7 @@ export async function generateValuation(
     const prompt = `You are a private-market valuation analyst. Based on the evidence below about ${company.name} (${company.sector || 'unknown sector'}), produce a valuation analysis.
 
 Last primary financing round: ${fmtB(company.last_round_value)} (${company.last_round_date || 'unknown'})
-Secondary market implied valuation: ${fmtB(company.secondary_value)} (${company.secondary_date || 'unknown'})
+Secondary implied valuation: ${fmtB(company.secondary_value)} (${company.secondary_date || 'unknown'})
 
 Evidence (${unconfirmedCount} of ${evidence.length} items are not yet human-reviewed):
 ${evidenceLines || '(none)'}${evidenceWarningText}

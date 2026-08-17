@@ -157,7 +157,7 @@ export async function POST(req: Request) {
 
     // Populate the evidence ledger with sourced findings right away, rather
     // than leaving a brand-new company empty; use the most recent Funding /
-    // Secondary market item found to populate the header immediately too
+    // Secondary item found to populate the header immediately too
     // (marked unconfirmed until a human actually confirms one); then run a
     // best-estimate valuation over that evidence so there's a reasoned
     // number to look at right away.

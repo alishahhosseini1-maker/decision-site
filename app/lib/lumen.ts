@@ -34,7 +34,7 @@ export const CATEGORIES = [
   'Funding',
   'Revenue',
   'Contracts',
-  'Secondary market',
+  'Secondary',
   'Headcount',
   'Retention',
   'Comparable',

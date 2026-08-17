@@ -366,7 +366,7 @@ export default function App() {
     const data = await res.json();
     if (data.evidence && activeId) {
       // Full refetch, not local state patching — confirming Funding/
-      // Secondary market evidence can update the company header itself.
+      // Secondary evidence can update the company header itself.
       await refreshDetail(activeId);
       refreshContributors();
     }
