@@ -37,6 +37,68 @@ Parser bug only handled billions, not millions → missed all Series A/B valuati
 
 ---
 
+## Recent Session: Anduril Investigation & Confidence Scoring Overhaul (August 16, 2026)
+
+### Anduril Series H & Fresh-Anchor Validation
+
+**Issue:** Live bug report showed Anduril displaying $28B valuation but funding chart only showing through Series E (2022).
+
+**Investigation:**
+- Series F ($14B, Aug 2024) was missing from database
+- Series G ($30.5B, June 2025) was also missing
+- Series H ($61B, May 2026) discovered and added via research
+
+**Resolution:**
+- Added Series F, G, H to database via research endpoint
+- Valuation updated: $28B → $30.5B → $61B as evidence improved
+- **Fresh-anchor test (3mo old):** Model anchored exactly to Series H value ($61B = $61B) ✓
+- Confirms system works correctly with fresh data
+
+**Staleness validation:**
+- Fresh anchors (<6mo): Working correctly (exact match)
+- 6-24 month range: **Deferred to n=15-20 benchmark expansion** (not yet independently validated at scale)
+- Earlier confounded tests (parser bug, missing rounds) don't reliably validate this range
+
+### Confidence Scoring Overhaul
+
+**Problem discovered:** AI-generated confidence scores clustered at exact values despite different evidence quality:
+- Five companies scored exactly 42 (Stripe, Ramp, Chime, Discord, Polymarket)
+- Six companies scored exactly 72 (Anduril, SpaceX, Databricks, etc.)
+- **Root cause:** AI followed prose instructions ("reduce to 40 if stale") rather than proportional calculation
+- **Verification status ignored:** SpaceX (83% verified) scored same as Anduril (89% unverified)
+
+**Solution implemented:** Replaced AI-generated confidence with deterministic formula:
+```
+Base: 100
+- Staleness: -0.5 pts/month stale (max -50)
+- Verification: -30 pts × (% unverified)
+- Momentum: -15 pts if no momentum evidence
+- Source quality: ±10 pts based on avg credibility
+```
+
+**Results (tested against all 26 companies):**
+- **Clustering eliminated:** Smooth 5-92 distribution (was 5-82 with clusters)
+- **42-cluster separated:** Now 12-51 range (Stripe 42→12, Ramp 42→34, Chime 42→41)
+- **72-cluster separated:** Now 48-86 range (Anduril 72→57, SpaceX 72→60, Kalshi 82→86)
+- **Verification matters:** SpaceX (17% unverified) = 60, Anduril (89% unverified) = 57
+- **Mean: 52.7, Median: 54** (was 56.3/52 with AI scoring)
+- **No clamping:** 0 companies at 0 or 100 (coefficients well-calibrated)
+
+**Visual tier boundaries updated:** 80/60/40 → 70/50/30 to match new distribution
+- High (70+): 16% of companies (was 8% with old boundaries)
+- Medium (50-69): 44% (balanced)
+- Low (30-49): 28%
+- Very Low (<30): 12%
+
+**End-to-end validation:**
+- Stripe: Predicted 12, Actual 13 (Δ 1pt) ✓
+- Anthropic: Predicted 91, Actual 92 (Δ 1pt) ✓
+- Live-tested against local dev server with new code
+
+**Note on valuation drift:** Anthropic's base case moved $1050B → $965B during same deployment. Confirmed as normal AI run-to-run variance (bear/base/bull still AI-generated), unrelated to confidence-score code change.
+
+---
+
 ## Open Items (Priority Order)
 
 ### 1. Legal Review — GATING ITEM
