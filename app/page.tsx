@@ -23,7 +23,7 @@ import {
   type Evidence,
   type Valuation,
 } from './lib/lumen';
-import { calculateFormulaMetadata, type FormulaMetadata } from './lib/formula';
+import { calculateFormulaMetadata, parseSecondaryValue, type FormulaMetadata } from './lib/formula';
 
 const FONTS_URL =
   'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap';
@@ -581,17 +581,26 @@ export default function App() {
               }
               value={fmtB(company.last_round_value)}
             />
-            <ValueCell
-              label="Secondary implied"
-              sub={
-                company.secondary_date
-                  ? company.secondary_confirmed
-                    ? company.secondary_date
-                    : `${company.secondary_date} · unconfirmed`
-                  : '—'
-              }
-              value={fmtB(company.secondary_value)}
-            />
+            {(() => {
+              const secondaryEv = evidence
+                .filter((e) => e.category === 'Secondary' && e.status === 'verified')
+                .sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
+              const secondaryValue = secondaryEv ? parseSecondaryValue(secondaryEv.value) : null;
+
+              return (
+                <ValueCell
+                  label="Secondary implied"
+                  sub={
+                    secondaryEv?.date
+                      ? secondaryEv.status === 'verified'
+                        ? secondaryEv.date
+                        : `${secondaryEv.date} · unconfirmed`
+                      : '—'
+                  }
+                  value={secondaryValue ? fmtB(secondaryValue) : '—'}
+                />
+              );
+            })()}
             <ValueCell
               label="AI / community fair value"
               sub={valuation ? `confidence ${valuation.confidence_score}/100` : 'not yet run'}
@@ -985,7 +994,14 @@ export default function App() {
 
               if (fundingRounds.length === 0) return null;
 
-              const maxValue = Math.max(...fundingRounds.map((r) => parseFloat(r.value || '0')));
+              // Parse funding values (handle "$XB" format)
+              const parseFundingValue = (val: string | null): number => {
+                if (!val) return 0;
+                const parsed = parseSecondaryValue(val);
+                return parsed || 0;
+              };
+
+              const maxValue = Math.max(...fundingRounds.map((r) => parseFundingValue(r.value)));
 
               return (
                 <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px', background: '#0E1319' }}>
@@ -997,7 +1013,7 @@ export default function App() {
                   </div>
                   <div style={{ height: '140px', display: 'flex', alignItems: 'flex-end', gap: '10px', padding: '0 4px' }}>
                     {fundingRounds.map((round, i) => {
-                      const value = parseFloat(round.value || '0');
+                      const value = parseFundingValue(round.value);
                       const height = (value / maxValue) * 100;
                       const isAnchor = round.date === company?.last_round_date;
 
@@ -1040,7 +1056,7 @@ export default function App() {
                               whiteSpace: 'nowrap',
                             }}
                           >
-                            ${value}B
+                            ${value.toFixed(1)}B
                           </span>
                         </div>
                       );
@@ -1180,37 +1196,38 @@ export default function App() {
                       <div
                         style={{
                           border: '1px solid rgba(201,162,39,0.3)',
-                          borderRadius: '6px',
+                          borderRadius: '8px',
                           background: '#0E1319',
-                          padding: '12px 14px',
+                          padding: '16px 20px',
                           marginTop: '14px',
+                          marginBottom: '20px',
                         }}
                       >
-                        <div style={{ fontSize: '9px', letterSpacing: '0.1em', color: '#8A7038', textTransform: 'uppercase', marginBottom: '6px', fontWeight: 600 }}>
+                        <div style={{ fontSize: '10px', letterSpacing: '0.1em', color: '#8A7038', textTransform: 'uppercase', marginBottom: '8px', fontWeight: 700 }}>
                           In one line
                         </div>
-                        <div style={{ fontSize: '13px', color: '#E8EAED', lineHeight: 1.5 }}>
+                        <div style={{ fontSize: '13.5px', color: '#E8EAED', lineHeight: 1.6 }}>
                           {formulaMeta ? (
                             <>
-                              Anchored to the <b style={{ color: '#C9A227' }}>${fmtB(formulaMeta.primaryValue)} primary round</b> ({formulaMeta.primaryDate}) — a <b style={{ color: '#5AA9E6' }}>{fmtB(formulaMeta.secondaryValue)} secondary-market signal</b> exists but is {formulaMeta.secondaryWeight < 0.3 ? 'deliberately down-weighted' : formulaMeta.secondaryWeight > 0.6 ? 'heavily weighted' : 'moderately weighted'} because {formulaMeta.monthsSincePrimary < 6 ? 'the primary round is still fresh' : 'the primary round is getting stale'}. If a new primary round closes or the secondary market shifts, this number will move.
+                              Anchored to the <b style={{ color: '#C9A227' }}>{fmtB(formulaMeta.primaryValue)} primary round</b> ({formulaMeta.primaryDate}) — a <b style={{ color: '#5AA9E6' }}>{fmtB(formulaMeta.secondaryValue)} secondary-market signal</b> exists but is {formulaMeta.secondaryWeight < 0.3 ? 'deliberately down-weighted' : formulaMeta.secondaryWeight > 0.6 ? 'heavily weighted' : 'moderately weighted'} because {formulaMeta.monthsSincePrimary < 6 ? 'the primary round is still fresh' : 'the primary round is getting stale'}. If a new primary round closes or the secondary market shifts, this number will move.
                             </>
                           ) : (
                             <>
-                              Anchored to the <b style={{ color: '#C9A227' }}>${company?.last_round_value ? fmtB(company.last_round_value) : 'N/A'} primary round</b> ({company?.last_round_date || 'unknown date'}). No secondary market data available yet. If a new primary round closes, this number will move.
+                              Anchored to the <b style={{ color: '#C9A227' }}>{company?.last_round_value ? fmtB(company.last_round_value) : 'N/A'} primary round</b> ({company?.last_round_date || 'unknown date'}). No secondary market data available yet. If a new primary round closes, this number will move.
                             </>
                           )}
                         </div>
                         {formulaMeta && (
                           <div
                             style={{
-                              marginTop: '8px',
-                              paddingTop: '8px',
+                              marginTop: '10px',
+                              paddingTop: '10px',
                               borderTop: '1px solid #1F2833',
-                              fontSize: '11px',
+                              fontSize: '12px',
                               color: '#8B95A1',
                               display: 'flex',
                               alignItems: 'center',
-                              gap: '6px',
+                              gap: '8px',
                               flexWrap: 'wrap',
                             }}
                           >
@@ -1219,12 +1236,12 @@ export default function App() {
                                 background: '#141C26',
                                 border: '1px solid #26303C',
                                 borderRadius: '4px',
-                                padding: '3px 7px',
-                                fontSize: '10px',
+                                padding: '3px 8px',
+                                fontSize: '11px',
                                 color: '#E8EAED',
                               }}
                             >
-                              {(formulaMeta.primaryWeight * 100).toFixed(0)}% primary (${fmtB(formulaMeta.primaryValue)})
+                              {(formulaMeta.primaryWeight * 100).toFixed(0)}% primary ({fmtB(formulaMeta.primaryValue)})
                             </span>
                             <span style={{ color: '#5A6470' }}>+</span>
                             <span
@@ -1232,14 +1249,14 @@ export default function App() {
                                 background: '#141C26',
                                 border: '1px solid #26303C',
                                 borderRadius: '4px',
-                                padding: '3px 7px',
-                                fontSize: '10px',
+                                padding: '3px 8px',
+                                fontSize: '11px',
                                 color: '#5AA9E6',
                               }}
                             >
-                              {(formulaMeta.secondaryWeight * 100).toFixed(0)}% secondary (${fmtB(formulaMeta.secondaryValue)}, {(formulaMeta.illiquidityDiscount * 100).toFixed(0)}% discount)
+                              {(formulaMeta.secondaryWeight * 100).toFixed(0)}% secondary ({fmtB(formulaMeta.secondaryValue)}, {(formulaMeta.illiquidityDiscount * 100).toFixed(0)}% discount)
                             </span>
-                            <span style={{ color: '#5A6470' }}>= ${fmtB(formulaMeta.baseCase)}</span>
+                            <span style={{ color: '#5A6470' }}>= {fmtB(formulaMeta.baseCase)}</span>
                           </div>
                         )}
                       </div>
