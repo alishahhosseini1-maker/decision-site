@@ -54,6 +54,115 @@ function formatRelativeTime(timestamp: string | null | undefined): string {
   return then.toLocaleDateString();
 }
 
+// Formula parameters (must match backend valuation.ts)
+const FORMULA_PARAMS = {
+  ILLIQUIDITY_DISCOUNT: 0.15,
+  STALENESS_THRESHOLD: 20,
+  MIN_SECONDARY_WEIGHT: 0.10,
+  MAX_SECONDARY_WEIGHT: 0.70,
+  BASELINE_CREDIBILITY: 75,
+  NAMED_SOURCE_BONUS: 1.15,
+  VERIFIED_BONUS: 1.10,
+  MAX_CREDIBILITY_MULTIPLIER: 1.5,
+};
+
+type FormulaMetadata = {
+  primaryValue: number;
+  primaryDate: string;
+  secondaryValue: number;
+  secondaryDate: string;
+  primaryWeight: number;
+  secondaryWeight: number;
+  illiquidityDiscount: number;
+  adjustedSecondary: number;
+  baseCase: number;
+  monthsSincePrimary: number;
+  monthsSinceSecondary: number;
+};
+
+function parseSecondaryValue(valueField: string | null): number | null {
+  if (!valueField) return null;
+  const str = valueField.toString().toUpperCase();
+
+  if (str.includes('T')) {
+    const match = str.match(/([\d.]+)\s*T/);
+    if (match) return parseFloat(match[1]) * 1000;
+  }
+
+  if (str.includes('B') && !str.includes('BILLION')) {
+    const match = str.match(/([\d.]+)\s*B/);
+    if (match) return parseFloat(match[1]);
+  }
+
+  const asNumber = parseFloat(str);
+  if (!isNaN(asNumber)) {
+    if (asNumber > 1000) return asNumber / 1000000000;
+    return asNumber;
+  }
+
+  return null;
+}
+
+function monthsSince(dateStr: string | null): number {
+  if (!dateStr) return 999;
+  const then = new Date(dateStr);
+  const now = new Date();
+  return Math.max(0, (now.getTime() - then.getTime()) / (1000 * 60 * 60 * 24 * 30));
+}
+
+/**
+ * Extract formula metadata for UI display (chips, takeaway text).
+ * Mirrors backend calculation from valuation.ts.
+ */
+function getFormulaMetadata(
+  company: Company,
+  secondaryEvidence: Evidence | null
+): FormulaMetadata | null {
+  if (!company.last_round_value || !company.last_round_date || !secondaryEvidence || !secondaryEvidence.date) {
+    return null;
+  }
+
+  const secondaryValue = parseSecondaryValue(secondaryEvidence.value);
+  if (!secondaryValue) return null;
+
+  const adjustedSecondary = secondaryValue * (1 - FORMULA_PARAMS.ILLIQUIDITY_DISCOUNT);
+
+  const monthsSincePrimary = monthsSince(company.last_round_date);
+  const monthsSinceSecondary = monthsSince(secondaryEvidence.date);
+
+  const relativeWeight = monthsSincePrimary / (monthsSincePrimary + monthsSinceSecondary + 1);
+  const absoluteFactor = Math.min(1.0, monthsSincePrimary / FORMULA_PARAMS.STALENESS_THRESHOLD);
+  const stalnessWeight = relativeWeight * absoluteFactor;
+
+  const sourceCredibility = CONFIDENCE_MAP[secondaryEvidence.source_type] ?? FORMULA_PARAMS.BASELINE_CREDIBILITY;
+  const hasNamedSources = /CEO|CFO|founder|president|named|quoted/i.test(secondaryEvidence.description || '');
+  const namedBonus = hasNamedSources ? FORMULA_PARAMS.NAMED_SOURCE_BONUS : 1.0;
+  const verifiedBonus = secondaryEvidence.status === 'verified' ? FORMULA_PARAMS.VERIFIED_BONUS : 1.0;
+
+  let credibilityMultiplier = (sourceCredibility / FORMULA_PARAMS.BASELINE_CREDIBILITY) * namedBonus * verifiedBonus;
+  credibilityMultiplier = Math.min(FORMULA_PARAMS.MAX_CREDIBILITY_MULTIPLIER, Math.max(0.5, credibilityMultiplier));
+
+  const rawWeight = stalnessWeight * credibilityMultiplier;
+  const secondaryWeight = Math.min(FORMULA_PARAMS.MAX_SECONDARY_WEIGHT, Math.max(FORMULA_PARAMS.MIN_SECONDARY_WEIGHT, rawWeight));
+  const primaryWeight = 1 - secondaryWeight;
+
+  const baseCase = Math.round(primaryWeight * company.last_round_value + secondaryWeight * adjustedSecondary);
+
+  return {
+    primaryValue: company.last_round_value,
+    primaryDate: company.last_round_date,
+    secondaryValue,
+    secondaryDate: secondaryEvidence.date,
+    primaryWeight,
+    secondaryWeight,
+    illiquidityDiscount: FORMULA_PARAMS.ILLIQUIDITY_DISCOUNT,
+    adjustedSecondary,
+    baseCase,
+    monthsSincePrimary,
+    monthsSinceSecondary,
+  };
+}
+
 type CompanyWithValuation = Company & { valuation: { base_case: number; confidence_score: number } | null };
 type Contributor = { name: string; total: number; verified: number; rejected: number; accuracy: number | null };
 type Comp = { name: string; ticker: string; multiple: number; sourceLabel: string; impliedValuation: number };
@@ -748,6 +857,15 @@ export default function App() {
               )}
               {sortedEvidence.map((ev) => {
                 const conf = CONFIDENCE_MAP[ev.source_type] ?? 50;
+
+                // PRIORITY 3: Determine if this is the anchor or used in formula
+                const isAnchor = ev.category === 'Funding' && ev.date === company?.last_round_date && ev.status === 'verified';
+                const secondaryEv = evidence
+                  .filter((e) => e.category === 'Secondary' && e.status === 'verified')
+                  .sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
+                const formulaMeta = company ? getFormulaMetadata(company, secondaryEv || null) : null;
+                const isUsedInFormula = formulaMeta && ev.category === 'Secondary' && ev.id === secondaryEv?.id;
+
                 return (
                   <div
                     key={ev.id}
@@ -758,8 +876,28 @@ export default function App() {
                       padding: '10px 12px',
                       borderTop: '1px solid #1A222D',
                       opacity: ev.status === 'rejected' ? 0.5 : 1,
+                      position: 'relative',
+                      boxShadow: isAnchor ? '0 0 0 1px rgba(201,162,39,0.25)' : 'none',
                     }}
                   >
+                    {isAnchor && (
+                      <span
+                        style={{
+                          position: 'absolute',
+                          top: '-8px',
+                          right: '12px',
+                          fontSize: '8px',
+                          background: '#C9A227',
+                          color: '#1A1608',
+                          padding: '2px 7px',
+                          borderRadius: '3px',
+                          fontWeight: 700,
+                          letterSpacing: '0.03em',
+                        }}
+                      >
+                        ◆ ANCHOR
+                      </span>
+                    )}
                     <div
                       title={`Confidence ${conf}/100`}
                       style={{
@@ -831,6 +969,43 @@ export default function App() {
                       <div className="mono" style={{ fontSize: '11px', color: '#5A6470', marginTop: '3px' }}>
                         {ev.source_type} · {ev.source_label} · {ev.date} · by {ev.contributor}
                       </div>
+                      {/* PRIORITY 3: Show contribution note for anchor and formula-used evidence */}
+                      {isAnchor && formulaMeta && (
+                        <div
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            marginTop: '6px',
+                            fontSize: '9px',
+                            color: '#8A7038',
+                            background: 'rgba(201,162,39,0.08)',
+                            border: '1px solid rgba(201,162,39,0.25)',
+                            padding: '3px 7px',
+                            borderRadius: '4px',
+                          }}
+                        >
+                          {(formulaMeta.primaryWeight * 100).toFixed(0)}% of base case →
+                        </div>
+                      )}
+                      {isUsedInFormula && formulaMeta && (
+                        <div
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            marginTop: '6px',
+                            fontSize: '9px',
+                            color: '#5AA9E6',
+                            background: 'rgba(90,169,230,0.08)',
+                            border: '1px solid rgba(90,169,230,0.25)',
+                            padding: '3px 7px',
+                            borderRadius: '4px',
+                          }}
+                        >
+                          {(formulaMeta.secondaryWeight * 100).toFixed(0)}% of base case, {(formulaMeta.illiquidityDiscount * 100).toFixed(0)}% illiquidity discount applied →
+                        </div>
+                      )}
                       {disputingId === ev.id ? (
                         <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
                           <input
@@ -907,6 +1082,79 @@ export default function App() {
 
           {/* Right column */}
           <div style={{ display: 'grid', gap: '16px' }}>
+            {/* PRIORITY 4: Funding History Chart */}
+            {(() => {
+              const fundingRounds = evidence
+                .filter((e) => e.category === 'Funding' && e.value && e.date && e.status === 'verified')
+                .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+
+              if (fundingRounds.length === 0) return null;
+
+              const maxValue = Math.max(...fundingRounds.map((r) => parseFloat(r.value || '0')));
+
+              return (
+                <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px', background: '#0E1319' }}>
+                  <h3 className="display" style={{ fontSize: '13px', fontWeight: 600, margin: '0 0 4px' }}>
+                    Funding History
+                  </h3>
+                  <div style={{ fontSize: '11px', color: '#5A6470', marginBottom: '12px' }}>
+                    Based on {fundingRounds.length} known funding round{fundingRounds.length > 1 ? 's' : ''}
+                  </div>
+                  <div style={{ height: '140px', display: 'flex', alignItems: 'flex-end', gap: '10px', padding: '0 4px' }}>
+                    {fundingRounds.map((round, i) => {
+                      const value = parseFloat(round.value || '0');
+                      const height = (value / maxValue) * 100;
+                      const isAnchor = round.date === company?.last_round_date;
+
+                      return (
+                        <div
+                          key={i}
+                          style={{
+                            flex: 1,
+                            height: `${height}%`,
+                            background: isAnchor ? '#C9A227' : '#141C26',
+                            borderRadius: '3px 3px 0 0',
+                            position: 'relative',
+                            minHeight: '8px',
+                          }}
+                        >
+                          {isAnchor && (
+                            <span
+                              style={{
+                                position: 'absolute',
+                                top: '-28px',
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                fontSize: '8px',
+                                color: '#C9A227',
+                                whiteSpace: 'nowrap',
+                                fontWeight: 600,
+                              }}
+                            >
+                              ◆ anchor
+                            </span>
+                          )}
+                          <span
+                            style={{
+                              position: 'absolute',
+                              top: '-16px',
+                              left: '50%',
+                              transform: 'translateX(-50%)',
+                              fontSize: '9px',
+                              color: isAnchor ? '#C9A227' : '#5A6470',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            ${value}B
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* Comparable companies */}
             <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1023,41 +1271,126 @@ export default function App() {
                     <CaseCell label="Bull" value={valuation.bull_case} />
                   </div>
 
-                  <div style={{ marginTop: '12px', display: 'grid', gap: '6px' }}>
-                    {(valuation.key_drivers || []).map((d, i) => (
-                      <div key={i} style={{ display: 'flex', gap: '6px', fontSize: '12px' }}>
-                        {d.impact === '+' ? (
-                          <TrendingUp size={13} color="#3FBF7F" style={{ flexShrink: 0, marginTop: '2px' }} />
-                        ) : (
-                          <TrendingDown size={13} color="#E5484D" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  {/* PRIORITY 1: "In one line" takeaway panel */}
+                  {(() => {
+                    const secondaryEv = evidence
+                      .filter((e) => e.category === 'Secondary' && e.status === 'verified')
+                      .sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
+                    const formulaMeta = company ? getFormulaMetadata(company, secondaryEv || null) : null;
+
+                    return (
+                      <div
+                        style={{
+                          border: '1px solid rgba(201,162,39,0.3)',
+                          borderRadius: '6px',
+                          background: '#0E1319',
+                          padding: '12px 14px',
+                          marginTop: '14px',
+                        }}
+                      >
+                        <div style={{ fontSize: '9px', letterSpacing: '0.1em', color: '#8A7038', textTransform: 'uppercase', marginBottom: '6px', fontWeight: 600 }}>
+                          In one line
+                        </div>
+                        <div style={{ fontSize: '13px', color: '#E8EAED', lineHeight: 1.5 }}>
+                          {formulaMeta ? (
+                            <>
+                              Anchored to the <b style={{ color: '#C9A227' }}>${fmtB(formulaMeta.primaryValue)} primary round</b> ({formulaMeta.primaryDate}) — a <b style={{ color: '#5AA9E6' }}>{fmtB(formulaMeta.secondaryValue)} secondary-market signal</b> exists but is {formulaMeta.secondaryWeight < 0.3 ? 'deliberately down-weighted' : formulaMeta.secondaryWeight > 0.6 ? 'heavily weighted' : 'moderately weighted'} because {formulaMeta.monthsSincePrimary < 6 ? 'the primary round is still fresh' : 'the primary round is getting stale'}. If a new primary round closes or the secondary market shifts, this number will move.
+                            </>
+                          ) : (
+                            <>
+                              Anchored to the <b style={{ color: '#C9A227' }}>${company?.last_round_value ? fmtB(company.last_round_value) : 'N/A'} primary round</b> ({company?.last_round_date || 'unknown date'}). No secondary market data available yet. If a new primary round closes, this number will move.
+                            </>
+                          )}
+                        </div>
+                        {formulaMeta && (
+                          <div
+                            style={{
+                              marginTop: '8px',
+                              paddingTop: '8px',
+                              borderTop: '1px solid #1F2833',
+                              fontSize: '11px',
+                              color: '#8B95A1',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              flexWrap: 'wrap',
+                            }}
+                          >
+                            <span
+                              style={{
+                                background: '#141C26',
+                                border: '1px solid #26303C',
+                                borderRadius: '4px',
+                                padding: '3px 7px',
+                                fontSize: '10px',
+                                color: '#E8EAED',
+                              }}
+                            >
+                              {(formulaMeta.primaryWeight * 100).toFixed(0)}% primary (${fmtB(formulaMeta.primaryValue)})
+                            </span>
+                            <span style={{ color: '#5A6470' }}>+</span>
+                            <span
+                              style={{
+                                background: '#141C26',
+                                border: '1px solid #26303C',
+                                borderRadius: '4px',
+                                padding: '3px 7px',
+                                fontSize: '10px',
+                                color: '#5AA9E6',
+                              }}
+                            >
+                              {(formulaMeta.secondaryWeight * 100).toFixed(0)}% secondary (${fmtB(formulaMeta.secondaryValue)}, {(formulaMeta.illiquidityDiscount * 100).toFixed(0)}% discount)
+                            </span>
+                            <span style={{ color: '#5A6470' }}>= ${fmtB(formulaMeta.baseCase)}</span>
+                          </div>
                         )}
-                        <div>
-                          <span style={{ fontWeight: 500 }}>{d.label}</span>
-                          <span style={{ color: '#8B95A1' }}> — {d.note}</span>
+                      </div>
+                    );
+                  })()}
+
+                  {/* PRIORITY 2: Collapsed "Full methodology & key drivers" section */}
+                  <div style={{ border: '1px solid #1F2833', borderRadius: '6px', background: '#0E1319', marginTop: '12px' }}>
+                    <button
+                      onClick={() => setWhyOpen((o) => !o)}
+                      style={{
+                        width: '100%',
+                        background: 'none',
+                        border: 'none',
+                        color: '#8B95A1',
+                        fontSize: '11px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '10px 14px',
+                      }}
+                    >
+                      <span>Full methodology &amp; key drivers</span>
+                      <ChevronDown size={13} style={{ transform: whyOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+                    </button>
+                    {whyOpen && (
+                      <div style={{ padding: '0 14px 12px', borderTop: '1px solid #1F2833' }}>
+                        <div style={{ marginTop: '10px', display: 'grid', gap: '6px' }}>
+                          {(valuation.key_drivers || []).map((d, i) => (
+                            <div key={i} style={{ display: 'flex', gap: '6px', fontSize: '12px' }}>
+                              {d.impact === '+' ? (
+                                <TrendingUp size={13} color="#3FBF7F" style={{ flexShrink: 0, marginTop: '2px' }} />
+                              ) : (
+                                <TrendingDown size={13} color="#E5484D" style={{ flexShrink: 0, marginTop: '2px' }} />
+                              )}
+                              <div>
+                                <span style={{ fontWeight: 500 }}>{d.label}</span>
+                                <span style={{ color: '#8B95A1' }}> — {d.note}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#B5BDC6', marginTop: '12px', lineHeight: 1.5, paddingTop: '10px', borderTop: '1px solid #1A222D' }}>
+                          {valuation.explanation}
                         </div>
                       </div>
-                    ))}
+                    )}
                   </div>
-
-                  <button
-                    onClick={() => setWhyOpen((o) => !o)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#C9A227',
-                      fontSize: '12px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      padding: 0,
-                      marginTop: '12px',
-                    }}
-                  >
-                    Why {fmtB(valuation.base_case)}?
-                    <ChevronDown size={13} style={{ transform: whyOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
-                  </button>
-                  {whyOpen && <div style={{ fontSize: '12px', color: '#B5BDC6', marginTop: '6px', lineHeight: 1.5 }}>{valuation.explanation}</div>}
                 </div>
               )}
             </div>
