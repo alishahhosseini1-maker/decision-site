@@ -369,13 +369,39 @@ export async function generateValuation(
 
     const unconfirmedCount = evidence.filter((e) => e.status !== 'verified').length;
 
+    // Evidence quality diagnostics
+    const fundingEvidence = evidence.filter((e) => e.category === 'Funding');
+    const momentumCategories = ['Revenue', 'Headcount', 'Product', 'Contracts', 'Metrics'];
+    const momentumEvidence = evidence.filter((e) => momentumCategories.includes(e.category));
+
+    const mostRecentFunding = fundingEvidence.length > 0
+      ? fundingEvidence.reduce((latest, e) => (e.date > latest.date ? e : latest))
+      : null;
+
+    const referenceDate = options?.asOf || new Date().toISOString().split('T')[0];
+    const fundingStalenessMonths = mostRecentFunding
+      ? Math.round((new Date(referenceDate).getTime() - new Date(mostRecentFunding.date).getTime()) / (1000 * 60 * 60 * 24 * 30))
+      : null;
+
+    const evidenceWarnings: string[] = [];
+    if (fundingStalenessMonths !== null && fundingStalenessMonths > 20) {
+      evidenceWarnings.push(`Most recent funding evidence is ${fundingStalenessMonths} months old (dated ${mostRecentFunding!.date}). This is stale — companies can change significantly in 20+ months.`);
+    }
+    if (momentumEvidence.length === 0 && fundingEvidence.length > 0) {
+      evidenceWarnings.push(`No momentum evidence available (revenue, headcount, product milestones, contracts). Valuation is anchored solely to funding rounds without current growth signals.`);
+    }
+
+    const evidenceWarningText = evidenceWarnings.length > 0
+      ? `\n\nEVIDENCE QUALITY WARNINGS:\n${evidenceWarnings.map(w => `- ${w}`).join('\n')}\n\nBecause of these limitations, you MUST:\n1. Reduce confidenceScore (typically to 40 or below for stale+funding-only data)\n2. Widen the bear/bull range proportionally to the staleness/uncertainty\n3. Explicitly state in the explanation that confidence is reduced due to ${evidenceWarnings.length === 2 ? 'stale funding-only evidence' : evidenceWarnings[0].includes('stale') ? 'stale evidence' : 'lack of momentum evidence'}.`
+      : '';
+
     const prompt = `You are a private-market valuation analyst. Based on the evidence below about ${company.name} (${company.sector || 'unknown sector'}), produce a valuation analysis.
 
 Last primary financing round: ${fmtB(company.last_round_value)} (${company.last_round_date || 'unknown'})
 Secondary market implied valuation: ${fmtB(company.secondary_value)} (${company.secondary_date || 'unknown'})
 
 Evidence (${unconfirmedCount} of ${evidence.length} items are not yet human-reviewed):
-${evidenceLines || '(none)'}
+${evidenceLines || '(none)'}${evidenceWarningText}
 
 Weight human-confirmed evidence more heavily than not-yet-reviewed evidence, and weight evidence confirmed by contributors with strong historical accuracy more heavily than evidence confirmed by new or unproven contributors. If sources disagree with each other, or most evidence is unreviewed or confirmed only by unproven contributors, widen the bear/bull range and lower confidenceScore accordingly, and say so directly in the explanation rather than picking one figure silently.
 
