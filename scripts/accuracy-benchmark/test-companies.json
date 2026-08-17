@@ -27,11 +27,11 @@
             "notes": "Use evidence dated before Dec 2025 to estimate this round"
           },
           "lumen_estimate": {
-            "valuation_billions": null,
-            "confidence_score": null,
+            "valuation_billions": 200,
+            "confidence_score": 62,
             "evidence_count": null,
-            "run_date": null,
-            "notes": "To be run"
+            "run_date": "2026-08-17",
+            "notes": "Filtered to evidence before 2025-12-01"
           }
         },
         {
@@ -49,11 +49,11 @@
             "notes": "Use evidence dated before Oct 2024"
           },
           "lumen_estimate": {
-            "valuation_billions": null,
-            "confidence_score": null,
+            "valuation_billions": 260,
+            "confidence_score": 22,
             "evidence_count": null,
-            "run_date": null,
-            "notes": "To be run"
+            "run_date": "2026-08-17",
+            "notes": "Filtered to evidence before 2024-10-04"
           }
         },
         {
@@ -70,11 +70,11 @@
             "notes": "Use evidence dated before Feb 2024"
           },
           "lumen_estimate": {
-            "valuation_billions": null,
-            "confidence_score": null,
+            "valuation_billions": 65,
+            "confidence_score": 25,
             "evidence_count": null,
-            "run_date": null,
-            "notes": "To be run"
+            "run_date": "2026-08-17",
+            "notes": "Filtered to evidence before 2024-02-16"
           }
         }
       ]
@@ -98,8 +98,8 @@
             "notes": "Use evidence dated before Apr 2021"
           },
           "lumen_estimate": {
-            "valuation_billions": 10.5,
-            "confidence_score": 52,
+            "valuation_billions": 12,
+            "confidence_score": 42,
             "evidence_count": null,
             "run_date": "2026-08-17",
             "notes": "Filtered to evidence before 2021-04-07"
@@ -120,7 +120,7 @@
             "notes": "Use evidence dated before Aug 2024"
           },
           "lumen_estimate": {
-            "valuation_billions": 95,
+            "valuation_billions": 14,
             "confidence_score": 38,
             "evidence_count": null,
             "run_date": "2026-08-17",
@@ -142,8 +142,8 @@
             "notes": "Use evidence dated before Oct 2021"
           },
           "lumen_estimate": {
-            "valuation_billions": 11,
-            "confidence_score": 62,
+            "valuation_billions": 6,
+            "confidence_score": 42,
             "evidence_count": null,
             "run_date": "2026-08-17",
             "notes": "Filtered to evidence before 2021-10-01"
@@ -186,7 +186,7 @@
             "notes": "Use evidence dated before May 2023"
           },
           "lumen_estimate": {
-            "valuation_billions": 16.5,
+            "valuation_billions": 13.5,
             "confidence_score": 62,
             "evidence_count": null,
             "run_date": "2026-08-17",
