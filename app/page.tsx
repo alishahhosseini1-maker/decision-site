@@ -23,6 +23,7 @@ import {
   type Evidence,
   type Valuation,
 } from './lib/lumen';
+import { calculateFormulaMetadata, type FormulaMetadata } from './lib/formula';
 
 const FONTS_URL =
   'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap';
@@ -52,115 +53,6 @@ function formatRelativeTime(timestamp: string | null | undefined): string {
   if (diffDays === 1) return 'yesterday';
   if (diffDays < 7) return `${diffDays}d ago`;
   return then.toLocaleDateString();
-}
-
-// Formula parameters (must match backend valuation.ts)
-const FORMULA_PARAMS = {
-  ILLIQUIDITY_DISCOUNT: 0.15,
-  STALENESS_THRESHOLD: 20,
-  MIN_SECONDARY_WEIGHT: 0.10,
-  MAX_SECONDARY_WEIGHT: 0.70,
-  BASELINE_CREDIBILITY: 75,
-  NAMED_SOURCE_BONUS: 1.15,
-  VERIFIED_BONUS: 1.10,
-  MAX_CREDIBILITY_MULTIPLIER: 1.5,
-};
-
-type FormulaMetadata = {
-  primaryValue: number;
-  primaryDate: string;
-  secondaryValue: number;
-  secondaryDate: string;
-  primaryWeight: number;
-  secondaryWeight: number;
-  illiquidityDiscount: number;
-  adjustedSecondary: number;
-  baseCase: number;
-  monthsSincePrimary: number;
-  monthsSinceSecondary: number;
-};
-
-function parseSecondaryValue(valueField: string | null): number | null {
-  if (!valueField) return null;
-  const str = valueField.toString().toUpperCase();
-
-  if (str.includes('T')) {
-    const match = str.match(/([\d.]+)\s*T/);
-    if (match) return parseFloat(match[1]) * 1000;
-  }
-
-  if (str.includes('B') && !str.includes('BILLION')) {
-    const match = str.match(/([\d.]+)\s*B/);
-    if (match) return parseFloat(match[1]);
-  }
-
-  const asNumber = parseFloat(str);
-  if (!isNaN(asNumber)) {
-    if (asNumber > 1000) return asNumber / 1000000000;
-    return asNumber;
-  }
-
-  return null;
-}
-
-function monthsSince(dateStr: string | null): number {
-  if (!dateStr) return 999;
-  const then = new Date(dateStr);
-  const now = new Date();
-  return Math.max(0, (now.getTime() - then.getTime()) / (1000 * 60 * 60 * 24 * 30));
-}
-
-/**
- * Extract formula metadata for UI display (chips, takeaway text).
- * Mirrors backend calculation from valuation.ts.
- */
-function getFormulaMetadata(
-  company: Company,
-  secondaryEvidence: Evidence | null
-): FormulaMetadata | null {
-  if (!company.last_round_value || !company.last_round_date || !secondaryEvidence || !secondaryEvidence.date) {
-    return null;
-  }
-
-  const secondaryValue = parseSecondaryValue(secondaryEvidence.value);
-  if (!secondaryValue) return null;
-
-  const adjustedSecondary = secondaryValue * (1 - FORMULA_PARAMS.ILLIQUIDITY_DISCOUNT);
-
-  const monthsSincePrimary = monthsSince(company.last_round_date);
-  const monthsSinceSecondary = monthsSince(secondaryEvidence.date);
-
-  const relativeWeight = monthsSincePrimary / (monthsSincePrimary + monthsSinceSecondary + 1);
-  const absoluteFactor = Math.min(1.0, monthsSincePrimary / FORMULA_PARAMS.STALENESS_THRESHOLD);
-  const stalnessWeight = relativeWeight * absoluteFactor;
-
-  const sourceCredibility = CONFIDENCE_MAP[secondaryEvidence.source_type] ?? FORMULA_PARAMS.BASELINE_CREDIBILITY;
-  const hasNamedSources = /CEO|CFO|founder|president|named|quoted/i.test(secondaryEvidence.description || '');
-  const namedBonus = hasNamedSources ? FORMULA_PARAMS.NAMED_SOURCE_BONUS : 1.0;
-  const verifiedBonus = secondaryEvidence.status === 'verified' ? FORMULA_PARAMS.VERIFIED_BONUS : 1.0;
-
-  let credibilityMultiplier = (sourceCredibility / FORMULA_PARAMS.BASELINE_CREDIBILITY) * namedBonus * verifiedBonus;
-  credibilityMultiplier = Math.min(FORMULA_PARAMS.MAX_CREDIBILITY_MULTIPLIER, Math.max(0.5, credibilityMultiplier));
-
-  const rawWeight = stalnessWeight * credibilityMultiplier;
-  const secondaryWeight = Math.min(FORMULA_PARAMS.MAX_SECONDARY_WEIGHT, Math.max(FORMULA_PARAMS.MIN_SECONDARY_WEIGHT, rawWeight));
-  const primaryWeight = 1 - secondaryWeight;
-
-  const baseCase = Math.round(primaryWeight * company.last_round_value + secondaryWeight * adjustedSecondary);
-
-  return {
-    primaryValue: company.last_round_value,
-    primaryDate: company.last_round_date,
-    secondaryValue,
-    secondaryDate: secondaryEvidence.date,
-    primaryWeight,
-    secondaryWeight,
-    illiquidityDiscount: FORMULA_PARAMS.ILLIQUIDITY_DISCOUNT,
-    adjustedSecondary,
-    baseCase,
-    monthsSincePrimary,
-    monthsSinceSecondary,
-  };
 }
 
 type CompanyWithValuation = Company & { valuation: { base_case: number; confidence_score: number } | null };
@@ -863,7 +755,10 @@ export default function App() {
                 const secondaryEv = evidence
                   .filter((e) => e.category === 'Secondary' && e.status === 'verified')
                   .sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
-                const formulaMeta = company ? getFormulaMetadata(company, secondaryEv || null) : null;
+                const formulaMeta =
+                  company?.last_round_value && company?.last_round_date && secondaryEv
+                    ? calculateFormulaMetadata(company.last_round_value, company.last_round_date, secondaryEv)
+                    : null;
                 const isUsedInFormula = formulaMeta && ev.category === 'Secondary' && ev.id === secondaryEv?.id;
 
                 return (
@@ -1276,7 +1171,10 @@ export default function App() {
                     const secondaryEv = evidence
                       .filter((e) => e.category === 'Secondary' && e.status === 'verified')
                       .sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
-                    const formulaMeta = company ? getFormulaMetadata(company, secondaryEv || null) : null;
+                    const formulaMeta =
+                      company?.last_round_value && company?.last_round_date && secondaryEv
+                        ? calculateFormulaMetadata(company.last_round_value, company.last_round_date, secondaryEv)
+                        : null;
 
                     return (
                       <div

@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import Anthropic from '@anthropic-ai/sdk';
 import { AI_RESEARCH_CONTRIBUTOR, CONFIDENCE_MAP, computeContributorStats, fmtB } from './lumen';
+import { FORMULA_PARAMS, calculateFormulaMetadata } from './formula';
 
 export type EvidenceRow = {
   id: string;
@@ -342,145 +343,6 @@ type SecondaryEvidence = {
   status: string;
 };
 
-const PRIMARY_SECONDARY_PARAMS = {
-  ILLIQUIDITY_DISCOUNT: 0.15, // 15% haircut on secondary (GUESS - not validated)
-  STALENESS_THRESHOLD: 20, // months (GROUNDED - from session staleness analysis)
-  MIN_SECONDARY_WEIGHT: 0.10, // Floor (GUESS - design choice)
-  MAX_SECONDARY_WEIGHT: 0.70, // Cap (GUESS - design choice)
-  BASELINE_CREDIBILITY: 75, // Industry Research (GROUNDED - from CONFIDENCE_MAP)
-  NAMED_SOURCE_BONUS: 1.15, // +15% for named sources (GUESS)
-  VERIFIED_BONUS: 1.10, // +10% for verified status (GUESS)
-  MAX_CREDIBILITY_MULTIPLIER: 1.5, // Cap (GUESS - design choice)
-} as const;
-
-/**
- * Calculate weighted base case from primary round + secondary market evidence.
- *
- * Deterministic formula replaces AI-based "balancing" to eliminate inconsistency.
- *
- * @returns null if no valid secondary value can be parsed
- */
-function calculatePrimarySecondaryBaseCase(
-  primaryValue: number,
-  primaryDate: string,
-  secondaryEvidence: SecondaryEvidence,
-  referenceDate: string
-): number | null {
-  const result = calculatePrimarySecondaryBaseCaseWithDetails(primaryValue, primaryDate, secondaryEvidence, referenceDate);
-  return result ? result.baseCase : null;
-}
-
-/**
- * Calculate weighted base case with full details for explanation generation.
- *
- * @returns null if no valid secondary value can be parsed, otherwise full breakdown
- */
-function calculatePrimarySecondaryBaseCaseWithDetails(
-  primaryValue: number,
-  primaryDate: string,
-  secondaryEvidence: SecondaryEvidence,
-  referenceDate: string
-): { baseCase: number; weight: number; monthsSincePrimary: number; monthsSinceSecondary: number; secondaryValueRaw: number } | null {
-  // Parse secondary value (handles multiple formats)
-  const secondaryValue = parseSecondaryValue(secondaryEvidence.value);
-  if (!secondaryValue || !secondaryEvidence.date) {
-    return null; // Cannot weight without valid secondary
-  }
-
-  // 1. Apply illiquidity discount to secondary
-  const adjustedSecondary = secondaryValue * (1 - PRIMARY_SECONDARY_PARAMS.ILLIQUIDITY_DISCOUNT);
-
-  // 2. Calculate staleness weights
-  const monthsSincePrimary = monthsSince(primaryDate, referenceDate);
-  const monthsSinceSecondary = monthsSince(secondaryEvidence.date, referenceDate);
-
-  // Relative staleness (higher when primary is older than secondary)
-  const relativeWeight = monthsSincePrimary / (monthsSincePrimary + monthsSinceSecondary + 1);
-
-  // Absolute staleness factor (prevents fresh primaries from getting high weights)
-  // If primary is <6mo old, factor is ~0.3; if >20mo old, factor is 1.0
-  const absoluteFactor = Math.min(1.0, monthsSincePrimary / PRIMARY_SECONDARY_PARAMS.STALENESS_THRESHOLD);
-
-  // Combined staleness weight
-  const stalnessWeight = relativeWeight * absoluteFactor;
-
-  // 3. Calculate credibility multiplier
-  const sourceCredibility = CONFIDENCE_MAP[secondaryEvidence.source_type] ?? PRIMARY_SECONDARY_PARAMS.BASELINE_CREDIBILITY;
-  const hasNamedSources = /CEO|CFO|founder|president|named|quoted/i.test(secondaryEvidence.description);
-  const namedBonus = hasNamedSources ? PRIMARY_SECONDARY_PARAMS.NAMED_SOURCE_BONUS : 1.0;
-  const verifiedBonus = secondaryEvidence.status === 'verified' ? PRIMARY_SECONDARY_PARAMS.VERIFIED_BONUS : 1.0;
-
-  let credibilityMultiplier = (sourceCredibility / PRIMARY_SECONDARY_PARAMS.BASELINE_CREDIBILITY) * namedBonus * verifiedBonus;
-  credibilityMultiplier = Math.min(PRIMARY_SECONDARY_PARAMS.MAX_CREDIBILITY_MULTIPLIER, Math.max(0.5, credibilityMultiplier));
-
-  // 4. Calculate final weight (bounded)
-  const rawWeight = stalnessWeight * credibilityMultiplier;
-  const finalWeight = Math.min(
-    PRIMARY_SECONDARY_PARAMS.MAX_SECONDARY_WEIGHT,
-    Math.max(PRIMARY_SECONDARY_PARAMS.MIN_SECONDARY_WEIGHT, rawWeight)
-  );
-
-  // 5. Weighted base case
-  const baseCase = Math.round((1 - finalWeight) * primaryValue + finalWeight * adjustedSecondary);
-
-  return {
-    baseCase,
-    weight: finalWeight,
-    monthsSincePrimary,
-    monthsSinceSecondary,
-    secondaryValueRaw: secondaryValue,
-  };
-}
-
-/**
- * Parse secondary evidence value field (which has inconsistent formats).
- * Returns value in billions, or null if unparseable.
- */
-function parseSecondaryValue(valueField: string | null): number | null {
-  if (!valueField) return null;
-
-  const str = valueField.toString().toUpperCase();
-
-  // "$1.2T" or "1.2T" → 1200B
-  if (str.includes('T')) {
-    const match = str.match(/([\d.]+)\s*T/);
-    if (match) return parseFloat(match[1]) * 1000;
-  }
-
-  // "$800B" or "800B" → 800B
-  if (str.includes('B') && !str.includes('BILLION')) {
-    const match = str.match(/([\d.]+)\s*B/);
-    if (match) return parseFloat(match[1]);
-  }
-
-  // "800000000000" (raw dollars as string) → 800B
-  const asNumber = parseFloat(str);
-  if (!isNaN(asNumber)) {
-    if (asNumber > 1000) return asNumber / 1000000000; // Convert dollars to billions
-    return asNumber; // Already in billions
-  }
-
-  // "$350,000,000,000 valuation" → 350B
-  const largeNumberMatch = str.match(/\$?([\d,]+),000,000,000/);
-  if (largeNumberMatch) {
-    const num = largeNumberMatch[1].replace(/,/g, '');
-    return parseFloat(num);
-  }
-
-  return null;
-}
-
-/**
- * Calculate months since a date.
- */
-function monthsSince(dateStr: string | null, referenceDate: string): number {
-  if (!dateStr) return 999; // Treat missing date as very stale
-  const then = new Date(dateStr);
-  const ref = new Date(referenceDate);
-  const months = (ref.getTime() - then.getTime()) / (1000 * 60 * 60 * 24 * 30);
-  return Math.max(0, months);
-}
-
 // Generates a bear/base/bull valuation from a company's evidence and saves
 // it. Includes not just confirmed evidence but also not-yet-confirmed
 // findings from the AI research bot (never unconfirmed manual submissions —
@@ -668,7 +530,7 @@ All valuation numbers are in billions of USD as plain numbers (e.g. 20.7). confi
 
     // If we have both primary round data and secondary evidence, use formula
     if (company.last_round_value && company.last_round_date && secondaryEvidence) {
-      const formulaResult = calculatePrimarySecondaryBaseCaseWithDetails(
+      const formulaResult = calculateFormulaMetadata(
         company.last_round_value,
         company.last_round_date,
         secondaryEvidence,
@@ -679,13 +541,13 @@ All valuation numbers are in billions of USD as plain numbers (e.g. 20.7). confi
         baseCase = formulaResult.baseCase;
 
         // Append formula transparency explanation (fully parameterized)
-        const primaryWeight = ((1 - formulaResult.weight) * 100).toFixed(1);
-        const secondaryWeight = (formulaResult.weight * 100).toFixed(1);
+        const primaryWeight = (formulaResult.primaryWeight * 100).toFixed(1);
+        const secondaryWeight = (formulaResult.secondaryWeight * 100).toFixed(1);
         const primaryAge = formulaResult.monthsSincePrimary.toFixed(1);
         const secondaryAge = formulaResult.monthsSinceSecondary.toFixed(1);
-        const discountPct = (PRIMARY_SECONDARY_PARAMS.ILLIQUIDITY_DISCOUNT * 100).toFixed(0);
+        const discountPct = (FORMULA_PARAMS.ILLIQUIDITY_DISCOUNT * 100).toFixed(0);
 
-        explanation += `\n\n**Formula-adjusted base case:** The $${baseCase}B base case applies a deterministic primary+secondary weighting formula: ${primaryWeight}% weight to the $${company.last_round_value}B primary round (${company.last_round_date}) + ${secondaryWeight}% weight to the ${formulaResult.secondaryValueRaw}B secondary market signal (${secondaryEvidence.date}, discounted ${discountPct}% for illiquidity). The ${formulaResult.weight < 0.3 ? 'low' : formulaResult.weight > 0.6 ? 'high' : 'moderate'} secondary weight reflects that ${formulaResult.monthsSincePrimary < 6 ? 'the primary round is fresh (' + primaryAge + ' months old)' : 'the primary round is ' + primaryAge + ' months old'}, preventing ${formulaResult.weight < 0.3 ? 'speculative secondary premiums from distorting the anchor' : 'stale primary data from anchoring to outdated valuations'}.`;
+        explanation += `\n\n**Formula-adjusted base case:** The $${baseCase}B base case applies a deterministic primary+secondary weighting formula: ${primaryWeight}% weight to the $${company.last_round_value}B primary round (${company.last_round_date}) + ${secondaryWeight}% weight to the ${formulaResult.secondaryValue}B secondary market signal (${secondaryEvidence.date}, discounted ${discountPct}% for illiquidity). The ${formulaResult.secondaryWeight < 0.3 ? 'low' : formulaResult.secondaryWeight > 0.6 ? 'high' : 'moderate'} secondary weight reflects that ${formulaResult.monthsSincePrimary < 6 ? 'the primary round is fresh (' + primaryAge + ' months old)' : 'the primary round is ' + primaryAge + ' months old'}, preventing ${formulaResult.secondaryWeight < 0.3 ? 'speculative secondary premiums from distorting the anchor' : 'stale primary data from anchoring to outdated valuations'}.`;
       }
       // else: fall back to AI base case if formula can't parse secondary value
     }
