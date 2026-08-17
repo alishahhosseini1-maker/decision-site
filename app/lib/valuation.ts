@@ -287,12 +287,18 @@ export async function generateValuation(
 
     if (evidenceError) return null;
 
+    // DEBUG: Log asOf parameter
+    if (options?.asOf) {
+      console.log('[valuation] asOf filter active:', options.asOf);
+    }
+
     const evidence = (allEvidence || []).filter((e) => {
       // Date filter for benchmarking: exclude evidence after cutoff date
       if (options?.asOf) {
         const evidenceDate = new Date(e.date);
         const cutoffDate = new Date(options.asOf);
         if (evidenceDate > cutoffDate) {
+          console.log('[valuation] FILTERED OUT:', e.date, e.description.substring(0, 60));
           return false; // Exclude evidence after cutoff (for benchmark accuracy testing)
         }
       }
