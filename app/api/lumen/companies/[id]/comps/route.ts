@@ -31,13 +31,46 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
     if (evidenceError) throw evidenceError;
 
-    const revenueEvidence = pickMostCredible(evidence || [], 'Revenue');
-    if (!revenueEvidence) {
+    // Pick best revenue evidence, preferring current/actual over projected
+    const revenueMatches = (evidence || []).filter(e => e.category === 'Revenue' && e.status === 'verified');
+    if (revenueMatches.length === 0) {
       return NextResponse.json(
         { error: 'No revenue evidence yet — try "Research this company" or add a Revenue entry first.' },
         { status: 400 }
       );
     }
+
+    // Prioritize current/actual revenue over projected
+    const getRevenuePriority = (e: any) => {
+      const text = `${e.value} ${e.description}`.toLowerCase();
+
+      // Highest priority: run-rate / annualized STATED (not just referenced)
+      // Must have a number + "run-rate" or "annualized revenue in 202X"
+      if (/\$?\d+[\d.,]*\s*[btm]?\s*(run-rate|annualized)/i.test(text)) return 3;
+      if (/\b(run-rate|annualized)\s+(revenue|sales)\s+(of\s+)?\$?\d/i.test(text)) return 3;
+
+      // High priority: current/actual/TTM (but prefer run-rate)
+      if (/\b(current|actual|ttm|trailing)\b/i.test(text)) return 2;
+
+      // Projected indicators (low priority)
+      if (/\b(project|forecast|expect|target|by 20(2[7-9]|3[0-9]))\b/i.test(text)) return 0;
+
+      // Ambiguous or "to date" (medium-low priority - cumulative, not annual)
+      return 1;
+    };
+
+    const sorted = revenueMatches.sort((a, b) => {
+      // 1. Prefer run-rate > current > ambiguous > projected
+      const aPriority = getRevenuePriority(a);
+      const bPriority = getRevenuePriority(b);
+      if (aPriority !== bPriority) return bPriority - aPriority;
+
+      // 2. Then most recent date
+      return (b.date || '').localeCompare(a.date || '');
+    });
+
+    const revenueEvidence = sorted[0];
+    const isProjected = getRevenuePriority(revenueEvidence) === 0;
 
     const revenueBillions = await extractRevenueBillions(revenueEvidence.description, revenueEvidence.value);
     if (revenueBillions === null) {
@@ -64,6 +97,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         description: revenueEvidence.description,
         sourceLabel: revenueEvidence.source_label,
         date: revenueEvidence.date,
+        isProjected, // Flag for frontend to show disclaimer
       },
       comps: comps.map((c) => ({
         ...c,

@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import Anthropic from '@anthropic-ai/sdk';
 import { AI_RESEARCH_CONTRIBUTOR, CONFIDENCE_MAP, computeContributorStats, fmtB } from './lumen';
+import { FORMULA_PARAMS, calculateFormulaMetadata } from './formula';
 
 export type EvidenceRow = {
   id: string;
@@ -310,6 +311,38 @@ function calculateConfidenceScore(
   return Math.max(0, Math.min(100, Math.round(score)));
 }
 
+// ============================================================================
+// PRIMARY + SECONDARY WEIGHTING FORMULA
+// ============================================================================
+//
+// **VALIDATION CAVEAT (Aug 2026):**
+// Parameters calibrated from N=1 (Anthropic only). SpaceX excluded (went public June 2026).
+// RE-VALIDATE when N≥5 companies have both primary and secondary evidence.
+//
+// See scripts/primary-secondary-parameters-basis.md for parameter justification.
+//
+// **Grounded parameters:**
+// - STALENESS_THRESHOLD (20mo): From this session's staleness analysis
+// - BASELINE_CREDIBILITY (75): Inherits from existing CONFIDENCE_MAP
+//
+// **Principled guesses (NOT validated):**
+// - ILLIQUIDITY_DISCOUNT (15%): Literature suggests 10-25%, no empirical basis from our data
+// - NAMED_SOURCE_BONUS (15%): Educated guess for named vs anonymous sources
+// - VERIFIED_BONUS (10%): Educated guess for verified vs pending status
+// - MIN/MAX_SECONDARY_WEIGHT (10%/70%): Design choices to bound influence
+// - MAX_CREDIBILITY_MULTIPLIER (1.5): Design choice to prevent credibility overwhelming staleness
+//
+// Despite n=1 limitation, formula is still better than inconsistent AI judgment
+// (which produced 78% weight for SpaceX, 36% for Anthropic with similar evidence patterns).
+//
+type SecondaryEvidence = {
+  value: string;
+  date: string | null;
+  description: string;
+  source_type: string;
+  status: string;
+};
+
 // Generates a bear/base/bull valuation from a company's evidence and saves
 // it. Includes not just confirmed evidence but also not-yet-confirmed
 // findings from the AI research bot (never unconfirmed manual submissions —
@@ -477,17 +510,59 @@ All valuation numbers are in billions of USD as plain numbers (e.g. 20.7). confi
     // Calculate formulaic confidence score (replaces AI-generated score)
     const confidenceScore = calculateConfidenceScore(evidence, referenceDate);
 
+    // Calculate formulaic base case when both primary and secondary evidence exist
+    // (replaces AI-generated base case to ensure deterministic weighting)
+    //
+    // TODO: STRUCTURAL FIX NEEDED (near-term)
+    // This appends formula explanation to AI-generated text as a patch.
+    // Real fix: regenerate explanation AFTER formula override (Option C) or reorder
+    // generation so AI knows the final base case. Current approach creates
+    // explanations that reference wrong numbers until the appended paragraph corrects them.
+    // This will recur on every company where formula applies — not a "someday" item.
+    let baseCase = parsed.baseCase;
+    let explanation = parsed.explanation;
+
+    // Find most recent Secondary evidence
+    const secondaryEvidence = evidence
+      .filter((e) => e.category === 'Secondary')
+      .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+      [0];
+
+    // If we have both primary round data and secondary evidence, use formula
+    if (company.last_round_value && company.last_round_date && secondaryEvidence) {
+      const formulaResult = calculateFormulaMetadata(
+        company.last_round_value,
+        company.last_round_date,
+        secondaryEvidence,
+        referenceDate
+      );
+
+      if (formulaResult !== null) {
+        baseCase = formulaResult.baseCase;
+
+        // Append formula transparency explanation (fully parameterized)
+        const primaryWeight = (formulaResult.primaryWeight * 100).toFixed(1);
+        const secondaryWeight = (formulaResult.secondaryWeight * 100).toFixed(1);
+        const primaryAge = formulaResult.monthsSincePrimary.toFixed(1);
+        const secondaryAge = formulaResult.monthsSinceSecondary.toFixed(1);
+        const discountPct = (FORMULA_PARAMS.ILLIQUIDITY_DISCOUNT * 100).toFixed(0);
+
+        explanation += `\n\n**Formula-adjusted base case:** The $${baseCase}B base case applies a deterministic primary+secondary weighting formula: ${primaryWeight}% weight to the $${company.last_round_value}B primary round (${company.last_round_date}) + ${secondaryWeight}% weight to the ${formulaResult.secondaryValue}B secondary market signal (${secondaryEvidence.date}, discounted ${discountPct}% for illiquidity). The ${formulaResult.secondaryWeight < 0.3 ? 'low' : formulaResult.secondaryWeight > 0.6 ? 'high' : 'moderate'} secondary weight reflects that ${formulaResult.monthsSincePrimary < 6 ? 'the primary round is fresh (' + primaryAge + ' months old)' : 'the primary round is ' + primaryAge + ' months old'}, preventing ${formulaResult.secondaryWeight < 0.3 ? 'speculative secondary premiums from distorting the anchor' : 'stale primary data from anchoring to outdated valuations'}.`;
+      }
+      // else: fall back to AI base case if formula can't parse secondary value
+    }
+
     const { data: saved, error: saveError } = await supabase
       .from('lumen_valuations')
       .upsert(
         {
           company_id: company.id,
           bear_case: parsed.bearCase,
-          base_case: parsed.baseCase,
+          base_case: baseCase, // Use formulaic base case if available, else AI base case
           bull_case: parsed.bullCase,
           confidence_score: confidenceScore,
           key_drivers: parsed.keyDrivers,
-          explanation: parsed.explanation,
+          explanation: explanation, // Use appended explanation if formula was applied
           generated_at: new Date().toISOString(),
         },
         { onConflict: 'company_id' }

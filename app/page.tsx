@@ -12,8 +12,6 @@ import {
   ShieldCheck,
   X,
 } from 'lucide-react';
-import { FundingRoundsChart } from './components/FundingRoundsChart';
-import { SimpleValuation } from './components/SimpleValuation';
 import {
   CATEGORIES,
   CONFIDENCE_MAP,
@@ -25,6 +23,7 @@ import {
   type Evidence,
   type Valuation,
 } from './lib/lumen';
+import { calculateFormulaMetadata, parseSecondaryValue, type FormulaMetadata } from './lib/formula';
 
 const FONTS_URL =
   'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap';
@@ -61,7 +60,7 @@ type Contributor = { name: string; total: number; verified: number; rejected: nu
 type Comp = { name: string; ticker: string; multiple: number; sourceLabel: string; impliedValuation: number };
 type CompsResult = {
   revenueBillions: number;
-  revenueSource: { description: string; sourceLabel: string; date: string };
+  revenueSource: { description: string; sourceLabel: string; date: string; isProjected?: boolean };
   comps: Comp[];
   ownMultiples: { lastRound: number | null; lastRoundConfirmed: boolean; aiFairValue: number | null };
 };
@@ -73,8 +72,6 @@ const emptyForm = {
   sourceType: MANUAL_SOURCE_TYPES[0],
   sourceLabel: '',
   date: '',
-  affiliationDisclosed: false,
-  affiliationType: '',
 };
 
 const emptyCompanyForm = {
@@ -115,18 +112,6 @@ export default function App() {
   const [loadingComps, setLoadingComps] = useState(false);
   const [compsError, setCompsError] = useState<string | null>(null);
   const [whyOpen, setWhyOpen] = useState(false);
-  const [methodologyOpen, setMethodologyOpen] = useState(false);
-
-  // Funding rounds data
-  const [fundingRounds, setFundingRounds] = useState<any[]>([]);
-  const [loadingRounds, setLoadingRounds] = useState(false);
-
-  // Cached comps (private + public) loaded automatically
-  const [cachedComps, setCachedComps] = useState<{
-    private: any[];
-    public: any[];
-    target: { name: string; sector: string; revenue: number | null; valuation: number | null; multiple: number | null };
-  } | null>(null);
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [form, setForm] = useState(emptyForm);
@@ -185,39 +170,6 @@ export default function App() {
     }
   }
 
-  async function loadCachedComps(id: string) {
-    try {
-      const res = await fetch(`/api/lumen/companies/${id}/cached-comps`);
-      const data = await res.json();
-      if (data.private || data.public) {
-        setCachedComps(data);
-      } else {
-        setCachedComps(null);
-      }
-    } catch (err) {
-      console.error('Failed to load cached comps:', err);
-      setCachedComps(null);
-    }
-  }
-
-  async function loadFundingRounds(id: string) {
-    setLoadingRounds(true);
-    try {
-      const res = await fetch(`/api/lumen/companies/${id}/funding-rounds`);
-      const data = await res.json();
-      if (data.rounds) {
-        setFundingRounds(data.rounds);
-      } else {
-        setFundingRounds([]);
-      }
-    } catch (err) {
-      console.error('Failed to load funding rounds:', err);
-      setFundingRounds([]);
-    } finally {
-      setLoadingRounds(false);
-    }
-  }
-
   useEffect(() => {
     if (!activeId) return;
     setWhyOpen(false);
@@ -225,32 +177,17 @@ export default function App() {
     setResearchError(null);
     setComps(null);
     setCompsError(null);
-    setCachedComps(null);
-    setFundingRounds([]);
     refreshDetail(activeId);
-    loadCachedComps(activeId); // Load cached comps automatically
-    loadFundingRounds(activeId); // Load funding rounds for chart
+    findCompsForCompany();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeId]);
-
-  // Auto-research if no evidence exists
-  useEffect(() => {
-    if (!activeId || loadingDetail || researching) return;
-
-    // Only auto-research if evidence is empty (no data at all)
-    if (evidence.length === 0 && company) {
-      console.log('[auto-research] No evidence found, triggering research');
-      researchCompany();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeId, evidence.length, loadingDetail, company]);
 
   const sortedEvidence = useMemo(
     () => [...evidence].sort((a, b) => (a.date < b.date ? 1 : -1)),
     [evidence]
   );
 
-  function updateForm(field: string, val: string | boolean) {
+  function updateForm(field: string, val: string) {
     setForm((f) => ({ ...f, [field]: val }));
   }
 
@@ -278,10 +215,6 @@ export default function App() {
   async function submitEvidence(e: React.FormEvent) {
     e.preventDefault();
     if (!activeId || !form.description.trim() || !form.sourceLabel.trim() || !form.date) return;
-    if (form.affiliationDisclosed && !form.affiliationType) {
-      alert('Please select an affiliation type.');
-      return;
-    }
     setSubmitting(true);
     try {
       const res = await fetch(`/api/lumen/companies/${activeId}/evidence`, {
@@ -349,24 +282,15 @@ export default function App() {
   }
 
   async function confirmEvidence(id: string) {
-    // CRITICAL: Ask verifiers to disclose affiliation
-    // Their confirmation won't count toward independent verification threshold if affiliated
-    const affiliationDisclosed = window.confirm(
-      'Before confirming: Are you affiliated with this company (employee, investor, founder, advisor, or competitor)?\n\n' +
-        'Click OK if you ARE affiliated.\n' +
-        'Click Cancel if you are NOT affiliated.\n\n' +
-        '⚠️ Affiliated confirmations do not count toward independent verification.'
-    );
-
     const res = await fetch(`/api/lumen/evidence/${id}/confirm`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contributor, affiliationDisclosed }),
+      body: JSON.stringify({ contributor }),
     });
     const data = await res.json();
     if (data.evidence && activeId) {
       // Full refetch, not local state patching — confirming Funding/
-      // Secondary evidence can update the company header itself.
+      // Secondary market evidence can update the company header itself.
       await refreshDetail(activeId);
       refreshContributors();
     }
@@ -549,26 +473,19 @@ export default function App() {
           className="lumen-btn"
           title="Add a company to the ledger"
           style={{
-            position: 'absolute',
-            right: '20px',
-            top: '50%',
-            transform: 'translateY(-50%)',
             display: 'flex',
             alignItems: 'center',
-            gap: '6px',
-            padding: '8px 16px',
-            background: '#C9A227',
+            gap: '4px',
+            padding: '0 16px',
+            background: 'transparent',
             border: 'none',
-            borderRadius: '4px',
-            color: '#0E1319',
+            color: '#8B95A1',
             cursor: 'pointer',
             fontSize: '13px',
-            fontWeight: 600,
             whiteSpace: 'nowrap',
-            zIndex: 20,
           }}
         >
-          <Plus size={16} /> Add Company
+          <Plus size={14} /> Add company
         </button>
       </div>
 
@@ -641,166 +558,59 @@ export default function App() {
             </span>
             <span style={{ fontSize: '13px', color: '#8B95A1' }}>{company.sector}</span>
           </div>
-          {/* Current Valuation */}
-          <SimpleValuation
-            value={valuation?.base_case || company.secondary_value || company.last_round_value}
-            pricePerShare={company.secondary_price_per_share}
-            source={
-              valuation?.base_case
-                ? 'ai'
-                : company.secondary_value
-                ? 'secondary'
-                : 'last_round'
-            }
-            confidence={valuation?.confidence_score}
-            date={
-              company.secondary_date ||
-              company.last_round_date
-            }
-            onMethodologyClick={() => setMethodologyOpen(true)}
-          />
+
+          {/* Three-value strip */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '1px',
+              background: '#1F2833',
+              marginTop: '18px',
+              border: '1px solid #1F2833',
+            }}
+          >
+            <ValueCell
+              label="Last round"
+              sub={
+                company.last_round_date
+                  ? company.last_round_confirmed
+                    ? company.last_round_date
+                    : `${company.last_round_date} · unconfirmed`
+                  : '—'
+              }
+              value={fmtB(company.last_round_value)}
+            />
+            {(() => {
+              const secondaryEv = evidence
+                .filter((e) => e.category === 'Secondary' && e.status === 'verified')
+                .sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
+              const secondaryValue = secondaryEv ? parseSecondaryValue(secondaryEv.value) : null;
+
+              return (
+                <ValueCell
+                  label="Secondary implied"
+                  sub={
+                    secondaryEv?.date
+                      ? secondaryEv.status === 'verified'
+                        ? secondaryEv.date
+                        : `${secondaryEv.date} · unconfirmed`
+                      : '—'
+                  }
+                  value={secondaryValue ? fmtB(secondaryValue) : '—'}
+                />
+              );
+            })()}
+            <ValueCell
+              label="AI / community fair value"
+              sub={valuation ? `confidence ${valuation.confidence_score}/100` : 'not yet run'}
+              value={valuation ? fmtB(valuation.base_case) : '—'}
+              accent
+            />
+          </div>
         </div>
 
-        {/* Methodology Section */}
-        {valuation && (
-          <div style={{ marginTop: '16px', border: '1px solid #1F2833', borderRadius: '6px', overflow: 'hidden' }}>
-            <button
-              onClick={() => setMethodologyOpen(!methodologyOpen)}
-              style={{
-                width: '100%',
-                background: methodologyOpen ? '#0F1419' : 'transparent',
-                border: 'none',
-                padding: '12px 14px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                cursor: 'pointer',
-                color: '#E8EAED',
-                fontSize: '13px',
-                fontWeight: 500,
-              }}
-            >
-              <span>How we calculated this</span>
-              <ChevronDown
-                size={16}
-                style={{
-                  transform: methodologyOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                  transition: 'transform 0.2s',
-                  color: '#8B95A1',
-                }}
-              />
-            </button>
-
-            {methodologyOpen && (
-              <div style={{ padding: '14px', paddingTop: '0', fontSize: '12px', color: '#B5BDC6', lineHeight: '1.6' }}>
-                {/* Evidence Used */}
-                <div style={{ marginBottom: '16px' }}>
-                  <div style={{ fontWeight: 600, color: '#E8EAED', marginBottom: '8px' }}>Evidence Used</div>
-                  {(() => {
-                    const verified = evidence.filter((e) => e.status === 'verified');
-                    const pending = evidence.filter((e) => e.status === 'pending' && e.contributor === 'perplexity-research');
-                    const affiliated = evidence.filter((e) => e.affiliation_disclosed === true);
-                    const total = verified.length + pending.length;
-
-                    return (
-                      <div style={{ fontSize: '11px' }}>
-                        <div>• <strong>{verified.length}</strong> verified items (community-confirmed)</div>
-                        <div>• <strong>{pending.length}</strong> pending AI research items (awaiting review)</div>
-                        {affiliated.length > 0 && (
-                          <div style={{ color: '#E5484D' }}>
-                            • <strong>{affiliated.length}</strong> affiliated submissions (require 2+ independent confirmations)
-                          </div>
-                        )}
-                        <div style={{ marginTop: '6px', color: '#8B95A1' }}>
-                          Total: <strong>{total}</strong> items factored into valuation
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-
-                {/* Credibility Tiers */}
-                <div style={{ marginBottom: '16px' }}>
-                  <div style={{ fontWeight: 600, color: '#E8EAED', marginBottom: '8px' }}>Credibility Ranking</div>
-                  <div style={{ fontSize: '11px' }}>
-                    Evidence is ranked by source credibility:
-                    <ul style={{ margin: '6px 0', paddingLeft: '20px', color: '#8B95A1' }}>
-                      <li><strong style={{ color: '#B5BDC6' }}>Verified Transaction</strong> (90%) – actual secondary market trades</li>
-                      <li><strong style={{ color: '#B5BDC6' }}>SEC / Government Filing</strong> (85%) – official regulatory filings</li>
-                      <li><strong style={{ color: '#B5BDC6' }}>Investor Document</strong> (80%) – investor memos, board materials</li>
-                      <li><strong style={{ color: '#B5BDC6' }}>Reputable Publication</strong> (75%) – major news outlets (WSJ, Bloomberg, Reuters)</li>
-                      <li><strong style={{ color: '#B5BDC6' }}>Company Announcement</strong> (70%) – official press releases, blog posts</li>
-                      <li><strong style={{ color: '#B5BDC6' }}>Industry Research</strong> (65%) – PitchBook, Crunchbase, analyst reports</li>
-                      <li><strong style={{ color: '#B5BDC6' }}>AI Research</strong> (50%) – Perplexity-sourced findings (lowest tier)</li>
-                    </ul>
-                  </div>
-                </div>
-
-                {/* Corroboration */}
-                <div style={{ marginBottom: '16px' }}>
-                  <div style={{ fontWeight: 600, color: '#E8EAED', marginBottom: '8px' }}>Corroboration Logic</div>
-                  <div style={{ fontSize: '11px' }}>
-                    More recent evidence is preferred <strong>if</strong> it&apos;s corroborated by multiple independent sources:
-                    <ul style={{ margin: '6px 0', paddingLeft: '20px', color: '#8B95A1' }}>
-                      <li>At least <strong style={{ color: '#B5BDC6' }}>2 distinct sources</strong> reporting the same event</li>
-                      <li>At least one source with <strong style={{ color: '#B5BDC6' }}>≥75% credibility</strong></li>
-                      <li>Events reported within <strong style={{ color: '#B5BDC6' }}>45 days</strong> of each other</li>
-                    </ul>
-                    If recent evidence isn&apos;t corroborated, the most credible single source wins.
-                  </div>
-                </div>
-
-                {/* Contributor Weighting */}
-                <div style={{ marginBottom: '16px' }}>
-                  <div style={{ fontWeight: 600, color: '#E8EAED', marginBottom: '8px' }}>Contributor Track Records</div>
-                  <div style={{ fontSize: '11px', color: '#8B95A1' }}>
-                    Verified evidence is weighted by the confirming contributors&apos; historical accuracy. Contributors with a strong track record
-                    (high verification rate, low dispute rate) increase confidence in the evidence they confirm.
-                  </div>
-                </div>
-
-                {/* COI Enforcement */}
-                <div style={{ marginBottom: '16px' }}>
-                  <div style={{ fontWeight: 600, color: '#E8EAED', marginBottom: '8px' }}>Conflict of Interest Protection</div>
-                  <div style={{ fontSize: '11px' }}>
-                    Affiliated evidence (submitted by employees, investors, founders, etc.) is <strong style={{ color: '#E5484D' }}>blocked from valuations</strong> until:
-                    <ul style={{ margin: '6px 0', paddingLeft: '20px', color: '#8B95A1' }}>
-                      <li>At least <strong style={{ color: '#B5BDC6' }}>2 non-affiliated contributors</strong> verify it</li>
-                      <li>The original submitter <strong style={{ color: '#B5BDC6' }}>cannot verify their own</strong> evidence</li>
-                      <li>Affiliated verifiers <strong style={{ color: '#B5BDC6' }}>don&apos;t count</strong> toward the threshold</li>
-                    </ul>
-                    This prevents self-dealing while allowing insider information that&apos;s independently corroborated.
-                  </div>
-                </div>
-
-                {/* AI Reasoning */}
-                {valuation.explanation && (
-                  <div>
-                    <div style={{ fontWeight: 600, color: '#E8EAED', marginBottom: '8px' }}>AI Valuation Reasoning</div>
-                    <div
-                      style={{
-                        fontSize: '11px',
-                        color: '#8B95A1',
-                        background: '#0A0F14',
-                        padding: '10px',
-                        borderRadius: '4px',
-                        border: '1px solid #1F2833',
-                        whiteSpace: 'pre-wrap',
-                      }}
-                    >
-                      {valuation.explanation}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Funding Rounds Chart */}
-        <FundingRoundsChart rounds={fundingRounds} companyName={company?.name || ''} />
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '20px', alignItems: 'start', marginTop: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '20px', alignItems: 'start' }}>
           {/* Left: evidence ledger */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
@@ -931,46 +741,6 @@ export default function App() {
                     <input type="date" value={form.date} onChange={(e) => updateForm('date', e.target.value)} style={inputStyle} />
                   </Field>
                 </div>
-
-                {/* Conflict of Interest Disclosure */}
-                <div style={{ marginTop: '8px', padding: '12px', background: '#0A0F14', border: '1px solid #1F2833', borderRadius: '4px' }}>
-                  <div style={{ fontSize: '12px', fontWeight: 600, color: '#E8EAED', marginBottom: '8px' }}>
-                    Conflict of Interest Disclosure
-                  </div>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#E8EAED', cursor: 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      checked={form.affiliationDisclosed}
-                      onChange={(e) => {
-                        updateForm('affiliationDisclosed', e.target.checked);
-                        if (!e.target.checked) updateForm('affiliationType', '');
-                      }}
-                      style={{ cursor: 'pointer' }}
-                    />
-                    I am affiliated with this company
-                  </label>
-                  {form.affiliationDisclosed && (
-                    <div style={{ marginTop: '8px' }}>
-                      <select
-                        value={form.affiliationType}
-                        onChange={(e) => updateForm('affiliationType', e.target.value)}
-                        style={{ ...selectStyle, fontSize: '12px' }}
-                        required
-                      >
-                        <option value="">Select affiliation type...</option>
-                        <option value="employee">Employee</option>
-                        <option value="investor">Investor</option>
-                        <option value="founder">Founder</option>
-                        <option value="advisor">Advisor</option>
-                        <option value="competitor">Competitor</option>
-                      </select>
-                      <div style={{ fontSize: '11px', color: '#8B95A1', marginTop: '6px' }}>
-                        ⚠️ Affiliated evidence requires independent corroboration before it can affect displayed valuations.
-                      </div>
-                    </div>
-                  )}
-                </div>
-
                 <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
                   <span className="mono" style={{ fontSize: '11px', color: '#8B95A1', alignSelf: 'center', marginRight: 'auto' }}>
                     Assigned confidence: {CONFIDENCE_MAP[form.sourceType]}/100
@@ -988,6 +758,18 @@ export default function App() {
               )}
               {sortedEvidence.map((ev) => {
                 const conf = CONFIDENCE_MAP[ev.source_type] ?? 50;
+
+                // PRIORITY 3: Determine if this is the anchor or used in formula
+                const isAnchor = ev.category === 'Funding' && ev.date === company?.last_round_date && ev.status === 'verified';
+                const secondaryEv = evidence
+                  .filter((e) => e.category === 'Secondary' && e.status === 'verified')
+                  .sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
+                const formulaMeta =
+                  company?.last_round_value && company?.last_round_date && secondaryEv
+                    ? calculateFormulaMetadata(company.last_round_value, company.last_round_date, secondaryEv)
+                    : null;
+                const isUsedInFormula = formulaMeta && ev.category === 'Secondary' && ev.id === secondaryEv?.id;
+
                 return (
                   <div
                     key={ev.id}
@@ -998,8 +780,28 @@ export default function App() {
                       padding: '10px 12px',
                       borderTop: '1px solid #1A222D',
                       opacity: ev.status === 'rejected' ? 0.5 : 1,
+                      position: 'relative',
+                      boxShadow: isAnchor ? '0 0 0 1px rgba(201,162,39,0.25)' : 'none',
                     }}
                   >
+                    {isAnchor && (
+                      <span
+                        style={{
+                          position: 'absolute',
+                          top: '-8px',
+                          right: '12px',
+                          fontSize: '8px',
+                          background: '#C9A227',
+                          color: '#1A1608',
+                          padding: '2px 7px',
+                          borderRadius: '3px',
+                          fontWeight: 700,
+                          letterSpacing: '0.03em',
+                        }}
+                      >
+                        ◆ ANCHOR
+                      </span>
+                    )}
                     <div
                       title={`Confidence ${conf}/100`}
                       style={{
@@ -1038,18 +840,7 @@ export default function App() {
                         )}
                         {ev.status === 'pending' && (
                           <span style={{ fontSize: '11px', color: '#8B95A1' }}>
-                            pending ·{' '}
-                            {ev.affiliation_disclosed
-                              ? (() => {
-                                  // For affiliated evidence: count only non-affiliated verifiers
-                                  const verifiers = ev.verified_by || [];
-                                  const independentCount = verifiers.filter((v: any) => {
-                                    if (typeof v === 'string') return true; // Legacy verifiers assumed independent
-                                    return v.affiliation_disclosed === false;
-                                  }).length;
-                                  return `${independentCount}/2 independent confirmations`;
-                                })()
-                              : `${(ev.verified_by || []).length}/${confirmationsNeededFor(ev.contributor)} confirmations`}
+                            pending · {(ev.verified_by || []).length}/{confirmationsNeededFor(ev.contributor)} confirmations
                           </span>
                         )}
                         {ev.status === 'disputed' && (
@@ -1059,12 +850,6 @@ export default function App() {
                         )}
                         {ev.status === 'rejected' && (
                           <span style={{ fontSize: '11px', color: '#5A6470' }}>removed after dispute</span>
-                        )}
-                        {ev.affiliation_disclosed && (
-                          <span style={{ fontSize: '11px', color: '#E5484D', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                            ⚠️ Affiliated contributor
-                            {ev.status === 'pending' && <span style={{ color: '#8B95A1' }}>(requires verification)</span>}
-                          </span>
                         )}
                       </div>
                       <div
@@ -1088,6 +873,43 @@ export default function App() {
                       <div className="mono" style={{ fontSize: '11px', color: '#5A6470', marginTop: '3px' }}>
                         {ev.source_type} · {ev.source_label} · {ev.date} · by {ev.contributor}
                       </div>
+                      {/* PRIORITY 3: Show contribution note for anchor and formula-used evidence */}
+                      {isAnchor && formulaMeta && (
+                        <div
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            marginTop: '6px',
+                            fontSize: '9px',
+                            color: '#8A7038',
+                            background: 'rgba(201,162,39,0.08)',
+                            border: '1px solid rgba(201,162,39,0.25)',
+                            padding: '3px 7px',
+                            borderRadius: '4px',
+                          }}
+                        >
+                          {(formulaMeta.primaryWeight * 100).toFixed(0)}% of base case →
+                        </div>
+                      )}
+                      {isUsedInFormula && formulaMeta && (
+                        <div
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            marginTop: '6px',
+                            fontSize: '9px',
+                            color: '#5AA9E6',
+                            background: 'rgba(90,169,230,0.08)',
+                            border: '1px solid rgba(90,169,230,0.25)',
+                            padding: '3px 7px',
+                            borderRadius: '4px',
+                          }}
+                        >
+                          {(formulaMeta.secondaryWeight * 100).toFixed(0)}% of base case, {(formulaMeta.illiquidityDiscount * 100).toFixed(0)}% illiquidity discount applied →
+                        </div>
+                      )}
                       {disputingId === ev.id ? (
                         <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
                           <input
@@ -1112,17 +934,13 @@ export default function App() {
                           {ev.status === 'pending' && (
                             <button
                               onClick={() => confirmEvidence(ev.id)}
-                              disabled={
-                                ev.contributor === contributor ||
-                                (ev.verified_by || []).some((v: any) => (typeof v === 'string' ? v === contributor : v.name === contributor))
-                              }
+                              disabled={ev.contributor === contributor || (ev.verified_by || []).includes(contributor)}
                               title={ev.contributor === contributor ? "You can't confirm your own submission" : undefined}
                               style={{
                                 background: 'none',
                                 border: 'none',
                                 color:
-                                  ev.contributor === contributor ||
-                                  (ev.verified_by || []).some((v: any) => (typeof v === 'string' ? v === contributor : v.name === contributor))
+                                  ev.contributor === contributor || (ev.verified_by || []).includes(contributor)
                                     ? '#3A4048'
                                     : '#3FBF7F',
                                 fontSize: '11px',
@@ -1130,9 +948,7 @@ export default function App() {
                                 padding: 0,
                               }}
                             >
-                              {(ev.verified_by || []).some((v: any) => (typeof v === 'string' ? v === contributor : v.name === contributor))
-                                ? 'You confirmed this'
-                                : 'Confirm this'}
+                              {(ev.verified_by || []).includes(contributor) ? 'You confirmed this' : 'Confirm this'}
                             </button>
                           )}
                           {ev.status === 'disputed' && (
@@ -1170,124 +986,182 @@ export default function App() {
 
           {/* Right column */}
           <div style={{ display: 'grid', gap: '16px' }}>
-            {/* Private Comparable Companies (Prominent) */}
-            {cachedComps && cachedComps.private.length > 0 && (
-              <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                  <h3 className="display" style={{ fontSize: '13px', fontWeight: 600, margin: 0 }}>
-                    Comparable Companies
+            {/* PRIORITY 4: Funding History Chart */}
+            {(() => {
+              const fundingRounds = evidence
+                .filter((e) => e.category === 'Funding' && e.value && e.date && e.status === 'verified')
+                .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+
+              if (fundingRounds.length === 0) return null;
+
+              // Extract amount RAISED from description (kept for potential future use)
+              const extractRaisedAmount = (round: Evidence): number => {
+                // Try to extract "raised $XB" or "raised $XM" from description
+                // Handles: "raised $2B", "raised approximately $2M", "raised around $500M"
+                const raisedMatch = round.description.match(/raised\s+(?:approximately|around|about)?\s*\$?([\d.]+)\s*([BTM])/i);
+                if (raisedMatch) {
+                  const amount = parseFloat(raisedMatch[1]);
+                  const unit = raisedMatch[2].toUpperCase();
+                  if (unit === 'B') return amount;
+                  if (unit === 'M') return amount / 1000; // Convert millions to billions
+                  if (unit === 'T') return amount * 1000; // Convert trillions to billions
+                }
+                return 0;
+              };
+
+              // Chart displays POST-MONEY VALUATION (.value field) per round
+              const parseValuation = (val: string | null): number => {
+                if (!val) return 0;
+                const parsed = parseSecondaryValue(val);
+                return parsed || 0;
+              };
+
+              const maxValue = Math.max(...fundingRounds.map((r) => parseValuation(r.value)));
+
+              return (
+                <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px', background: '#0E1319' }}>
+                  <h3 className="display" style={{ fontSize: '13px', fontWeight: 600, margin: '0 0 4px' }}>
+                    Funding History
                   </h3>
-                  {cachedComps.private.length < 3 && (
-                    <span style={{ fontSize: '11px', color: '#C9A227', background: 'rgba(201,162,39,0.1)', padding: '2px 6px', borderRadius: '3px' }}>
-                      Limited peer data ({cachedComps.private.length} {cachedComps.private.length === 1 ? 'company' : 'companies'})
-                    </span>
-                  )}
-                </div>
-
-                {/* Target company's own multiple */}
-                {cachedComps.target.multiple !== null && (
-                  <div style={{ fontSize: '12px', color: '#8B95A1', marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid #1F2833' }}>
-                    <span style={{ color: '#E8EAED', fontWeight: 500 }}>{cachedComps.target.name}</span>: {fmtB(cachedComps.target.valuation)} @ <span style={{ color: '#E8EAED', fontWeight: 500 }}>{cachedComps.target.multiple.toFixed(1)}x</span> revenue
+                  <div style={{ fontSize: '11px', color: '#5A6470', marginBottom: '12px' }}>
+                    Based on {fundingRounds.length} known funding round{fundingRounds.length > 1 ? 's' : ''}
                   </div>
-                )}
+                  <div style={{ height: '140px', display: 'flex', alignItems: 'flex-end', gap: '10px', padding: '0 4px' }}>
+                    {fundingRounds.map((round, i) => {
+                      const valuation = parseValuation(round.value);
+                      const height = (valuation / maxValue) * 100;
+                      const isAnchor = round.date === company?.last_round_date;
 
-                {/* Peer list */}
-                <div style={{ display: 'grid', gap: '8px' }}>
-                  {cachedComps.private.map((comp: any, i: number) => {
-                    const isExact = comp.match_type === 'exact';
-                    return (
-                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1 }}>
-                          <span style={{ color: '#E8EAED' }}>{comp.comp_name}</span>
-                          {!isExact && (
-                            <span style={{ fontSize: '10px', color: '#8B95A1', background: 'rgba(139,149,161,0.1)', padding: '1px 4px', borderRadius: '2px' }}>
-                              related sector
+                      return (
+                        <div
+                          key={i}
+                          style={{
+                            flex: 1,
+                            height: `${height}%`,
+                            background: isAnchor ? '#C9A227' : '#141C26',
+                            borderRadius: '3px 3px 0 0',
+                            position: 'relative',
+                            minHeight: '8px',
+                          }}
+                        >
+                          {isAnchor && (
+                            <span
+                              style={{
+                                position: 'absolute',
+                                top: '-28px',
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                fontSize: '8px',
+                                color: '#C9A227',
+                                whiteSpace: 'nowrap',
+                                fontWeight: 600,
+                              }}
+                            >
+                              ◆ anchor
                             </span>
                           )}
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                          {comp.comp_revenue_multiple !== null && (
-                            <span style={{ color: '#8B95A1', fontSize: '11px' }}>{comp.comp_revenue_multiple.toFixed(1)}x</span>
-                          )}
-                          <span className="mono" style={{ color: '#C9A227', fontWeight: 500 }}>
-                            {fmtB(comp.comp_valuation)}
+                          <span
+                            style={{
+                              position: 'absolute',
+                              top: '-16px',
+                              left: '50%',
+                              transform: 'translateX(-50%)',
+                              fontSize: '9px',
+                              color: isAnchor ? '#C9A227' : '#5A6470',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            ${valuation.toFixed(1)}B
                           </span>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
+              );
+            })()}
 
-                {/* Peer average & delta */}
-                {(() => {
-                  const peerMultiples = cachedComps.private
-                    .map((c: any) => c.comp_revenue_multiple)
-                    .filter((m: any): m is number => m !== null && m !== undefined);
-
-                  if (peerMultiples.length === 0 || cachedComps.target.multiple === null) return null;
-
-                  const peerAvg = peerMultiples.reduce((a: number, b: number) => a + b, 0) / peerMultiples.length;
-                  const delta = ((cachedComps.target.multiple - peerAvg) / peerAvg) * 100;
-
-                  return (
-                    <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #1F2833', fontSize: '12px', color: '#8B95A1' }}>
-                      Peer avg: {peerAvg.toFixed(1)}x · {cachedComps.target.name} is{' '}
-                      <span style={{ color: delta > 0 ? '#3FBF7F' : '#E5484D', fontWeight: 500 }}>
-                        {delta > 0 ? '+' : ''}{delta.toFixed(1)}%
-                      </span>
-                      {' '}{delta > 0 ? 'premium' : 'discount'}
-                    </div>
-                  );
-                })()}
-              </div>
-            )}
-
-            {/* Placeholder if no private comps yet */}
-            {(!cachedComps || cachedComps.private.length === 0) && (
-              <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px' }}>
-                <h3 className="display" style={{ fontSize: '13px', fontWeight: 600, margin: '0 0 8px 0' }}>
-                  Comparable Companies
+            {/* Comparable companies */}
+            <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 className="display" style={{ fontSize: '13px', fontWeight: 600, margin: 0 }}>
+                  Comparable companies
                 </h3>
-                <div style={{ fontSize: '12px', color: '#8B95A1' }}>
-                  Comps will be computed automatically during the next daily refresh cycle.
-                </div>
+                <button
+                  onClick={findCompsForCompany}
+                  disabled={loadingComps}
+                  style={{ ...primaryBtnStyle, opacity: loadingComps ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  {loadingComps && <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />}
+                  {comps ? 'Re-run' : 'Find comps'}
+                </button>
               </div>
-            )}
 
-            {/* Public Market Context (Secondary) */}
-            {cachedComps && cachedComps.public && cachedComps.public.length > 0 && (
-              <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '12px', background: '#0A0F14' }}>
-                <h4 className="display" style={{ fontSize: '12px', fontWeight: 600, margin: '0 0 8px 0', color: '#8B95A1' }}>
-                  Market Context
-                </h4>
-                <div style={{ fontSize: '11px', color: '#8B95A1', lineHeight: '1.5' }}>
-                  {(() => {
-                    const publicMultiples = cachedComps.public
-                      .map((c: any) => c.comp_revenue_multiple)
-                      .filter((m: any): m is number => m !== null);
+              {loadingComps && !comps && (
+                <div style={{ fontSize: '12px', color: '#8B95A1', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> Finding comparable public companies…
+                </div>
+              )}
 
-                    if (publicMultiples.length === 0 || !cachedComps.target.multiple) {
-                      return 'Public company comps will be computed during the next refresh.';
-                    }
+              {compsError && <div style={{ fontSize: '12px', color: '#E5484D', marginTop: '8px' }}>{compsError}</div>}
 
-                    const publicAvg = publicMultiples.reduce((a: number, b: number) => a + b, 0) / publicMultiples.length;
-                    const premium = ((cachedComps.target.multiple - publicAvg) / publicAvg) * 100;
+              {!comps && !loadingComps && !compsError && (
+                <div style={{ fontSize: '12px', color: '#8B95A1', marginTop: '8px' }}>
+                  Applies real public comps&apos; current revenue multiples to this company&apos;s own confirmed revenue, sourced and cited.
+                </div>
+              )}
 
-                    return (
-                      <>
-                        Public {cachedComps.target.sector || 'sector'} companies trade at{' '}
-                        <span style={{ color: '#E8EAED', fontWeight: 500 }}>{publicAvg.toFixed(1)}x</span> revenue.{' '}
-                        {cachedComps.target.name} implies a{' '}
-                        <span style={{ color: premium > 0 ? '#3FBF7F' : '#E5484D', fontWeight: 500 }}>
-                          {premium > 0 ? '+' : ''}{premium.toFixed(0)}%
+              {comps && (
+                <div style={{ marginTop: '12px' }}>
+                  <div className="mono" style={{ fontSize: '11px', color: '#5A6470', marginBottom: '8px' }}>
+                    Revenue: {fmtB(comps.revenueBillions)} — {comps.revenueSource.sourceLabel}, {comps.revenueSource.date}
+                  </div>
+                  {comps.revenueSource.isProjected && (
+                    <div style={{ fontSize: '11px', color: '#F5B942', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      ⚠️ Based on projected revenue — implied valuations may not reflect current multiples
+                    </div>
+                  )}
+                  {(comps.ownMultiples.lastRound !== null || comps.ownMultiples.aiFairValue !== null) && (
+                    <div style={{ fontSize: '12px', color: '#8B95A1', marginBottom: '10px' }}>
+                      {company?.name}&apos;s own multiple:{' '}
+                      {comps.ownMultiples.lastRound !== null && (
+                        <span style={{ color: '#E8EAED' }}>
+                          {comps.ownMultiples.lastRound.toFixed(1)}x last round
+                          {!comps.ownMultiples.lastRoundConfirmed && ' (unconfirmed)'}
                         </span>
-                        {' '}{premium > 0 ? 'premium' : 'discount'} to public markets.
-                      </>
-                    );
-                  })()}
+                      )}
+                      {comps.ownMultiples.lastRound !== null && comps.ownMultiples.aiFairValue !== null && ' · '}
+                      {comps.ownMultiples.aiFairValue !== null && (
+                        <span style={{ color: '#E8EAED' }}>{comps.ownMultiples.aiFairValue.toFixed(1)}x AI fair value</span>
+                      )}
+                    </div>
+                  )}
+                  <div style={{ display: 'grid', gap: '6px' }}>
+                    {comps.comps.map((c, i) => (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: '12px' }}>
+                        <span>
+                          {c.name}
+                          {c.ticker && (
+                            <span className="mono" style={{ color: '#5A6470' }}>
+                              {' '}
+                              ({c.ticker})
+                            </span>
+                          )}
+                          <span style={{ color: '#5A6470' }}> · {c.multiple.toFixed(1)}x</span>
+                        </span>
+                        <span className="mono" style={{ color: '#C9A227', fontWeight: 500 }}>
+                          {fmtB(c.impliedValuation)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#5A6470', marginTop: '8px' }}>
+                    Implied range: {fmtB(Math.min(...comps.comps.map((c) => c.impliedValuation)))} –{' '}
+                    {fmtB(Math.max(...comps.comps.map((c) => c.impliedValuation)))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* AI valuation panel */}
             <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px', background: '#0E1319' }}>
@@ -1328,41 +1202,130 @@ export default function App() {
                     <CaseCell label="Bull" value={valuation.bull_case} />
                   </div>
 
-                  <div style={{ marginTop: '12px', display: 'grid', gap: '6px' }}>
-                    {(valuation.key_drivers || []).map((d, i) => (
-                      <div key={i} style={{ display: 'flex', gap: '6px', fontSize: '12px' }}>
-                        {d.impact === '+' ? (
-                          <TrendingUp size={13} color="#3FBF7F" style={{ flexShrink: 0, marginTop: '2px' }} />
-                        ) : (
-                          <TrendingDown size={13} color="#E5484D" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  {/* PRIORITY 1: "In one line" takeaway panel */}
+                  {(() => {
+                    const secondaryEv = evidence
+                      .filter((e) => e.category === 'Secondary' && e.status === 'verified')
+                      .sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
+                    const formulaMeta =
+                      company?.last_round_value && company?.last_round_date && secondaryEv
+                        ? calculateFormulaMetadata(company.last_round_value, company.last_round_date, secondaryEv)
+                        : null;
+
+                    return (
+                      <div
+                        style={{
+                          border: '1px solid rgba(201,162,39,0.3)',
+                          borderRadius: '8px',
+                          background: '#0E1319',
+                          padding: '16px 20px',
+                          marginTop: '14px',
+                          marginBottom: '20px',
+                        }}
+                      >
+                        <div style={{ fontSize: '10px', letterSpacing: '0.1em', color: '#8A7038', textTransform: 'uppercase', marginBottom: '8px', fontWeight: 700 }}>
+                          In one line
+                        </div>
+                        <div style={{ fontSize: '13.5px', color: '#E8EAED', lineHeight: 1.6 }}>
+                          {formulaMeta ? (
+                            <>
+                              Anchored to the <b style={{ color: '#C9A227' }}>{fmtB(formulaMeta.primaryValue)} primary round</b> ({formulaMeta.primaryDate}) — a <b style={{ color: '#5AA9E6' }}>{fmtB(formulaMeta.secondaryValue)} secondary-market signal</b> exists but is {formulaMeta.secondaryWeight < 0.3 ? 'deliberately down-weighted' : formulaMeta.secondaryWeight > 0.6 ? 'heavily weighted' : 'moderately weighted'} because {formulaMeta.monthsSincePrimary < 6 ? 'the primary round is still fresh' : 'the primary round is getting stale'}. If a new primary round closes or the secondary market shifts, this number will move.
+                            </>
+                          ) : (
+                            <>
+                              Anchored to the <b style={{ color: '#C9A227' }}>{company?.last_round_value ? fmtB(company.last_round_value) : 'N/A'} primary round</b> ({company?.last_round_date || 'unknown date'}). No secondary market data available yet. If a new primary round closes, this number will move.
+                            </>
+                          )}
+                        </div>
+                        {formulaMeta && (
+                          <div
+                            style={{
+                              marginTop: '10px',
+                              paddingTop: '10px',
+                              borderTop: '1px solid #1F2833',
+                              fontSize: '12px',
+                              color: '#8B95A1',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              flexWrap: 'wrap',
+                            }}
+                          >
+                            <span
+                              style={{
+                                background: '#141C26',
+                                border: '1px solid #26303C',
+                                borderRadius: '4px',
+                                padding: '3px 8px',
+                                fontSize: '11px',
+                                color: '#E8EAED',
+                              }}
+                            >
+                              {(formulaMeta.primaryWeight * 100).toFixed(0)}% primary ({fmtB(formulaMeta.primaryValue)})
+                            </span>
+                            <span style={{ color: '#5A6470' }}>+</span>
+                            <span
+                              style={{
+                                background: '#141C26',
+                                border: '1px solid #26303C',
+                                borderRadius: '4px',
+                                padding: '3px 8px',
+                                fontSize: '11px',
+                                color: '#5AA9E6',
+                              }}
+                            >
+                              {(formulaMeta.secondaryWeight * 100).toFixed(0)}% secondary ({fmtB(formulaMeta.secondaryValue)}, {(formulaMeta.illiquidityDiscount * 100).toFixed(0)}% discount)
+                            </span>
+                            <span style={{ color: '#5A6470' }}>= {fmtB(formulaMeta.baseCase)}</span>
+                          </div>
                         )}
-                        <div>
-                          <span style={{ fontWeight: 500 }}>{d.label}</span>
-                          <span style={{ color: '#8B95A1' }}> — {d.note}</span>
+                      </div>
+                    );
+                  })()}
+
+                  {/* PRIORITY 2: Collapsed "Full methodology & key drivers" section */}
+                  <div style={{ border: '1px solid #1F2833', borderRadius: '6px', background: '#0E1319', marginTop: '12px' }}>
+                    <button
+                      onClick={() => setWhyOpen((o) => !o)}
+                      style={{
+                        width: '100%',
+                        background: 'none',
+                        border: 'none',
+                        color: '#8B95A1',
+                        fontSize: '11px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '10px 14px',
+                      }}
+                    >
+                      <span>Full methodology &amp; key drivers</span>
+                      <ChevronDown size={13} style={{ transform: whyOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+                    </button>
+                    {whyOpen && (
+                      <div style={{ padding: '0 14px 12px', borderTop: '1px solid #1F2833' }}>
+                        <div style={{ marginTop: '10px', display: 'grid', gap: '6px' }}>
+                          {(valuation.key_drivers || []).map((d, i) => (
+                            <div key={i} style={{ display: 'flex', gap: '6px', fontSize: '12px' }}>
+                              {d.impact === '+' ? (
+                                <TrendingUp size={13} color="#3FBF7F" style={{ flexShrink: 0, marginTop: '2px' }} />
+                              ) : (
+                                <TrendingDown size={13} color="#E5484D" style={{ flexShrink: 0, marginTop: '2px' }} />
+                              )}
+                              <div>
+                                <span style={{ fontWeight: 500 }}>{d.label}</span>
+                                <span style={{ color: '#8B95A1' }}> — {d.note}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#B5BDC6', marginTop: '12px', lineHeight: 1.5, paddingTop: '10px', borderTop: '1px solid #1A222D' }}>
+                          {valuation.explanation}
                         </div>
                       </div>
-                    ))}
+                    )}
                   </div>
-
-                  <button
-                    onClick={() => setWhyOpen((o) => !o)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#C9A227',
-                      fontSize: '12px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      padding: 0,
-                      marginTop: '12px',
-                    }}
-                  >
-                    Why {fmtB(valuation.base_case)}?
-                    <ChevronDown size={13} style={{ transform: whyOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
-                  </button>
-                  {whyOpen && <div style={{ fontSize: '12px', color: '#B5BDC6', marginTop: '6px', lineHeight: 1.5 }}>{valuation.explanation}</div>}
                 </div>
               )}
             </div>
