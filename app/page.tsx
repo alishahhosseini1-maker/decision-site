@@ -60,7 +60,7 @@ type Contributor = { name: string; total: number; verified: number; rejected: nu
 type Comp = { name: string; ticker: string; multiple: number; sourceLabel: string; impliedValuation: number };
 type CompsResult = {
   revenueBillions: number;
-  revenueSource: { description: string; sourceLabel: string; date: string };
+  revenueSource: { description: string; sourceLabel: string; date: string; isProjected?: boolean };
   comps: Comp[];
   ownMultiples: { lastRound: number | null; lastRoundConfirmed: boolean; aiFairValue: number | null };
 };
@@ -1116,6 +1116,11 @@ export default function App() {
                   <div className="mono" style={{ fontSize: '11px', color: '#5A6470', marginBottom: '8px' }}>
                     Revenue: {fmtB(comps.revenueBillions)} — {comps.revenueSource.sourceLabel}, {comps.revenueSource.date}
                   </div>
+                  {comps.revenueSource.isProjected && (
+                    <div style={{ fontSize: '11px', color: '#F5B942', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      ⚠️ Based on projected revenue — implied valuations may not reflect current multiples
+                    </div>
+                  )}
                   {(comps.ownMultiples.lastRound !== null || comps.ownMultiples.aiFairValue !== null) && (
                     <div style={{ fontSize: '12px', color: '#8B95A1', marginBottom: '10px' }}>
                       {company?.name}&apos;s own multiple:{' '}

@@ -87,7 +87,7 @@ async function deduplicateCompany(company) {
     .from('lumen_evidence')
     .select('*')
     .eq('company_id', company.id)
-    .in('category', ['Funding', 'Secondary'])
+    // Check ALL categories now (was scoped to Funding/Secondary only)
     .order('date', { ascending: false });
 
   if (!evidence || evidence.length === 0) return { company: company.name, duplicates: 0, kept: 0 };
