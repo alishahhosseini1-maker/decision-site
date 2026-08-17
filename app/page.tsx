@@ -997,7 +997,8 @@ export default function App() {
               // Extract amount RAISED from description (not post-money valuation from .value field)
               const extractRaisedAmount = (round: Evidence): number => {
                 // Try to extract "raised $XB" or "raised $XM" from description
-                const raisedMatch = round.description.match(/raised\s+\$?([\d.]+)\s*([BTM])/i);
+                // Handles: "raised $2B", "raised approximately $2M", "raised around $500M"
+                const raisedMatch = round.description.match(/raised\s+(?:approximately|around|about)?\s*\$?([\d.]+)\s*([BTM])/i);
                 if (raisedMatch) {
                   const amount = parseFloat(raisedMatch[1]);
                   const unit = raisedMatch[2].toUpperCase();
