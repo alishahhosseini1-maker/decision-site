@@ -52,11 +52,12 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     const companyId = company.id;
     console.log('[funding-rounds] Found company UUID:', companyId);
 
-    // Fetch all Funding evidence for this company
+    // Fetch all VERIFIED Funding evidence for this company (exclude pending/disputed)
     const { data: allFundingEvidence, error } = await supabase
       .from('lumen_evidence')
       .select('*')
       .eq('category', 'Funding')
+      .eq('status', 'verified')
       .order('date', { ascending: true });
 
     if (error) throw error;

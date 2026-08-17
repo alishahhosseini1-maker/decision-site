@@ -112,6 +112,7 @@ export default function App() {
   const [loadingComps, setLoadingComps] = useState(false);
   const [compsError, setCompsError] = useState<string | null>(null);
   const [whyOpen, setWhyOpen] = useState(false);
+  const [methodologyOpen, setMethodologyOpen] = useState(false);
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [form, setForm] = useState(emptyForm);
@@ -1163,44 +1164,124 @@ export default function App() {
               )}
             </div>
 
-            {/* AI valuation panel */}
-            <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px', background: '#0E1319' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <h3 className="display" style={{ fontSize: '13px', fontWeight: 600, margin: 0 }}>
-                    AI valuation
-                  </h3>
-                  {company?.last_valuation_at && (
-                    <div style={{ fontSize: '11px', color: '#5A6470', marginTop: '4px' }}>
-                      Last updated: {formatRelativeTime(company.last_valuation_at)}
+            {/* CENTERED HERO-CARD VALUATION */}
+            {valuation ? (
+              <>
+                {/* Hero valuation card */}
+                <div
+                  style={{
+                    border: '1px solid #26303C',
+                    borderRadius: '10px',
+                    background: 'linear-gradient(180deg, rgba(212,169,74,0.06), transparent 65%)',
+                    padding: '28px 32px 24px',
+                    marginBottom: '8px',
+                  }}
+                >
+                  <div style={{ textAlign: 'center', fontSize: '11px', letterSpacing: '0.14em', color: '#5A6470', marginBottom: '10px', textTransform: 'uppercase' }}>
+                    CURRENT VALUATION
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '52px', fontWeight: 700, color: '#C9A227', letterSpacing: '-0.02em', lineHeight: 1 }}>
+                      {fmtB(valuation.base_case)}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        letterSpacing: '0.06em',
+                        padding: '5px 10px',
+                        borderRadius: '5px',
+                        border: '1px solid rgba(74,222,128,0.35)',
+                        background: 'rgba(74,222,128,0.08)',
+                        color: '#4ADE80',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      {valuation.confidence_score}/100 CONFIDENCE
+                    </span>
+                  </div>
+                  {company?.last_round_value && (
+                    <div style={{ textAlign: 'center', color: '#8B95A1', fontSize: '14px', marginBottom: '4px' }}>
+                      ${((valuation.base_case * 1000000000) / 1650000000).toFixed(2)} / share
                     </div>
                   )}
-                </div>
-                <button
-                  onClick={runValuation}
-                  disabled={loadingValuation}
-                  style={{ ...primaryBtnStyle, opacity: loadingValuation ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                  {loadingValuation && <Loader2 size={12} className="spin" style={{ animation: 'spin 1s linear infinite' }} />}
-                  {valuation ? 'Re-run' : 'Run analysis'}
-                </button>
-              </div>
-
-              {valuationError && <div style={{ fontSize: '12px', color: '#E5484D', marginTop: '8px' }}>{valuationError}</div>}
-
-              {!valuation && !loadingValuation && !valuationError && (
-                <div style={{ fontSize: '12px', color: '#8B95A1', marginTop: '8px' }}>
-                  Runs the verified evidence below through an AI analyst to produce an explainable fair-value range.
-                </div>
-              )}
-
-              {valuation && (
-                <div style={{ marginTop: '12px' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', textAlign: 'center' }}>
-                    <CaseCell label="Bear" value={valuation.bear_case} />
-                    <CaseCell label="Base" value={valuation.base_case} highlight />
-                    <CaseCell label="Bull" value={valuation.bull_case} />
+                  <div style={{ textAlign: 'center', color: '#5A6470', fontSize: '12px', marginTop: '10px' }}>
+                    AI fair value · formula-weighted ·{' '}
+                    <button
+                      onClick={() => setMethodologyOpen(!methodologyOpen)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#8A7038',
+                        textDecoration: 'underline',
+                        cursor: 'pointer',
+                        padding: 0,
+                        font: 'inherit',
+                        transition: 'color 0.15s',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = '#C9A227')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = '#8A7038')}
+                    >
+                      see methodology
+                    </button>
                   </div>
+
+                  {/* Range bar */}
+                  <div style={{ margin: '24px auto 4px', maxWidth: '620px' }}>
+                    <div style={{ position: 'relative', height: '8px', background: '#16161A', borderRadius: '4px', border: '1px solid #26303C' }}>
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '-1px',
+                          bottom: '-1px',
+                          left: '14%',
+                          right: '15%',
+                          background: 'linear-gradient(90deg, rgba(212,169,74,0.15), rgba(212,169,74,0.4), rgba(212,169,74,0.15))',
+                          borderRadius: '4px',
+                        }}
+                      />
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '-5px',
+                          left: '39%',
+                          width: '3px',
+                          height: '18px',
+                          background: '#C9A227',
+                          borderRadius: '2px',
+                        }}
+                      />
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginTop: '10px' }}>
+                      <span style={{ color: '#B5BDC6' }}>Bear {fmtB(valuation.bear_case)}</span>
+                      <span style={{ color: '#C9A227', fontWeight: 700, textAlign: 'center', flex: 1 }}>Base {fmtB(valuation.base_case)}</span>
+                      <span style={{ color: '#B5BDC6' }}>Bull {fmtB(valuation.bull_case)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Disclaimer */}
+                <div style={{ textAlign: 'center', fontSize: '11px', color: '#5A6470', fontStyle: 'italic', margin: '16px 0 22px' }}>
+                  Derived from crowdsourced evidence and AI inference. Not investment advice.{' '}
+                  <button
+                    onClick={() => setMethodologyOpen(!methodologyOpen)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#8A7038',
+                      textDecoration: 'underline',
+                      cursor: 'pointer',
+                      padding: 0,
+                      font: 'inherit',
+                      fontStyle: 'italic',
+                      transition: 'color 0.15s',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = '#C9A227')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = '#8A7038')}
+                  >
+                    See methodology
+                  </button>
+                </div>
 
                   {/* PRIORITY 1: "In one line" takeaway panel */}
                   {(() => {
@@ -1283,52 +1364,60 @@ export default function App() {
                     );
                   })()}
 
-                  {/* PRIORITY 2: Collapsed "Full methodology & key drivers" section */}
-                  <div style={{ border: '1px solid #1F2833', borderRadius: '6px', background: '#0E1319', marginTop: '12px' }}>
-                    <button
-                      onClick={() => setWhyOpen((o) => !o)}
-                      style={{
-                        width: '100%',
-                        background: 'none',
-                        border: 'none',
-                        color: '#8B95A1',
-                        fontSize: '11px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '10px 14px',
-                      }}
-                    >
-                      <span>Full methodology &amp; key drivers</span>
-                      <ChevronDown size={13} style={{ transform: whyOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
-                    </button>
-                    {whyOpen && (
-                      <div style={{ padding: '0 14px 12px', borderTop: '1px solid #1F2833' }}>
-                        <div style={{ marginTop: '10px', display: 'grid', gap: '6px' }}>
-                          {(valuation.key_drivers || []).map((d, i) => (
-                            <div key={i} style={{ display: 'flex', gap: '6px', fontSize: '12px' }}>
-                              {d.impact === '+' ? (
-                                <TrendingUp size={13} color="#3FBF7F" style={{ flexShrink: 0, marginTop: '2px' }} />
-                              ) : (
-                                <TrendingDown size={13} color="#E5484D" style={{ flexShrink: 0, marginTop: '2px' }} />
-                              )}
-                              <div>
-                                <span style={{ fontWeight: 500 }}>{d.label}</span>
-                                <span style={{ color: '#8B95A1' }}> — {d.note}</span>
-                              </div>
-                            </div>
-                          ))}
+                {/* PRIORITY 2: Collapsed "Full methodology & key drivers" section */}
+                {methodologyOpen && (
+                  <div style={{ border: '1px solid #1F2833', borderRadius: '6px', background: '#0E1319', padding: '14px', marginBottom: '20px' }}>
+                    <div style={{ marginTop: '10px', display: 'grid', gap: '6px' }}>
+                      {(valuation.key_drivers || []).map((d, i) => (
+                        <div key={i} style={{ display: 'flex', gap: '6px', fontSize: '12px' }}>
+                          {d.impact === '+' ? (
+                            <TrendingUp size={13} color="#3FBF7F" style={{ flexShrink: 0, marginTop: '2px' }} />
+                          ) : (
+                            <TrendingDown size={13} color="#E5484D" style={{ flexShrink: 0, marginTop: '2px' }} />
+                          )}
+                          <div>
+                            <span style={{ fontWeight: 500 }}>{d.label}</span>
+                            <span style={{ color: '#8B95A1' }}> — {d.note}</span>
+                          </div>
                         </div>
-                        <div style={{ fontSize: '12px', color: '#B5BDC6', marginTop: '12px', lineHeight: 1.5, paddingTop: '10px', borderTop: '1px solid #1A222D' }}>
-                          {valuation.explanation}
-                        </div>
+                      ))}
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#B5BDC6', marginTop: '12px', lineHeight: 1.5, paddingTop: '10px', borderTop: '1px solid #1A222D' }}>
+                      {valuation.explanation}
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px', background: '#0E1319', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <h3 className="display" style={{ fontSize: '13px', fontWeight: 600, margin: 0 }}>
+                      AI valuation
+                    </h3>
+                    {company?.last_valuation_at && (
+                      <div style={{ fontSize: '11px', color: '#5A6470', marginTop: '4px' }}>
+                        Last updated: {formatRelativeTime(company.last_valuation_at)}
                       </div>
                     )}
                   </div>
+                  <button
+                    onClick={runValuation}
+                    disabled={loadingValuation}
+                    style={{ ...primaryBtnStyle, opacity: loadingValuation ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    {loadingValuation && <Loader2 size={12} className="spin" style={{ animation: 'spin 1s linear infinite' }} />}
+                    Run analysis
+                  </button>
                 </div>
-              )}
-            </div>
+                {valuationError && <div style={{ fontSize: '12px', color: '#E5484D', marginTop: '8px' }}>{valuationError}</div>}
+                {!valuationError && (
+                  <div style={{ fontSize: '12px', color: '#8B95A1', marginTop: '8px' }}>
+                    Runs the verified evidence below through an AI analyst to produce an explainable fair-value range.
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Contributors */}
             <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px' }}>
