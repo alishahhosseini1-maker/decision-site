@@ -259,6 +259,57 @@ export async function applyConfirmedFigure(supabase: SupabaseClient, companyId: 
   await supabase.from('lumen_companies').update(patch).eq('id', companyId);
 }
 
+// Calculates a formulaic confidence score (0-100) based on evidence quality metrics.
+// Applies proportional penalties for staleness, unverified evidence, lack of momentum,
+// and adjusts for source credibility. Replaces AI-generated confidence scores to eliminate
+// clustering at arbitrary thresholds and ensure verification status properly differentiates scores.
+function calculateConfidenceScore(
+  evidence: Array<{ category: string; status: string; source_type: string; date: string | null }>,
+  referenceDate: string
+): number {
+  let score = 100;
+
+  const MOMENTUM_CATEGORIES = ['Revenue', 'Headcount', 'Product', 'Contracts', 'Metrics'];
+
+  // 1. Staleness penalty (proportional: -0.5 pts per month, max -50)
+  const fundingEvidence = evidence.filter(e => e.category === 'Funding' && e.date);
+  if (fundingEvidence.length > 0) {
+    const mostRecent = fundingEvidence.reduce((latest, e) =>
+      (e.date && (!latest.date || e.date > latest.date)) ? e : latest
+    );
+    if (mostRecent.date) {
+      const monthsStale = Math.floor(
+        (new Date(referenceDate).getTime() - new Date(mostRecent.date).getTime()) / (1000 * 60 * 60 * 24 * 30)
+      );
+      const stalenessPenalty = Math.min(50, monthsStale * 0.5);
+      score -= stalenessPenalty;
+    }
+  }
+
+  // 2. Verification penalty (proportional: -30 pts for 100% unverified)
+  if (evidence.length > 0) {
+    const unverifiedCount = evidence.filter(e => e.status !== 'verified').length;
+    const unverifiedPct = unverifiedCount / evidence.length;
+    score -= unverifiedPct * 30;
+  }
+
+  // 3. Momentum penalty (binary: -15 for no momentum evidence)
+  const hasMomentum = evidence.some(e => MOMENTUM_CATEGORIES.includes(e.category));
+  if (!hasMomentum) {
+    score -= 15;
+  }
+
+  // 4. Source credibility adjustment (±10 pts based on source quality)
+  if (evidence.length > 0) {
+    const avgSourceConf = evidence.reduce((sum, e) => sum + (CONFIDENCE_MAP[e.source_type] ?? 50), 0) / evidence.length;
+    // Center adjustment at 75 (Industry Research baseline)
+    const credibilityAdj = (avgSourceConf - 75) * 0.2;
+    score += credibilityAdj;
+  }
+
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
 // Generates a bear/base/bull valuation from a company's evidence and saves
 // it. Includes not just confirmed evidence but also not-yet-confirmed
 // findings from the AI research bot (never unconfirmed manual submissions —
@@ -423,6 +474,9 @@ All valuation numbers are in billions of USD as plain numbers (e.g. 20.7). confi
     const cleaned = textBlock.text.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(cleaned);
 
+    // Calculate formulaic confidence score (replaces AI-generated score)
+    const confidenceScore = calculateConfidenceScore(evidence, referenceDate);
+
     const { data: saved, error: saveError } = await supabase
       .from('lumen_valuations')
       .upsert(
@@ -431,7 +485,7 @@ All valuation numbers are in billions of USD as plain numbers (e.g. 20.7). confi
           bear_case: parsed.bearCase,
           base_case: parsed.baseCase,
           bull_case: parsed.bullCase,
-          confidence_score: parsed.confidenceScore,
+          confidence_score: confidenceScore,
           key_drivers: parsed.keyDrivers,
           explanation: parsed.explanation,
           generated_at: new Date().toISOString(),
