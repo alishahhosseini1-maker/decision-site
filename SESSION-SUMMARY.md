@@ -93,6 +93,34 @@ baseCase = (1 - finalWeight) × primaryValue + finalWeight × adjustedSecondaryV
 
 ---
 
+## Near-Term Follow-Up
+
+### Formula Explanation Generation (Structural Fix)
+
+**Current state (temporary patch):**
+- Formula correctly calculates base case ($971B for Anthropic)
+- Explanation appended to AI-generated text documenting the weighting
+- **Problem:** AI generates explanation first (referencing $1.05T), then formula overrides base case to $971B, then explanation appended as correction
+
+**Issue:**
+This creates explanations with internal contradictions until the appended paragraph corrects them. Will recur on every company where formula applies.
+
+**Temporary patch location:**
+- `app/lib/valuation.ts:645-690` (appends formula explanation after AI generation)
+- Code comment flags this as temporary: "TODO: STRUCTURAL FIX NEEDED (near-term)"
+
+**Real fix (Option C):**
+Regenerate explanation AFTER formula override, or reorder generation so AI knows the final base case before writing the explanation. Options:
+1. Call AI twice: once for bear/bull/drivers, second time for explanation with final base case
+2. Prompt AI to generate explanation template, then fill in final base case
+3. Generate explanation separately via structured prompt after all calculations
+
+**Priority:** Near-term (not urgent, but will compound on every company with both evidence types)
+
+**Tracking:** Code comment at line 645 in valuation.ts
+
+---
+
 ## Deferred Work
 
 ### ⚠️ High Priority - Blocks Core Product Thesis

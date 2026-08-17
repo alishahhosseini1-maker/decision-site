@@ -366,6 +366,21 @@ function calculatePrimarySecondaryBaseCase(
   secondaryEvidence: SecondaryEvidence,
   referenceDate: string
 ): number | null {
+  const result = calculatePrimarySecondaryBaseCaseWithDetails(primaryValue, primaryDate, secondaryEvidence, referenceDate);
+  return result ? result.baseCase : null;
+}
+
+/**
+ * Calculate weighted base case with full details for explanation generation.
+ *
+ * @returns null if no valid secondary value can be parsed, otherwise full breakdown
+ */
+function calculatePrimarySecondaryBaseCaseWithDetails(
+  primaryValue: number,
+  primaryDate: string,
+  secondaryEvidence: SecondaryEvidence,
+  referenceDate: string
+): { baseCase: number; weight: number; monthsSincePrimary: number; monthsSinceSecondary: number; secondaryValueRaw: number } | null {
   // Parse secondary value (handles multiple formats)
   const secondaryValue = parseSecondaryValue(secondaryEvidence.value);
   if (!secondaryValue || !secondaryEvidence.date) {
@@ -408,7 +423,13 @@ function calculatePrimarySecondaryBaseCase(
   // 5. Weighted base case
   const baseCase = Math.round((1 - finalWeight) * primaryValue + finalWeight * adjustedSecondary);
 
-  return baseCase;
+  return {
+    baseCase,
+    weight: finalWeight,
+    monthsSincePrimary,
+    monthsSinceSecondary,
+    secondaryValueRaw: secondaryValue,
+  };
 }
 
 /**
@@ -629,7 +650,15 @@ All valuation numbers are in billions of USD as plain numbers (e.g. 20.7). confi
 
     // Calculate formulaic base case when both primary and secondary evidence exist
     // (replaces AI-generated base case to ensure deterministic weighting)
+    //
+    // TODO: STRUCTURAL FIX NEEDED (near-term)
+    // This appends formula explanation to AI-generated text as a patch.
+    // Real fix: regenerate explanation AFTER formula override (Option C) or reorder
+    // generation so AI knows the final base case. Current approach creates
+    // explanations that reference wrong numbers until the appended paragraph corrects them.
+    // This will recur on every company where formula applies — not a "someday" item.
     let baseCase = parsed.baseCase;
+    let explanation = parsed.explanation;
 
     // Find most recent Secondary evidence
     const secondaryEvidence = evidence
@@ -639,15 +668,24 @@ All valuation numbers are in billions of USD as plain numbers (e.g. 20.7). confi
 
     // If we have both primary round data and secondary evidence, use formula
     if (company.last_round_value && company.last_round_date && secondaryEvidence) {
-      const formulaBaseCase = calculatePrimarySecondaryBaseCase(
+      const formulaResult = calculatePrimarySecondaryBaseCaseWithDetails(
         company.last_round_value,
         company.last_round_date,
         secondaryEvidence,
         referenceDate
       );
 
-      if (formulaBaseCase !== null) {
-        baseCase = formulaBaseCase;
+      if (formulaResult !== null) {
+        baseCase = formulaResult.baseCase;
+
+        // Append formula transparency explanation (fully parameterized)
+        const primaryWeight = ((1 - formulaResult.weight) * 100).toFixed(1);
+        const secondaryWeight = (formulaResult.weight * 100).toFixed(1);
+        const primaryAge = formulaResult.monthsSincePrimary.toFixed(1);
+        const secondaryAge = formulaResult.monthsSinceSecondary.toFixed(1);
+        const discountPct = (PRIMARY_SECONDARY_PARAMS.ILLIQUIDITY_DISCOUNT * 100).toFixed(0);
+
+        explanation += `\n\n**Formula-adjusted base case:** The $${baseCase}B base case applies a deterministic primary+secondary weighting formula: ${primaryWeight}% weight to the $${company.last_round_value}B primary round (${company.last_round_date}) + ${secondaryWeight}% weight to the ${formulaResult.secondaryValueRaw}B secondary market signal (${secondaryEvidence.date}, discounted ${discountPct}% for illiquidity). The ${formulaResult.weight < 0.3 ? 'low' : formulaResult.weight > 0.6 ? 'high' : 'moderate'} secondary weight reflects that ${formulaResult.monthsSincePrimary < 6 ? 'the primary round is fresh (' + primaryAge + ' months old)' : 'the primary round is ' + primaryAge + ' months old'}, preventing ${formulaResult.weight < 0.3 ? 'speculative secondary premiums from distorting the anchor' : 'stale primary data from anchoring to outdated valuations'}.`;
       }
       // else: fall back to AI base case if formula can't parse secondary value
     }
@@ -662,7 +700,7 @@ All valuation numbers are in billions of USD as plain numbers (e.g. 20.7). confi
           bull_case: parsed.bullCase,
           confidence_score: confidenceScore,
           key_drivers: parsed.keyDrivers,
-          explanation: parsed.explanation,
+          explanation: explanation, // Use appended explanation if formula was applied
           generated_at: new Date().toISOString(),
         },
         { onConflict: 'company_id' }
