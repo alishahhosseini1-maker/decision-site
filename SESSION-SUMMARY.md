@@ -2,6 +2,114 @@
 
 ## Completed Work
 
+### 0. August 17, 2026 Session — Layout Fixes + Evidence Deduplication + Comparables Panel
+**Status:** ✅ Complete
+
+Implemented revised Anthropic/company page layout per mockup, fixed duplicate evidence root cause, and corrected comparables panel revenue selection.
+
+#### Layout & Visual Fixes
+
+**Four priority changes:**
+
+1. **"In one line" panel** (after bear/base/bull range)
+   - One-sentence takeaway dynamically generated from formula
+   - Formula chip row showing weight split (e.g., "89% primary + 11% secondary = $971B")
+   - Dynamic from formula inputs, adapts for primary-only companies
+   - Visual polish matched to reference mockup (spacing, sizing, borders)
+
+2. **Collapsed methodology section**
+   - Moved "How we calculated this" → "Full methodology & key drivers"
+   - Collapsed by default, expandable
+
+3. **Evidence ledger tagging**
+   - "◆ ANCHOR" gold badge on anchor evidence
+   - Contribution notes on formula-used items (e.g., "11% of base case, 15% discount")
+   - Dynamic from formula output
+
+4. **Funding chart**
+   - Label anchor bar with "◆ anchor"
+   - Displays POST-MONEY VALUATION per round (not amount raised)
+   - Initially implemented as amount-raised extraction, reverted per user clarification
+   - Bars show: $60B / $183B / $380B / $965B (deduplicated values)
+
+**Bug fixes:**
+- **Double-dollar-sign bug:** Fixed `$$965.0B` → `$965.0B` (fmtB already adds $)
+- **SECONDARY IMPLIED showing "—":** Now derives from evidence on-the-fly instead of DB field
+- **Visual styling:** Tightened spacing/sizing to match mockup exactly
+
+**Files:**
+- `app/page.tsx` - All four layout features + bug fixes
+- `app/lib/formula.ts` - Created as shared module (prevents duplication)
+
+#### Evidence Deduplication — Root Cause Fixed
+
+**Problem:** researchCompanyEvidence() was inserting blindly without checking for existing equivalent evidence. Every research re-run (manual button, cron job) created duplicates.
+
+**Prevention fix:**
+- Added equivalence-check logic before insert (app/lib/perplexity.ts:90-146)
+- Checks: same category, similar date (±7 days), similar value (±5%)
+- Skips duplicates, only inserts new items
+- Covers ALL categories (Funding, Revenue, Secondary, Contracts, etc.)
+
+**Cleanup fix:**
+- Extended scripts/deduplicate-evidence.mjs to all categories (was Funding/Secondary only)
+- Removed 71 duplicate evidence items across 20 companies:
+  - Anthropic: 8 duplicates (5 Funding, 3 Revenue)
+  - OpenAI: 8 duplicates (worst offender: 6× for single round)
+  - Faire: 9 duplicates
+  - Notion: 8 duplicates
+  - 16 other companies: 38 duplicates total
+
+**Selection quality verified:**
+- Spot-checked OpenAI (6× → 1) and Faire (5× → 1)
+- Kept records are verified, high-quality sources, correct values
+
+#### Comparables Panel — Revenue Selection Fixed
+
+**Problem:** Panel was using PROJECTED 2028 revenue ($190B) instead of CURRENT run-rate ($14B), creating unrealistic implied valuation range ($604.5B–$11,758.5B).
+
+**Root cause:** pickMostCredible() sorted by date (newest wins), so Aug 2026 "projected 2028" beat Feb 2026 "run-rate".
+
+**Solution — 4-tier revenue prioritization:**
+1. **Priority 3:** Run-rate STATED with number ("$14B run-rate", not just "run-rate claims")
+2. **Priority 2:** Current/actual/TTM indicators
+3. **Priority 1:** Ambiguous or "to date" (cumulative, not annual)
+4. **Priority 0:** Projected/forecast/target
+
+**Pattern robustness:**
+- Distinguishes "$14B run-rate revenue" (priority 3) from "run-rate claims" (priority 1)
+- Tested on Anthropic: correctly selects Feb 13 $14B run-rate over Mar 10 ">$5B to date"
+- Handles variations: "run-rate revenue of $X", "annualized revenue $X in 2026"
+
+**Fallback disclaimer:**
+- When only projected revenue exists: "⚠️ Based on projected revenue — implied valuations may not reflect current multiples"
+- Anthropic shows no disclaimer (using current run-rate)
+
+**Impact:**
+- Before: $190B projected → $604.5B–$11,758.5B range (unrealistic)
+- After: $14B run-rate → ~$45B–$870B range (realistic)
+- Anthropic's own multiple: ~69x ($971B / $14B)
+
+**Isolation verified:**
+- Comps route READS base_case ($971B) but never WRITES it
+- Revenue selection affects ONLY comps panel display
+- Base valuation unchanged, fully isolated
+
+**Files:**
+- `app/api/lumen/companies/[id]/comps/route.ts` - Revenue selection logic
+- `app/page.tsx` - Disclaimer display
+- `scripts/deduplicate-evidence.mjs` - Extended to all categories
+- `scripts/test-revenue-selection.mjs` - Cross-company validation
+
+**Commits:**
+- `fb61330` - Layout bugs + visual polish
+- `0344cd1` - Dedup root cause + funding chart metric fix
+- `28d7a60` - Regex hardening + dedup verification
+- `ec20a4e` - Revert funding chart to valuation metric
+- `fc10c57` - Comparables panel revenue selection fix
+
+---
+
 ### 1. Secondary Evidence Category
 **Status:** ✅ Complete
 
