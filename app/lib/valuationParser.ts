@@ -18,32 +18,41 @@ export function parseValuationFromText(text: string): number | null {
   if (!text) return null;
 
   // Pattern 0: "at $X post-money" or "$X post-money valuation" (HIGHEST PRIORITY)
-  // Matches: "$965B post-money", "at $380B post-money", "$61.5B post-money valuation"
-  const postMoneyPattern = /(?:at\s+)?\$\s*([\d,.]+)\s*(?:billion|B)\s+post-money/i;
+  // Matches: "$965B post-money", "$60M post-money", "at $380B post-money"
+  const postMoneyPattern = /(?:at\s+a?\s*)?\$\s*([\d,.]+)\s*([MB]|billion|million)\s+post-money/i;
   let match = text.match(postMoneyPattern);
   if (match) {
-    return parseFloat(match[1].replace(/,/g, ''));
+    const value = parseFloat(match[1].replace(/,/g, ''));
+    const unit = match[2].toUpperCase();
+    // Convert millions to billions
+    return (unit === 'M' || unit === 'MILLION') ? value / 1000 : value;
   }
 
-  // Pattern 1: "valued at $X billion/B" or "valuation of $X billion/B"
-  const valuationPattern = /(?:valued at|valuation of|valuation:|at a)\s*\$?\s*([\d,.]+)\s*(?:billion|B)(?:\s|,|\.|\))/i;
+  // Pattern 1: "valued at $X" or "valuation of $X"
+  const valuationPattern = /(?:valued at|valuation of|valuation:|at a)\s*\$?\s*([\d,.]+)\s*([MB]|billion|million)(?:\s|,|\.|\))/i;
   match = text.match(valuationPattern);
   if (match) {
-    return parseFloat(match[1].replace(/,/g, ''));
+    const value = parseFloat(match[1].replace(/,/g, ''));
+    const unit = match[2].toUpperCase();
+    return (unit === 'M' || unit === 'MILLION') ? value / 1000 : value;
   }
 
-  // Pattern 2: "$X billion valuation"
-  const reversePattern = /\$\s*([\d,.]+)\s*(?:billion|B)\s+valuation/i;
+  // Pattern 2: "$X valuation"
+  const reversePattern = /\$\s*([\d,.]+)\s*([MB]|billion|million)\s+valuation/i;
   match = text.match(reversePattern);
   if (match) {
-    return parseFloat(match[1].replace(/,/g, ''));
+    const value = parseFloat(match[1].replace(/,/g, ''));
+    const unit = match[2].toUpperCase();
+    return (unit === 'M' || unit === 'MILLION') ? value / 1000 : value;
   }
 
-  // Pattern 3: "raised at $X billion" (funding round context)
-  const raisedPattern = /raised at\s*\$?\s*([\d,.]+)\s*(?:billion|B)/i;
+  // Pattern 3: "raised at $X" (funding round context)
+  const raisedPattern = /raised at\s*\$?\s*([\d,.]+)\s*([MB]|billion|million)/i;
   match = text.match(raisedPattern);
   if (match) {
-    return parseFloat(match[1].replace(/,/g, ''));
+    const value = parseFloat(match[1].replace(/,/g, ''));
+    const unit = match[2].toUpperCase();
+    return (unit === 'M' || unit === 'MILLION') ? value / 1000 : value;
   }
 
   // Pattern 4: Just "$XB" or "$X billion" anywhere in text (looser fallback)
@@ -80,25 +89,31 @@ export function parseValuationFromText(text: string): number | null {
 export function parseFundingAmountFromText(text: string): number | null {
   if (!text) return null;
 
-  // Pattern 1: "raised/raising $XB"
-  const raisedPattern = /(?:raised|raising|raise of)\s*\$\s*([\d,.]+)\s*(?:billion|B)/i;
+  // Pattern 1: "raised/raising $X"
+  const raisedPattern = /(?:raised|raising|raise of)\s*\$\s*([\d,.]+)\s*([MB]|billion|million)/i;
   let match = text.match(raisedPattern);
   if (match) {
-    return parseFloat(match[1].replace(/,/g, ''));
+    const value = parseFloat(match[1].replace(/,/g, ''));
+    const unit = match[2].toUpperCase();
+    return (unit === 'M' || unit === 'MILLION') ? value / 1000 : value;
   }
 
-  // Pattern 2: "$XB funding round" or "$XB round"
-  const fundingRoundPattern = /\$\s*([\d,.]+)\s*(?:billion|B)\s+(?:funding round|round|raise)/i;
+  // Pattern 2: "$X funding round" or "$X round"
+  const fundingRoundPattern = /\$\s*([\d,.]+)\s*([MB]|billion|million)\s+(?:funding round|round|raise)/i;
   match = text.match(fundingRoundPattern);
   if (match) {
-    return parseFloat(match[1].replace(/,/g, ''));
+    const value = parseFloat(match[1].replace(/,/g, ''));
+    const unit = match[2].toUpperCase();
+    return (unit === 'M' || unit === 'MILLION') ? value / 1000 : value;
   }
 
-  // Pattern 3: "new funding of $XB" or "funding round of $XB"
-  const ofPattern = /(?:funding|round)\s+of\s+\$\s*([\d,.]+)\s*(?:billion|B)/i;
+  // Pattern 3: "new funding of $X" or "funding round of $X"
+  const ofPattern = /(?:funding|round)\s+of\s+\$\s*([\d,.]+)\s*([MB]|billion|million)/i;
   match = text.match(ofPattern);
   if (match) {
-    return parseFloat(match[1].replace(/,/g, ''));
+    const value = parseFloat(match[1].replace(/,/g, ''));
+    const unit = match[2].toUpperCase();
+    return (unit === 'M' || unit === 'MILLION') ? value / 1000 : value;
   }
 
   return null;
