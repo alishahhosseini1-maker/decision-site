@@ -2,30 +2,32 @@
 
 ## Summary
 
-**Tier 2 (Less-Famous Companies):** Encouraging accuracy (80% pass, 24.6% mean error)  
+**Tier 2 (Less-Famous Companies):** Moderate accuracy (60% pass, 23.6% mean error)  
 **Tier 1 (Famous Companies):** Failed sanity check (33% pass, 99.6% mean error)
 
 **Status:** Pipeline shows promise but needs expanded test set before claiming validation.
 
+**Note:** Results corrected after parser bug fix (Aug 2026) - see "Parser Bug Impact" section below.
+
 ---
 
-## Final Results
+## Final Results (Corrected)
 
 ### Tier 2: Less-Famous Companies (n=5)
 
 | Company | Actual | Estimate | Error | Status |
 |---------|--------|----------|-------|--------|
-| Plaid | $13.4B | $12.0B | 10.4% under | ✅ PASS |
-| Anduril | $14.0B | $14.0B | 0.0% | ✅ PASS |
+| Plaid | $13.4B | $13.4B | 0.0% | ✅ PASS |
+| Anduril | $14.0B | $18.5B | 32.1% over | ❌ FAIL |
 | Notion | $10.0B | $6.0B | 40.0% under | ✅ PASS |
-| Faire | $12.6B | $6.0B | 52.4% under | ❌ FAIL |
-| Rippling | $11.25B | $13.5B | 20.0% over | ✅ PASS |
+| Faire | $12.6B | $7.0B | 44.4% under | ❌ FAIL |
+| Rippling | $11.25B | $11.5B | 2.2% over | ✅ PASS |
 
 **Metrics:**
-- Mean error: 24.6% (threshold: 40%)
-- Median error: 20.0%
-- Pass rate: 80%
-- Bias: Mild underestimation (3 under, 1 over, 1 perfect)
+- Mean error: 23.6% (threshold: 40%)
+- Median error: 32.1%
+- Pass rate: 60% (3/5)
+- Bias: Balanced (2 under, 2 over, 1 perfect)
 
 ### Tier 1: Famous Companies (n=3)
 
@@ -45,7 +47,27 @@
 
 ## Critical Findings
 
-### 1. Data Integrity Issues (Now Fixed)
+### 1. Parser Bug (Fixed Aug 2026)
+
+**Impact:** Valuation parser only handled billions, not millions - affected all Series A/B companies.
+
+**Original (buggy) Tier 2 results:**
+- Plaid: $12.0B (10.4% under) - now $13.4B (0% error) ✓
+- Anduril: $14.0B (0% error) - now $18.5B (32% over) ✗
+- Notion: $6.0B (40% under) - unchanged
+- Faire: $6.0B (52.4% under) - now $7.0B (44% under)
+- Rippling: $13.5B (20% over) - now $11.5B (2.2% over) ✓
+- **Original metrics: 80% pass, 24.6% mean error**
+
+**Corrected results (above):**
+- Parser now captures millions-denominated valuations ($60M → 0.06B)
+- 22 previously-NULL valuations recovered across database
+- Anduril's "0% perfect" was artifact of missing Seed data, not genuine success
+- **Corrected metrics: 60% pass, 23.6% mean error**
+
+**Conclusion:** Parser bug affected individual estimates but overall accuracy level similar (~24% mean error).
+
+### 2. Data Integrity Issues (Now Fixed)
 
 **Metadata Filter Bug:**
 - Company metadata fields (`last_round_value`, `last_round_date`, `secondary_value`, `secondary_date`) were not filtered by `asOf` parameter
