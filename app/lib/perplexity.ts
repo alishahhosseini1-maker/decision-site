@@ -89,7 +89,63 @@ Return at most 6 items. If you find nothing verifiable, return [].`;
 
     if (rows.length === 0) return [];
 
-    const { data: inserted, error } = await supabase.from('lumen_evidence').insert(rows).select('*');
+    // Fetch existing evidence to deduplicate before inserting
+    const { data: existingEvidence } = await supabase
+      .from('lumen_evidence')
+      .select('*')
+      .eq('company_id', company.id);
+
+    // Helper: check if two evidence items are equivalent (same event)
+    const areEquivalent = (newItem: typeof rows[0], existing: any): boolean => {
+      // Must be same category
+      if (newItem.category !== existing.category) return false;
+
+      // Must have similar dates (within 7 days - handles slight date discrepancies)
+      if (newItem.date && existing.date) {
+        const daysDiff = Math.abs(
+          (new Date(newItem.date).getTime() - new Date(existing.date).getTime()) / (1000 * 60 * 60 * 24)
+        );
+        if (daysDiff > 7) return false;
+      }
+
+      // If both have values, they must be similar (handle "$965B" vs "965" variations)
+      if (newItem.value && existing.value) {
+        const normalize = (val: string) =>
+          val
+            .toUpperCase()
+            .replace(/[^0-9.]/g, ''); // Extract just numbers
+        const newVal = normalize(newItem.value);
+        const existingVal = normalize(existing.value);
+
+        // Values must be close (within 5% for rounding differences)
+        const newNum = parseFloat(newVal);
+        const existingNum = parseFloat(existingVal);
+        if (!isNaN(newNum) && !isNaN(existingNum)) {
+          const diff = Math.abs(newNum - existingNum);
+          const avg = (newNum + existingNum) / 2;
+          if (diff / avg > 0.05) return false; // More than 5% difference
+        }
+      }
+
+      // If we get here, they're equivalent (same category, similar date, similar value)
+      return true;
+    };
+
+    // Filter out duplicates
+    const newRows = rows.filter((newItem) => {
+      return !(existingEvidence || []).some((existing) => areEquivalent(newItem, existing));
+    });
+
+    if (newRows.length === 0) {
+      console.log(`[perplexity] Skipped ${rows.length} duplicate evidence items for ${company.name}`);
+      return [];
+    }
+
+    console.log(
+      `[perplexity] Inserting ${newRows.length} new evidence items (${rows.length - newRows.length} duplicates skipped) for ${company.name}`
+    );
+
+    const { data: inserted, error } = await supabase.from('lumen_evidence').insert(newRows).select('*');
     if (error) return [];
 
     return inserted || [];

@@ -994,14 +994,22 @@ export default function App() {
 
               if (fundingRounds.length === 0) return null;
 
-              // Parse funding values (handle "$XB" format)
-              const parseFundingValue = (val: string | null): number => {
-                if (!val) return 0;
-                const parsed = parseSecondaryValue(val);
-                return parsed || 0;
+              // Extract amount RAISED from description (not post-money valuation from .value field)
+              const extractRaisedAmount = (round: Evidence): number => {
+                // Try to extract "raised $XB" or "raised $XM" from description
+                const raisedMatch = round.description.match(/raised\s+\$?([\d.]+)\s*([BTM])/i);
+                if (raisedMatch) {
+                  const amount = parseFloat(raisedMatch[1]);
+                  const unit = raisedMatch[2].toUpperCase();
+                  if (unit === 'B') return amount;
+                  if (unit === 'M') return amount / 1000; // Convert millions to billions
+                  if (unit === 'T') return amount * 1000; // Convert trillions to billions
+                }
+                // Fallback: if no "raised" amount found, return 0 (don't show misleading bar)
+                return 0;
               };
 
-              const maxValue = Math.max(...fundingRounds.map((r) => parseFundingValue(r.value)));
+              const maxValue = Math.max(...fundingRounds.map(extractRaisedAmount));
 
               return (
                 <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px', background: '#0E1319' }}>
@@ -1013,8 +1021,8 @@ export default function App() {
                   </div>
                   <div style={{ height: '140px', display: 'flex', alignItems: 'flex-end', gap: '10px', padding: '0 4px' }}>
                     {fundingRounds.map((round, i) => {
-                      const value = parseFundingValue(round.value);
-                      const height = (value / maxValue) * 100;
+                      const raisedAmount = extractRaisedAmount(round);
+                      const height = (raisedAmount / maxValue) * 100;
                       const isAnchor = round.date === company?.last_round_date;
 
                       return (
@@ -1056,7 +1064,7 @@ export default function App() {
                               whiteSpace: 'nowrap',
                             }}
                           >
-                            ${value.toFixed(1)}B
+                            ${raisedAmount.toFixed(1)}B
                           </span>
                         </div>
                       );
