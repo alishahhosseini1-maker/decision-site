@@ -27,6 +27,10 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const body = await req.json().catch(() => ({}));
     const options = body.asOf ? { asOf: body.asOf } : undefined;
 
+    console.log('[valuation/route] Request body:', body);
+    console.log('[valuation/route] asOf parameter:', body.asOf);
+    console.log('[valuation/route] options passed to generateValuation:', options);
+
     const valuation = await generateValuation(supabase, company, options);
     if (!valuation) {
       return NextResponse.json({ error: "Couldn't generate a valuation. Try again." }, { status: 500 });
@@ -38,7 +42,13 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       .update({ last_valuation_at: new Date().toISOString() })
       .eq('id', params.id);
 
-    return NextResponse.json({ valuation });
+    return NextResponse.json({
+      valuation,
+      _debug: {
+        asOfReceived: body.asOf,
+        optionsPassed: options
+      }
+    });
   } catch (err: any) {
     console.error('[lumen/valuation] error:', err);
     return NextResponse.json({ error: "Couldn't generate a valuation. Try again." }, { status: 500 });
