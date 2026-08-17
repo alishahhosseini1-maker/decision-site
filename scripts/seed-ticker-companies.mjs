@@ -50,7 +50,7 @@ for (const company of seedData) {
   }
 
   // Insert new company
-  const { error } = await supabase
+  const { data: newCompany, error } = await supabase
     .from('lumen_companies')
     .insert({
       slug,
@@ -62,22 +62,44 @@ for (const company of seedData) {
       last_round_value: company.estimated_value,
       last_round_date: null,
       last_round_confirmed: false,
-      // Will be refreshed by cron job
+      // Will be researched immediately below
       last_researched_at: null,
       last_valuation_at: null,
       created_by: 'ticker_seed',
-    });
+    })
+    .select()
+    .single();
 
   if (error) {
     console.error(`✗ ${company.name} - Error:`, error.message);
   } else {
     console.log(`✓ ${company.name} (${company.symbol}) - $${company.estimated_value}B`);
     inserted++;
+
+    // RECURRENCE PREVENTION: Trigger research immediately (same as POST /api/lumen/companies)
+    // This ensures bulk-seeded companies don't create a zero-evidence gap
+    try {
+      const SITE_URL = env.SITE_URL || 'https://decisionlayer.dev';
+      const researchResponse = await fetch(`${SITE_URL}/api/lumen/companies/${newCompany.id}/research`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (researchResponse.ok) {
+        const researchData = await researchResponse.json();
+        console.log(`  └─ Researched: ${researchData.evidence?.length || 0} evidence items found`);
+      } else {
+        console.log(`  └─ Research queued for cron (API unavailable)`);
+      }
+    } catch (err) {
+      console.log(`  └─ Research queued for cron (${err.message})`);
+    }
+
+    // Rate limit between companies
+    await new Promise(resolve => setTimeout(resolve, 2000));
   }
 }
 
 console.log(`\nDone! Inserted: ${inserted}, Skipped: ${skipped}`);
-console.log('\nNext steps:');
-console.log('1. Deploy to trigger first cron run (or wait for daily schedule)');
-console.log('2. New companies will be researched within 3-4 days via cron rotation');
-console.log('3. Users can click ticker items to view detail pages');
+console.log('\nNote: All new companies are researched immediately during seed.');
+console.log('If research API was unavailable, cron will catch them within 1-2 days.');
