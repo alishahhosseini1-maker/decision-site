@@ -560,58 +560,344 @@ export default function App() {
             <span style={{ fontSize: '13px', color: '#8B95A1' }}>{company.sector}</span>
           </div>
 
-          {/* Three-value strip */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: '1px',
-              background: '#1F2833',
-              marginTop: '18px',
-              border: '1px solid #1F2833',
-            }}
-          >
-            <ValueCell
-              label="Last round"
-              sub={
-                company.last_round_date
-                  ? company.last_round_confirmed
-                    ? company.last_round_date
-                    : `${company.last_round_date} · unconfirmed`
-                  : '—'
-              }
-              value={fmtB(company.last_round_value)}
-            />
+        </div>
+
+        {/* CENTERED HERO-CARD VALUATION */}
+        {valuation ? (
+          <>
+            {/* Hero valuation card */}
+            <div
+              style={{
+                border: '1px solid #26303C',
+                borderRadius: '10px',
+                background: 'linear-gradient(180deg, rgba(212,169,74,0.06), transparent 65%)',
+                padding: '28px 32px 24px',
+                marginBottom: '8px',
+              }}
+            >
+              <div style={{ textAlign: 'center', fontSize: '11px', letterSpacing: '0.14em', color: '#5A6470', marginBottom: '10px', textTransform: 'uppercase' }}>
+                CURRENT VALUATION
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginBottom: '6px' }}>
+                <span style={{ fontSize: '52px', fontWeight: 700, color: '#C9A227', letterSpacing: '-0.02em', lineHeight: 1 }}>
+                  {fmtB(valuation.base_case)}
+                </span>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    letterSpacing: '0.06em',
+                    padding: '5px 10px',
+                    borderRadius: '5px',
+                    border: '1px solid rgba(74,222,128,0.35)',
+                    background: 'rgba(74,222,128,0.08)',
+                    color: '#4ADE80',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {valuation.confidence_score}/100 CONFIDENCE
+                </span>
+              </div>
+              {company?.last_round_value && (
+                <div style={{ textAlign: 'center', color: '#8B95A1', fontSize: '14px', marginBottom: '4px' }}>
+                  ${((valuation.base_case * 1000000000) / 1650000000).toFixed(2)} / share
+                </div>
+              )}
+              <div style={{ textAlign: 'center', color: '#5A6470', fontSize: '12px', marginTop: '10px' }}>
+                AI fair value · formula-weighted ·{' '}
+                <button
+                  onClick={() => setMethodologyOpen(!methodologyOpen)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#8A7038',
+                    textDecoration: 'underline',
+                    cursor: 'pointer',
+                    padding: 0,
+                    font: 'inherit',
+                    transition: 'color 0.15s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = '#C9A227')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = '#8A7038')}
+                >
+                  see methodology
+                </button>
+              </div>
+
+              {/* Range bar */}
+              <div style={{ margin: '24px auto 4px', maxWidth: '620px' }}>
+                <div style={{ position: 'relative', height: '8px', background: '#16161A', borderRadius: '4px', border: '1px solid #26303C' }}>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '-1px',
+                      bottom: '-1px',
+                      left: '14%',
+                      right: '15%',
+                      background: 'linear-gradient(90deg, rgba(212,169,74,0.15), rgba(212,169,74,0.4), rgba(212,169,74,0.15))',
+                      borderRadius: '4px',
+                    }}
+                  />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '-5px',
+                      left: '39%',
+                      width: '3px',
+                      height: '18px',
+                      background: '#C9A227',
+                      borderRadius: '2px',
+                    }}
+                  />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginTop: '10px' }}>
+                  <span style={{ color: '#B5BDC6' }}>Bear {fmtB(valuation.bear_case)}</span>
+                  <span style={{ color: '#C9A227', fontWeight: 700, textAlign: 'center', flex: 1 }}>Base {fmtB(valuation.base_case)}</span>
+                  <span style={{ color: '#B5BDC6' }}>Bull {fmtB(valuation.bull_case)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Disclaimer */}
+            <div style={{ textAlign: 'center', fontSize: '11px', color: '#5A6470', fontStyle: 'italic', margin: '16px 0 22px' }}>
+              Derived from crowdsourced evidence and AI inference. Not investment advice.{' '}
+              <button
+                onClick={() => setMethodologyOpen(!methodologyOpen)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#8A7038',
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
+                  padding: 0,
+                  font: 'inherit',
+                  fontStyle: 'italic',
+                  transition: 'color 0.15s',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = '#C9A227')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = '#8A7038')}
+              >
+                See methodology
+              </button>
+            </div>
+
+            {/* PRIORITY 1: "In one line" takeaway panel */}
             {(() => {
               const secondaryEv = evidence
                 .filter((e) => e.category === 'Secondary' && e.status === 'verified')
                 .sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
-              const secondaryValue = secondaryEv ? parseSecondaryValue(secondaryEv.value) : null;
+              const formulaMeta =
+                company?.last_round_value && company?.last_round_date && secondaryEv
+                  ? calculateFormulaMetadata(company.last_round_value, company.last_round_date, secondaryEv)
+                  : null;
 
               return (
-                <ValueCell
-                  label="Secondary implied"
-                  sub={
-                    secondaryEv?.date
-                      ? secondaryEv.status === 'verified'
-                        ? secondaryEv.date
-                        : `${secondaryEv.date} · unconfirmed`
-                      : '—'
-                  }
-                  value={secondaryValue ? fmtB(secondaryValue) : '—'}
-                />
+                <div
+                  style={{
+                    border: '1px solid rgba(201,162,39,0.3)',
+                    borderRadius: '8px',
+                    background: '#0E1319',
+                    padding: '16px 20px',
+                    marginTop: '14px',
+                    marginBottom: '20px',
+                  }}
+                >
+                  <div style={{ fontSize: '10px', letterSpacing: '0.1em', color: '#8A7038', textTransform: 'uppercase', marginBottom: '8px', fontWeight: 700 }}>
+                    In one line
+                  </div>
+                  <div style={{ fontSize: '13.5px', color: '#E8EAED', lineHeight: 1.6 }}>
+                    {formulaMeta ? (
+                      <>
+                        Anchored to the <b style={{ color: '#C9A227' }}>{fmtB(formulaMeta.primaryValue)} primary round</b> ({formulaMeta.primaryDate}) — a <b style={{ color: '#5AA9E6' }}>{fmtB(formulaMeta.secondaryValue)} secondary-market signal</b> exists but is {formulaMeta.secondaryWeight < 0.3 ? 'deliberately down-weighted' : formulaMeta.secondaryWeight > 0.6 ? 'heavily weighted' : 'moderately weighted'} because {formulaMeta.monthsSincePrimary < 6 ? 'the primary round is still fresh' : 'the primary round is getting stale'}. If a new primary round closes or the secondary market shifts, this number will move.
+                      </>
+                    ) : (
+                      <>
+                        Anchored to the <b style={{ color: '#C9A227' }}>{company?.last_round_value ? fmtB(company.last_round_value) : 'N/A'} primary round</b> ({company?.last_round_date || 'unknown date'}). No secondary market data available yet. If a new primary round closes, this number will move.
+                      </>
+                    )}
+                  </div>
+                  {formulaMeta && (
+                    <div
+                      style={{
+                        marginTop: '10px',
+                        paddingTop: '10px',
+                        borderTop: '1px solid #1F2833',
+                        fontSize: '12px',
+                        color: '#8B95A1',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      <span
+                        style={{
+                          background: '#141C26',
+                          border: '1px solid #26303C',
+                          borderRadius: '4px',
+                          padding: '3px 8px',
+                          fontSize: '11px',
+                          color: '#C9A227',
+                        }}
+                      >
+                        {(formulaMeta.primaryWeight * 100).toFixed(0)}% primary ({fmtB(formulaMeta.primaryValue)})
+                      </span>
+                      <span style={{ color: '#5A6470' }}>+</span>
+                      <span
+                        style={{
+                          background: '#141C26',
+                          border: '1px solid #26303C',
+                          borderRadius: '4px',
+                          padding: '3px 8px',
+                          fontSize: '11px',
+                          color: '#5AA9E6',
+                        }}
+                      >
+                        {(formulaMeta.secondaryWeight * 100).toFixed(0)}% secondary ({fmtB(formulaMeta.secondaryValue)}, {(formulaMeta.illiquidityDiscount * 100).toFixed(0)}% discount)
+                      </span>
+                      <span style={{ color: '#5A6470' }}>= {fmtB(formulaMeta.baseCase)}</span>
+                    </div>
+                  )}
+                </div>
               );
             })()}
-            <ValueCell
-              label="AI / community fair value"
-              sub={valuation ? `confidence ${valuation.confidence_score}/100` : 'not yet run'}
-              value={valuation ? fmtB(valuation.base_case) : '—'}
-              accent
-            />
-          </div>
-        </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '20px', alignItems: 'start' }}>
+            {/* PRIORITY 2: Collapsed "Full methodology & key drivers" section */}
+            {methodologyOpen && (
+              <div style={{ border: '1px solid #1F2833', borderRadius: '6px', background: '#0E1319', padding: '14px', marginBottom: '20px' }}>
+                <div style={{ marginTop: '10px', display: 'grid', gap: '6px' }}>
+                  {(valuation.key_drivers || []).map((d, i) => (
+                    <div key={i} style={{ display: 'flex', gap: '6px', fontSize: '12px' }}>
+                      {d.impact === '+' ? (
+                        <TrendingUp size={13} color="#3FBF7F" style={{ flexShrink: 0, marginTop: '2px' }} />
+                      ) : (
+                        <TrendingDown size={13} color="#E5484D" style={{ flexShrink: 0, marginTop: '2px' }} />
+                      )}
+                      <div>
+                        <span style={{ fontWeight: 500 }}>{d.label}</span>
+                        <span style={{ color: '#8B95A1' }}> — {d.note}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ fontSize: '12px', color: '#B5BDC6', marginTop: '12px', lineHeight: 1.5, paddingTop: '10px', borderTop: '1px solid #1A222D' }}>
+                  {valuation.explanation}
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px', background: '#0E1319', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h3 className="display" style={{ fontSize: '13px', fontWeight: 600, margin: 0 }}>
+                  AI valuation
+                </h3>
+                {company?.last_valuation_at && (
+                  <div style={{ fontSize: '11px', color: '#5A6470', marginTop: '4px' }}>
+                    Last updated: {formatRelativeTime(company.last_valuation_at)}
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={runValuation}
+                disabled={loadingValuation}
+                style={{ ...primaryBtnStyle, opacity: loadingValuation ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: '6px' }}
+              >
+                {loadingValuation && <Loader2 size={12} className="spin" style={{ animation: 'spin 1s linear infinite' }} />}
+                Run analysis
+              </button>
+            </div>
+            {valuationError && <div style={{ fontSize: '12px', color: '#E5484D', marginTop: '8px' }}>{valuationError}</div>}
+            {!valuationError && (
+              <div style={{ fontSize: '12px', color: '#8B95A1', marginTop: '8px' }}>
+                Runs the verified evidence below through an AI analyst to produce an explainable fair-value range.
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Funding History Chart - Full width before the grid */}
+        {(() => {
+          const fundingRounds = evidence
+            .filter((e) => e.category === 'Funding' && e.status === 'verified')
+            .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+
+          if (fundingRounds.length === 0) return null;
+
+          const parseValuation = (val: string | null): number => {
+            if (!val) return 0;
+            const parsed = parseSecondaryValue(val);
+            return parsed || 0;
+          };
+
+          const maxValue = Math.max(...fundingRounds.map((r) => parseValuation(r.value)));
+
+          return (
+            <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px', background: '#0E1319', marginBottom: '20px' }}>
+              <h3 className="display" style={{ fontSize: '13px', fontWeight: 600, margin: '0 0 4px' }}>
+                Funding History
+              </h3>
+              <div style={{ fontSize: '11px', color: '#5A6470', marginBottom: '12px' }}>
+                Based on {fundingRounds.length} known funding round{fundingRounds.length > 1 ? 's' : ''}
+              </div>
+              <div style={{ height: '140px', display: 'flex', alignItems: 'flex-end', gap: '10px', padding: '0 4px' }}>
+                {fundingRounds.map((round, i) => {
+                  const valuation = parseValuation(round.value);
+                  const height = (valuation / maxValue) * 100;
+                  const isAnchor = round.date === company?.last_round_date;
+
+                  return (
+                    <div
+                      key={i}
+                      style={{
+                        flex: 1,
+                        height: `${height}%`,
+                        background: isAnchor ? '#C9A227' : '#141C26',
+                        borderRadius: '3px 3px 0 0',
+                        position: 'relative',
+                        minHeight: '8px',
+                      }}
+                    >
+                      {isAnchor && (
+                        <span
+                          style={{
+                            position: 'absolute',
+                            top: '-28px',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            fontSize: '8px',
+                            color: '#C9A227',
+                            whiteSpace: 'nowrap',
+                            fontWeight: 600,
+                          }}
+                        >
+                          ◆ anchor
+                        </span>
+                      )}
+                      <span
+                        style={{
+                          position: 'absolute',
+                          top: '-16px',
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          fontSize: '9px',
+                          color: isAnchor ? '#C9A227' : '#5A6470',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        ${valuation.toFixed(1)}B
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Two-column grid: Evidence Ledger (left, 1.4fr) + Sidebar (right, 1fr) */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '20px', alignItems: 'start' }}>
           {/* Left: evidence ledger */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
@@ -985,103 +1271,8 @@ export default function App() {
             </div>
           </div>
 
-          {/* Right column */}
+          {/* Right column: Comparables + Contributors */}
           <div style={{ display: 'grid', gap: '16px' }}>
-            {/* PRIORITY 4: Funding History Chart */}
-            {(() => {
-              const fundingRounds = evidence
-                .filter((e) => e.category === 'Funding' && e.value && e.date && e.status === 'verified')
-                .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
-
-              if (fundingRounds.length === 0) return null;
-
-              // Extract amount RAISED from description (kept for potential future use)
-              const extractRaisedAmount = (round: Evidence): number => {
-                // Try to extract "raised $XB" or "raised $XM" from description
-                // Handles: "raised $2B", "raised approximately $2M", "raised around $500M"
-                const raisedMatch = round.description.match(/raised\s+(?:approximately|around|about)?\s*\$?([\d.]+)\s*([BTM])/i);
-                if (raisedMatch) {
-                  const amount = parseFloat(raisedMatch[1]);
-                  const unit = raisedMatch[2].toUpperCase();
-                  if (unit === 'B') return amount;
-                  if (unit === 'M') return amount / 1000; // Convert millions to billions
-                  if (unit === 'T') return amount * 1000; // Convert trillions to billions
-                }
-                return 0;
-              };
-
-              // Chart displays POST-MONEY VALUATION (.value field) per round
-              const parseValuation = (val: string | null): number => {
-                if (!val) return 0;
-                const parsed = parseSecondaryValue(val);
-                return parsed || 0;
-              };
-
-              const maxValue = Math.max(...fundingRounds.map((r) => parseValuation(r.value)));
-
-              return (
-                <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px', background: '#0E1319' }}>
-                  <h3 className="display" style={{ fontSize: '13px', fontWeight: 600, margin: '0 0 4px' }}>
-                    Funding History
-                  </h3>
-                  <div style={{ fontSize: '11px', color: '#5A6470', marginBottom: '12px' }}>
-                    Based on {fundingRounds.length} known funding round{fundingRounds.length > 1 ? 's' : ''}
-                  </div>
-                  <div style={{ height: '140px', display: 'flex', alignItems: 'flex-end', gap: '10px', padding: '0 4px' }}>
-                    {fundingRounds.map((round, i) => {
-                      const valuation = parseValuation(round.value);
-                      const height = (valuation / maxValue) * 100;
-                      const isAnchor = round.date === company?.last_round_date;
-
-                      return (
-                        <div
-                          key={i}
-                          style={{
-                            flex: 1,
-                            height: `${height}%`,
-                            background: isAnchor ? '#C9A227' : '#141C26',
-                            borderRadius: '3px 3px 0 0',
-                            position: 'relative',
-                            minHeight: '8px',
-                          }}
-                        >
-                          {isAnchor && (
-                            <span
-                              style={{
-                                position: 'absolute',
-                                top: '-28px',
-                                left: '50%',
-                                transform: 'translateX(-50%)',
-                                fontSize: '8px',
-                                color: '#C9A227',
-                                whiteSpace: 'nowrap',
-                                fontWeight: 600,
-                              }}
-                            >
-                              ◆ anchor
-                            </span>
-                          )}
-                          <span
-                            style={{
-                              position: 'absolute',
-                              top: '-16px',
-                              left: '50%',
-                              transform: 'translateX(-50%)',
-                              fontSize: '9px',
-                              color: isAnchor ? '#C9A227' : '#5A6470',
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            ${valuation.toFixed(1)}B
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })()}
-
             {/* Comparable companies */}
             <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
