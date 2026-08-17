@@ -195,7 +195,7 @@ export async function addFormDEvidence(
       if (error) {
         console.error(`[sec-edgar] Failed to insert evidence:`, error);
       } else {
-        console.log(`[sec-edgar] Added Form D evidence for ${filing.filingDate}: $${amountBillions}B`);
+        console.log(`[sec-edgar] Added Form D evidence for ${filing.filingDate}`);
         addedCount++;
       }
 
