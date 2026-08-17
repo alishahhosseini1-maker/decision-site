@@ -273,9 +273,26 @@ export async function applyConfirmedFigure(supabase: SupabaseClient, companyId: 
 // themselves first.
 export async function generateValuation(
   supabase: SupabaseClient,
-  company: { id: string; name: string; sector: string | null; last_round_value: number | null; last_round_date: string | null; secondary_value: number | null; secondary_date: string | null },
-  options?: { asOf?: string } // Optional: only consider evidence dated before this date (for benchmarking)
+  companyRaw: { id: string; name: string; sector: string | null; last_round_value: number | null; last_round_date: string | null; secondary_value: number | null; secondary_date: string | null },
+  options?: { asOf?: string } // Optional: only consider evidence dated STRICTLY BEFORE this date (for benchmarking)
 ) {
+  // Data integrity check: secondary_value should never exist without secondary_date
+  // If it does, null it out to prevent undated signals from being used
+  const cleanCompany = {
+    ...companyRaw,
+    secondary_value: (companyRaw.secondary_value && !companyRaw.secondary_date) ? null : companyRaw.secondary_value,
+    secondary_date: (companyRaw.secondary_value && !companyRaw.secondary_date) ? null : companyRaw.secondary_date,
+  };
+
+  // When asOf filter is active, null out any metadata fields with dates >= cutoff
+  // to prevent leaked future data from contaminating the valuation
+  const company = options?.asOf ? {
+    ...cleanCompany,
+    last_round_value: (cleanCompany.last_round_date && cleanCompany.last_round_date >= options.asOf) ? null : cleanCompany.last_round_value,
+    last_round_date: (cleanCompany.last_round_date && cleanCompany.last_round_date >= options.asOf) ? null : cleanCompany.last_round_date,
+    secondary_value: (cleanCompany.secondary_date && cleanCompany.secondary_date >= options.asOf) ? null : cleanCompany.secondary_value,
+    secondary_date: (cleanCompany.secondary_date && cleanCompany.secondary_date >= options.asOf) ? null : cleanCompany.secondary_date,
+  } : cleanCompany;
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return null;
 
@@ -293,13 +310,13 @@ export async function generateValuation(
     }
 
     const evidence = (allEvidence || []).filter((e) => {
-      // Date filter for benchmarking: exclude evidence after cutoff date
+      // Date filter for benchmarking: exclude evidence at or after cutoff date (strictly before)
       if (options?.asOf) {
-        const evidenceDate = new Date(e.date);
-        const cutoffDate = new Date(options.asOf);
-        if (evidenceDate > cutoffDate) {
+        // Compare date strings directly (YYYY-MM-DD format) for clarity
+        // Cutoff is the date of the known price point we're predicting, so exclude >= (not just >)
+        if (e.date >= options.asOf) {
           console.log('[valuation] FILTERED OUT:', e.date, e.description.substring(0, 60));
-          return false; // Exclude evidence after cutoff (for benchmark accuracy testing)
+          return false; // Exclude evidence at or after cutoff (strictly before)
         }
       }
 
