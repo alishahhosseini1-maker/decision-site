@@ -98,6 +98,82 @@ Implemented revised Anthropic/company page layout per mockup, fixed duplicate ev
 **Files:**
 - `app/api/lumen/companies/[id]/comps/route.ts` - Revenue selection logic
 - `app/page.tsx` - Disclaimer display
+
+---
+
+### 1. August 18, 2026 Session — Complete Layout Rebuild + Funding Chart Root Cause Fix
+**Status:** ✅ Complete
+
+Full reset of page structure to match mockup exactly, with funding chart bug root-caused and permanently fixed with safeguards.
+
+#### Layout Rebuild — From Mockup Reference
+
+**Problem:** Initial implementation layered new centered hero card ON TOP of existing three-column strip instead of replacing it. Evidence ledger compressed into too-narrow column.
+
+**Solution:** Complete rebuild from mockup (anthropic-layout-v2.html):
+
+**New page structure (top to bottom):**
+1. Header (company name, ticker, sector) — unchanged
+2. **ONE centered hero card** — "$971.0B" with confidence badge, range bar, share price
+3. Disclaimer line
+4. "In one line" panel — takeaway + formula chips (gold=primary, blue=secondary)
+5. Collapsed "Full methodology & key drivers"
+6. **Funding History chart** — full-width before grid (not in sidebar)
+7. **Two-column grid (1.4fr / 1fr):**
+   - Left (60%): Evidence Ledger at full readable width
+   - Right (40%): Comparables + Contributors stacked
+
+**Removed:**
+- Three-column strip (Last Round / Secondary Implied / AI Community Fair Value) — completely deleted
+- Duplicate hero card sections
+- Duplicate funding chart in sidebar
+
+**Readability polish applied:**
+- Bear/Bull labels: increased contrast (#B5BDC6, was #9A9A9F)
+- Spacing: added 4px margin after share-price line
+- Formula chips: gold (#C9A227) for primary, blue (#5AA9E6) for secondary
+- Hover states: "see methodology" buttons turn gold on hover
+- Line-height: 1.6 in "In one line" paragraph
+
+#### Funding Chart — Root Cause Fix
+
+**Problem:** Chart broke 3 separate times during session, each time reported "fixed" but kept failing.
+
+**Root cause identified:** During layout rebuild (moving chart from sidebar to full-width), safety filters were accidentally dropped:
+
+```diff
+Old (sidebar):
+- .filter((e) => e.category === 'Funding' && e.value && e.date && e.status === 'verified')
+
+New (broken):
++ .filter((e) => e.category === 'Funding' && e.status === 'verified')
+```
+
+**Missing guards:** `&& e.value && e.date` prevent null/empty evidence from reaching `parseValuation()`, which would crash or display incorrect data.
+
+**Permanent fix:**
+1. Restored complete filter with all safety checks
+2. Added warning comment in code:
+   ```
+   WARNING: This chart has broken 3+ times from unrelated changes.
+   Critical filters: e.value && e.date prevent null values from breaking parseValuation().
+   Manual re-check required after any changes to evidence loading or this component.
+   ```
+
+**Verified working (screenshot confirmed):**
+- 4 bars: $60.0B / $183.0B / $380.0B / $965.0B ✓
+- Anchor labeled correctly: "$965.0B" with ◆ marker ✓
+- Caption: "Based on 4 known funding rounds" ✓
+
+**Files:**
+- `app/page.tsx` — Complete layout restructure + funding chart fix with warning
+- `app/api/lumen/companies/[id]/funding-rounds/route.ts` — Verified filter (unchanged)
+
+**Commits:**
+- `6375dc6` — Initial centered hero-card attempt (layered instead of replaced)
+- `42a6a65` — WIP: Remove three-column strip, move hero to top
+- `8173f9e` — Complete rebuild, remove all duplicates
+- `e2e02a0` — Fix funding chart filters + add warning comment (FINAL)
 - `scripts/deduplicate-evidence.mjs` - Extended to all categories
 - `scripts/test-revenue-selection.mjs` - Cross-company validation
 
