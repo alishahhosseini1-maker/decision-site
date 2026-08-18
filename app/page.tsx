@@ -817,10 +817,13 @@ export default function App() {
           </div>
         )}
 
-        {/* Funding History Chart - Full width before the grid */}
+        {/* Funding History Chart - Full width before the grid
+            WARNING: This chart has broken 3+ times from unrelated changes.
+            Critical filters: e.value && e.date prevent null values from breaking parseValuation().
+            Manual re-check required after any changes to evidence loading or this component. */}
         {(() => {
           const fundingRounds = evidence
-            .filter((e) => e.category === 'Funding' && e.status === 'verified')
+            .filter((e) => e.category === 'Funding' && e.value && e.date && e.status === 'verified')
             .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
 
           if (fundingRounds.length === 0) return null;
