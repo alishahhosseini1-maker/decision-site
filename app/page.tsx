@@ -681,6 +681,134 @@ export default function App() {
               </button>
             </div>
 
+            {/* Price Comparison Section - Marketplace Price Divergence */}
+            {(() => {
+              const marketplacePrices = evidence
+                .filter((e) => e.category === 'Marketplace Price' && e.status === 'verified')
+                .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+              if (marketplacePrices.length === 0) return null;
+
+              const fairValue = valuation?.base_case;
+              const now = new Date();
+
+              return (
+                <div
+                  style={{
+                    border: '1px solid #26303C',
+                    borderRadius: '8px',
+                    background: '#0E1319',
+                    padding: '18px 22px',
+                    marginBottom: '20px',
+                  }}
+                >
+                  <div style={{ fontSize: '11px', letterSpacing: '0.1em', color: '#5A6470', textTransform: 'uppercase', marginBottom: '12px', fontWeight: 700 }}>
+                    Price Comparison — Marketplace Divergence
+                  </div>
+
+                  {/* Fair Value Baseline */}
+                  {fairValue && (
+                    <div style={{ padding: '12px 14px', background: '#141C26', borderRadius: '6px', marginBottom: '12px', border: '1px solid #1F2833' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                        <span style={{ fontSize: '12px', color: '#8B95A1' }}>Our fair value estimate</span>
+                        <span style={{ fontSize: '16px', fontWeight: 600, color: '#C9A227' }}>
+                          ${((fairValue * 1000000000) / 1650000000).toFixed(2)}/share
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '10px', color: '#5A6470' }}>
+                        Formula-weighted · Based on verified evidence
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Marketplace Prices */}
+                  <div style={{ display: 'grid', gap: '10px', marginBottom: '14px' }}>
+                    {marketplacePrices.map((price, i) => {
+                      const pricePerShare = parseFloat(price.value || '0');
+                      const delta = fairValue ? ((pricePerShare / ((fairValue * 1000000000) / 1650000000) - 1) * 100) : null;
+
+                      // Check staleness (>72 hours)
+                      const priceDate = new Date(price.date || '');
+                      const hoursSince = (now.getTime() - priceDate.getTime()) / (1000 * 60 * 60);
+                      const isStale = hoursSince > 72;
+
+                      // Extract methodology from description
+                      const methodologyMatch = price.description.match(/Methodology:\s*(.+?)(\.|$)/);
+                      const methodology = methodologyMatch ? methodologyMatch[1].trim() : 'Disclosed methodology available at source';
+
+                      return (
+                        <div
+                          key={i}
+                          style={{
+                            padding: '12px 14px',
+                            background: '#0B0F14',
+                            borderRadius: '6px',
+                            border: '1px solid #1F2833',
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontSize: '12px', fontWeight: 600, color: '#E8EAED', marginBottom: '3px' }}>
+                                {price.source_label}
+                              </div>
+                              <div style={{ fontSize: '10px', color: '#5A6470' }}>
+                                {price.date}
+                                {isStale && (
+                                  <span style={{ color: '#F5B942', marginLeft: '6px' }}>
+                                    • last verified {Math.floor(hoursSince / 24)}d ago, may be stale
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                              <div style={{ fontSize: '15px', fontWeight: 600, color: '#E8EAED' }}>
+                                ${pricePerShare.toFixed(2)}/share
+                              </div>
+                              {delta !== null && (
+                                <div style={{ fontSize: '10px', color: delta > 0 ? '#4ADE80' : '#E5484D' }}>
+                                  {delta > 0 ? '+' : ''}{delta.toFixed(1)}% vs our estimate
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#8B95A1', lineHeight: 1.4, fontStyle: 'italic' }}>
+                            {methodology}
+                          </div>
+                          {price.citation_url && (
+                            <div style={{ marginTop: '6px' }}>
+                              <a
+                                href={price.citation_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ fontSize: '10px', color: '#8A7038', textDecoration: 'underline' }}
+                              >
+                                Source ↗
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Exclusion Transparency Note - First-Class Element */}
+                  <div
+                    style={{
+                      padding: '10px 14px',
+                      background: 'rgba(245, 185, 66, 0.08)',
+                      border: '1px solid rgba(245, 185, 66, 0.25)',
+                      borderRadius: '6px',
+                      fontSize: '11px',
+                      color: '#B5BDC6',
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    <strong style={{ color: '#F5B942' }}>Exclusion policy:</strong> Other sources found showing prices with no disclosed methodology were excluded from this comparison. Only sources that publicly explain how their price is calculated are included.
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* PRIORITY 1: "In one line" takeaway panel */}
             {(() => {
               const secondaryEv = evidence

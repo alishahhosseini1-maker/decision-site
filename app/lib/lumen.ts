@@ -35,6 +35,7 @@ export const CATEGORIES = [
   'Revenue',
   'Contracts',
   'Secondary',
+  'Marketplace Price',
   'Headcount',
   'Retention',
   'Comparable',
