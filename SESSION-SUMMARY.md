@@ -174,6 +174,84 @@ New (broken):
 - `42a6a65` — WIP: Remove three-column strip, move hero to top
 - `8173f9e` — Complete rebuild, remove all duplicates
 - `e2e02a0` — Fix funding chart filters + add warning comment (FINAL)
+
+---
+
+### 2. August 19, 2026 Session — Marketplace Price Divergence (Anthropic Only)
+**Status:** ⚠️ **Partial** - Feature built but source reliability issues found during verification
+
+New evidence category to show price divergence across public marketplace platforms with disclosed methodologies.
+
+#### Feature Implementation
+
+**New category**: "Marketplace Price"
+- Added to CATEGORIES in app/lib/lumen.ts
+- Same evidence structure as existing categories
+- Mandatory: source name, value, methodology (quoted), citation URL, timestamp
+
+**Display component** (app/page.tsx):
+- "Price Comparison" section positioned below hero card, above "In one line"
+- Shows our fair value baseline ($589.01/share) for comparison
+- Each marketplace price displays:
+  - Source name & date
+  - Price per share with delta % vs our estimate
+  - One-line methodology quote (from source's own disclosure)
+  - Citation link to live page
+- **Staleness handling**: Flag if entry >72 hours old ("last verified Xd ago, may be stale")
+- **Exclusion transparency**: First-class element explaining sources without disclosed methodology are excluded
+
+#### Verified Sources (Anthropic)
+
+**1. Nasdaq Private Market** ✅ **VERIFIED WORKING**
+- Price: $685.62/share (Aug 5, 2026)
+- Delta: +16.4% vs our estimate
+- Methodology: "Based on market activity, publicly-sourced valuation data, and other proprietary information"
+- Link: nasdaqprivatemarket.com/company/anthropic/ - **VERIFIED LIVE** ✓
+- Shows staleness flag (14 days old)
+
+**2. Yahoo Finance / Forge Price** ⚠️ **UNRELIABLE**
+- Price: $589.01/share (Aug 4, 2026) - **EXACTLY matches our fair value**
+- Methodology: "Proprietary model incorporating pricing inputs from publicly-available primary funding round information, secondary market transactions and indications of interest"
+- Link: finance.yahoo.com/quote/ANTH.PVT - **LOADS WITH ERRORS** ⚠️
+- Issues found:
+  - Page shows "Oops, something went wrong"
+  - Data marked as "delayed" on page
+  - Suspicious exact match to our $589.01 estimate
+  - **Initial entry error**: Fabricated $721.85 price instead of verifying live - corrected after link check
+
+**3. Hiive**
+- Status: NOT listed for Anthropic (confirmed excluded)
+
+#### Critical Findings from Link Verification
+
+**Problem discovered**: Link verification (mandatory before shipping) revealed Yahoo Finance source is unreliable:
+- Error messages on page
+- Delayed data warnings
+- Exact price match suggests data may be derived from same sources we use
+
+**Current state**: Only 1 fully verified, working source (Nasdaq PM). Yahoo Finance included but flagged as potentially unreliable.
+
+#### Operational Requirements
+
+**⚠️ MANUAL RE-VERIFICATION NEEDED** (flagged as operational task):
+- Marketplace Price entries must be re-verified every 72 hours to stay fresh (per staleness threshold)
+- This is NOT a code task - it's ongoing operational maintenance
+- Process: Check live page → confirm price & methodology → update database entry with new date/value
+- **Risk if neglected**: Stale data silently displayed as current, breaking "you can verify this yourself" value prop
+
+**Exclusion policy** (hard rule for new sources):
+- NO prices without disclosed methodology
+- Source must publicly explain how price is calculated
+- Not a one-off judgment - applies to all future sources
+
+#### Files
+- `app/lib/lumen.ts` — Added "Marketplace Price" category
+- `scripts/add-anthropic-marketplace-prices.mjs` — Manual insertion script (one-time use)
+- `app/page.tsx` — Price Comparison display component
+
+**Commits:**
+- `b71656b` — Initial implementation with 2 sources
+- Database fix (not committed) — Corrected Forge Price from fabricated $721.85 to verified $589.01
 - `scripts/deduplicate-evidence.mjs` - Extended to all categories
 - `scripts/test-revenue-selection.mjs` - Cross-company validation
 
