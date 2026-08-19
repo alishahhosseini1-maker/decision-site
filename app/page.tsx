@@ -627,28 +627,37 @@ export default function App() {
               {/* Range bar */}
               <div style={{ margin: '24px auto 4px', maxWidth: '620px' }}>
                 <div style={{ position: 'relative', height: '8px', background: '#16161A', borderRadius: '4px', border: '1px solid #26303C' }}>
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '-1px',
-                      bottom: '-1px',
-                      left: '14%',
-                      right: '15%',
-                      background: 'linear-gradient(90deg, rgba(212,169,74,0.15), rgba(212,169,74,0.4), rgba(212,169,74,0.15))',
-                      borderRadius: '4px',
-                    }}
-                  />
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '-5px',
-                      left: '39%',
-                      width: '3px',
-                      height: '18px',
-                      background: '#C9A227',
-                      borderRadius: '2px',
-                    }}
-                  />
+                  {(() => {
+                    // Calculate marker position: (base - bear) / (bull - bear) as percentage
+                    const markerPosition = ((valuation.base_case - valuation.bear_case) / (valuation.bull_case - valuation.bear_case)) * 100;
+
+                    return (
+                      <>
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: '-1px',
+                            bottom: '-1px',
+                            left: '14%',
+                            right: '15%',
+                            background: 'linear-gradient(90deg, rgba(212,169,74,0.15), rgba(212,169,74,0.4), rgba(212,169,74,0.15))',
+                            borderRadius: '4px',
+                          }}
+                        />
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: '-5px',
+                            left: `${markerPosition}%`,
+                            width: '3px',
+                            height: '18px',
+                            background: '#C9A227',
+                            borderRadius: '2px',
+                          }}
+                        />
+                      </>
+                    );
+                  })()}
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginTop: '10px' }}>
                   <span style={{ color: '#B5BDC6' }}>Bear {fmtB(valuation.bear_case)}</span>
