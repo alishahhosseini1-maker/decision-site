@@ -209,27 +209,52 @@ New evidence category to show price divergence across public marketplace platfor
 - Link: nasdaqprivatemarket.com/company/anthropic/ - **VERIFIED LIVE** ✓
 - Shows staleness flag (14 days old)
 
-**2. Yahoo Finance / Forge Price** ⚠️ **UNRELIABLE**
-- Price: $589.01/share (Aug 4, 2026) - **EXACTLY matches our fair value**
-- Methodology: "Proprietary model incorporating pricing inputs from publicly-available primary funding round information, secondary market transactions and indications of interest"
-- Link: finance.yahoo.com/quote/ANTH.PVT - **LOADS WITH ERRORS** ⚠️
-- Issues found:
-  - Page shows "Oops, something went wrong"
-  - Data marked as "delayed" on page
-  - Suspicious exact match to our $589.01 estimate
-  - **Initial entry error**: Fabricated $721.85 price instead of verifying live - corrected after link check
+**2. Yahoo Finance / Forge Price** ❌ **REMOVED - DISQUALIFIED**
+- **Incident**: Fabricated data entered into live evidence database
+  - Initial entry: $721.85/share (Aug 19, 2026) - **FABRICATED, not verified** ❌
+  - Actual page: $589.01/share (Aug 4, 2026) - exact match to our fair value
+  - Discovery: Only caught during mandatory link verification click-through
+- **Disqualifying issues**:
+  1. Exact match ($589.01) to our estimate suggests not independent data
+  2. Page shows errors: "Oops, something went wrong" + delayed data warning
+  3. Not stable enough for "click to verify" feature requirement
+- **Resolution**: Entry completely removed from database (not kept with warning)
+- **Lesson**: Every "verified" claim requires actual click-through check before trust
 
 **3. Hiive**
 - Status: NOT listed for Anthropic (confirmed excluded)
 
-#### Critical Findings from Link Verification
+#### INCIDENT REPORT: Fabricated Evidence Entry (Aug 19, 2026)
 
-**Problem discovered**: Link verification (mandatory before shipping) revealed Yahoo Finance source is unreliable:
-- Error messages on page
-- Delayed data warnings
-- Exact price match suggests data may be derived from same sources we use
+**What happened**: Marketplace Price entry for Yahoo Finance/Forge Price was added to live database with fabricated value ($721.85) instead of actual verified value ($589.01).
 
-**Current state**: Only 1 fully verified, working source (Nasdaq PM). Yahoo Finance included but flagged as potentially unreliable.
+**How it was caught**: Explicit link verification request before showing feature to real users. Link click-through revealed:
+- Actual page showed different price than database entry
+- Page had error messages and delayed data warnings
+- Actual price exactly matched our own estimate (suspicious)
+
+**Why this matters**: 
+- A fabricated number made it into the live evidence ledger
+- Would have shipped to real users if not for mandatory verification step
+- Undermines entire "you can verify this yourself in one click" value proposition
+- Shows "verified" status claims need actual verification, not just reported success
+
+**Prevention going forward**: 
+- Every evidence entry claiming "verified" requires actual click-through to source
+- No data entry from memory or assumption - verify live page at time of entry
+- Link verification is not optional for Marketplace Price category
+- SESSION-SUMMARY.md will flag this as the specific reason for strict verification requirements
+
+#### Final State After Verification
+
+**Shipped with 1 verified source only**:
+- Nasdaq Private Market: $685.62/share (+16.4% vs our $589.01) ✓
+- One honest, fully verified data point > two where one is questionable
+- Real price divergence demonstrated: 16.4% gap from our estimate
+- "Click to verify" link works, loads correct page with disclosed methodology
+
+**Removed after verification**:
+- Yahoo Finance/Forge Price: Disqualified due to exact match + page errors + fabrication incident
 
 #### Operational Requirements
 
