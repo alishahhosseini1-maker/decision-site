@@ -268,6 +268,14 @@ function calculateConfidenceScore(
   evidence: Array<{ category: string; status: string; source_type: string; date: string | null }>,
   referenceDate: string
 ): number {
+  // CRITICAL FIX (Aug 19, 2026): Zero evidence = zero confidence
+  // Previous bug: defaulted to 100 and only applied penalties when evidence existed,
+  // resulting in 85% confidence for companies with zero evidence (only -15 momentum penalty applied).
+  // Fix: explicitly return 0 confidence when evidence is empty.
+  if (evidence.length === 0) {
+    return 0;
+  }
+
   let score = 100;
 
   const MOMENTUM_CATEGORIES = ['Revenue', 'Headcount', 'Product', 'Contracts', 'Metrics'];
@@ -427,6 +435,41 @@ export async function generateValuation(
       return e.status === 'verified' || (e.status === 'pending' && e.contributor === AI_RESEARCH_CONTRIBUTOR);
     });
 
+    // CRITICAL FIX (Aug 19, 2026): Refuse to generate valuations with insufficient evidence
+    // Previous bug: AI was called even with zero evidence, resulting in fabricated valuations
+    // (e.g., PsiQuantum: $3.5B base case with 85% confidence from ZERO evidence items).
+    // Fix: Require minimum evidence threshold before attempting AI generation.
+    const MIN_EVIDENCE_THRESHOLD = 2;
+
+    // Evidence quality diagnostics (moved up for threshold check)
+    const fundingEvidence = evidence.filter((e) => e.category === 'Funding');
+    const momentumCategories = ['Revenue', 'Headcount', 'Product', 'Contracts', 'Metrics'];
+    const momentumEvidence = evidence.filter((e) => momentumCategories.includes(e.category));
+
+    if (evidence.length < MIN_EVIDENCE_THRESHOLD || fundingEvidence.length === 0) {
+      // Return "insufficient evidence" marker instead of fabricating a valuation
+      const { data: saved, error: saveError } = await supabase
+        .from('lumen_valuations')
+        .upsert(
+          {
+            company_id: company.id,
+            bear_case: null,
+            base_case: null,
+            bull_case: null,
+            confidence_score: 0,
+            key_drivers: [],
+            explanation: `Insufficient evidence to generate a valuation. Found ${evidence.length} evidence item${evidence.length === 1 ? '' : 's'} (${fundingEvidence.length} funding). Need at least one confirmed funding round and supporting evidence to produce a credible estimate.`,
+            generated_at: new Date().toISOString(),
+          },
+          { onConflict: 'company_id' }
+        )
+        .select('*')
+        .single();
+
+      if (saveError) return null;
+      return saved;
+    }
+
     // Contributor accuracy is a global track record across the whole
     // ledger, not just this company, so pull every contributor's history.
     const { data: allContributorEvidence } = await supabase.from('lumen_evidence').select('contributor, status');
@@ -452,11 +495,6 @@ export async function generateValuation(
       .join('\n');
 
     const unconfirmedCount = evidence.filter((e) => e.status !== 'verified').length;
-
-    // Evidence quality diagnostics
-    const fundingEvidence = evidence.filter((e) => e.category === 'Funding');
-    const momentumCategories = ['Revenue', 'Headcount', 'Product', 'Contracts', 'Metrics'];
-    const momentumEvidence = evidence.filter((e) => momentumCategories.includes(e.category));
 
     const mostRecentFunding = fundingEvidence.length > 0
       ? fundingEvidence.reduce((latest, e) => (e.date > latest.date ? e : latest))

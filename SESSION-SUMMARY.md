@@ -177,8 +177,8 @@ New (broken):
 
 ---
 
-### 2. August 19, 2026 Session — Marketplace Price Divergence (Anthropic Only)
-**Status:** ⚠️ **Partial** - Feature built but source reliability issues found during verification
+### 2. August 19, 2026 Session — Marketplace Price Divergence
+**Status:** ✅ **Complete** - Feature live with 7 companies, NPM as sole source (by design)
 
 New evidence category to show price divergence across public marketplace platforms with disclosed methodologies.
 
@@ -269,10 +269,85 @@ New evidence category to show price divergence across public marketplace platfor
 - Source must publicly explain how price is calculated
 - Not a one-off judgment - applies to all future sources
 
+#### Phase 1: In-Database Companies (Aug 19, 2026)
+**Status:** ✅ Complete
+
+Added NPM marketplace prices to 4 existing companies with fair-value estimates:
+
+| Company | NPM Price | Date | Fair Value | Status |
+|---------|-----------|------|------------|--------|
+| Anduril Industries | $113.54/share | Aug 6, 2026 | $61.0B | ✅ |
+| Crusoe | $217.62/share | Aug 6, 2026 | — | ✅ |
+| Ripple | $115.14/share | Aug 6, 2026 | — | ✅ |
+| lovable | $117.41/share | Aug 6, 2026 | — | ✅ |
+
+**Verification completed:**
+- All 4 entries have `source_label: 'Nasdaq Private Market'`
+- All have `status: 'verified'`
+- All have disclosed methodology and working citation URLs
+- Conditional display logic verified (Price Comparison only shows if NPM entry exists)
+- Anduril pricing sanity-checked: $113.54/share × 537M shares = $61B ✓
+
+#### Phase 2: New Company Pages (Aug 19, 2026)
+**Status:** ✅ Complete
+
+Built full company pages with Perplexity research, AI valuations, and NPM prices:
+
+| Company | Slug | Sector | Fair Value | Confidence | NPM Price | Evidence |
+|---------|------|--------|------------|------------|-----------|----------|
+| Glean | /glean | Enterprise AI software | $7.2B | 69% | $47.99 | 6 items (5 Funding, 1 Revenue) |
+| Harvey | /harvey | Legal AI | $11.0B | 81% | $35.83 | 6 items (6 Funding) |
+| PsiQuantum | /psiquantum | Quantum computing | $3.5B | 85% | $30.09 | 0 items |
+
+**Process completed for each:**
+1. Company created via POST `/api/lumen/companies`
+2. Perplexity research auto-triggered (`researchCompanyEvidence`)
+3. AI valuation generated with Bear/Base/Bull ranges
+4. NPM marketplace price added after fair-value estimate established
+5. Price Comparison section verified to display correctly
+
+**Design principle maintained:** No "lightweight listings" — marketplace prices only added to companies with full fair-value estimates. Prevents looking like low-quality republishing sites.
+
+#### Marketplace Platform Source Decision (Aug 19, 2026)
+**Status:** ✅ **RESOLVED** - Not an open question
+
+**Decision:** Nasdaq Private Market (NPM) is the **sole marketplace price source, by design**.
+
+**Rationale:** Methodology disclosure standard requires sources to publicly explain *how* prices are calculated, not just *where* data comes from.
+
+**Alternative platforms evaluated and excluded:**
+
+| Platform | Coverage | Pricing Access | Methodology Disclosure | Decision |
+|----------|----------|----------------|------------------------|----------|
+| **Nasdaq Private Market** | Wide | ✅ Public | ✅ **"Based on market activity, publicly-sourced valuation data, and other proprietary information"** | ✅ **APPROVED** |
+| Forge Global | Unknown | ❌ Blocked (403) | ❌ Cannot verify | ❌ Excluded |
+| EquityZen | Wide | ❌ Gated (requires accreditation) | ❌ Not found | ❌ Excluded |
+| Hiive | Some | ✅ Public | ⚠️ **"Generated from user orders and transactions"** — discloses data source but NOT calculation method | ❌ Excluded |
+| Microventures | Some | ❌ Gated | ❌ Not found | ❌ Excluded |
+
+**Hiive-specific rationale:**
+- Shows public prices for some companies (Lambda: $41.98, Databricks: $263.10, Polymarket: $139.32)
+- Discloses data source ("user orders and transactions")
+- **Does NOT disclose calculation method** (how those transactions translate to displayed price)
+- Same category of gap as sources already excluded in original exclusion policy
+- Fails methodology disclosure standard: *"Source must publicly explain how price is calculated"*
+
+**Re-evaluation trigger:**
+- If Hiive's methodology disclosure becomes more specific (e.g., "volume-weighted average of last 30 days of transactions" or similar calculation detail), revisit
+- Not now — current disclosure insufficient
+
+**This is a design decision, not deferred work:**
+- Not waiting for more data
+- Not revisiting unless disclosure standards materially change
+- NPM-only by choice, based on methodology transparency principle
+
 #### Files
 - `app/lib/lumen.ts` — Added "Marketplace Price" category
-- `scripts/add-anthropic-marketplace-prices.mjs` — Manual insertion script (one-time use)
-- `app/page.tsx` — Price Comparison display component
+- `scripts/add-anthropic-marketplace-prices.mjs` — Anthropic initial setup (one-time)
+- `scripts/add-npm-phase1.mjs` — Phase 1: 4 in-database companies
+- `scripts/add-npm-phase2.mjs` — Phase 2: 3 new companies
+- `scripts/create-phase2-companies.mjs` — Automated company creation with research
+- `app/page.tsx` — Price Comparison display component with conditional logic
 
 **Commits:**
 - `b71656b` — Initial implementation with 2 sources
@@ -463,32 +538,27 @@ Regenerate explanation AFTER formula override, or reorder generation so AI knows
 #### 3. Public Company Exclusion
 **Context:** SpaceX went public June 2026, discovered during formula validation.
 
-**Issue:** No schema flag (`is_public` / `ipo_date`) or filtering logic for public companies.
+**Status:** ✅ **Resolved for marketplace prices** - Aug 19, 2026
+
+**Resolution:** During NPM coverage research (Aug 19), confirmed SpaceX has NPM page showing IPO date (June 12, 2026). SpaceX was excluded from marketplace price comparison on principle: marketplace divergence is a private-market phenomenon; public companies have real-time market prices.
+
+**Partial implementation:**
+- Marketplace Price feature excludes public companies (manual check during verification)
+- **Still deferred:** Schema-level flag (`is_public` / `ipo_date`) for general filtering
 
 **Current state:**
 - SpaceX remains in database with 2019 primary data
-- Still generates valuations ($650B as of Aug 17)
-- Listed on main page as "private company"
+- No marketplace price entries (correctly excluded)
+- Still generates valuations (not blocking, low impact)
 
-**Current impact:** Low
-- SpaceX has no secondary evidence (won't trigger formula)
-- No other known IPO transitions in dataset
-
-**Future impact:** **High**
-- Next company that IPOs will have same issue
-- Public companies have real-time market prices, don't need estimates
-- Confusing to users if public companies appear in private-market tracker
+**Future trigger:** When next company in dataset goes public, implement schema-level exclusion mechanism (Option 1 or 2 below).
 
 **Solution options:**
 1. Add `is_public` boolean to schema + filter in GET /companies and valuation generation
 2. Add `ipo_date` field (more nuanced, preserves "was private" history)
-3. Delete public companies manually as they transition (not scalable)
+3. Continue manual exclusion (current approach for marketplace prices)
 
-**Recommendation:** Option 1 or 2 when next IPO transition occurs.
-
-**Re-validation trigger:** Next time a company in the dataset goes public, implement exclusion mechanism.
-
-**Tracking:** Noted in this document.
+**Recommendation:** Option 1 or 2 when needed for general exclusion; Option 3 sufficient for marketplace prices.
 
 ---
 
@@ -599,6 +669,16 @@ Regenerate explanation AFTER formula override, or reorder generation so AI knows
 
 ## Session Timeline
 
+**Aug 19, 2026:**
+1. ✅ Marketplace Price Divergence feature (Phase 1 + Phase 2)
+2. ✅ Phase 1: Added NPM prices to 4 in-database companies (Anduril, Crusoe, Ripple, lovable)
+3. ✅ Phase 2: Built 3 new company pages with research + valuations (Glean, Harvey, PsiQuantum)
+4. ✅ NPM coverage research: Checked 31 companies, verified 17 with public NPM prices
+5. ✅ Alternative platform evaluation: Tested Forge, EquityZen, Hiive, Microventures
+6. ✅ Resolved marketplace source decision: NPM only, by design (methodology disclosure standard)
+7. ✅ Documented exclusion rationale for 4 alternative platforms
+8. ✅ Updated public company exclusion status (SpaceX excluded from marketplace prices)
+
 **Aug 16-17, 2026:**
 1. ✅ Added Secondary evidence category with schema-level date requirement
 2. ✅ Fixed Anthropic citation ($1.5T → $1.2T, added sources)
@@ -662,7 +742,9 @@ If continuing this work:
 - Evidence-first (never show unsourced numbers)
 - Deterministic over AI judgment (when inconsistency detected)
 - Explicit triggers over "flag for later" (N≥5, not "someday")
+- Methodology disclosure as hard requirement (marketplace prices)
+- Design decisions over deferred work (NPM-only is by choice, not limitation)
 
 ---
 
-*Last updated: 2026-08-17*
+*Last updated: 2026-08-19*

@@ -570,101 +570,114 @@ export default function App() {
               style={{
                 border: '1px solid #26303C',
                 borderRadius: '10px',
-                background: 'linear-gradient(180deg, rgba(212,169,74,0.06), transparent 65%)',
+                background: valuation.base_case !== null ? 'linear-gradient(180deg, rgba(212,169,74,0.06), transparent 65%)' : 'rgba(26,32,38,0.5)',
                 padding: '28px 32px 24px',
                 marginBottom: '8px',
               }}
             >
-              <div style={{ textAlign: 'center', fontSize: '11px', letterSpacing: '0.14em', color: '#5A6470', marginBottom: '10px', textTransform: 'uppercase' }}>
-                CURRENT VALUATION
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginBottom: '6px' }}>
-                <span style={{ fontSize: '52px', fontWeight: 700, color: '#C9A227', letterSpacing: '-0.02em', lineHeight: 1 }}>
-                  {fmtB(valuation.base_case)}
-                </span>
-                <span
-                  style={{
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    letterSpacing: '0.06em',
-                    padding: '5px 10px',
-                    borderRadius: '5px',
-                    border: '1px solid rgba(74,222,128,0.35)',
-                    background: 'rgba(74,222,128,0.08)',
-                    color: '#4ADE80',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  {valuation.confidence_score}/100 CONFIDENCE
-                </span>
-              </div>
-              {company?.last_round_value && (
-                <div style={{ textAlign: 'center', color: '#8B95A1', fontSize: '14px', marginBottom: '4px' }}>
-                  ${((valuation.base_case * 1000000000) / 1650000000).toFixed(2)} / share
+              {valuation.base_case !== null ? (
+                <>
+                  <div style={{ textAlign: 'center', fontSize: '11px', letterSpacing: '0.14em', color: '#5A6470', marginBottom: '10px', textTransform: 'uppercase' }}>
+                    CURRENT VALUATION
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '52px', fontWeight: 700, color: '#C9A227', letterSpacing: '-0.02em', lineHeight: 1 }}>
+                      {fmtB(valuation.base_case)}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        letterSpacing: '0.06em',
+                        padding: '5px 10px',
+                        borderRadius: '5px',
+                        border: '1px solid rgba(74,222,128,0.35)',
+                        background: 'rgba(74,222,128,0.08)',
+                        color: '#4ADE80',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      {valuation.confidence_score}/100 CONFIDENCE
+                    </span>
+                  </div>
+                  {company?.last_round_value && (
+                    <div style={{ textAlign: 'center', color: '#8B95A1', fontSize: '14px', marginBottom: '4px' }}>
+                      ${((valuation.base_case * 1000000000) / 1650000000).toFixed(2)} / share
+                    </div>
+                  )}
+                  <div style={{ textAlign: 'center', color: '#5A6470', fontSize: '12px', marginTop: '10px' }}>
+                    AI fair value · formula-weighted ·{' '}
+                    <button
+                      onClick={() => setMethodologyOpen(!methodologyOpen)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#8A7038',
+                        textDecoration: 'underline',
+                        cursor: 'pointer',
+                        padding: 0,
+                        font: 'inherit',
+                        transition: 'color 0.15s',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = '#C9A227')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = '#8A7038')}
+                    >
+                      see methodology
+                    </button>
+                  </div>
+
+                  {/* Range bar */}
+                  <div style={{ margin: '24px auto 4px', maxWidth: '620px' }}>
+                    <div style={{ position: 'relative', height: '8px', background: '#16161A', borderRadius: '4px', border: '1px solid #26303C' }}>
+                      {(() => {
+                        // Calculate marker position: (base - bear) / (bull - bear) as percentage
+                        const markerPosition = ((valuation.base_case - valuation.bear_case) / (valuation.bull_case - valuation.bear_case)) * 100;
+
+                        return (
+                          <>
+                            <div
+                              style={{
+                                position: 'absolute',
+                                top: '-1px',
+                                bottom: '-1px',
+                                left: '14%',
+                                right: '15%',
+                                background: 'linear-gradient(90deg, rgba(212,169,74,0.15), rgba(212,169,74,0.4), rgba(212,169,74,0.15))',
+                                borderRadius: '4px',
+                              }}
+                            />
+                            <div
+                              style={{
+                                position: 'absolute',
+                                top: '-5px',
+                                left: `${markerPosition}%`,
+                                width: '3px',
+                                height: '18px',
+                                background: '#C9A227',
+                                borderRadius: '2px',
+                              }}
+                            />
+                          </>
+                        );
+                      })()}
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginTop: '10px' }}>
+                      <span style={{ color: '#B5BDC6' }}>Bear {fmtB(valuation.bear_case)}</span>
+                      <span style={{ color: '#C9A227', fontWeight: 700, textAlign: 'center', flex: 1 }}>Base {fmtB(valuation.base_case)}</span>
+                      <span style={{ color: '#B5BDC6' }}>Bull {fmtB(valuation.bull_case)}</span>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                  <div style={{ fontSize: '14px', color: '#8B95A1', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                    Insufficient Evidence
+                  </div>
+                  <div style={{ fontSize: '14px', color: '#5A6470', lineHeight: 1.6, maxWidth: '500px', margin: '0 auto' }}>
+                    {valuation.explanation || 'We need at least one confirmed funding round and supporting evidence to generate a fair-value estimate.'}
+                  </div>
                 </div>
               )}
-              <div style={{ textAlign: 'center', color: '#5A6470', fontSize: '12px', marginTop: '10px' }}>
-                AI fair value · formula-weighted ·{' '}
-                <button
-                  onClick={() => setMethodologyOpen(!methodologyOpen)}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#8A7038',
-                    textDecoration: 'underline',
-                    cursor: 'pointer',
-                    padding: 0,
-                    font: 'inherit',
-                    transition: 'color 0.15s',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = '#C9A227')}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = '#8A7038')}
-                >
-                  see methodology
-                </button>
-              </div>
-
-              {/* Range bar */}
-              <div style={{ margin: '24px auto 4px', maxWidth: '620px' }}>
-                <div style={{ position: 'relative', height: '8px', background: '#16161A', borderRadius: '4px', border: '1px solid #26303C' }}>
-                  {(() => {
-                    // Calculate marker position: (base - bear) / (bull - bear) as percentage
-                    const markerPosition = ((valuation.base_case - valuation.bear_case) / (valuation.bull_case - valuation.bear_case)) * 100;
-
-                    return (
-                      <>
-                        <div
-                          style={{
-                            position: 'absolute',
-                            top: '-1px',
-                            bottom: '-1px',
-                            left: '14%',
-                            right: '15%',
-                            background: 'linear-gradient(90deg, rgba(212,169,74,0.15), rgba(212,169,74,0.4), rgba(212,169,74,0.15))',
-                            borderRadius: '4px',
-                          }}
-                        />
-                        <div
-                          style={{
-                            position: 'absolute',
-                            top: '-5px',
-                            left: `${markerPosition}%`,
-                            width: '3px',
-                            height: '18px',
-                            background: '#C9A227',
-                            borderRadius: '2px',
-                          }}
-                        />
-                      </>
-                    );
-                  })()}
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginTop: '10px' }}>
-                  <span style={{ color: '#B5BDC6' }}>Bear {fmtB(valuation.bear_case)}</span>
-                  <span style={{ color: '#C9A227', fontWeight: 700, textAlign: 'center', flex: 1 }}>Base {fmtB(valuation.base_case)}</span>
-                  <span style={{ color: '#B5BDC6' }}>Bull {fmtB(valuation.bull_case)}</span>
-                </div>
-              </div>
             </div>
 
             {/* Disclaimer */}
@@ -691,17 +704,16 @@ export default function App() {
             </div>
 
             {/* Price Comparison Section - Marketplace Price Divergence
-                Only renders if company has a verified Nasdaq Private Market entry */}
+                Only renders if company has a verified Nasdaq Private Market entry AND a real base case */}
             {(() => {
               const marketplacePrices = evidence
                 .filter((e) => e.category === 'Marketplace Price' && e.status === 'verified')
                 .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
-              // Only show section if Nasdaq Private Market entry exists
+              // Only show section if Nasdaq Private Market entry exists AND we have a real fair-value estimate
               const hasNasdaqPM = marketplacePrices.some(e => e.source_label === 'Nasdaq Private Market');
-              if (!hasNasdaqPM) return null;
-
               const fairValue = valuation?.base_case;
+              if (!hasNasdaqPM || !fairValue) return null;
               const now = new Date();
 
               return (
