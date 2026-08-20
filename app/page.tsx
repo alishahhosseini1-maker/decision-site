@@ -690,13 +690,16 @@ export default function App() {
               </button>
             </div>
 
-            {/* Price Comparison Section - Marketplace Price Divergence */}
+            {/* Price Comparison Section - Marketplace Price Divergence
+                Only renders if company has a verified Nasdaq Private Market entry */}
             {(() => {
               const marketplacePrices = evidence
                 .filter((e) => e.category === 'Marketplace Price' && e.status === 'verified')
                 .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
-              if (marketplacePrices.length === 0) return null;
+              // Only show section if Nasdaq Private Market entry exists
+              const hasNasdaqPM = marketplacePrices.some(e => e.source_label === 'Nasdaq Private Market');
+              if (!hasNasdaqPM) return null;
 
               const fairValue = valuation?.base_case;
               const now = new Date();
