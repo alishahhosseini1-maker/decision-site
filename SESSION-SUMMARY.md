@@ -483,6 +483,110 @@ Regenerate explanation AFTER formula override, or reorder generation so AI knows
 
 ---
 
+### Simplified Company Page Layout (Aug 20, 2026)
+
+**Status:** ⏳ Ready to implement (deferred to fresh session)
+
+**Objective:** Replace current dense multi-panel layout with simplified 3-block structure for better focus and scannability.
+
+**Reference mockup:** `/Users/alis./Downloads/anthropic-simplified.html`
+
+#### New 3-Block Structure:
+
+**Block 1 — Current Valuation**
+- Just the number, per-share equivalent, confidence badge
+- No eyebrow text, no methodology link in this block
+- Clean, focused presentation
+
+**Block 2 — Secondary Market**
+- Single range bar (bear to bull) with TWO markers on same track:
+  - Gold marker = our fair value estimate
+  - Blue marker = verified NPM marketplace price (when available)
+- **CRITICAL MATH REQUIREMENT**: Both markers represent TOTAL VALUATION
+  - Position calculation: `(value - bear_case) / (bull_case - bear_case) * 100`
+  - If NPM price is per-share, CONVERT TO TOTAL VALUATION FIRST (using same share count as our per-share figure)
+  - DO NOT place markers representing different units (per-share vs total) on same axis
+  - Bug caught in mockup: original version used arbitrary percentages instead of computed positions
+- Below bar: Two-item legend showing both total valuation AND per-share for each marker
+  - Example: "Us — $971.0B ($588.48/sh)" and "Trading at $1,131B ($685.62/sh, +16.5%)"
+- If no NPM price exists: show only gold marker, no blue marker, no NPM legend line
+
+**Block 3 — What Others Are Saying**
+- 3-4 short, single-line takes from existing evidence
+- Source name in bold, then compressed one-line summary
+- Pull from real evidence already in ledger (Revenue, Secondary, Contracts)
+- Not full descriptions — condensed to scannable single lines
+
+#### Design Principles:
+
+- Each block gets small, centered, uppercase label (e.g., "SECONDARY MARKET")
+- Thin horizontal dividers between blocks
+- No boxed/bordered panels for these three sections
+- Cut all connective/explanatory sentences
+- Minimal text throughout
+
+#### Implementation Plan:
+
+**Phase 1: Build for Anthropic first**
+1. Implement 3-block layout for Anthropic (`/anthropic`)
+2. Calculate marker positions correctly:
+   - Anthropic data: Bear $850B, Base $971B, Bull $1,400B
+   - NPM: $685.62/sh × 1.65B shares = $1,131.3B total
+   - Our marker: 22.0% position
+   - NPM marker: 51.1% position
+3. Screenshot-verify marker positions match calculations
+4. Manually check percentages against real numbers
+
+**Phase 2: Extend to other companies with Price Comparison**
+Once Anthropic verified, extend to:
+- Anduril Industries
+- Crusoe
+- Ripple
+- lovable
+- Glean
+- Harvey
+
+Total: 7 companies with verified NPM marketplace prices
+
+#### Technical Details:
+
+**Existing detailed panels preservation:**
+- Full evidence ledger
+- Methodology panel
+- Funding chart
+- Comparables section
+- Contributors leaderboard
+
+All stay in codebase but move below simplified view behind "Full evidence →" collapsible link. Full depth still exists, just demoted below the fold.
+
+**Files to modify:**
+- `app/page.tsx` — Major restructure of company display section (est. ~200+ lines)
+- New simplified styling to match mockup aesthetic
+- Conditional rendering: simplified view for companies with NPM data, detailed-only for others
+
+**Marker calculation reference (Anthropic):**
+```javascript
+const SHARES = 1650000000;
+const range = bull_case - bear_case;
+const ourPerShare = (base_case * 1e9) / SHARES;
+const npmTotalVal = npmPricePerShare * SHARES / 1e9;
+const ourPosition = ((base_case - bear_case) / range) * 100;
+const npmPosition = ((npmTotalVal - bear_case) / range) * 100;
+```
+
+**Verification checklist:**
+- [ ] Marker positions calculated correctly (not hardcoded)
+- [ ] Both markers represent total valuation (not mixed units)
+- [ ] Per-share conversions use consistent share count
+- [ ] Legend shows both total and per-share for each marker
+- [ ] Delta percentage calculated correctly
+- [ ] Screenshot confirms visual accuracy
+- [ ] Works for companies without NPM data (gold marker only)
+
+**Priority:** High — next session task (Aug 21, 2026)
+
+---
+
 ## Deferred Work
 
 ### ⚠️ High Priority - Blocks Core Product Thesis
