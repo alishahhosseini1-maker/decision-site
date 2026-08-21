@@ -590,7 +590,7 @@ export default function CompanyDetail({ companyId, onRefreshNeeded }: { companyI
             </div>
           ) : (
             sortedEvidence.map((ev) => {
-              const needsConfirmations = confirmationsNeededFor(ev);
+              const needsConfirmations = confirmationsNeededFor(ev.contributor);
               const canConfirm = !ev.verified_by.includes(contributor);
 
               return (
