@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   TrendingUp,
   TrendingDown,
@@ -79,6 +80,8 @@ const emptyCompanyForm = {
 };
 
 export default function App() {
+  const searchParams = useSearchParams();
+
   useEffect(() => {
     if (!document.getElementById('lumen-fonts')) {
       const link = document.createElement('link');
@@ -150,11 +153,12 @@ export default function App() {
 
   useEffect(() => {
     (async () => {
-      await Promise.all([refreshCompanies(), refreshContributors()]);
+      const companyParam = searchParams.get('company');
+      await Promise.all([refreshCompanies(companyParam || undefined), refreshContributors()]);
       setInitializing(false);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchParams]);
 
   async function refreshDetail(id: string) {
     setLoadingDetail(true);
@@ -407,14 +411,11 @@ export default function App() {
         }}
       >
         <div
-          className="display"
           style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '16px',
             padding: '14px 18px',
-            fontSize: '15px',
-            fontWeight: 600,
-            letterSpacing: '0.04em',
-            color: '#C9A227',
-            whiteSpace: 'nowrap',
             borderRight: '1px solid #1F2833',
             position: 'sticky',
             left: 0,
@@ -422,7 +423,29 @@ export default function App() {
             zIndex: 10,
           }}
         >
-          LUMEN
+          <div
+            className="display"
+            style={{
+              fontSize: '15px',
+              fontWeight: 600,
+              letterSpacing: '0.04em',
+              color: '#C9A227',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            LUMEN
+          </div>
+          <a
+            href="/overview"
+            style={{
+              fontSize: '13px',
+              color: '#8B95A1',
+              textDecoration: 'none',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Overview
+          </a>
         </div>
         <div className="ticker-track">
         {[...companies, ...companies].map((c, idx) => {
