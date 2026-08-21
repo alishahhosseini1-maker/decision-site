@@ -1,30 +1,26 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import {
-  TrendingUp,
-  TrendingDown,
-  CheckCircle2,
-  Flag,
-  ChevronDown,
-  Plus,
-  Loader2,
-  ShieldCheck,
-  X,
-} from 'lucide-react';
-import {
-  CATEGORIES,
-  CONFIDENCE_MAP,
-  MANUAL_SOURCE_TYPES,
-  confidenceColor,
-  confirmationsNeededFor,
-  fmtB,
-  type Company,
-  type Evidence,
-  type Valuation,
-} from './lib/lumen';
-import { calculateFormulaMetadata, parseSecondaryValue, type FormulaMetadata } from './lib/formula';
+import { Search, ChevronDown, ChevronUp } from 'lucide-react';
+import CompanyDetail from './components/CompanyDetail';
+
+type OverviewCompany = {
+  id: string;
+  name: string;
+  slug: string;
+  symbol: string | null;
+  sector: string | null;
+  valuation: number | null;
+  bear_case: number | null;
+  base_case: number | null;
+  bull_case: number | null;
+  confidence_score: number | null;
+  revenue: number | null;
+  revenue_source: string | null;
+  revenue_date: string | null;
+  multiple: number | null;
+};
 
 const FONTS_URL =
   'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap';
@@ -39,45 +35,30 @@ function getContributorId() {
   return id;
 }
 
-function formatRelativeTime(timestamp: string | null | undefined): string {
-  if (!timestamp) return 'never';
-  const now = new Date();
-  const then = new Date(timestamp);
-  const diffMs = now.getTime() - then.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 1) return 'just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays === 1) return 'yesterday';
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return then.toLocaleDateString();
+function fmtB(val: number | null): string {
+  if (val === null) return 'N/D';
+  if (val >= 1) return `$${val.toFixed(1)}B`;
+  return `$${(val * 1000).toFixed(0)}M`;
 }
 
-type CompanyWithValuation = Company & { valuation: { base_case: number; confidence_score: number } | null };
-type Contributor = { name: string; total: number; verified: number; rejected: number; accuracy: number | null };
-type Comp = { name: string; ticker: string; multiple: number; sourceLabel: string; impliedValuation: number };
-type CompsResult = {
-  revenueBillions: number;
-  revenueSource: { description: string; sourceLabel: string; date: string; isProjected?: boolean };
-  comps: Comp[];
-  ownMultiples: { lastRound: number | null; lastRoundConfirmed: boolean; aiFairValue: number | null };
-};
+function fmtMultiple(val: number | null): string {
+  if (val === null) return 'N/A';
+  if (val >= 100) return `${Math.round(val)}x`;
+  if (val >= 10) return `${val.toFixed(1)}x`;
+  return `${val.toFixed(2)}x`;
+}
 
-const emptyForm = {
-  category: CATEGORIES[0],
-  description: '',
-  value: '',
-  sourceType: MANUAL_SOURCE_TYPES[0],
-  sourceLabel: '',
-  date: '',
-};
+// Shared logarithmic scale: $10M to $1T
+const DOMAIN_MIN = 0.01; // $10M in billions
+const DOMAIN_MAX = 1000; // $1T in billions
 
-const emptyCompanyForm = {
-  name: '',
-};
+function logPct(v: number | null): number {
+  if (v === null || v <= 0) return 0;
+  const lo = Math.log10(DOMAIN_MIN);
+  const hi = Math.log10(DOMAIN_MAX);
+  const p = (Math.log10(Math.max(v, DOMAIN_MIN)) - lo) / (hi - lo);
+  return Math.max(0, Math.min(1, p)) * 100;
+}
 
 export default function App() {
   const searchParams = useSearchParams();
@@ -97,1532 +78,563 @@ export default function App() {
     setContributor(getContributorId());
   }, []);
 
-  const [companies, setCompanies] = useState<CompanyWithValuation[]>([]);
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [initializing, setInitializing] = useState(true);
-
-  const [company, setCompany] = useState<Company | null>(null);
-  const [evidence, setEvidence] = useState<Evidence[]>([]);
-  const [valuation, setValuation] = useState<Valuation | null>(null);
-  const [loadingDetail, setLoadingDetail] = useState(false);
-
-  const [contributors, setContributors] = useState<Contributor[]>([]);
-
-  const [loadingValuation, setLoadingValuation] = useState(false);
-  const [valuationError, setValuationError] = useState<string | null>(null);
-
-  const [comps, setComps] = useState<CompsResult | null>(null);
-  const [loadingComps, setLoadingComps] = useState(false);
-  const [compsError, setCompsError] = useState<string | null>(null);
-  const [whyOpen, setWhyOpen] = useState(false);
-  const [methodologyOpen, setMethodologyOpen] = useState(false);
+  const [companies, setCompanies] = useState<OverviewCompany[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [sectorFilter, setSectorFilter] = useState('');
+  const [sortBy, setSortBy] = useState('valuation-desc');
+  const [groupBySector, setGroupBySector] = useState(false);
+  const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   const [showAddForm, setShowAddForm] = useState(false);
-  const [form, setForm] = useState(emptyForm);
-  const [submitting, setSubmitting] = useState(false);
-
-  const [researching, setResearching] = useState(false);
-  const [researchError, setResearchError] = useState<string | null>(null);
-
-  const [showAddCompany, setShowAddCompany] = useState(false);
-  const [companyForm, setCompanyForm] = useState(emptyCompanyForm);
+  const [companyName, setCompanyName] = useState('');
   const [addingCompany, setAddingCompany] = useState(false);
-  const [addCompanyError, setAddCompanyError] = useState<string | null>(null);
+  const [addError, setAddError] = useState('');
 
-  const [disputingId, setDisputingId] = useState<string | null>(null);
-  const [disputeNoteDraft, setDisputeNoteDraft] = useState('');
+  const rowRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
-  async function refreshCompanies(selectId?: string) {
-    const res = await fetch('/api/lumen/companies');
+  async function loadCompanies() {
+    const res = await fetch('/api/lumen/companies/overview');
     const data = await res.json();
-    if (data.companies) {
-      setCompanies(data.companies);
-      if (selectId) {
-        setActiveId(selectId);
-      } else if (!activeId && data.companies.length > 0) {
-        setActiveId(data.companies[0].id);
-      }
-    }
-  }
-
-  async function refreshContributors() {
-    const res = await fetch('/api/lumen/contributors');
-    const data = await res.json();
-    if (data.contributors) setContributors(data.contributors);
+    if (data.companies) setCompanies(data.companies);
+    setLoading(false);
   }
 
   useEffect(() => {
-    (async () => {
-      const companyParam = searchParams.get('company');
-      await Promise.all([refreshCompanies(companyParam || undefined), refreshContributors()]);
-      setInitializing(false);
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+    loadCompanies();
+  }, []);
 
-  async function refreshDetail(id: string) {
-    setLoadingDetail(true);
-    try {
-      const res = await fetch(`/api/lumen/companies/${id}`);
-      const data = await res.json();
-      if (data.company) {
-        setCompany(data.company);
-        setEvidence(data.evidence || []);
-        setValuation(data.valuation || null);
-      }
-    } finally {
-      setLoadingDetail(false);
+  // Handle ?company=<id> param - scroll to and expand that row
+  useEffect(() => {
+    const companyParam = searchParams.get('company');
+    if (companyParam && companies.length > 0) {
+      setExpandedIds((prev) => new Set([...Array.from(prev), companyParam]));
+      setTimeout(() => {
+        const ref = rowRefs.current.get(companyParam);
+        if (ref) {
+          ref.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
     }
-  }
+  }, [searchParams, companies]);
 
   useEffect(() => {
-    if (!activeId) return;
-    setWhyOpen(false);
-    setValuationError(null);
-    setResearchError(null);
-    setComps(null);
-    setCompsError(null);
-    refreshDetail(activeId);
-    findCompsForCompany();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeId]);
+    if (typeof window === 'undefined') return;
+    const stored = localStorage.getItem('lumen_pinned_companies');
+    if (stored) {
+      try {
+        const arr = JSON.parse(stored);
+        setPinnedIds(new Set(arr));
+      } catch {}
+    }
+  }, []);
 
-  const sortedEvidence = useMemo(
-    () => [...evidence].sort((a, b) => (a.date < b.date ? 1 : -1)),
-    [evidence]
-  );
-
-  function updateForm(field: string, val: string) {
-    setForm((f) => ({ ...f, [field]: val }));
-  }
-
-  async function researchCompany() {
-    if (!activeId) return;
-    setResearching(true);
-    setResearchError(null);
-    try {
-      const res = await fetch(`/api/lumen/companies/${activeId}/research`, { method: 'POST' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Research failed.');
-      if (data.evidence && data.evidence.length > 0) {
-        setEvidence((prev) => [...data.evidence, ...prev]);
-        refreshContributors();
+  function togglePin(id: string) {
+    setPinnedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
       } else {
-        setResearchError('No new verifiable evidence found.');
+        if (next.size >= 4) return prev; // Max 4
+        next.add(id);
       }
-    } catch (err: any) {
-      setResearchError(err.message || 'Research failed. Try again.');
-    } finally {
-      setResearching(false);
-    }
+      localStorage.setItem('lumen_pinned_companies', JSON.stringify(Array.from(next)));
+      return next;
+    });
   }
 
-  async function submitEvidence(e: React.FormEvent) {
-    e.preventDefault();
-    if (!activeId || !form.description.trim() || !form.sourceLabel.trim() || !form.date) return;
-    setSubmitting(true);
-    try {
-      const res = await fetch(`/api/lumen/companies/${activeId}/evidence`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, contributor }),
-      });
-      const data = await res.json();
-      if (data.evidence) {
-        setEvidence((prev) => [data.evidence, ...prev]);
-        setForm(emptyForm);
-        setShowAddForm(false);
-        refreshContributors();
-      }
-    } finally {
-      setSubmitting(false);
-    }
+  function clearPins() {
+    setPinnedIds(new Set());
+    localStorage.removeItem('lumen_pinned_companies');
   }
 
-  async function submitCompany(e: React.FormEvent) {
+  function toggleExpanded(id: string) {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
+
+  const sectors = useMemo(() => {
+    const set = new Set<string>();
+    companies.forEach((c) => {
+      if (c.sector) set.add(c.sector);
+    });
+    return Array.from(set).sort();
+  }, [companies]);
+
+  const filtered = useMemo(() => {
+    let list = companies.filter((c) => {
+      const matchSearch =
+        search === '' ||
+        c.name.toLowerCase().includes(search.toLowerCase()) ||
+        c.sector?.toLowerCase().includes(search.toLowerCase());
+      const matchSector = sectorFilter === '' || c.sector === sectorFilter;
+      return matchSearch && matchSector;
+    });
+
+    // Sort
+    list.sort((a, b) => {
+      if (sortBy === 'valuation-desc') return (b.valuation || 0) - (a.valuation || 0);
+      if (sortBy === 'valuation-asc') return (a.valuation || 0) - (b.valuation || 0);
+      if (sortBy === 'multiple-desc') return (b.multiple || 0) - (a.multiple || 0);
+      if (sortBy === 'multiple-asc') return (a.multiple || 0) - (b.multiple || 0);
+      if (sortBy === 'revenue-desc') return (b.revenue || 0) - (a.revenue || 0);
+      if (sortBy === 'revenue-asc') return (a.revenue || 0) - (b.revenue || 0);
+      return 0;
+    });
+
+    return list;
+  }, [companies, search, sectorFilter, sortBy]);
+
+  const grouped = useMemo(() => {
+    if (!groupBySector) return null;
+
+    const map = new Map<string, OverviewCompany[]>();
+    filtered.forEach((c) => {
+      const sector = c.sector || 'Unknown';
+      if (!map.has(sector)) map.set(sector, []);
+      map.get(sector)!.push(c);
+    });
+
+    const groups = Array.from(map.entries()).map(([sector, comps]) => {
+      const totalVal = comps.reduce((sum, c) => sum + (c.valuation || 0), 0);
+      const multiples = comps.map((c) => c.multiple).filter((m): m is number => m !== null);
+      const medianMultiple =
+        multiples.length > 0
+          ? multiples.sort((a, b) => a - b)[Math.floor(multiples.length / 2)]
+          : null;
+
+      return { sector, companies: comps, totalValuation: totalVal, medianMultiple };
+    });
+
+    groups.sort((a, b) => b.totalValuation - a.totalValuation);
+    return groups;
+  }, [filtered, groupBySector]);
+
+  const pinned = useMemo(() => {
+    return companies.filter((c) => pinnedIds.has(c.id));
+  }, [companies, pinnedIds]);
+
+  async function handleAddCompany(e: React.FormEvent) {
     e.preventDefault();
-    if (!companyForm.name.trim()) {
-      setAddCompanyError('Company name is required.');
-      return;
-    }
+    if (!companyName.trim()) return;
+
     setAddingCompany(true);
-    setAddCompanyError(null);
+    setAddError('');
+
     try {
       const res = await fetch('/api/lumen/companies', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...companyForm, contributor }),
+        body: JSON.stringify({ name: companyName, contributor }),
       });
+
       const data = await res.json();
-      if (!res.ok) {
-        setAddCompanyError(data.error || 'Failed to add company.');
-        return;
-      }
-      setCompanyForm(emptyCompanyForm);
-      setShowAddCompany(false);
-      await refreshCompanies(data.company.id);
+      if (!res.ok) throw new Error(data.error || 'Failed to add company.');
+
+      await loadCompanies();
+      setCompanyName('');
+      setShowAddForm(false);
+    } catch (err: any) {
+      setAddError(err.message || 'Failed to add company.');
     } finally {
       setAddingCompany(false);
     }
   }
 
-  function openDispute(id: string) {
-    setDisputingId(id);
-    setDisputeNoteDraft('');
-  }
-
-  async function submitDispute(id: string) {
-    if (!disputeNoteDraft.trim()) return;
-    const res = await fetch(`/api/lumen/evidence/${id}/dispute`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ note: disputeNoteDraft.trim() }),
-    });
-    const data = await res.json();
-    if (data.evidence) {
-      setEvidence((prev) => prev.map((ev) => (ev.id === id ? data.evidence : ev)));
-    }
-    setDisputingId(null);
-    setDisputeNoteDraft('');
-  }
-
-  async function confirmEvidence(id: string) {
-    const res = await fetch(`/api/lumen/evidence/${id}/confirm`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contributor }),
-    });
-    const data = await res.json();
-    if (data.evidence && activeId) {
-      // Full refetch, not local state patching — confirming Funding/
-      // Secondary market evidence can update the company header itself.
-      await refreshDetail(activeId);
-      refreshContributors();
-    }
-  }
-
-  async function resolveDispute(id: string, action: 'uphold' | 'dismiss') {
-    const res = await fetch(`/api/lumen/evidence/${id}/resolve`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action }),
-    });
-    const data = await res.json();
-    if (data.evidence) {
-      setEvidence((prev) => prev.map((ev) => (ev.id === id ? data.evidence : ev)));
-      refreshContributors();
-    }
-  }
-
-  async function runValuation() {
-    if (!activeId) return;
-    setLoadingValuation(true);
-    setValuationError(null);
-    setWhyOpen(false);
-    try {
-      const res = await fetch(`/api/lumen/companies/${activeId}/valuation`, { method: 'POST' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to generate valuation.');
-      setValuation(data.valuation);
-      setCompanies((prev) =>
-        prev.map((c) =>
-          c.id === activeId
-            ? { ...c, valuation: { base_case: data.valuation.base_case, confidence_score: data.valuation.confidence_score } }
-            : c
-        )
-      );
-    } catch (err: any) {
-      setValuationError(err.message || "Couldn't generate a valuation. Try again.");
-    } finally {
-      setLoadingValuation(false);
-    }
-  }
-
-  async function findCompsForCompany() {
-    if (!activeId) return;
-    setLoadingComps(true);
-    setCompsError(null);
-    try {
-      const res = await fetch(`/api/lumen/companies/${activeId}/comps`, { method: 'POST' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to find comps.');
-      setComps(data);
-    } catch (err: any) {
-      setCompsError(err.message || "Couldn't find comparable companies. Try again.");
-    } finally {
-      setLoadingComps(false);
-    }
-  }
-
-  if (initializing || !company) {
+  if (loading) {
     return (
-      <div
-        style={{
-          fontFamily: 'Inter, sans-serif',
-          background: '#0B0F14',
-          minHeight: '600px',
-          color: '#8B95A1',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        Loading ledger…
+      <div style={{ fontFamily: 'Inter, sans-serif', background: '#0B0F14', minHeight: '100vh', color: '#8B95A1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        Loading…
       </div>
     );
   }
 
-  return (
-    <div style={{ fontFamily: 'Inter, sans-serif', background: '#0B0F14', minHeight: '600px', color: '#E8EAED' }}>
-      <style>{`
-        .mono { font-family: 'IBM Plex Mono', monospace; }
-        .display { font-family: 'Space Grotesk', sans-serif; }
-        .lumen-scroll::-webkit-scrollbar { height: 4px; }
-        .lumen-scroll::-webkit-scrollbar-thumb { background: #26303C; border-radius: 2px; }
-        button.lumen-btn:hover { filter: brightness(1.15); }
-        .ev-row:hover { background: #161D26; }
+  const CompanyRow = ({ c, showPin = true }: { c: OverviewCompany; showPin?: boolean }) => {
+    const revPct = logPct(c.revenue);
+    const valPct = logPct(c.valuation);
+    const isExpanded = expandedIds.has(c.id);
 
-        @keyframes ticker-scroll {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
+    // Multiple chip color
+    let chipColor = '#5A6470';
+    let chipBg = '#1A2129';
+    if (c.multiple !== null) {
+      const allMultiples = companies.map((co) => co.multiple).filter((m): m is number => m !== null).sort((a, b) => a - b);
+      const tercile1 = allMultiples[Math.floor(allMultiples.length / 3)];
+      const tercile2 = allMultiples[Math.floor((allMultiples.length * 2) / 3)];
 
-        .ticker-track {
-          display: flex;
-          gap: 1px;
-          animation: ticker-scroll 90s linear infinite;
-        }
+      if (c.multiple <= tercile1) {
+        chipColor = '#4ade80';
+        chipBg = 'rgba(74,222,128,0.12)';
+      } else if (c.multiple >= tercile2) {
+        chipColor = '#ef4444';
+        chipBg = 'rgba(239,68,68,0.12)';
+      } else {
+        chipColor = '#fbbf24';
+        chipBg = 'rgba(251,191,36,0.12)';
+      }
+    }
 
-        .ticker-track:hover {
-          animation-play-state: paused;
-        }
-      `}</style>
-
-      {/* Ticker bar */}
+    return (
       <div
-        className="lumen-scroll"
+        ref={(el) => {
+          if (el) rowRefs.current.set(c.id, el);
+        }}
         style={{
-          display: 'flex',
-          gap: '1px',
-          borderBottom: '1px solid #1F2833',
+          background: '#15181b',
+          border: '1px solid #26303C',
+          borderRadius: '8px',
           overflow: 'hidden',
-          background: '#0E1319',
-          position: 'relative',
         }}
       >
         <div
           style={{
-            display: 'flex',
+            display: 'grid',
+            gridTemplateColumns: showPin ? '40px 1fr 100px 30px' : '1fr 100px 30px',
+            gap: '14px',
             alignItems: 'center',
-            gap: '16px',
-            padding: '14px 18px',
-            borderRight: '1px solid #1F2833',
-            position: 'sticky',
-            left: 0,
-            background: '#0E1319',
-            zIndex: 10,
-          }}
-        >
-          <div
-            className="display"
-            style={{
-              fontSize: '15px',
-              fontWeight: 600,
-              letterSpacing: '0.04em',
-              color: '#C9A227',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            LUMEN
-          </div>
-          <a
-            href="/overview"
-            style={{
-              fontSize: '13px',
-              color: '#8B95A1',
-              textDecoration: 'none',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            Overview
-          </a>
-        </div>
-        <div className="ticker-track">
-        {[...companies, ...companies].map((c, idx) => {
-          const isActive = c.id === activeId;
-          // Determine current estimated valuation (prioritize: secondary > AI valuation > last round)
-          let currentValuation = null;
-          let valuationLabel = '';
-          if (c.secondary_value) {
-            currentValuation = c.secondary_value;
-            valuationLabel = 'Current Est.';
-          } else if (c.valuation) {
-            currentValuation = c.valuation.base_case;
-            valuationLabel = 'AI Fair Value';
-          } else if (c.last_round_value) {
-            currentValuation = c.last_round_value;
-            valuationLabel = 'Last Round';
-          }
-
-          return (
-            <button
-              key={`${c.id}-${idx}`}
-              onClick={() => setActiveId(c.id)}
-              className="lumen-btn"
-              style={{
-                padding: '10px 18px',
-                background: isActive ? '#141C26' : 'transparent',
-                border: 'none',
-                borderBottom: isActive ? '2px solid #C9A227' : '2px solid transparent',
-                cursor: 'pointer',
-                textAlign: 'left',
-                whiteSpace: 'nowrap',
-                minWidth: '140px',
-              }}
-            >
-              <div style={{ fontSize: '14px', fontWeight: 500, color: isActive ? '#E8EAED' : '#B5BDC6', marginBottom: '4px' }}>
-                {c.name}
-              </div>
-              {currentValuation && (
-                <div className="mono" style={{ fontSize: '11px', color: '#3FBF7F' }}>
-                  {fmtB(currentValuation)}
-                </div>
-              )}
-            </button>
-          );
-        })}
-        </div>
-        <button
-          onClick={() => setShowAddCompany((s) => !s)}
-          className="lumen-btn"
-          title="Add a company to the ledger"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            padding: '0 16px',
-            background: 'transparent',
-            border: 'none',
-            color: '#8B95A1',
+            padding: '12px 14px',
             cursor: 'pointer',
-            fontSize: '13px',
-            whiteSpace: 'nowrap',
           }}
+          onClick={() => toggleExpanded(c.id)}
         >
-          <Plus size={14} /> Add company
-        </button>
-      </div>
-
-      <div style={{ padding: '24px', maxWidth: '1040px', margin: '0 auto' }}>
-        {showAddCompany && (
-          <form
-            onSubmit={submitCompany}
-            style={{
-              background: '#101620',
-              border: '1px solid #26303C',
-              borderRadius: '6px',
-              padding: '14px',
-              marginBottom: '20px',
-              display: 'grid',
-              gap: '8px',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span className="display" style={{ fontSize: '13px', fontWeight: 600 }}>
-                Add a company
-              </span>
-              <button
-                type="button"
-                onClick={() => setShowAddCompany(false)}
-                style={{ background: 'none', border: 'none', color: '#8B95A1', cursor: 'pointer' }}
-              >
-                <X size={14} />
-              </button>
+          {showPin && (
+            <div style={{ display: 'flex', justifyContent: 'center' }} onClick={(e) => e.stopPropagation()}>
+              <input
+                type="checkbox"
+                checked={pinnedIds.has(c.id)}
+                onChange={() => togglePin(c.id)}
+                style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#C9A227' }}
+              />
             </div>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
-              <div style={{ flex: 1 }}>
-                <Field label="Company name">
-                  <input
-                    value={companyForm.name}
-                    onChange={(e) => setCompanyForm((f) => ({ ...f, name: e.target.value }))}
-                    placeholder="e.g. OpenAI"
-                    style={inputStyle}
-                    autoFocus
-                  />
-                </Field>
-              </div>
-              <button type="submit" disabled={addingCompany} style={{ ...primaryBtnStyle, opacity: addingCompany ? 0.6 : 1 }}>
-                {addingCompany ? 'Researching…' : 'Add company'}
-              </button>
+          )}
+
+          <div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '6px' }}>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#E8EAED' }}>{c.name}</div>
+              {c.symbol && <div style={{ fontSize: '11px', color: '#5A6470' }}>({c.symbol})</div>}
             </div>
-            <div style={{ fontSize: '11px', color: '#5A6470' }}>
-              Sector and symbol are looked up automatically, and the ledger is seeded with sourced evidence — no unsourced valuation numbers.
-            </div>
-            {addCompanyError && <div style={{ fontSize: '12px', color: '#E5484D' }}>{addCompanyError}</div>}
-          </form>
-        )}
+            {c.sector && <div style={{ fontSize: '11px', color: '#5A6470', marginBottom: '10px' }}>{c.sector}</div>}
 
-        {/* Hero */}
-        <div style={{ marginBottom: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' }}>
-            <h1 className="display" style={{ fontSize: '26px', fontWeight: 600, margin: 0 }}>
-              {company.name}
-            </h1>
-            <span
-              className="mono"
-              style={{
-                fontSize: '12px',
-                color: '#8B95A1',
-                border: '1px solid #26303C',
-                borderRadius: '3px',
-                padding: '2px 6px',
-              }}
-            >
-              {company.symbol}
-            </span>
-            <span style={{ fontSize: '13px', color: '#8B95A1' }}>{company.sector}</span>
-          </div>
-
-        </div>
-
-        {/* CENTERED HERO-CARD VALUATION */}
-        {valuation ? (
-          <>
-            {/* Hero valuation card */}
-            <div
-              style={{
-                border: '1px solid #26303C',
-                borderRadius: '10px',
-                background: valuation.base_case !== null ? 'linear-gradient(180deg, rgba(212,169,74,0.06), transparent 65%)' : 'rgba(26,32,38,0.5)',
-                padding: '28px 32px 24px',
-                marginBottom: '8px',
-              }}
-            >
-              {valuation.base_case !== null ? (
-                <>
-                  <div style={{ textAlign: 'center', fontSize: '11px', letterSpacing: '0.14em', color: '#5A6470', marginBottom: '10px', textTransform: 'uppercase' }}>
-                    CURRENT VALUATION
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '52px', fontWeight: 700, color: '#C9A227', letterSpacing: '-0.02em', lineHeight: 1 }}>
-                      {fmtB(valuation.base_case)}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        letterSpacing: '0.06em',
-                        padding: '5px 10px',
-                        borderRadius: '5px',
-                        border: '1px solid rgba(74,222,128,0.35)',
-                        background: 'rgba(74,222,128,0.08)',
-                        color: '#4ADE80',
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      {valuation.confidence_score}/100 CONFIDENCE
-                    </span>
-                  </div>
-                  {company?.last_round_value && (
-                    <div style={{ textAlign: 'center', color: '#8B95A1', fontSize: '14px', marginBottom: '4px' }}>
-                      ${((valuation.base_case * 1000000000) / 1650000000).toFixed(2)} / share
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+              {/* Revenue bar */}
+              <div style={{ position: 'relative', height: '10px' }}>
+                {c.revenue !== null ? (
+                  <>
+                    <div style={{ position: 'absolute', left: 0, top: 0, width: `${revPct}%`, height: '100%', background: '#3b82f6', borderRadius: '0 3px 3px 0', minWidth: '2px' }} />
+                    <div style={{ position: 'absolute', left: `${revPct + 1}%`, top: '50%', transform: 'translateY(-50%)', fontSize: '10px', fontWeight: 600, color: '#E8EAED', whiteSpace: 'nowrap' }}>
+                      {fmtB(c.revenue)} revenue
                     </div>
-                  )}
-                  <div style={{ textAlign: 'center', color: '#5A6470', fontSize: '12px', marginTop: '10px' }}>
-                    AI fair value · formula-weighted ·{' '}
-                    <button
-                      onClick={() => setMethodologyOpen(!methodologyOpen)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#8A7038',
-                        textDecoration: 'underline',
-                        cursor: 'pointer',
-                        padding: 0,
-                        font: 'inherit',
-                        transition: 'color 0.15s',
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = '#C9A227')}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = '#8A7038')}
-                    >
-                      see methodology
-                    </button>
-                  </div>
-
-                  {/* Range bar */}
-                  <div style={{ margin: '24px auto 4px', maxWidth: '620px' }}>
-                    <div style={{ position: 'relative', height: '8px', background: '#16161A', borderRadius: '4px', border: '1px solid #26303C' }}>
-                      {(() => {
-                        // Calculate marker position: (base - bear) / (bull - bear) as percentage
-                        const markerPosition = ((valuation.base_case - valuation.bear_case) / (valuation.bull_case - valuation.bear_case)) * 100;
-
-                        return (
-                          <>
-                            <div
-                              style={{
-                                position: 'absolute',
-                                top: '-1px',
-                                bottom: '-1px',
-                                left: '14%',
-                                right: '15%',
-                                background: 'linear-gradient(90deg, rgba(212,169,74,0.15), rgba(212,169,74,0.4), rgba(212,169,74,0.15))',
-                                borderRadius: '4px',
-                              }}
-                            />
-                            <div
-                              style={{
-                                position: 'absolute',
-                                top: '-5px',
-                                left: `${markerPosition}%`,
-                                width: '3px',
-                                height: '18px',
-                                background: '#C9A227',
-                                borderRadius: '2px',
-                              }}
-                            />
-                          </>
-                        );
-                      })()}
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginTop: '10px' }}>
-                      <span style={{ color: '#B5BDC6' }}>Bear {fmtB(valuation.bear_case)}</span>
-                      <span style={{ color: '#C9A227', fontWeight: 700, textAlign: 'center', flex: 1 }}>Base {fmtB(valuation.base_case)}</span>
-                      <span style={{ color: '#B5BDC6' }}>Bull {fmtB(valuation.bull_case)}</span>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                  <div style={{ fontSize: '14px', color: '#8B95A1', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                    Insufficient Evidence
-                  </div>
-                  <div style={{ fontSize: '14px', color: '#5A6470', lineHeight: 1.6, maxWidth: '500px', margin: '0 auto' }}>
-                    {valuation.explanation || 'We need at least one confirmed funding round and supporting evidence to generate a fair-value estimate.'}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Disclaimer */}
-            <div style={{ textAlign: 'center', fontSize: '11px', color: '#5A6470', fontStyle: 'italic', margin: '16px 0 22px' }}>
-              Derived from crowdsourced evidence and AI inference. Not investment advice.{' '}
-              <button
-                onClick={() => setMethodologyOpen(!methodologyOpen)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#8A7038',
-                  textDecoration: 'underline',
-                  cursor: 'pointer',
-                  padding: 0,
-                  font: 'inherit',
-                  fontStyle: 'italic',
-                  transition: 'color 0.15s',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = '#C9A227')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = '#8A7038')}
-              >
-                See methodology
-              </button>
-            </div>
-
-            {/* Price Comparison Section - Marketplace Price Divergence
-                Only renders if company has a verified Nasdaq Private Market entry AND a real base case */}
-            {(() => {
-              const marketplacePrices = evidence
-                .filter((e) => e.category === 'Marketplace Price' && e.status === 'verified')
-                .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-
-              // Only show section if Nasdaq Private Market entry exists AND we have a real fair-value estimate
-              const hasNasdaqPM = marketplacePrices.some(e => e.source_label === 'Nasdaq Private Market');
-              const fairValue = valuation?.base_case;
-              if (!hasNasdaqPM || !fairValue) return null;
-              const now = new Date();
-
-              return (
-                <div
-                  style={{
-                    border: '1px solid #26303C',
-                    borderRadius: '8px',
-                    background: '#0E1319',
-                    padding: '18px 22px',
-                    marginBottom: '20px',
-                  }}
-                >
-                  <div style={{ fontSize: '11px', letterSpacing: '0.1em', color: '#5A6470', textTransform: 'uppercase', marginBottom: '12px', fontWeight: 700 }}>
-                    Price Comparison — Marketplace Divergence
-                  </div>
-
-                  {/* Fair Value Baseline */}
-                  {fairValue && (
-                    <div style={{ padding: '12px 14px', background: '#141C26', borderRadius: '6px', marginBottom: '12px', border: '1px solid #1F2833' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                        <span style={{ fontSize: '12px', color: '#8B95A1' }}>Our fair value estimate</span>
-                        <span style={{ fontSize: '16px', fontWeight: 600, color: '#C9A227' }}>
-                          ${((fairValue * 1000000000) / 1650000000).toFixed(2)}/share
-                        </span>
-                      </div>
-                      <div style={{ fontSize: '10px', color: '#5A6470' }}>
-                        Formula-weighted · Based on verified evidence
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Marketplace Prices */}
-                  <div style={{ display: 'grid', gap: '10px', marginBottom: '14px' }}>
-                    {marketplacePrices.map((price, i) => {
-                      const pricePerShare = parseFloat(price.value || '0');
-                      const delta = fairValue ? ((pricePerShare / ((fairValue * 1000000000) / 1650000000) - 1) * 100) : null;
-
-                      // Check staleness (>72 hours)
-                      const priceDate = new Date(price.date || '');
-                      const hoursSince = (now.getTime() - priceDate.getTime()) / (1000 * 60 * 60);
-                      const isStale = hoursSince > 72;
-
-                      // Extract methodology from description
-                      const methodologyMatch = price.description.match(/Methodology:\s*(.+?)(\.|$)/);
-                      const methodology = methodologyMatch ? methodologyMatch[1].trim() : 'Disclosed methodology available at source';
-
-                      return (
-                        <div
-                          key={i}
-                          style={{
-                            padding: '12px 14px',
-                            background: '#0B0F14',
-                            borderRadius: '6px',
-                            border: '1px solid #1F2833',
-                          }}
-                        >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ fontSize: '12px', fontWeight: 600, color: '#E8EAED', marginBottom: '3px' }}>
-                                {price.source_label}
-                              </div>
-                              <div style={{ fontSize: '10px', color: '#5A6470' }}>
-                                {price.date}
-                                {isStale && (
-                                  <span style={{ color: '#F5B942', marginLeft: '6px' }}>
-                                    • last verified {Math.floor(hoursSince / 24)}d ago, may be stale
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <div style={{ textAlign: 'right' }}>
-                              <div style={{ fontSize: '15px', fontWeight: 600, color: '#E8EAED' }}>
-                                ${pricePerShare.toFixed(2)}/share
-                              </div>
-                              {delta !== null && (
-                                <div style={{ fontSize: '10px', color: delta > 0 ? '#4ADE80' : '#E5484D' }}>
-                                  {delta > 0 ? '+' : ''}{delta.toFixed(1)}% vs our estimate
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          <div style={{ fontSize: '11px', color: '#8B95A1', lineHeight: 1.4, fontStyle: 'italic' }}>
-                            {methodology}
-                          </div>
-                          {price.citation_url && (
-                            <div style={{ marginTop: '6px' }}>
-                              <a
-                                href={price.citation_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={{ fontSize: '10px', color: '#8A7038', textDecoration: 'underline' }}
-                              >
-                                Source ↗
-                              </a>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Exclusion Transparency Note - First-Class Element */}
-                  <div
-                    style={{
-                      padding: '10px 14px',
-                      background: 'rgba(245, 185, 66, 0.08)',
-                      border: '1px solid rgba(245, 185, 66, 0.25)',
-                      borderRadius: '6px',
-                      fontSize: '11px',
-                      color: '#B5BDC6',
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    <strong style={{ color: '#F5B942' }}>Exclusion policy:</strong> Other sources found showing prices with no disclosed methodology were excluded from this comparison. Only sources that publicly explain how their price is calculated are included.
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* PRIORITY 1: "In one line" takeaway panel */}
-            {(() => {
-              const secondaryEv = evidence
-                .filter((e) => e.category === 'Secondary' && e.status === 'verified')
-                .sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
-              const formulaMeta =
-                company?.last_round_value && company?.last_round_date && secondaryEv
-                  ? calculateFormulaMetadata(company.last_round_value, company.last_round_date, secondaryEv)
-                  : null;
-
-              return (
-                <div
-                  style={{
-                    border: '1px solid rgba(201,162,39,0.3)',
-                    borderRadius: '8px',
-                    background: '#0E1319',
-                    padding: '16px 20px',
-                    marginTop: '14px',
-                    marginBottom: '20px',
-                  }}
-                >
-                  <div style={{ fontSize: '10px', letterSpacing: '0.1em', color: '#8A7038', textTransform: 'uppercase', marginBottom: '8px', fontWeight: 700 }}>
-                    In one line
-                  </div>
-                  <div style={{ fontSize: '13.5px', color: '#E8EAED', lineHeight: 1.6 }}>
-                    {formulaMeta ? (
-                      <>
-                        Anchored to the <b style={{ color: '#C9A227' }}>{fmtB(formulaMeta.primaryValue)} primary round</b> ({formulaMeta.primaryDate}) — a <b style={{ color: '#5AA9E6' }}>{fmtB(formulaMeta.secondaryValue)} secondary-market signal</b> exists but is {formulaMeta.secondaryWeight < 0.3 ? 'deliberately down-weighted' : formulaMeta.secondaryWeight > 0.6 ? 'heavily weighted' : 'moderately weighted'} because {formulaMeta.monthsSincePrimary < 6 ? 'the primary round is still fresh' : 'the primary round is getting stale'}. If a new primary round closes or the secondary market shifts, this number will move.
-                      </>
-                    ) : (
-                      <>
-                        Anchored to the <b style={{ color: '#C9A227' }}>{company?.last_round_value ? fmtB(company.last_round_value) : 'N/A'} primary round</b> ({company?.last_round_date || 'unknown date'}). No secondary market data available yet. If a new primary round closes, this number will move.
-                      </>
-                    )}
-                  </div>
-                  {formulaMeta && (
-                    <div
-                      style={{
-                        marginTop: '10px',
-                        paddingTop: '10px',
-                        borderTop: '1px solid #1F2833',
-                        fontSize: '12px',
-                        color: '#8B95A1',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        flexWrap: 'wrap',
-                      }}
-                    >
-                      <span
-                        style={{
-                          background: '#141C26',
-                          border: '1px solid #26303C',
-                          borderRadius: '4px',
-                          padding: '3px 8px',
-                          fontSize: '11px',
-                          color: '#C9A227',
-                        }}
-                      >
-                        {(formulaMeta.primaryWeight * 100).toFixed(0)}% primary ({fmtB(formulaMeta.primaryValue)})
-                      </span>
-                      <span style={{ color: '#5A6470' }}>+</span>
-                      <span
-                        style={{
-                          background: '#141C26',
-                          border: '1px solid #26303C',
-                          borderRadius: '4px',
-                          padding: '3px 8px',
-                          fontSize: '11px',
-                          color: '#5AA9E6',
-                        }}
-                      >
-                        {(formulaMeta.secondaryWeight * 100).toFixed(0)}% secondary ({fmtB(formulaMeta.secondaryValue)}, {(formulaMeta.illiquidityDiscount * 100).toFixed(0)}% discount)
-                      </span>
-                      <span style={{ color: '#5A6470' }}>= {fmtB(formulaMeta.baseCase)}</span>
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
-
-            {/* PRIORITY 2: Collapsed "Full methodology & key drivers" section */}
-            {methodologyOpen && (
-              <div style={{ border: '1px solid #1F2833', borderRadius: '6px', background: '#0E1319', padding: '14px', marginBottom: '20px' }}>
-                <div style={{ marginTop: '10px', display: 'grid', gap: '6px' }}>
-                  {(valuation.key_drivers || []).map((d, i) => (
-                    <div key={i} style={{ display: 'flex', gap: '6px', fontSize: '12px' }}>
-                      {d.impact === '+' ? (
-                        <TrendingUp size={13} color="#3FBF7F" style={{ flexShrink: 0, marginTop: '2px' }} />
-                      ) : (
-                        <TrendingDown size={13} color="#E5484D" style={{ flexShrink: 0, marginTop: '2px' }} />
-                      )}
-                      <div>
-                        <span style={{ fontWeight: 500 }}>{d.label}</span>
-                        <span style={{ color: '#8B95A1' }}> — {d.note}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div style={{ fontSize: '12px', color: '#B5BDC6', marginTop: '12px', lineHeight: 1.5, paddingTop: '10px', borderTop: '1px solid #1A222D' }}>
-                  {valuation.explanation}
-                </div>
-              </div>
-            )}
-          </>
-        ) : (
-          <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px', background: '#0E1319', marginBottom: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <h3 className="display" style={{ fontSize: '13px', fontWeight: 600, margin: 0 }}>
-                  AI valuation
-                </h3>
-                {company?.last_valuation_at && (
-                  <div style={{ fontSize: '11px', color: '#5A6470', marginTop: '4px' }}>
-                    Last updated: {formatRelativeTime(company.last_valuation_at)}
-                  </div>
+                  </>
+                ) : (
+                  <div style={{ fontSize: '10px', color: '#5A6470', fontStyle: 'italic' }}>Revenue not disclosed</div>
                 )}
               </div>
-              <button
-                onClick={runValuation}
-                disabled={loadingValuation}
-                style={{ ...primaryBtnStyle, opacity: loadingValuation ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: '6px' }}
-              >
-                {loadingValuation && <Loader2 size={12} className="spin" style={{ animation: 'spin 1s linear infinite' }} />}
-                Run analysis
-              </button>
-            </div>
-            {valuationError && <div style={{ fontSize: '12px', color: '#E5484D', marginTop: '8px' }}>{valuationError}</div>}
-            {!valuationError && (
-              <div style={{ fontSize: '12px', color: '#8B95A1', marginTop: '8px' }}>
-                Runs the verified evidence below through an AI analyst to produce an explainable fair-value range.
+
+              {/* Valuation bar */}
+              <div style={{ position: 'relative', height: '10px' }}>
+                {c.valuation !== null ? (
+                  <>
+                    <div style={{ position: 'absolute', left: 0, top: 0, width: `${valPct}%`, height: '100%', background: '#C9A227', borderRadius: '0 3px 3px 0', minWidth: '2px' }} />
+                    <div style={{ position: 'absolute', left: `${valPct + 1}%`, top: '50%', transform: 'translateY(-50%)', fontSize: '10px', fontWeight: 600, color: '#E8EAED', whiteSpace: 'nowrap' }}>
+                      {fmtB(c.valuation)} valuation
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ fontSize: '10px', color: '#5A6470', fontStyle: 'italic' }}>Valuation not disclosed</div>
+                )}
               </div>
-            )}
+            </div>
+          </div>
+
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: chipColor, background: chipBg, padding: '4px 10px', borderRadius: '999px', display: 'inline-block' }}>
+              {fmtMultiple(c.multiple)}
+            </div>
+            <div style={{ fontSize: '9px', color: '#5A6470', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Val / Rev</div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'center', color: '#8B95A1' }}>
+            {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+          </div>
+        </div>
+
+        {/* Expanded detail */}
+        {isExpanded && (
+          <div style={{ borderTop: '1px solid #26303C', padding: '0 14px' }}>
+            <CompanyDetail companyId={c.id} onRefreshNeeded={loadCompanies} />
           </div>
         )}
+      </div>
+    );
+  };
 
-        {/* Funding History Chart - Full width before the grid
-            WARNING: This chart has broken 3+ times from unrelated changes.
-            Critical filters: e.value && e.date prevent null values from breaking parseValuation().
-            Manual re-check required after any changes to evidence loading or this component. */}
-        {(() => {
-          const fundingRounds = evidence
-            .filter((e) => e.category === 'Funding' && e.value && e.date && e.status === 'verified')
-            .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  return (
+    <div style={{ fontFamily: 'Inter, sans-serif', background: '#0B0F14', minHeight: '100vh', color: '#E8EAED' }}>
+      <style>{`
+        .display { font-family: 'Space Grotesk', sans-serif; }
+        .overview-btn:hover { filter: brightness(1.15); }
+        .spin { animation: spin 1s linear infinite; }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
 
-          if (fundingRounds.length === 0) return null;
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 20px' }}>
+        <div style={{ marginBottom: '24px' }}>
+          <h1 className="display" style={{ fontSize: '28px', fontWeight: 600, margin: '0 0 8px', color: '#C9A227' }}>
+            LUMEN
+          </h1>
+          <div style={{ fontSize: '14px', color: '#8B95A1' }}>
+            {companies.length} companies · Revenue vs. Valuation on a shared scale
+          </div>
+        </div>
 
-          const parseValuation = (val: string | null): number => {
-            if (!val) return 0;
-            const parsed = parseSecondaryValue(val);
-            return parsed || 0;
-          };
+        {/* Controls */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '20px', alignItems: 'center' }}>
+          <div style={{ position: 'relative', flex: '1 1 240px' }}>
+            <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#5A6470' }} />
+            <input
+              type="text"
+              placeholder="Search companies or sectors…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '9px 12px 9px 36px',
+                background: '#15181b',
+                border: '1px solid #26303C',
+                borderRadius: '6px',
+                color: '#E8EAED',
+                fontSize: '13px',
+                outline: 'none',
+              }}
+            />
+          </div>
 
-          const maxValue = Math.max(...fundingRounds.map((r) => parseValuation(r.value)));
+          <select
+            value={sectorFilter}
+            onChange={(e) => setSectorFilter(e.target.value)}
+            style={{
+              padding: '9px 12px',
+              background: '#15181b',
+              border: '1px solid #26303C',
+              borderRadius: '6px',
+              color: '#E8EAED',
+              fontSize: '13px',
+              outline: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <option value="">All sectors</option>
+            {sectors.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
 
-          return (
-            <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px', background: '#0E1319', marginBottom: '20px' }}>
-              <h3 className="display" style={{ fontSize: '13px', fontWeight: 600, margin: '0 0 4px' }}>
-                Funding History
-              </h3>
-              <div style={{ fontSize: '11px', color: '#5A6470', marginBottom: '12px' }}>
-                Based on {fundingRounds.length} known funding round{fundingRounds.length > 1 ? 's' : ''}
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            style={{
+              padding: '9px 12px',
+              background: '#15181b',
+              border: '1px solid #26303C',
+              borderRadius: '6px',
+              color: '#E8EAED',
+              fontSize: '13px',
+              outline: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <option value="valuation-desc">Highest valuation</option>
+            <option value="valuation-asc">Lowest valuation</option>
+            <option value="multiple-desc">Highest multiple</option>
+            <option value="multiple-asc">Lowest multiple</option>
+            <option value="revenue-desc">Highest revenue</option>
+            <option value="revenue-asc">Lowest revenue</option>
+          </select>
+
+          <button
+            className="overview-btn"
+            onClick={() => setGroupBySector(!groupBySector)}
+            style={{
+              padding: '9px 14px',
+              background: groupBySector ? '#C9A227' : '#15181b',
+              color: groupBySector ? '#0B0F14' : '#E8EAED',
+              border: '1px solid #26303C',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            Group by sector
+          </button>
+
+          <button
+            className="overview-btn"
+            onClick={() => setShowAddForm(!showAddForm)}
+            style={{
+              padding: '9px 14px',
+              background: '#C9A227',
+              color: '#0B0F14',
+              border: 'none',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            + Add company
+          </button>
+        </div>
+
+        {/* Add company form */}
+        {showAddForm && (
+          <div style={{ background: '#15181b', border: '1px solid #26303C', borderRadius: '8px', padding: '16px', marginBottom: '20px' }}>
+            <form onSubmit={handleAddCompany}>
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#8B95A1', marginBottom: '6px' }}>
+                  Company Name *
+                </label>
+                <input
+                  type="text"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  placeholder="e.g. Mistral AI"
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    background: '#0B0F14',
+                    border: '1px solid #26303C',
+                    borderRadius: '6px',
+                    color: '#E8EAED',
+                    fontSize: '13px',
+                    outline: 'none',
+                  }}
+                />
               </div>
-              <div style={{ height: '140px', display: 'flex', alignItems: 'flex-end', gap: '10px', padding: '0 4px' }}>
-                {fundingRounds.map((round, i) => {
-                  const valuation = parseValuation(round.value);
-                  const height = (valuation / maxValue) * 100;
-                  const isAnchor = round.date === company?.last_round_date;
-
-                  return (
-                    <div
-                      key={i}
-                      style={{
-                        flex: 1,
-                        height: `${height}%`,
-                        background: isAnchor ? '#C9A227' : '#141C26',
-                        borderRadius: '3px 3px 0 0',
-                        position: 'relative',
-                        minHeight: '8px',
-                      }}
-                    >
-                      {isAnchor && (
-                        <span
-                          style={{
-                            position: 'absolute',
-                            top: '-28px',
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            fontSize: '8px',
-                            color: '#C9A227',
-                            whiteSpace: 'nowrap',
-                            fontWeight: 600,
-                          }}
-                        >
-                          ◆ anchor
-                        </span>
-                      )}
-                      <span
-                        style={{
-                          position: 'absolute',
-                          top: '-16px',
-                          left: '50%',
-                          transform: 'translateX(-50%)',
-                          fontSize: '9px',
-                          color: isAnchor ? '#C9A227' : '#5A6470',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        ${valuation.toFixed(1)}B
-                      </span>
-                    </div>
-                  );
-                })}
+              <div style={{ fontSize: '12px', color: '#8B95A1', marginBottom: '12px' }}>
+                This will trigger automatic research to find funding, revenue, and other evidence for this company.
               </div>
-            </div>
-          );
-        })()}
-
-        {/* Two-column grid: Evidence Ledger (left, 1.4fr) + Sidebar (right, 1fr) */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '20px', alignItems: 'start' }}>
-          {/* Left: evidence ledger */}
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-              <div>
-                <h2 className="display" style={{ fontSize: '15px', fontWeight: 600, margin: 0, letterSpacing: '0.02em' }}>
-                  Evidence ledger
-                </h2>
-                {company?.last_researched_at ? (
-                  <div style={{ fontSize: '11px', color: '#5A6470', marginTop: '4px' }}>
-                    Last updated: {formatRelativeTime(company.last_researched_at)}
-                  </div>
-                ) : evidence.length === 0 ? (
-                  <div style={{ fontSize: '11px', color: '#8B95A1', marginTop: '4px' }}>
-                    {researching ? 'Researching...' : 'Click "Research this company" to populate'}
-                  </div>
-                ) : null}
-              </div>
+              {addError && (
+                <div style={{ fontSize: '12px', color: '#ef4444', marginBottom: '12px' }}>{addError}</div>
+              )}
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button
-                  onClick={researchCompany}
-                  disabled={researching}
-                  className="lumen-btn"
-                  title="Search the web for recent developments and add them as pending evidence"
+                  type="submit"
+                  disabled={addingCompany}
+                  className="overview-btn"
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    background: 'transparent',
-                    border: '1px solid #26303C',
-                    color: '#B5BDC6',
-                    borderRadius: '4px',
-                    padding: '6px 10px',
-                    fontSize: '12px',
-                    cursor: researching ? 'default' : 'pointer',
-                    opacity: researching ? 0.6 : 1,
+                    padding: '8px 16px',
+                    background: '#C9A227',
+                    color: '#0B0F14',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: addingCompany ? 'not-allowed' : 'pointer',
+                    opacity: addingCompany ? 0.6 : 1,
                   }}
                 >
-                  {researching && <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />}
-                  {researching ? 'Researching…' : 'Research this company'}
+                  {addingCompany ? 'Adding…' : 'Add company'}
                 </button>
                 <button
-                  onClick={() => setShowAddForm((s) => !s)}
-                  className="lumen-btn"
+                  type="button"
+                  onClick={() => {
+                    setShowAddForm(false);
+                    setAddError('');
+                    setCompanyName('');
+                  }}
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    background: '#141C26',
+                    padding: '8px 16px',
+                    background: 'transparent',
+                    color: '#8B95A1',
                     border: '1px solid #26303C',
-                    color: '#E8EAED',
-                    borderRadius: '4px',
-                    padding: '6px 10px',
-                    fontSize: '12px',
+                    borderRadius: '6px',
+                    fontSize: '13px',
                     cursor: 'pointer',
                   }}
                 >
-                  <Plus size={13} /> Add evidence
+                  Cancel
                 </button>
               </div>
-            </div>
-            <div style={{ fontSize: '11px', color: '#5A6470', marginBottom: '10px' }}>
-              {loadingDetail ? 'Loading ledger…' : 'Evidence and valuations here are shared with everyone using this ledger.'}
-            </div>
-            {researchError && (
-              <div style={{ fontSize: '11px', color: '#E5484D', marginBottom: '10px' }}>{researchError}</div>
-            )}
+            </form>
+          </div>
+        )}
 
-            {showAddForm && (
-              <form
-                onSubmit={submitEvidence}
+        {/* Pinned companies panel */}
+        {pinned.length > 0 && (
+          <div style={{ background: '#15181b', border: '1px solid #26303C', borderRadius: '8px', padding: '16px', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: '#E8EAED' }}>
+                Comparing {pinned.length} compan{pinned.length === 1 ? 'y' : 'ies'}
+              </div>
+              <button
+                onClick={clearPins}
                 style={{
-                  background: '#101620',
-                  border: '1px solid #26303C',
-                  borderRadius: '6px',
-                  padding: '14px',
-                  marginBottom: '14px',
-                  display: 'grid',
-                  gap: '8px',
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#8B95A1',
+                  fontSize: '12px',
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
                 }}
               >
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                  <Field label="Category">
-                    <select value={form.category} onChange={(e) => updateForm('category', e.target.value)} style={selectStyle}>
-                      {CATEGORIES.map((c) => (
-                        <option key={c} value={c}>
-                          {c}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
-                  <Field label="Value (optional)">
-                    <input
-                      value={form.value}
-                      onChange={(e) => updateForm('value', e.target.value)}
-                      placeholder="e.g. $50M ARR"
-                      style={inputStyle}
-                    />
-                  </Field>
-                </div>
-                <Field label="Description">
-                  <textarea
-                    value={form.description}
-                    onChange={(e) => updateForm('description', e.target.value)}
-                    placeholder="What did you learn, and where from?"
-                    rows={2}
-                    style={{ ...inputStyle, resize: 'vertical' }}
-                  />
-                </Field>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-                  <Field label="Source type">
-                    <select value={form.sourceType} onChange={(e) => updateForm('sourceType', e.target.value)} style={selectStyle}>
-                      {MANUAL_SOURCE_TYPES.map((s) => (
-                        <option key={s} value={s}>
-                          {s}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
-                  <Field label="Source label">
-                    <input
-                      value={form.sourceLabel}
-                      onChange={(e) => updateForm('sourceLabel', e.target.value)}
-                      placeholder="e.g. Bloomberg article"
-                      style={inputStyle}
-                    />
-                  </Field>
-                  <Field label="Date">
-                    <input type="date" value={form.date} onChange={(e) => updateForm('date', e.target.value)} style={inputStyle} />
-                  </Field>
-                </div>
-                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
-                  <span className="mono" style={{ fontSize: '11px', color: '#8B95A1', alignSelf: 'center', marginRight: 'auto' }}>
-                    Assigned confidence: {CONFIDENCE_MAP[form.sourceType]}/100
-                  </span>
-                  <button type="submit" disabled={submitting} style={{ ...primaryBtnStyle, opacity: submitting ? 0.6 : 1 }}>
-                    {submitting ? 'Submitting…' : 'Submit for review'}
-                  </button>
-                </div>
-              </form>
-            )}
-
-            <div style={{ border: '1px solid #1F2833', borderRadius: '6px', overflow: 'hidden' }}>
-              {sortedEvidence.length === 0 && (
-                <div style={{ padding: '20px', fontSize: '13px', color: '#8B95A1' }}>No evidence yet.</div>
-              )}
-              {sortedEvidence.map((ev) => {
-                const conf = CONFIDENCE_MAP[ev.source_type] ?? 50;
-
-                // PRIORITY 3: Determine if this is the anchor or used in formula
-                const isAnchor = ev.category === 'Funding' && ev.date === company?.last_round_date && ev.status === 'verified';
-                const secondaryEv = evidence
-                  .filter((e) => e.category === 'Secondary' && e.status === 'verified')
-                  .sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
-                const formulaMeta =
-                  company?.last_round_value && company?.last_round_date && secondaryEv
-                    ? calculateFormulaMetadata(company.last_round_value, company.last_round_date, secondaryEv)
-                    : null;
-                const isUsedInFormula = formulaMeta && ev.category === 'Secondary' && ev.id === secondaryEv?.id;
-
-                return (
-                  <div
-                    key={ev.id}
-                    className="ev-row"
-                    style={{
-                      display: 'flex',
-                      gap: '10px',
-                      padding: '10px 12px',
-                      borderTop: '1px solid #1A222D',
-                      opacity: ev.status === 'rejected' ? 0.5 : 1,
-                      position: 'relative',
-                      boxShadow: isAnchor ? '0 0 0 1px rgba(201,162,39,0.25)' : 'none',
-                    }}
-                  >
-                    {isAnchor && (
-                      <span
-                        style={{
-                          position: 'absolute',
-                          top: '-8px',
-                          right: '12px',
-                          fontSize: '8px',
-                          background: '#C9A227',
-                          color: '#1A1608',
-                          padding: '2px 7px',
-                          borderRadius: '3px',
-                          fontWeight: 700,
-                          letterSpacing: '0.03em',
-                        }}
-                      >
-                        ◆ ANCHOR
-                      </span>
-                    )}
-                    <div
-                      title={`Confidence ${conf}/100`}
-                      style={{
-                        width: '4px',
-                        borderRadius: '2px',
-                        background: '#1A222D',
-                        alignSelf: 'stretch',
-                        position: 'relative',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <div
-                        style={{
-                          position: 'absolute',
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          height: `${conf}%`,
-                          background: confidenceColor(conf),
-                          borderRadius: '2px',
-                        }}
-                      />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <span
-                          className="mono"
-                          style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#C9A227' }}
-                        >
-                          {ev.category}
-                        </span>
-                        {ev.status === 'verified' && (
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '3px', color: '#3FBF7F', fontSize: '11px' }}>
-                            <CheckCircle2 size={11} /> verified
-                          </span>
-                        )}
-                        {ev.status === 'pending' && (
-                          <span style={{ fontSize: '11px', color: '#8B95A1' }}>
-                            pending · {(ev.verified_by || []).length}/{confirmationsNeededFor(ev.contributor)} confirmations
-                          </span>
-                        )}
-                        {ev.status === 'disputed' && (
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '3px', color: '#E5484D', fontSize: '11px' }}>
-                            <Flag size={11} /> disputed
-                          </span>
-                        )}
-                        {ev.status === 'rejected' && (
-                          <span style={{ fontSize: '11px', color: '#5A6470' }}>removed after dispute</span>
-                        )}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: '13px',
-                          marginTop: '2px',
-                          color: ev.status === 'rejected' ? '#5A6470' : 'inherit',
-                          textDecoration: ev.status === 'rejected' ? 'line-through' : 'none',
-                        }}
-                      >
-                        {ev.description}
-                        {ev.value && (
-                          <span className="mono" style={{ color: ev.status === 'rejected' ? '#5A6470' : '#C9A227', marginLeft: '6px' }}>
-                            {ev.value}
-                          </span>
-                        )}
-                      </div>
-                      {ev.status === 'disputed' && ev.dispute_note && (
-                        <div style={{ fontSize: '12px', color: '#E5A34D', marginTop: '3px' }}>{ev.dispute_note}</div>
-                      )}
-                      <div className="mono" style={{ fontSize: '11px', color: '#5A6470', marginTop: '3px' }}>
-                        {ev.source_type} · {ev.source_label} · {ev.date} · by {ev.contributor}
-                      </div>
-                      {/* PRIORITY 3: Show contribution note for anchor and formula-used evidence */}
-                      {isAnchor && formulaMeta && (
-                        <div
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            marginTop: '6px',
-                            fontSize: '9px',
-                            color: '#8A7038',
-                            background: 'rgba(201,162,39,0.08)',
-                            border: '1px solid rgba(201,162,39,0.25)',
-                            padding: '3px 7px',
-                            borderRadius: '4px',
-                          }}
-                        >
-                          {(formulaMeta.primaryWeight * 100).toFixed(0)}% of base case →
-                        </div>
-                      )}
-                      {isUsedInFormula && formulaMeta && (
-                        <div
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            marginTop: '6px',
-                            fontSize: '9px',
-                            color: '#5AA9E6',
-                            background: 'rgba(90,169,230,0.08)',
-                            border: '1px solid rgba(90,169,230,0.25)',
-                            padding: '3px 7px',
-                            borderRadius: '4px',
-                          }}
-                        >
-                          {(formulaMeta.secondaryWeight * 100).toFixed(0)}% of base case, {(formulaMeta.illiquidityDiscount * 100).toFixed(0)}% illiquidity discount applied →
-                        </div>
-                      )}
-                      {disputingId === ev.id ? (
-                        <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
-                          <input
-                            autoFocus
-                            value={disputeNoteDraft}
-                            onChange={(e) => setDisputeNoteDraft(e.target.value)}
-                            placeholder="Why is this wrong? Cite a newer source."
-                            style={{ ...inputStyle, flex: 1, fontSize: '12px' }}
-                          />
-                          <button onClick={() => submitDispute(ev.id)} style={{ ...primaryBtnStyle, padding: '5px 10px' }}>
-                            Flag
-                          </button>
-                          <button
-                            onClick={() => setDisputingId(null)}
-                            style={{ background: 'none', border: 'none', color: '#8B95A1', cursor: 'pointer' }}
-                          >
-                            <X size={14} />
-                          </button>
-                        </div>
-                      ) : (
-                        <div style={{ display: 'flex', gap: '12px', marginTop: '4px', flexWrap: 'wrap' }}>
-                          {ev.status === 'pending' && (
-                            <button
-                              onClick={() => confirmEvidence(ev.id)}
-                              disabled={ev.contributor === contributor || (ev.verified_by || []).includes(contributor)}
-                              title={ev.contributor === contributor ? "You can't confirm your own submission" : undefined}
-                              style={{
-                                background: 'none',
-                                border: 'none',
-                                color:
-                                  ev.contributor === contributor || (ev.verified_by || []).includes(contributor)
-                                    ? '#3A4048'
-                                    : '#3FBF7F',
-                                fontSize: '11px',
-                                cursor: ev.contributor === contributor ? 'not-allowed' : 'pointer',
-                                padding: 0,
-                              }}
-                            >
-                              {(ev.verified_by || []).includes(contributor) ? 'You confirmed this' : 'Confirm this'}
-                            </button>
-                          )}
-                          {ev.status === 'disputed' && (
-                            <>
-                              <button
-                                onClick={() => resolveDispute(ev.id, 'dismiss')}
-                                style={{ background: 'none', border: 'none', color: '#3FBF7F', fontSize: '11px', cursor: 'pointer', padding: 0 }}
-                              >
-                                Dismiss dispute
-                              </button>
-                              <button
-                                onClick={() => resolveDispute(ev.id, 'uphold')}
-                                style={{ background: 'none', border: 'none', color: '#E5484D', fontSize: '11px', cursor: 'pointer', padding: 0 }}
-                              >
-                                Uphold dispute
-                              </button>
-                            </>
-                          )}
-                          {(ev.status === 'pending' || ev.status === 'verified') && (
-                            <button
-                              onClick={() => openDispute(ev.id)}
-                              style={{ background: 'none', border: 'none', color: '#5A6470', fontSize: '11px', cursor: 'pointer', padding: 0 }}
-                            >
-                              Dispute this
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+                Clear all
+              </button>
+            </div>
+            <div style={{ fontSize: '11px', color: '#8B95A1', marginBottom: '12px' }}>
+              Pin up to 4 companies to compare side-by-side
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
+              {pinned.map((c) => (
+                <CompanyRow key={c.id} c={c} showPin={false} />
+              ))}
             </div>
           </div>
+        )}
 
-          {/* Right column: Comparables + Contributors */}
-          <div style={{ display: 'grid', gap: '16px' }}>
-            {/* Comparable companies */}
-            <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 className="display" style={{ fontSize: '13px', fontWeight: 600, margin: 0 }}>
-                  Comparable companies
-                </h3>
-                <button
-                  onClick={findCompsForCompany}
-                  disabled={loadingComps}
-                  style={{ ...primaryBtnStyle, opacity: loadingComps ? 0.6 : 1, display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                  {loadingComps && <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />}
-                  {comps ? 'Re-run' : 'Find comps'}
-                </button>
-              </div>
-
-              {loadingComps && !comps && (
-                <div style={{ fontSize: '12px', color: '#8B95A1', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> Finding comparable public companies…
-                </div>
-              )}
-
-              {compsError && <div style={{ fontSize: '12px', color: '#E5484D', marginTop: '8px' }}>{compsError}</div>}
-
-              {!comps && !loadingComps && !compsError && (
-                <div style={{ fontSize: '12px', color: '#8B95A1', marginTop: '8px' }}>
-                  Applies real public comps&apos; current revenue multiples to this company&apos;s own confirmed revenue, sourced and cited.
-                </div>
-              )}
-
-              {comps && (
-                <div style={{ marginTop: '12px' }}>
-                  <div className="mono" style={{ fontSize: '11px', color: '#5A6470', marginBottom: '8px' }}>
-                    Revenue: {fmtB(comps.revenueBillions)} — {comps.revenueSource.sourceLabel}, {comps.revenueSource.date}
-                  </div>
-                  {comps.revenueSource.isProjected && (
-                    <div style={{ fontSize: '11px', color: '#F5B942', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      ⚠️ Based on projected revenue — implied valuations may not reflect current multiples
-                    </div>
-                  )}
-                  {(comps.ownMultiples.lastRound !== null || comps.ownMultiples.aiFairValue !== null) && (
-                    <div style={{ fontSize: '12px', color: '#8B95A1', marginBottom: '10px' }}>
-                      {company?.name}&apos;s own multiple:{' '}
-                      {comps.ownMultiples.lastRound !== null && (
-                        <span style={{ color: '#E8EAED' }}>
-                          {comps.ownMultiples.lastRound.toFixed(1)}x last round
-                          {!comps.ownMultiples.lastRoundConfirmed && ' (unconfirmed)'}
-                        </span>
-                      )}
-                      {comps.ownMultiples.lastRound !== null && comps.ownMultiples.aiFairValue !== null && ' · '}
-                      {comps.ownMultiples.aiFairValue !== null && (
-                        <span style={{ color: '#E8EAED' }}>{comps.ownMultiples.aiFairValue.toFixed(1)}x AI fair value</span>
-                      )}
-                    </div>
-                  )}
-                  <div style={{ display: 'grid', gap: '6px' }}>
-                    {comps.comps.map((c, i) => (
-                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: '12px' }}>
-                        <span>
-                          {c.name}
-                          {c.ticker && (
-                            <span className="mono" style={{ color: '#5A6470' }}>
-                              {' '}
-                              ({c.ticker})
-                            </span>
-                          )}
-                          <span style={{ color: '#5A6470' }}> · {c.multiple.toFixed(1)}x</span>
-                        </span>
-                        <span className="mono" style={{ color: '#C9A227', fontWeight: 500 }}>
-                          {fmtB(c.impliedValuation)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  <div style={{ fontSize: '11px', color: '#5A6470', marginTop: '8px' }}>
-                    Implied range: {fmtB(Math.min(...comps.comps.map((c) => c.impliedValuation)))} –{' '}
-                    {fmtB(Math.max(...comps.comps.map((c) => c.impliedValuation)))}
+        {/* Company list */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {groupBySector && grouped ? (
+            grouped.map((group) => (
+              <div key={group.sector}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', padding: '12px 4px 8px', borderBottom: '1px solid #26303C', marginBottom: '8px' }}>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#E8EAED' }}>{group.sector}</div>
+                  <div style={{ fontSize: '11px', color: '#8B95A1' }}>
+                    {group.companies.length} compan{group.companies.length === 1 ? 'y' : 'ies'} · {fmtB(group.totalValuation)} combined · {fmtMultiple(group.medianMultiple)} median multiple
                   </div>
                 </div>
-              )}
-            </div>
-
-
-            {/* Contributors */}
-            <div style={{ border: '1px solid #1F2833', borderRadius: '6px', padding: '14px' }}>
-              <h3 className="display" style={{ fontSize: '13px', fontWeight: 600, margin: '0 0 10px' }}>
-                Top contributors
-              </h3>
-              {contributors.length === 0 ? (
-                <div style={{ fontSize: '12px', color: '#8B95A1' }}>No contributions yet.</div>
-              ) : (
-                <div style={{ display: 'grid', gap: '8px' }}>
-                  {contributors.map((c) => (
-                    <div key={c.name} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        {(c.accuracy ?? 0) >= 90 && <ShieldCheck size={12} color="#C9A227" />}
-                        {c.name}
-                      </span>
-                      <span className="mono" style={{ color: (c.accuracy ?? 0) >= 90 ? '#3FBF7F' : '#8B95A1' }}>
-                        {c.accuracy === null ? 'new' : `${c.accuracy}%`} · {c.total}
-                      </span>
-                    </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
+                  {group.companies.map((c) => (
+                    <CompanyRow key={c.id} c={c} />
                   ))}
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
+            ))
+          ) : (
+            filtered.map((c) => <CompanyRow key={c.id} c={c} />)
+          )}
         </div>
-      </div>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-    </div>
-  );
-}
 
-function ValueCell({ label, sub, value, accent }: { label: string; sub: string; value: string; accent?: boolean }) {
-  return (
-    <div style={{ background: accent ? '#141405' : '#0E1319', padding: '14px 16px' }}>
-      <div style={{ fontSize: '11px', color: '#8B95A1', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
-      <div className="mono" style={{ fontSize: '22px', fontWeight: 500, color: accent ? '#C9A227' : '#E8EAED', marginTop: '2px' }}>
-        {value}
-      </div>
-      <div style={{ fontSize: '11px', color: '#5A6470', marginTop: '2px' }}>{sub}</div>
-    </div>
-  );
-}
-
-function CaseCell({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
-  return (
-    <div
-      style={{
-        padding: '8px 4px',
-        borderRadius: '4px',
-        background: highlight ? '#1A1608' : 'transparent',
-        border: highlight ? '1px solid #3A2F0E' : '1px solid #1F2833',
-      }}
-    >
-      <div style={{ fontSize: '10px', color: '#8B95A1', textTransform: 'uppercase' }}>{label}</div>
-      <div className="mono" style={{ fontSize: '16px', fontWeight: 500, color: highlight ? '#C9A227' : '#E8EAED' }}>
-        {fmtB(value)}
+        {filtered.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '40px 20px', color: '#5A6470', fontSize: '14px' }}>
+            No companies match your search.
+          </div>
+        )}
       </div>
     </div>
   );
 }
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label style={{ display: 'grid', gap: '3px', fontSize: '11px', color: '#8B95A1' }}>
-      {label}
-      {children}
-    </label>
-  );
-}
-
-const inputStyle: React.CSSProperties = {
-  background: '#0B0F14',
-  border: '1px solid #26303C',
-  borderRadius: '4px',
-  color: '#E8EAED',
-  padding: '6px 8px',
-  fontSize: '13px',
-  fontFamily: 'Inter, sans-serif',
-};
-
-const selectStyle: React.CSSProperties = { ...inputStyle };
-
-const primaryBtnStyle: React.CSSProperties = {
-  background: '#C9A227',
-  color: '#1A1608',
-  border: 'none',
-  borderRadius: '4px',
-  padding: '6px 12px',
-  fontSize: '12px',
-  fontWeight: 600,
-  cursor: 'pointer',
-};
